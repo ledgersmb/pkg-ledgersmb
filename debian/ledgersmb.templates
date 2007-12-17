@@ -1,0 +1,13 @@
+Template: ledgersmb/access-note
+Type: note
+Description: LedgerSMB loaded
+ LedgerSMB can be accessed at http://127.0.0.1/ledgersmb
+
+Template: ledgersmb/upgrade-note
+Type: note
+Description: Upgrade warning
+ If upgrading from LedgerSMB < 1.2.0-beta1 or from SQL-Ledger, read 
+ /usr/share/doc/ledgersmb/UPGRADE. The config format, locale names, 
+ database schema, and per-user configuration locations have been 
+ sufficiently changed with 1.2.0-beta1 so as to require special attention 
+ in upgrading.
