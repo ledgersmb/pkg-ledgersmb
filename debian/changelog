@@ -1,3 +1,9 @@
+ledgersmb (1.2.10) unstable; urgency=low
+
+  * New upstream release
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Thu, 27 Dec 2007 14:10:32 -0500
+
 ledgersmb (1.2.5-2) unstable; urgency=low
 
   * Adding 1.2.5 hotfixes
