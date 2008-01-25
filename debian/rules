@@ -59,6 +59,8 @@ install: build
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/ledgersmb
 	chown www-data:www-data $(CURDIR)/debian/ledgersmb/etc/ledgersmb/*
 	chmod 0600 $(CURDIR)/debian/ledgersmb/etc/ledgersmb/*
+	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/upgrade-templates.pl
+	chmod -x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/favicon.ico
 	cp debian/README.Ubuntu $(CURDIR)/debian/ledgersmb/usr/share/doc/ledgersmb
 
 
