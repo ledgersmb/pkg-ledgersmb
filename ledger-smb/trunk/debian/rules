@@ -15,24 +15,12 @@ DESTDIR = $(CURDIR)/debian/ledgersmb
 INSTALL = install
 
 
-configure: configure-stamp
-configure-stamp: patch-stamp
-	dh_testdir
-	# Add here commands to configure the package.
-
-	touch configure-stamp
-
-
 build: build-stamp
 
-build-stamp: configure-stamp 
+build-stamp:
 	dh_testdir
 
-	# Add here commands to compile the package.
-	$(MAKE)
-	#docbook-to-man debian/ledgersmb.sgml > ledgersmb.1
-
-	touch $@
+	touch build-stamp
 
 clean: unpatch
 	dh_testdir
@@ -86,4 +74,4 @@ binary-arch: build install
 # We have nothing to do by default.
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+.PHONY: build clean binary-indep binary-arch binary install
