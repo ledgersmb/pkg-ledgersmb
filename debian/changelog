@@ -1,7 +1,7 @@
 ledgersmb (1.2.13-1) unstable; urgency=low
 
   * New upstream release
-
+  * Upstream got rid of makefiles, so added the rules that are now needed to the rules file
  -- Elizabeth Bevilacqua <lyz@princessleia.com>  Tue, 18 Mar 2008 12:11:09 +0000
 
 ledgersmb (1.2.5-2) unstable; urgency=low

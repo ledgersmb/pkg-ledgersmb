@@ -5,6 +5,7 @@ Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian
 Uploaders: Elizabeth Bevilacqua <lyz@princessleia.com>, 
   Seneca Cunningham <tetragon@ledgersmb.org>, 
   Michael C. Schultheiss <schultmc@debian.org>
+  Darren Blaber <dmbtech@gmail.com>
 Build-Depends: debhelper (>= 5), dpatch
 Standards-Version: 3.7.3
 Homepage: http://www.ledgersmb.org/
