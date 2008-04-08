@@ -140,7 +140,7 @@ diff -Naur ledgersmb/Makefile ledgersmb-1.1.99beta1-new/Makefile
 @@ -0,0 +1,36 @@
 +PACKAGE = ledgersmb
 +
-+SUBDIRS = bin doc drivers LedgerSMB locale sql templates css contrib utils
++SUBDIRS = bin doc drivers LedgerSMB locale sql css contrib utils
 +
 +LIB_FILES = favicon.ico login.pl menu.ini \
 +	    ledgersmb.conf.default VERSION index.html \
@@ -169,9 +169,9 @@ diff -Naur ledgersmb/Makefile ledgersmb-1.1.99beta1-new/Makefile
 +
 +	mkdir -p $(DESTDIR)/var/lib/ledgersmb/images
 +	mkdir -p $(DESTDIR)/var/lib/ledgersmb/images/demo
-+	cp $(DESTDIR)/var/lib/ledgersmb/templates/demo/*.[^ht]* $(DESTDIR)/var/lib/ledgersmb/images
-+	cp $(DESTDIR)/var/lib/ledgersmb/templates/demo/*.[^ht]* $(DESTDIR)/var/lib/ledgersmb/images/demo
-+	chown -R www-data:www-data $(DESTDIR)/var/lib/ledgersmb/templates
++	cp $(DESTDIR)/etc/ledgersmb/templates/demo/*.[^ht]* $(DESTDIR)/var/lib/ledgersmb/images
++	cp $(DESTDIR)/etc/ledgersmb/templates/demo/*.[^ht]* $(DESTDIR)/var/lib/ledgersmb/images/demo
++	chown -R www-data:www-data $(DESTDIR)/etc/ledgersmb/templates
 +
 +clean:
 diff -Naur ledgersmb/sql/Makefile ledgersmb-1.1.99beta1-new/sql/Makefile
@@ -205,13 +205,13 @@ diff -Naur ledgersmb/templates/Makefile ledgersmb-1.1.99beta1-new/templates/Make
 +clean:
 +
 +install:
-+	mkdir -p $(DESTDIR)/var/lib/ledgersmb/templates
-+	cp -a $(FILES) $(DESTDIR)/var/lib/ledgersmb/templates
-+	cp -a demo $(DESTDIR)/var/lib/ledgersmb/templates
-+	chown -R www-data:www-data $(DESTDIR)/var/lib/ledgersmb/templates
-+	ln -sf /var/lib/ledgersmb/templates $(DESTDIR)/usr/share/ledgersmb/
-+	find $(DESTDIR)/var/lib/ledgersmb/templates -type f -exec chmod 644 '{}' \;
-+	find $(DESTDIR)/var/lib/ledgersmb/templates -type d -exec chmod 755 '{}' \;
++	mkdir -p $(DESTDIR)/etc/ledgersmb/templates
++	cp -a $(FILES) $(DESTDIR)/etc/ledgersmb/templates
++	cp -a demo $(DESTDIR)/etc/ledgersmb/templates
++	chown -R www-data:www-data $(DESTDIR)/etc/ledgersmb/templates
++	ln -sf /etc/ledgersmb/templates $(DESTDIR)/usr/share/ledgersmb/
++	find $(DESTDIR)/etc/ledgersmb/templates -type f -exec chmod 644 '{}' \;
++	find $(DESTDIR)/etc/ledgersmb/templates -type d -exec chmod 755 '{}' \;
 diff -Naur ledgersmb/utils/Makefile ledgersmb-1.1.99beta1-new/utils/Makefile
 --- ledgersmb/utils/Makefile	1969-12-31 19:00:00.000000000 -0500
 +++ ledgersmb-1.1.99beta1-new/utils/Makefile	2006-11-13 17:14:17.000000000 -0500

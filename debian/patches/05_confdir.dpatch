@@ -25,7 +25,7 @@ diff -Naur ledgersmb-1.2.3-new/LedgerSMB/Sysconfig.pm ledgersmb-1.2.3-dirty/Ledg
 +$userspath = "/var/lib/ledgersmb/users";
  
  # templates base directory
- $templates = "templates";
+ $templates = "/etc/ledgersmb/templates";
 @@ -46,7 +46,7 @@
  $backuppath = $tempdir;
  
