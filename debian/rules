@@ -9,12 +9,24 @@ DESTDIR = $(CURDIR)/debian/ledgersmb
 INSTALL = install
 
 
+configure: configure-stamp
+configure-stamp: patch-stamp
+	dh_testdir
+	# Add here commands to configure the package.
+
+	touch configure-stamp
+
+
 build: build-stamp
 
-build-stamp:
+build-stamp: configure-stamp
 	dh_testdir
 
-	touch build-stamp
+        # Add here commands to compile the package.
+	$(MAKE)
+        #docbook-to-man debian/ledgersmb.sgml > ledgersmb.1
+
+	touch $@
 
 clean: unpatch
 	dh_testdir
@@ -40,7 +52,7 @@ install: build
 	    ledgersmb.conf.default > ledgersmb.conf
 	
 
-	
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/ledgersmb
 	chown www-data:www-data $(CURDIR)/debian/ledgersmb/etc/ledgersmb/*
 	chmod 0600 $(CURDIR)/debian/ledgersmb/etc/ledgersmb/*
 	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/upgrade-templates.pl
