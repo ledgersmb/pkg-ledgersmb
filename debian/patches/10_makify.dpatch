@@ -142,7 +142,7 @@ diff -Naur ledgersmb/Makefile ledgersmb-1.1.99beta1-new/Makefile
 +
 +SUBDIRS = bin doc drivers LedgerSMB locale sql templates css contrib utils
 +
-+LIB_FILES = favicon.ico login.pl menu.ini \
++LIB_FILES = favicon.ico menu.ini \
 +	    ledgersmb.conf.default VERSION index.html \
 +	    ledger-smb.png ledger-smb.gif ledger-smb_small.png \
 +	    $(shell ls *.pl | grep -v -E '(pos\.conf)\.pl')
@@ -210,8 +210,8 @@ diff -Naur ledgersmb/templates/Makefile ledgersmb-1.1.99beta1-new/templates/Make
 +	cp -a demo $(DESTDIR)/etc/ledgersmb/templates
 +	chown -R www-data:www-data $(DESTDIR)/etc/ledgersmb/templates
 +	ln -sf /etc/ledgersmb/templates $(DESTDIR)/usr/share/ledgersmb/
-+	find $(DESTDIR)/etc/ledgersmb/templates -type f -exec chmod 644 '{}' \;
 +	find $(DESTDIR)/etc/ledgersmb/templates -type d -exec chmod 755 '{}' \;
++	find $(DESTDIR)/etc/ledgersmb/templates -type f -exec chmod 644 '{}' \;
 diff -Naur ledgersmb/utils/Makefile ledgersmb-1.1.99beta1-new/utils/Makefile
 --- ledgersmb/utils/Makefile	1969-12-31 19:00:00.000000000 -0500
 +++ ledgersmb-1.1.99beta1-new/utils/Makefile	2006-11-13 17:14:17.000000000 -0500

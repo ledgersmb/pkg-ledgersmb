@@ -1,3 +1,4 @@
 etc/ledgersmb
 usr/share/ledgersmb
+usr/share/lintian/overrides
 var/lib/ledgersmb
