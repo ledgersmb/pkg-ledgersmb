@@ -1,0 +1,34 @@
+Source: ledgersmb
+Section: web
+Priority: optional
+Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
+Uploaders: Elizabeth Bevilacqua <lyz@princessleia.com>, 
+  Seneca Cunningham <tetragon@ledgersmb.org>, 
+  Michael C. Schultheiss <schultmc@debian.org>
+  Darren Blaber <dmbtech@gmail.com>
+Build-Depends: debhelper (>= 5), dpatch
+Standards-Version: 3.7.3
+Homepage: http://www.ledgersmb.org/
+Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/trunk
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
+
+Package: ledgersmb
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl, libmime-lite-perl, liblocale-maketext-lexicon-perl (>= 0.56-1), libdbi-perl, libdbd-pg-perl, postgresql-client-8.1 | postgresql-client-8.2, apache2, libhtml-parser-perl
+Recommends: mail-transport-agent, texlive-latex-recommended | tetex-extra, lpr, libparse-recdescent-perl
+Suggests: postgresql-8.1 | postgresql-8.2, libnet-tclink-perl, latex-cjk-all
+Conflicts: ledger-smb
+Replaces: ledger-smb
+Description: A web based double-entry accounting program
+ LedgerSMB is a double-entry accounting system written
+ in perl. It has been tested with PostgreSQL, Apache,
+ Netscape, Mozilla, Galeon, Explorer, Links, Lynx,
+ Konqueror, Voyager, W3M and Opera clients on Linux,
+ FreeBSD, Solaris, Windows, Mac computers and PDA's.
+ .
+ Data is stored in a SQL database server, either locally or
+ remote, the display is through a text or GUI web browser.
+ The system is linked by a chart of accounts.  All transactions
+ for AR, AP and GL are stored in a transaction table. Hyper-links
+ from the chart of accounts let you view transactions posted
+ through AR, AP and GL.
