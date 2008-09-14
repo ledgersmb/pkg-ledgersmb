@@ -1,9 +1,14 @@
 ledgersmb (1.2.16-1) unstable; urgency=low
 
+  [ Roberto C. Sanchez ]
+  * Update to Standards-Version 3.8.0
+    + Add README.source
+
+  [ Elizabeth Bevilacqua ]
   * New upstream release
   * Edited README.Debian for better clarity
 
- -- Elizabeth Bevilacqua <lyz@princessleia.com>  Wed, 10 Sep 2008 02:52:06 +0000
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Sun, 14 Sep 2008 13:33:13 +0000
 
 ledgersmb (1.2.15-2) unstable; urgency=low
 
