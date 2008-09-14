@@ -43,7 +43,7 @@ To prepare LedgerSMB for use:
   Scroll down to the very bottom and check your database settings, they 
   will need to be changed.  Insert the password you used in step 1.
 
-  6) Edit /etc/postgresql/8.2/main/pg_hba.conf so that ledgersmb user may
+  6) Edit /etc/postgresql/8.x/main/pg_hba.conf so that ledgersmb user may
   connect. Depending on your security infrastructure you can use the METHOD
   md5 or trust.
 

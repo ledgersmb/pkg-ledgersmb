@@ -5,9 +5,8 @@ Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian
 Uploaders: Elizabeth Bevilacqua <lyz@princessleia.com>, 
   Seneca Cunningham <tetragon@ledgersmb.org>, 
   Michael C. Schultheiss <schultmc@debian.org>
-  Darren Blaber <dmbtech@gmail.com>
 Build-Depends: debhelper (>= 5), dpatch
-Standards-Version: 3.7.3
+Standards-Version: 3.8.0
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/trunk
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
