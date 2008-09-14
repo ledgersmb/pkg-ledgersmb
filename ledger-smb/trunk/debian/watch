@@ -7,6 +7,5 @@
 version=3
 
 # Uncomment to find new files on sourceforge, for debscripts >= 2.9
-http://sf.net/ledger-smb/ledgersmb-(.*)\.tar\.gz
-
+http://sf.net/ledger-smb/ledgersmb-([\d\.]+)\.tar\.gz
 
