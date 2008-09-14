@@ -7,8 +7,9 @@ ledgersmb (1.2.16-1) unstable; urgency=low
   [ Elizabeth Bevilacqua ]
   * New upstream release
   * Edited README.Debian for better clarity
+  * Strengthen permissions on ledgersmb.conf 
 
- -- Elizabeth Bevilacqua <lyz@princessleia.com>  Sun, 14 Sep 2008 13:33:13 +0000
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Sun, 14 Sep 2008 14:20:59 +0000
 
 ledgersmb (1.2.15-2) unstable; urgency=low
 
