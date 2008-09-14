@@ -172,6 +172,8 @@ diff -Naur ledgersmb/Makefile ledgersmb-1.1.99beta1-new/Makefile
 +	cp $(DESTDIR)/etc/ledgersmb/templates/demo/*.[^ht]* $(DESTDIR)/etc/ledgersmb/images
 +	cp $(DESTDIR)/etc/ledgersmb/templates/demo/*.[^ht]* $(DESTDIR)/etc/ledgersmb/images/demo
 +	chown -R www-data:www-data $(DESTDIR)/etc/ledgersmb/templates
++	chgrp www-data $(DESTDIR)/etc/ledgersmb/ledgersmb.conf
++	chmod 640 $(DESTDIR)/etc/ledgersmb/ledgersmb.conf
 +
 +clean:
 diff -Naur ledgersmb/sql/Makefile ledgersmb-1.1.99beta1-new/sql/Makefile
