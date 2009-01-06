@@ -2,7 +2,7 @@ Source: ledgersmb
 Section: web
 Priority: optional
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
-Uploaders: Elizabeth Krumbach <lyz@princessleia.com>, 
+Uploaders: Elizabeth Bevilacqua <lyz@princessleia.com>, 
   Seneca Cunningham <tetragon@ledgersmb.org>, 
   Michael C. Schultheiss <schultmc@debian.org>
 Build-Depends: debhelper (>= 5), dpatch
