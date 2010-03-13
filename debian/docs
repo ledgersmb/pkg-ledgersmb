@@ -11,3 +11,4 @@ doc/README
 doc/coding-standard.pdf
 doc/release_notes
 doc/faq.html
+debian/README.source

@@ -6,7 +6,7 @@ set up is required.
 
 To prepare LedgerSMB for use:
 
-  1) Create a database user for LedgerSMB authentication
+  1) As the postgres user, create a database user for LedgerSMB authentication
 
 	$ createuser --no-superuser --createdb --no-createrole \
 		-U postgres --pwprompt --encrypted ledgersmb
@@ -17,10 +17,6 @@ To prepare LedgerSMB for use:
   2) Create postgres database for ledgersmb
 
 	$ createdb -U ledgersmb -O ledgersmb -E UNICODE ledgersmb
-
-  Depending on the configuration of your daabase, you may need to edit 
-  /etc/postgresql/8.x/main/pg_hba.conf for the appropriate permissions.
-
         $ createlang plpgsql -U postgres ledgersmb
 
   3) Add databases for all datasets which you want to have available
@@ -47,7 +43,13 @@ To prepare LedgerSMB for use:
   Scroll down to the very bottom and check your database settings, they 
   will need to be changed.  Insert the password you used in step 1.
 
-  6) Configure apache2
+  6) Edit /etc/postgresql/8.x/main/pg_hba.conf so that ledgersmb user may
+  connect. Depending on your security infrastructure you can use the METHOD
+  md5 or trust.
+
+  Reload postgres so your changes take effect.
+
+  7) Configure apache2
 
    Check /etc/ledgersmb/ledgersmb-httpd.conf and see if it is what you want 
    - it will usually be fine just the way it is.
@@ -59,12 +61,12 @@ To prepare LedgerSMB for use:
    	$ cd /etc/apache2/conf.d/
 	$ ln -s ../../ledgersmb/ledgersmb-httpd.conf
 
-  7) Reload apache2
+  8) Reload apache2
 
 	$ /etc/init.d/apache2 reload
 
 At this point you can connect to http://127.0.0.1/ledgersmb/admin.pl and login
-with the password set in step 5.
+with the password set in step 4.
 
 If upgrading from LedgerSMB < 1.2.0-rc5, you need to edit 
 /etc/ledgersmb/ledgersmb.conf to adjust your configuration to match the new
@@ -75,4 +77,4 @@ config format, locale names, database schema, and per-user configuration
 locations have been sufficiently changed with 1.2.0-beta1 so as to require
 special attention in upgrading.
 
- -- Elizabeth Bevilacqua <lyz@princessleia.com>  Thu, 21 Aug 2008 22:30:46 -0500
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Tue, 9 Sept 2008 22:30:46 -0500

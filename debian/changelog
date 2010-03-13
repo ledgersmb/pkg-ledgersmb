@@ -1,3 +1,21 @@
+ledgersmb (1.2.17-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Thu, 20 Nov 2008 00:32:03 +0000
+
+ledgersmb (1.2.16-1) unstable; urgency=low
+
+  [ Roberto C. Sanchez ]
+  * Update to Standards-Version 3.8.0
+    + Add README.source
+
+  [ Elizabeth Bevilacqua ]
+  * New upstream release
+  * Edited README.Debian for better clarity
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Sun, 14 Sep 2008 14:27:08 +0000
+
 ledgersmb (1.2.15-2) unstable; urgency=low
 
   * Added postgres-8.3 to depends and suggests 
