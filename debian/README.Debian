@@ -11,8 +11,8 @@ To prepare LedgerSMB for use:
 	$ createuser --no-superuser --createdb --no-createrole \
 		-U postgres --pwprompt --encrypted ledgersmb
 
-  Here it will prompt twice for the new ledgersmb database 
-  user password, remember what you enter here for step 5.
+  Here it will prompt twice for the ledgersmb postgres user 
+  password, remember what you enter here for step 5.
 
   2) Create postgres database for ledgersmb
 
@@ -35,13 +35,14 @@ To prepare LedgerSMB for use:
 		/usr/share/ledgersmb/sql/Pg-central.sql 
 	$ psql -U ledgersmb -d ledgersmb
 
-        ledgersmb=> UPDATE users_conf SET password = md5('apassword') \
+        ledgersmb=> UPDATE users_conf SET password = md5('admin-password') \
 		WHERE id = 1;
 
   5) Edit /etc/ledgersmb/ledgersmb.conf
 
   Scroll down to the very bottom and check your database settings, they 
-  will need to be changed.  Insert the password you used in step 1.
+  will need to be changed.  Insert the ledgersmb postgres user password 
+  you used in step 1.
 
   6) Edit /etc/postgresql/8.x/main/pg_hba.conf so that ledgersmb user may
   connect. Depending on your security infrastructure you can use the METHOD
@@ -77,4 +78,4 @@ config format, locale names, database schema, and per-user configuration
 locations have been sufficiently changed with 1.2.0-beta1 so as to require
 special attention in upgrading.
 
- -- Elizabeth Bevilacqua <lyz@princessleia.com>  Tue, 9 Sept 2008 22:30:46 -0500
+ -- Elizabeth Krumbach <lyz@princessleia.com>  Tue, 6 Jan 2009 05:38:48 -0500
