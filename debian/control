@@ -14,9 +14,9 @@ Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
 
 Package: ledgersmb
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl, libmime-lite-perl, liblocale-maketext-lexicon-perl (>= 0.56-1), libdbi-perl, libdbd-pg-perl, postgresql-client-8.1 | postgresql-client-8.2, apache2, libhtml-parser-perl
+Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl, libmime-lite-perl, liblocale-maketext-lexicon-perl (>= 0.56-1), libdbi-perl, libdbd-pg-perl, postgresql-client-8.1 | postgresql-client-8.2 | postgresql-client-8.3, apache2, libhtml-parser-perl
 Recommends: mail-transport-agent, texlive-latex-recommended | tetex-extra, lpr, libparse-recdescent-perl
-Suggests: postgresql-8.1 | postgresql-8.2, libnet-tclink-perl, latex-cjk-all
+Suggests: postgresql-8.1 | postgresql-8.2 | postgresql-8.3, libnet-tclink-perl, latex-cjk-all
 Conflicts: ledger-smb
 Replaces: ledger-smb
 Description: A web based double-entry accounting program
