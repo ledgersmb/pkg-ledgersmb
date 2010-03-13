@@ -20,6 +20,8 @@ To prepare LedgerSMB for use:
   7) Restart PostgreSQL
   8) Change the connection settings in /etc/ledgersmb/ledgersmb.conf to match
      the settings for the LedgerSMB database
+  9) Configure apache2 using /etc/ledgersmb/ledgersmb-httpd.conf
+
 
 At this point you can connect to http://127.0.0.1/ledgersmb/admin.pl and login
 with the password set in step 5.
@@ -33,4 +35,4 @@ config format, locale names, database schema, and per-user configuration
 locations have been sufficiently changed with 1.2.0-beta1 so as to require
 special attention in upgrading.
 
- -- Seneca Cunningham <tetragon@ledgersmb.org>, Fri, 23 Mar 2007 14:23:53 -0500
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Fri, 15 Feb 2008 11:25:15 -0500
