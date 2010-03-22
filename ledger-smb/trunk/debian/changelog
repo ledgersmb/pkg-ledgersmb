@@ -1,9 +1,9 @@
-ledgersmb (1.2.21-1) UNRELEASED; urgency=low
+ledgersmb (1.2.21-1) unstable; urgency=low
 
   * New upstream release
   * Detailed the Debian packaging copyright in debian/copyright.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 20 Mar 2010 11:17:25 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 21 Mar 2010 21:16:00 -0400
 
 ledgersmb (1.2.20-1) unstable; urgency=low
 
