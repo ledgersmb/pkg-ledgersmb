@@ -1,0 +1,265 @@
+ledgersmb (1.2.24-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 28 Sep 2011 10:24:13 -0400
+
+ledgersmb (1.2.23-1) unstable; urgency=low
+
+  * New upstream release
+  * Cleanup newline issue in debian/links file.
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 28 Sep 2011 09:43:37 -0400
+
+ledgersmb (1.2.22-1) unstable; urgency=low
+
+  * New upstream release
+  * Add note to README.source about how the source archive is currently
+    being created.
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 28 Sep 2011 08:19:11 -0400
+
+ledgersmb (1.2.21-1) unstable; urgency=low
+
+  * New upstream release
+  * Detailed the Debian packaging copyright in debian/copyright.
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 21 Mar 2010 21:16:00 -0400
+
+ledgersmb (1.2.20-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 20 Feb 2010 11:40:38 -0500
+
+ledgersmb (1.2.19-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 13 Feb 2010 12:08:25 -0500
+
+ledgersmb (1.2.18-1) unstable; urgency=low
+
+  [ Robert James Clay ]
+  * Added index.html link to doc/ledgersmb/html_manual/LedgerSMB-manual.html 
+  * Added HTML format section to ledgersmb.doc-base
+
+  [ Elizabeth Krumbach ]
+  * New upstream release 
+
+ -- Elizabeth Krumbach <lyz@princessleia.com>  Mon, 06 Apr 2009 00:16:23 +0000
+
+ledgersmb (1.2.17-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Thu, 20 Nov 2008 00:32:03 +0000
+
+ledgersmb (1.2.16-1) unstable; urgency=low
+
+  [ Roberto C. Sanchez ]
+  * Update to Standards-Version 3.8.0
+    + Add README.source
+
+  [ Elizabeth Bevilacqua ]
+  * New upstream release
+  * Edited README.Debian for better clarity
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Sun, 14 Sep 2008 14:27:08 +0000
+
+ledgersmb (1.2.15-2) unstable; urgency=low
+
+  * Added postgres-8.3 to depends and suggests 
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Fri, 29 Aug 2008 02:19:03 +0000
+
+ledgersmb (1.2.15-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Tue, 26 Aug 2008 18:48:58 +0000
+
+ledgersmb (1.2.14-1) unstable; urgency=low
+
+  * New upstream release 
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Fri, 22 Aug 2008 02:16:15 +0000
+
+ledgersmb (1.2.13-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Elizabeth Bevilacqua <lyz@princessleia.com>  Tue, 08 Apr 2008 19:02:35 +0000
+
+ledgersmb (1.2.5-2) unstable; urgency=low
+
+  * Adding 1.2.5 hotfixes
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Mon, 28 May 2007 18:09:32 -0400
+
+ledgersmb (1.2.5-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Wed, 09 May 2007 14:00:32 -0400
+
+ledgersmb (1.2.4-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Fri, 04 May 2007 12:16:32 -0400
+
+ledgersmb (1.2.3-2) unstable; urgency=low
+
+  * Adding README.Ubuntu
+  * Changing package defaults to disabling LaTeX
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Thu, 19 Apr 2007 11:44:32 -0400
+
+ledgersmb (1.2.3-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Sun, 15 Apr 2007 23:27:32 -0400
+
+ledgersmb (1.2.2-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Wed, 11 Mar 2007 00:23:32 -0400
+
+ledgersmb (1.2.1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Mon, 09 Mar 2007 18:12:32 -0400
+
+ledgersmb (1.2.0-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Wed, 04 Mar 2007 00:00:32 -0400
+
+ledgersmb (1.1.99rc5.2-3) unstable; urgency=low
+
+  * Fix another packaging error
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Fri, 23 Mar 2007 15:01:22 -0500
+
+ledgersmb (1.1.99rc5.2-2) unstable; urgency=low
+
+  * Fix packaging error
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Fri, 23 Mar 2007 14:41:22 -0500
+
+ledgersmb (1.1.99rc5.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Renaming the package to match the first phase of upstream renaming
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Fri, 23 Mar 2007 14:26:22 -0500
+
+ledger-smb (1.1.99rc1-2) unstable; urgency=low
+
+  * Fixing PostgreSQL server dependencies
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Fri, 23 Feb 2006 22:46:22 -0500
+
+ledger-smb (1.1.99rc1-1) unstable; urgency=low
+
+  * New upstream version
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Fri, 23 Feb 2006 22:22:22 -0500
+
+ledger-smb (1.1.99beta4-1) unstable; urgency=low
+
+  * New upstream version
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Sun, 28 Jan 2006 14:01:57 -0500
+
+ledger-smb (1.1.99beta3-2) unstable; urgency=low
+
+  * Add updates to db upgrade script to work with current code
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Thu, 23 Nov 2006 13:02:13 -0500
+
+ledger-smb (1.1.99beta3-1) unstable; urgency=low
+
+  * New upstream version
+  * Removed image directory patch for more testing
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Thu, 23 Nov 2006 12:39:13 -0500
+
+ledger-smb (1.1.99beta2-6) unstable; urgency=low
+
+  * Fixing package LaTeX dependencies
+  * Fixing permissions in /var/lib/ledger-smb
+  * Fixing default configuration error
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Sat, 18 Nov 2006 21:39:13 -0500
+
+ledger-smb (1.1.99beta2-5) unstable; urgency=low
+
+  * Fixing image directory changes
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Sat, 18 Nov 2006 13:00:06 -0500
+
+ledger-smb (1.1.99beta2-4) unstable; urgency=low
+
+  * Add some upstream fixes
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Sat, 18 Nov 2006 12:46:22 -0500
+
+ledger-smb (1.1.99beta2-3) unstable; urgency=low
+
+  * Adjust required versions of perl and postgresql-client and sundry
+    packaging fixes
+  * Move template images to /var/lib/ledger-smb/images
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Sat, 18 Nov 2006 12:18:22 -0500
+
+ledger-smb (1.1.99beta2-2) unstable; urgency=low
+
+  * Adjust permissions of installed files
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Wed, 15 Nov 2006 17:28:22 -0500
+
+ledger-smb (1.1.99beta2-1) unstable; urgency=low
+
+  * Adding initial set up instructions to README.Debian
+  * New upstream version
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Wed, 15 Nov 2006 14:24:53 -0500
+
+ledger-smb (1.1.99beta1-5) unstable; urgency=low
+
+  * Fix templates directory location
+  * Increasing amount of included docs in /usr/share/doc/ledger-smb
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Mon, 13 Nov 2006 21:01:55 -0500
+
+ledger-smb (1.1.99beta1-4) unstable; urgency=low
+
+  * Fixing syntax in default config
+  * Adjusting post(inst|rm) to reload apache2
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Mon, 13 Nov 2006 19:34:59 -0500
+
+ledger-smb (1.1.99beta1-3) unstable; urgency=low
+
+  * Fixing package versions
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Mon, 13 Nov 2006 19:09:41 -0500
+
+ledger-smb (1.1.99beta1-2) unstable; urgency=low
+
+  * Fixing package versions
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Mon, 13 Nov 2006 19:05:48 -0500
+
+ledger-smb (1.1.99beta1-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Seneca Cunningham <tetragon@ledgersmb.org>  Mon, 13 Nov 2006 15:29:53 -0500
+
