@@ -1,8 +1,8 @@
-ledgersmb (1.2.24-1) unstable; urgency=low
+ledgersmb (1.2.24-1) UNRELEASED; urgency=low
 
   * New upstream release
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 28 Sep 2011 10:24:13 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 28 Sep 2011 11:26:23 -0400
 
 ledgersmb (1.2.23-1) unstable; urgency=low
 
