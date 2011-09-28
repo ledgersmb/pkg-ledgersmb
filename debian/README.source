@@ -1,3 +1,7 @@
+Note that the original source archive is created by exporting the
+relevant tagged version from the SVN repository and then creating
+the archive from that.
+
 This package uses dpatch to manage all modifications to the upstream
 source.  Changes are stored in the source package as diffs in
 debian/patches and applied during the build.
