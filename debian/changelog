@@ -1,8 +1,12 @@
-ledgersmb (1.2.24-1) UNRELEASED; urgency=low
+ledgersmb (1.2.24-1) unstable; urgency=low
 
   * New upstream release
+  * Updated the debian/patches/15_httpdconf.dpatch patch.
+  * Updated Depends line in debian/control:  added libconfig-any-perl,
+    changed libhtml-parser-perl to libhtml-linkextractor-perl, added
+    libdata-dumper-simple-perl.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 28 Sep 2011 11:26:23 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 01 Oct 2011 17:35:37 -0400
 
 ledgersmb (1.2.23-1) unstable; urgency=low
 
