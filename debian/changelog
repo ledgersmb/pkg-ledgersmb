@@ -1,3 +1,9 @@
+ledgersmb (1.2.25-1) UNRELEASED; urgency=low
+
+  * New upstream release, which includes corrections for sql injection issue.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 01 Oct 2011 17:54:55 -0400
+
 ledgersmb (1.2.24-1) unstable; urgency=low
 
   * New upstream release
