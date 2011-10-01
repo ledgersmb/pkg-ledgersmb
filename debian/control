@@ -14,7 +14,7 @@ Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
 
 Package: ledgersmb
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl, libconfig-any-perl, libmime-lite-perl, liblocale-maketext-lexicon-perl (>= 0.56-1), libdbi-perl, libdbd-pg-perl, postgresql-client-8.3 | postgresql-client-8.4, apache2, libhtml-linkextractor-perl
+Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl, libconfig-any-perl, libmime-lite-perl, liblocale-maketext-lexicon-perl (>= 0.56-1), libdbi-perl, libdbd-pg-perl, postgresql-client-8.3 | postgresql-client-8.4, apache2, libhtml-linkextractor-perl, libdata-dumper-simple-perl
 Recommends: mail-transport-agent, texlive-latex-recommended | tetex-extra, lpr, libparse-recdescent-perl
 Suggests: postgresql-8.3 | postgresql-8.4, libnet-tclink-perl, latex-cjk-all
 Conflicts: ledger-smb
