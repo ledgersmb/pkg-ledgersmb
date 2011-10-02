@@ -1,8 +1,9 @@
-ledgersmb (1.2.25-1) UNRELEASED; urgency=low
+ledgersmb (1.2.25-1~1) UNRELEASED; urgency=low
 
   * New upstream release, which includes corrections for sql injection issue.
+  * Use dh_lintian in debian/rules to install debian/ledgersmb.lintian-overrides.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 01 Oct 2011 17:54:55 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 01 Oct 2011 21:45:35 -0400
 
 ledgersmb (1.2.24-1) unstable; urgency=low
 
