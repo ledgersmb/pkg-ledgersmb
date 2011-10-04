@@ -1,9 +1,16 @@
 ledgersmb (1.2.25-1~1) UNRELEASED; urgency=low
 
   * New upstream release, which includes corrections for sql injection issue.
+  * Updated Standards-Version in debian/control to 3.9.1;  no changes required?
   * Use dh_lintian in debian/rules to install debian/ledgersmb.lintian-overrides.
+  * Updated copyright years as neccessary to include 2011 in debian/copyright.
+  * Updated debhelper compatibility to 7 and Build-Depends to 7.0.50.
+  * Use dpkg-statoverride to set /etc/ledgersmb/* permissions.
+  * Changing patching system from dpatch to quilt.
+  * Change 'dh_clean -k' to dh_prep in debian/rules.
+  * Switch to dpkg-source 3.0 (quilt) format.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 01 Oct 2011 21:45:35 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 04 Oct 2011 19:41:45 -0400
 
 ledgersmb (1.2.24-1) unstable; urgency=low
 
