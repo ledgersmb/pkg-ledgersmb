@@ -7,7 +7,7 @@ Uploaders: Elizabeth Krumbach <lyz@princessleia.com>,
   Michael C. Schultheiss <schultmc@debian.org>,
   Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 5), dpatch
-Standards-Version: 3.8.0
+Standards-Version: 3.9.1
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/trunk
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
