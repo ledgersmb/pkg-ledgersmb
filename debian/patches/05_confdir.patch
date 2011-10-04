@@ -1,15 +1,8 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## 05_confdir.dpatch by  <seneca@localhost.localdomain>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: Change default directories
-
-@DPATCH@
-
-diff -Naur ledgersmb-1.2.3-new/LedgerSMB/Sysconfig.pm ledgersmb-1.2.3-dirty/LedgerSMB/Sysconfig.pm
---- ledgersmb-1.2.3-new/LedgerSMB/Sysconfig.pm	2007-04-12 18:43:00.000000000 -0400
-+++ ledgersmb-1.2.3-dirty/LedgerSMB/Sysconfig.pm	2007-04-16 00:01:23.000000000 -0400
-@@ -28,13 +28,13 @@
+Author: <seneca@localhost.localdomain>
+Description: Change default directories
+--- ledgersmb-1.2.25.orig/LedgerSMB/Sysconfig.pm
++++ ledgersmb-1.2.25/LedgerSMB/Sysconfig.pm
+@@ -30,13 +30,13 @@
  );
  
  # if you have latex installed set to 1
@@ -25,8 +18,8 @@ diff -Naur ledgersmb-1.2.3-new/LedgerSMB/Sysconfig.pm ledgersmb-1.2.3-dirty/Ledg
 +$userspath = "/var/lib/ledgersmb/users";
  
  # templates base directory
- $templates = "/etc/ledgersmb/templates";
-@@ -46,7 +46,7 @@
+ $templates = "templates";
+@@ -48,7 +48,7 @@
  $backuppath = $tempdir;
  
  # member file
@@ -35,7 +28,7 @@ diff -Naur ledgersmb-1.2.3-new/LedgerSMB/Sysconfig.pm ledgersmb-1.2.3-dirty/Ledg
  
  # location of sendmail
  $sendmail = "/usr/sbin/sendmail -t";
-@@ -62,19 +62,18 @@
+@@ -64,19 +64,18 @@
  $check_max_invoices = 5;
  
  # program to use for file compression

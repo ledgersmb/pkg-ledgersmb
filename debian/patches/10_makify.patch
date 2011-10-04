@@ -1,14 +1,7 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## 10_makify.dpatch by  <seneca@localhost.localdomain>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: Adds Makefiles
-
-@DPATCH@
-
-diff -Naur ledgersmb/bin/Makefile ledgersmb-1.1.99beta1-new/bin/Makefile
---- ledgersmb/bin/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/bin/Makefile	2006-11-13 17:11:04.000000000 -0500
+Author: <seneca@localhost.localdomain>
+Description: Adds Makefiles
+--- /dev/null
++++ ledgersmb-1.2.25/bin/Makefile
 @@ -0,0 +1,13 @@
 +PACKAGE = ledgersmb
 +
@@ -23,9 +16,8 @@ diff -Naur ledgersmb/bin/Makefile ledgersmb-1.1.99beta1-new/bin/Makefile
 +	cp $(FILES) $(DESTDIR)/usr/share/ledgersmb/bin
 +	find $(DESTDIR)/usr/share/ledgersmb/bin -type d -exec chmod 755 '{}' \;
 +	find $(DESTDIR)/usr/share/ledgersmb/bin -type f -exec chmod 644 '{}' \;
-diff -Naur ledgersmb/contrib/Makefile ledgersmb-1.1.99beta1-new/contrib/Makefile
---- ledgersmb/contrib/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/contrib/Makefile	2006-11-13 17:14:01.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/contrib/Makefile
 @@ -0,0 +1,9 @@
 +PACKAGE = ledgersmb
 +
@@ -36,9 +28,8 @@ diff -Naur ledgersmb/contrib/Makefile ledgersmb-1.1.99beta1-new/contrib/Makefile
 +install:
 +	mkdir -p $(DESTDIR)/usr/share/doc/ledgersmb/contrib
 +	cp -r * $(DESTDIR)/usr/share/doc/ledgersmb/contrib
-diff -Naur ledgersmb/css/Makefile ledgersmb-1.1.99beta1-new/css/Makefile
---- ledgersmb/css/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/css/Makefile	2006-11-13 17:02:56.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/css/Makefile
 @@ -0,0 +1,13 @@
 +PACKAGE = ledgersmb
 +
@@ -53,9 +44,8 @@ diff -Naur ledgersmb/css/Makefile ledgersmb-1.1.99beta1-new/css/Makefile
 +	cp $(FILES) $(DESTDIR)/var/lib/ledgersmb/css
 +	chmod 644 $(DESTDIR)/var/lib/ledgersmb/css/*
 +	ln -sf /var/lib/ledgersmb/css $(DESTDIR)/usr/share/ledgersmb
-diff -Naur ledgersmb/doc/Makefile ledgersmb-1.1.99beta1-new/doc/Makefile
---- ledgersmb/doc/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/doc/Makefile	2006-11-13 17:58:52.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/doc/Makefile
 @@ -0,0 +1,18 @@
 +PACKAGE = ledgersmb
 +
@@ -75,9 +65,8 @@ diff -Naur ledgersmb/doc/Makefile ledgersmb-1.1.99beta1-new/doc/Makefile
 +	cp -a manual $(DESTDIR)/usr/share/doc/ledgersmb
 +	cp -a database $(DESTDIR)/usr/share/doc/ledgersmb
 +	cp -a samples $(DESTDIR)/usr/share/doc/ledgersmb
-diff -Naur ledgersmb/drivers/Makefile ledgersmb-1.1.99beta1-new/drivers/Makefile
---- ledgersmb/drivers/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/drivers/Makefile	2006-11-13 17:12:33.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/drivers/Makefile
 @@ -0,0 +1,10 @@
 +PACKAGE = ledgersmb
 +
@@ -89,9 +78,8 @@ diff -Naur ledgersmb/drivers/Makefile ledgersmb-1.1.99beta1-new/drivers/Makefile
 +	mkdir -p $(DESTDIR)/usr/share/ledgersmb/drivers
 +	cp *.pl $(DESTDIR)/usr/share/ledgersmb/drivers
 +	chmod 644 $(DESTDIR)/usr/share/ledgersmb/drivers/*
-diff -Naur ledgersmb/LedgerSMB/Makefile ledgersmb-1.1.99beta1-new/LedgerSMB/Makefile
---- ledgersmb/LedgerSMB/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/LedgerSMB/Makefile	2006-11-13 18:03:13.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/LedgerSMB/Makefile
 @@ -0,0 +1,16 @@
 +PACKAGE = ledgersmb
 +
@@ -109,9 +97,8 @@ diff -Naur ledgersmb/LedgerSMB/Makefile ledgersmb-1.1.99beta1-new/LedgerSMB/Make
 +	cp -r CreditCard $(DESTDIR)/usr/share/ledgersmb/LedgerSMB
 +	find $(DESTDIR)/usr/share/ledgersmb/LedgerSMB -type f -exec chmod 644 '{}' \;
 +	find $(DESTDIR)/usr/share/ledgersmb/LedgerSMB -type d -exec chmod 755 '{}' \;
-diff -Naur ledgersmb/locale/Makefile ledgersmb-1.1.99beta1-new/locale/Makefile
---- ledgersmb/locale/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/locale/Makefile	2006-11-13 16:56:15.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/locale/Makefile
 @@ -0,0 +1,21 @@
 +PACKAGE = ledgersmb
 +
@@ -134,9 +121,8 @@ diff -Naur ledgersmb/locale/Makefile ledgersmb-1.1.99beta1-new/locale/Makefile
 +	cp *.html $(dlocaledir)
 +	find $(dlocaledir) -type d -exec chmod 755 '{}' \;
 +	find $(dlocaledir) -type f -exec chmod 644 '{}' \;
-diff -Naur ledgersmb/Makefile ledgersmb-1.1.99beta1-new/Makefile
---- ledgersmb/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/Makefile	2006-11-13 18:19:16.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/Makefile
 @@ -0,0 +1,36 @@
 +PACKAGE = ledgersmb
 +
@@ -174,9 +160,8 @@ diff -Naur ledgersmb/Makefile ledgersmb-1.1.99beta1-new/Makefile
 +	chown -R www-data:www-data $(DESTDIR)/etc/ledgersmb/templates
 +
 +clean:
-diff -Naur ledgersmb/sql/Makefile ledgersmb-1.1.99beta1-new/sql/Makefile
---- ledgersmb/sql/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/sql/Makefile	2006-11-13 17:06:48.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/sql/Makefile
 @@ -0,0 +1,14 @@
 +PACKAGE = ledgersmb
 +
@@ -192,9 +177,8 @@ diff -Naur ledgersmb/sql/Makefile ledgersmb-1.1.99beta1-new/sql/Makefile
 +	cp -r legacy $(DESTDIR)/usr/share/ledgersmb/sql
 +	find $(DESTDIR)/usr/share/ledgersmb/sql -type f -exec chmod 644 '{}' \;
 +	find $(DESTDIR)/usr/share/ledgersmb/sql -type d -exec chmod 755 '{}' \;
-diff -Naur ledgersmb/templates/Makefile ledgersmb-1.1.99beta1-new/templates/Makefile
---- ledgersmb/templates/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/templates/Makefile	2006-11-13 17:11:20.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/templates/Makefile
 @@ -0,0 +1,16 @@
 +PACKAGE = ledgersmb
 +
@@ -212,9 +196,8 @@ diff -Naur ledgersmb/templates/Makefile ledgersmb-1.1.99beta1-new/templates/Make
 +	ln -sf /etc/ledgersmb/templates $(DESTDIR)/usr/share/ledgersmb/
 +	find $(DESTDIR)/etc/ledgersmb/templates -type d -exec chmod 755 '{}' \;
 +	find $(DESTDIR)/etc/ledgersmb/templates -type f -exec chmod 644 '{}' \;
-diff -Naur ledgersmb/utils/Makefile ledgersmb-1.1.99beta1-new/utils/Makefile
---- ledgersmb/utils/Makefile	1969-12-31 19:00:00.000000000 -0500
-+++ ledgersmb-1.1.99beta1-new/utils/Makefile	2006-11-13 17:14:17.000000000 -0500
+--- /dev/null
++++ ledgersmb-1.2.25/utils/Makefile
 @@ -0,0 +1,9 @@
 +PACKAGE = ledgersmb
 +
