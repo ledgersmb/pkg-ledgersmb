@@ -3,14 +3,12 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-include /usr/share/quilt/quilt.make
-
 DESTDIR = $(CURDIR)/debian/ledgersmb
 INSTALL = install
 
 
 configure: configure-stamp
-configure-stamp: $(QUILT_STAMPFN)
+configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
 
@@ -65,7 +63,7 @@ binary-indep: build install
 	dh_installexamples
 #	dh_install
 	dh_lintian
-#	dh_installdebconf	
+#	dh_installdebconf
 	dh_link
 	dh_compress
 	dh_fixperms
