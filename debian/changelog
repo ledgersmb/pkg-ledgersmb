@@ -1,4 +1,4 @@
-ledgersmb (1.2.25-1~1) UNRELEASED; urgency=low
+ledgersmb (1.2.25-1~2) UNRELEASED; urgency=low
 
   * New upstream release, which includes corrections for sql injection issue.
   * Updated Standards-Version in debian/control to 3.9.1;  no changes required?
@@ -10,7 +10,7 @@ ledgersmb (1.2.25-1~1) UNRELEASED; urgency=low
   * Change 'dh_clean -k' to dh_prep in debian/rules.
   * Switch to dpkg-source 3.0 (quilt) format.
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 04 Oct 2011 19:41:45 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 04 Oct 2011 20:51:25 -0400
 
 ledgersmb (1.2.24-1) unstable; urgency=low
 
