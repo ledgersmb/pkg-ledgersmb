@@ -26,7 +26,7 @@ build-stamp: configure-stamp
 
 	touch $@
 
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
