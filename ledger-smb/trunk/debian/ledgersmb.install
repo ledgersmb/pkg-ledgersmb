@@ -1,0 +1,36 @@
+*conf* etc/ledgersmb
+
+favicon.ico usr/share/ledgersmb
+menu.ini usr/share/ledgersmb
+ledgersmb.conf.default usr/share/ledgersmb
+index.html usr/share/ledgersmb
+ledger-smb.png usr/share/ledgersmb
+ledger-smb.gif usr/share/ledgersmb
+ledger-smb_small.png usr/share/ledgersmb
+VERSION usr/share/ledgersmb
+bin/*pl usr/share/ledgersmb/bin
+bin/contrib/* usr/share/ledgersmb/contrib
+bin/contrib/replication/* usr/share/ledgersmb/contrib/replication
+css/* var/lib/ledgersmb/css
+drivers/* usr/share/ledgersmb/drivers
+LedgerSMB/* usr/share/ledgersmb/LedgerSMB
+LedgerSMB/CreditCard/* usr/share/ledgersmb/LedgerSMB/CreditCard
+LedgerSMB/Session/* usr/share/ledgersmb/LedgerSMB/Session
+LedgerSMB/Taxes/* usr/share/ledgersmb/LedgerSMB/Taxes
+locale/* usr/share/ledgersmb/locale
+locale/html/* usr/share/ledgersmb/locale/html
+locale/legacy/* usr/share/ledgersmb/locale/legacy
+locale/po/* usr/share/ledgersmb/locale/po
+sql/* usr/share/ledgersmb/sql
+sql/legacy/* usr/share/ledgersmb/sql/legacy
+sql/fixes/* usr/share/ledgersmb/sql/fixes
+sql/fixes/* usr/share/ledgersmb/sql/fixes
+templates/* etc/ledgersmb/templates
+templates/demo/* etc/ledgersmb/templates/demo
+templates/demo/*.tex etc/ledgersmb/images
+templates/demo/*.png etc/ledgersmb/images
+templates/demo/*.eps etc/ledgersmb/images
+templates/demo/*.tex etc/ledgersmb/images/demo
+templates/demo/*.png etc/ledgersmb/images/demo
+templates/demo/*.eps etc/ledgersmb/images/demo
+
