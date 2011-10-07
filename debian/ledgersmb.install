@@ -9,8 +9,8 @@ ledger-smb.gif usr/share/ledgersmb
 ledger-smb_small.png usr/share/ledgersmb
 VERSION usr/share/ledgersmb
 bin/*pl usr/share/ledgersmb/bin
-bin/contrib/* usr/share/ledgersmb/contrib
-bin/contrib/replication/* usr/share/ledgersmb/contrib/replication
+contrib/* usr/share/ledgersmb/contrib
+contrib/replication/* usr/share/ledgersmb/contrib/replication
 css/* var/lib/ledgersmb/css
 drivers/* usr/share/ledgersmb/drivers
 LedgerSMB/* usr/share/ledgersmb/LedgerSMB
