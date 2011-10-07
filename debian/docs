@@ -12,3 +12,7 @@ doc/coding-standard.pdf
 doc/release_notes
 doc/faq.html
 debian/README.source
+debian/API
+debian/database
+debian/html_manual
+debian/manual
