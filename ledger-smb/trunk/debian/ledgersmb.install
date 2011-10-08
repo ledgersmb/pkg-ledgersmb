@@ -1,5 +1,4 @@
 *conf* etc/ledgersmb
-
 favicon.ico usr/share/ledgersmb
 menu.ini usr/share/ledgersmb
 ledgersmb.conf.default usr/share/ledgersmb
@@ -8,6 +7,7 @@ ledger-smb.png usr/share/ledgersmb
 ledger-smb.gif usr/share/ledgersmb
 ledger-smb_small.png usr/share/ledgersmb
 VERSION usr/share/ledgersmb
+configure_apache.sh usr/share/ledgersmb
 bin/*pl usr/share/ledgersmb/bin
 contrib/* usr/share/ledgersmb/contrib
 contrib/replication/* usr/share/ledgersmb/contrib/replication
