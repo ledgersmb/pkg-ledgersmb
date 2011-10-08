@@ -47,9 +47,21 @@ install: build
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
 
-	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/configure_apache.sh
-	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/upgrade-templates.pl
-	chmod -x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/favicon.ico
+	chmod +x $(CURDIR)/configure_apache.sh
+	chmod +x $(CURDIR)/upgrade-templates.pl
+	chmod -x $(CURDIR)/favicon.ico
+	chmod -x $(CURDIR)/css/*css
+	chmod -x $(CURDIR)/locale/po/*
+	chmod -x $(CURDIR)/sql/*sql
+	chmod -x $(CURDIR)/sql/legacy/*sql
+	chmod -x $(CURDIR)/templates/*.html
+	chmod -x $(CURDIR)/templates/*.tex
+	chmod -x $(CURDIR)/templates/*logo*
+	chmod -x $(CURDIR)/LedgerSMB/*pm
+	chmod -x $(CURDIR)/LedgerSMB/CreditCard/*pm
+	chmod -x $(CURDIR)/LedgerSMB/Session/*pm
+	chmod -x $(CURDIR)/LedgerSMB/Taxes/*pm
+	chmod -x $(CURDIR)/LedgerSMB/Template/*pm
 
 # Build architecture-independent files here.
 binary-indep: build install
