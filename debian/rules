@@ -51,6 +51,7 @@ install: build
 	
 
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/ledgersmb
+	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/configure_apache.sh
 	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/upgrade-templates.pl
 	chmod -x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/favicon.ico
 
