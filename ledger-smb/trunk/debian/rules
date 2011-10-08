@@ -21,7 +21,6 @@ build-stamp: configure-stamp
 	dh_testdir
 
         # Add here commands to compile the package.
-	$(MAKE)
         #docbook-to-man debian/ledgersmb.sgml > ledgersmb.1
 
 	touch $@
@@ -32,7 +31,6 @@ clean:
 	rm -f build-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
-	#-$(MAKE) clean
 	rm -f ledgersmb.conf
 
 	dh_clean 
@@ -48,9 +46,7 @@ install: build
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
-	
 
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/ledgersmb
 	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/configure_apache.sh
 	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/upgrade-templates.pl
 	chmod -x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/favicon.ico
