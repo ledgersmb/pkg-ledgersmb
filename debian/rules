@@ -47,6 +47,9 @@ install: build
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
 
+	perl Makefile.PL --skipdeps
+	$(MAKE)
+
 	chmod -x $(CURDIR)/locale/po/*
 	chmod -x $(CURDIR)/locale/html/*
 	chmod -x $(CURDIR)/sql/*sql
