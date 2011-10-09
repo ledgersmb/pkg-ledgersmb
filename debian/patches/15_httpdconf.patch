@@ -1,4 +1,4 @@
-Author: <seneca@localhost.localdomain>
+Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
 --- a/ledgersmb-httpd.conf.template
 +++ b/ledgersmb-httpd.conf.template

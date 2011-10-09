@@ -1,4 +1,4 @@
-Author: <seneca@localhost.localdomain>
+Author: Robert James Clay <jame@rocasa.us>
 Description: Change default directories
 --- a/LedgerSMB/Sysconfig.pm
 +++ b/LedgerSMB/Sysconfig.pm
