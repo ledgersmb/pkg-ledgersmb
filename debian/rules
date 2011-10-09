@@ -47,6 +47,9 @@ install: build
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
 
+	perl Makefile.PL --skipdeps
+	$(MAKE)
+
 	chmod +x $(CURDIR)/configure_apache.sh
 	chmod +x $(CURDIR)/upgrade-templates.pl
 	chmod -x $(CURDIR)/favicon.ico
