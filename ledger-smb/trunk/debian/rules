@@ -50,6 +50,11 @@ install: build
 	perl Makefile.PL --skipdeps
 	$(MAKE)
 
+    # Corrections to file permissions
+	chmod +x $(CURDIR)/blib/lib/*.pl
+	chmod +x $(CURDIR)/scripts/*.pl
+	chmod +x $(CURDIR)/sql/modules/*.sh
+	chmod +x $(CURDIR)/tools/*.sh
 	chmod -x $(CURDIR)/locale/po/*
 	chmod -x $(CURDIR)/locale/html/*
 	chmod -x $(CURDIR)/sql/*sql
