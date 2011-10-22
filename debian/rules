@@ -74,6 +74,7 @@ binary-indep: build install
 	dh_installdocs
 	dh_installexamples
 	dh_install -Xauto/
+	dh_installman blib/man3/*
 	dh_lintian
 #	dh_installdebconf
 	dh_link
