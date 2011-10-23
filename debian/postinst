@@ -4,39 +4,46 @@
 # see: dh_installdeb(1)
 
 set -e
+
 # summary of how this script can be called:
 #        * <postinst> `configure' <most-recently-configured-version>
 #        * <old-postinst> `abort-upgrade' <new version>
 #        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
 #          <new-version>
+#        * <postinst> `abort-remove'
 #        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
 #          <failed-install-package> <version> `removing'
 #          <conflicting-package> <version>
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
-#
+
 
 case "$1" in
     configure)
-        if [ -z "$2" ]; then
-            chown -R www-data:www-data /var/lib/ledgersmb
-            chmod -R 700 /var/lib/ledgersmb/spool
-        fi
-	includefile="/etc/ledgersmb/ledgersmb-httpd.conf"
-	servers="apache2"
-	server="apache2"
-	. /usr/share/wwwconfig-common/apache-include_all.sh
-	if [ -x /usr/sbin/a2enmod ]; then
-		/usr/sbin/a2enmod cgi;
-	fi
-	servers="apache2"
-	restart="apache2"
-	## . /usr/share/wwwconfig-common/restart.sh #XXX didn't work in tests
-	/etc/init.d/apache2 restart
+    #   Set default user:group & permissions for etc/ledgersmb
+    chown -R www-data:www-data /etc/ledgersmb
+    chmod 0600 /etc/ledgersmb/*.conf
+    chmod 0600 /etc/ledgersmb/*.pl
+
+    #   Remove if present then install the stat setting for /etc/ledgersmb
+    dpkg-statoverride --remove /etc/ledgersmb >/dev/null 2>&1 || true
+    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb
+
+    #   Remove if present then install the stat setting for /etc/ledgersmb/images
+    dpkg-statoverride --remove /etc/ledgersmb/images >/dev/null 2>&1 || true
+    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb/images
+
+    #   Remove if present then install the stat setting for /etc/ledgersmb/images/demo
+    dpkg-statoverride --remove /etc/ledgersmb/images/demo >/dev/null 2>&1 || true
+    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb/images/demo
+
+    #   Remove if present then install the stat setting for /etc/ledgersmb/templates
+    dpkg-statoverride --remove /etc/ledgersmb/templates >/dev/null 2>&1 || true
+    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb/templates
+
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
-
     ;;
 
     *)
@@ -51,5 +58,3 @@ esac
 #DEBHELPER#
 
 exit 0
-
-

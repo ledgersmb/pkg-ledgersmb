@@ -3,14 +3,12 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-include /usr/share/dpatch/dpatch.make
-
 DESTDIR = $(CURDIR)/debian/ledgersmb
 INSTALL = install
 
 
 configure: configure-stamp
-configure-stamp: patch-stamp
+configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
 
@@ -23,18 +21,16 @@ build-stamp: configure-stamp
 	dh_testdir
 
         # Add here commands to compile the package.
-	$(MAKE)
         #docbook-to-man debian/ledgersmb.sgml > ledgersmb.1
 
 	touch $@
 
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
-	#-$(MAKE) clean
 	rm -f ledgersmb.conf
 
 	dh_clean 
@@ -42,22 +38,34 @@ clean: unpatch
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep
 	dh_installdirs
 
 	# Add here commands to install the package into debian/ledgersmb.
 	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
+	    -e 's|^templates  = .*$$|templates  = /etc/ledgersmb/templates|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
-	
 
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/ledgersmb
-	chown www-data:www-data $(CURDIR)/debian/ledgersmb/etc/ledgersmb/*
-	chmod 0600 $(CURDIR)/debian/ledgersmb/etc/ledgersmb/*.conf $(CURDIR)/debian/ledgersmb/etc/ledgersmb/*.pl
-	chmod +x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/upgrade-templates.pl
-	chmod -x $(CURDIR)/debian/ledgersmb/usr/share/ledgersmb/favicon.ico
-	cp debian/ledgersmb.lintian-overrides $(DESTDIR)/usr/share/lintian/overrides/ledgersmb
+	perl Makefile.PL --skipdeps
+	$(MAKE)
+
+	chmod +x $(CURDIR)/configure_apache.sh
+	chmod +x $(CURDIR)/upgrade-templates.pl
+	chmod -x $(CURDIR)/favicon.ico
+	chmod -x $(CURDIR)/css/*css
+	chmod -x $(CURDIR)/locale/po/*
+	chmod -x $(CURDIR)/sql/*sql
+	chmod -x $(CURDIR)/sql/legacy/*sql
+	chmod -x $(CURDIR)/templates/*.html
+	chmod -x $(CURDIR)/templates/*.tex
+	chmod -x $(CURDIR)/templates/*logo*
+	chmod -x $(CURDIR)/LedgerSMB/*pm
+	chmod -x $(CURDIR)/LedgerSMB/CreditCard/*pm
+	chmod -x $(CURDIR)/LedgerSMB/Session/*pm
+	chmod -x $(CURDIR)/LedgerSMB/Taxes/*pm
+	chmod -x $(CURDIR)/LedgerSMB/Template/*pm
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -66,8 +74,10 @@ binary-indep: build install
 	dh_installchangelogs Changelog
 	dh_installdocs
 	dh_installexamples
-#	dh_install
-#	dh_installdebconf	
+	dh_install -Xauto/
+	dh_installman blib/man3/*
+	dh_lintian
+#	dh_installdebconf
 	dh_link
 	dh_compress
 	dh_fixperms
