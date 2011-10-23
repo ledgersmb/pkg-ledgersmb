@@ -1,36 +1,54 @@
-Author: Robert James Clay <jame@rocasa.us>
+Author: <seneca@localhost.localdomain>
 Description: Change default directories
---- a/LedgerSMB/Sysconfig.pm
-+++ b/LedgerSMB/Sysconfig.pm
-@@ -56,11 +56,11 @@
- our $cookie_name = "LedgerSMB-1.3";
+--- ledgersmb-1.2.25.orig/LedgerSMB/Sysconfig.pm
++++ ledgersmb-1.2.25/LedgerSMB/Sysconfig.pm
+@@ -30,13 +30,13 @@
+ );
+ 
+ # if you have latex installed set to 1
+-$latex = 1;
++$latex = 0;
  
  # spool directory for batch printing
--our $spool = "spool";
-+our $spool = "/var/lib/ledgersmb/spool";
+-$spool = "spool";
++$spool = "/var/lib/ledgersmb/spool";
  
- our $cache_templates = 0;
  # path to user configuration files
--our $userspath = "users";
-+our $userspath = "/var/lib/ledgersmb/users";
+-$userspath = "users";
++$userspath = "/var/lib/ledgersmb/users";
  
  # templates base directory
- our $templates = "templates";
-@@ -73,7 +73,7 @@
- our $backuppath = $tempdir;
+ $templates = "templates";
+@@ -48,7 +48,7 @@
+ $backuppath = $tempdir;
  
  # member file
--our $memberfile = "users/members";
-+our $memberfile = "/var/lib/ledgersmb/users/members";
+-$memberfile = "users/members";
++$memberfile = "/var/lib/ledgersmb/users/members";
  
  # location of sendmail
- our $sendmail = "/usr/sbin/sendmail -t";
-@@ -95,7 +95,7 @@
- our $gzip = "gzip -S .gz";
+ $sendmail = "/usr/sbin/sendmail -t";
+@@ -64,19 +64,18 @@
+ $check_max_invoices = 5;
+ 
+ # program to use for file compression
+-$gzip = "gzip -S .gz";
++$gzip = "/bin/gzip -S .gz";
  
  # Path to the translation files
--our $localepath = 'locale/po';
-+our $localepath = '/usr/share/ledgersmb/locale/po';
+-$localepath = 'locale/po';
++$localepath = '/usr/share/ledgersmb/locale/po';
  
- our $no_db_str = 'database';
- our $log_level = 'ERROR';
+ # available printers
+ %printer = (
+-    Laser => 'lpr -Plaser',
+-    Epson => 'lpr -PEpson',
++    lpr => 'lpr',
+ );
+ 
+ my %config;
+-read_config( 'ledgersmb.conf' => %config ) or die;
++read_config( '/etc/ledgersmb/ledgersmb.conf' => %config ) or die;
+ 
+ # We should clean this code up for 1.3 :-) Chris T.
+ 
