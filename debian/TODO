@@ -1,0 +1,19 @@
+
+debian/TODO for LedgerSMB v1.2
+
+- Autoconfigurtion for PostgreSQL and access to it by LedgerSMB
+
+- Autoconfiguration of Apache2
+
+- Suppress and/or otherwise handle the multiple instances of the following
+Lintian warnings:
+W: ledgersmb: executable-not-elf-or-script  (various directories)
+W: ledgersmb: extra-license-file usr/share/ledgersmb/locale/legacy/
+
+- It was announced back in Sept 2010 that LSMB v1.2 works with Postgresql v9,
+which is now available in Debian Testing (wheezy). After testing that version
+with LSMB, add v9.0 to the possible Postgresql versions in debian/control?
+
+
+
+

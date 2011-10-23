@@ -43,9 +43,13 @@ install: build
 
 	# Add here commands to install the package into debian/ledgersmb.
 	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
+	    -e 's|^templates  = .*$$|templates  = /etc/ledgersmb/templates|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
+
+	perl Makefile.PL --skipdeps
+	$(MAKE)
 
 	chmod +x $(CURDIR)/configure_apache.sh
 	chmod +x $(CURDIR)/upgrade-templates.pl
@@ -70,7 +74,8 @@ binary-indep: build install
 	dh_installchangelogs Changelog
 	dh_installdocs
 	dh_installexamples
-	dh_install
+	dh_install -Xauto/
+	dh_installman blib/man3/*
 	dh_lintian
 #	dh_installdebconf
 	dh_link

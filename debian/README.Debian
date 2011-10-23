@@ -8,15 +8,16 @@ To prepare LedgerSMB for use:
 
   1) As the postgres user, create a database user for LedgerSMB authentication
 
-	$ createuser --no-superuser --createdb --no-createrole \
-		-U postgres --pwprompt --encrypted ledgersmb
+    $ createuser --no-superuser --createdb --no-createrole \
+        -U postgres --pwprompt --encrypted ledgersmb
 
-  Here it will prompt twice for the ledgersmb postgres user 
-  password, remember what you enter here for step 5.
+  Here it will prompt twice for the ledgersmb postgres user password, remember
+  what you enter here for step 5.  Note that you may need to update the access
+  for that user in the postgresql configuration (as also in step 6).
 
   2) Create postgres database for ledgersmb
 
-	$ createdb -U ledgersmb -O ledgersmb -E UNICODE ledgersmb
+    $ createdb -U ledgersmb -O ledgersmb -E UNICODE ledgersmb
         $ createlang plpgsql -U postgres ledgersmb
 
   3) Add databases for all datasets which you want to have available
@@ -24,19 +25,19 @@ To prepare LedgerSMB for use:
   For instance, we want a dataset for each of examplecom, exampleorg and 
   examplenet, so...
 
- 	$ createdb -T ledgersmb examplecom
- 	$ createdb -T ledgersmb exampleorg
- 	$ createdb -T ledgersmb examplenet
+    $ createdb -T ledgersmb examplecom
+    $ createdb -T ledgersmb exampleorg
+    $ createdb -T ledgersmb examplenet
 
   4) Populate the user database and set an admin password (this admin password
   will be used to log into the administrative interface).
 
-  	$ psql -U ledgersmb -d ledgersmb -f \
-		/usr/share/ledgersmb/sql/Pg-central.sql 
-	$ psql -U ledgersmb -d ledgersmb
+    $ psql -U ledgersmb -d ledgersmb -f \
+        /usr/share/ledgersmb/sql/Pg-central.sql 
+    $ psql -U ledgersmb -d ledgersmb
 
         ledgersmb=> UPDATE users_conf SET password = md5('admin-password') \
-		WHERE id = 1;
+        WHERE id = 1;
 
   5) Edit /etc/ledgersmb/ledgersmb.conf
 
@@ -59,12 +60,12 @@ To prepare LedgerSMB for use:
    get to your ip address on port 80.  If you want to lock it down to 
    localhost, do so now in the forementioned configuration file!
 
-   	$ cd /etc/apache2/conf.d/
-	$ ln -s ../../ledgersmb/ledgersmb-httpd.conf
+    $ cd /etc/apache2/conf.d/
+    $ ln -s ../../ledgersmb/ledgersmb-httpd.conf
 
   8) Reload apache2
 
-	$ /etc/init.d/apache2 reload
+    $ /etc/init.d/apache2 reload
 
 At this point you can connect to http://127.0.0.1/ledgersmb/admin.pl and login
 with the password set in step 4.
@@ -78,4 +79,5 @@ config format, locale names, database schema, and per-user configuration
 locations have been sufficiently changed with 1.2.0-beta1 so as to require
 special attention in upgrading.
 
+ -- Robert James Clay <jame@rocasa.us>  Sun, 22 Oct 2011 00:59:31 -0400
  -- Elizabeth Krumbach <lyz@princessleia.com>  Tue, 6 Jan 2009 05:38:48 -0500
