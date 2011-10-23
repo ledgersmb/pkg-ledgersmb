@@ -43,6 +43,7 @@ install: build
 
 	# Add here commands to install the package into debian/ledgersmb.
 	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
+	    -e 's|^templates  = .*$$|templates  = /etc/ledgersmb/templates|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
