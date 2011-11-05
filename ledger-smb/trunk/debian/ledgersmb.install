@@ -1,6 +1,5 @@
 *.conf etc/ledgersmb
 favicon.ico usr/share/ledgersmb
-ledgersmb.conf.default usr/share/ledgersmb
 index.html usr/share/ledgersmb
 VERSION usr/share/ledgersmb
 blib/lib/* usr/share/ledgersmb
