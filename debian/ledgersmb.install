@@ -1,7 +1,6 @@
 *.conf etc/ledgersmb
 favicon.ico usr/share/ledgersmb
 menu.ini usr/share/ledgersmb
-ledgersmb.conf.default usr/share/ledgersmb
 index.html usr/share/ledgersmb
 ledger-smb.png usr/share/ledgersmb
 ledger-smb.gif usr/share/ledgersmb
