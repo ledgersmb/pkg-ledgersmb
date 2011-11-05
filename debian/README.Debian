@@ -59,9 +59,6 @@ To prepare LedgerSMB for use:
    get to your ip address on port 80.  If you want to lock it down to 
    localhost, do so now in the forementioned configuration file!
 
-   	$ cd /etc/apache2/conf.d/
-	$ ln -s ../../ledgersmb/ledgersmb-httpd.conf
-
   8) Reload apache2
 
 	$ /etc/init.d/apache2 reload
