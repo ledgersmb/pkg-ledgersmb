@@ -16,8 +16,8 @@ Description: Change default directories
  
  # templates base directory
  our $templates = "templates";
-@@ -73,7 +73,7 @@
- our $backuppath = $tempdir;
+@@ -69,7 +69,7 @@
+ our $tempdir = ( $ENV{TEMP} || '/tmp' );
  
  # member file
 -our $memberfile = "users/members";
@@ -25,7 +25,7 @@ Description: Change default directories
  
  # location of sendmail
  our $sendmail = "/usr/sbin/sendmail -t";
-@@ -95,7 +95,7 @@
+@@ -91,7 +91,7 @@
  our $gzip = "gzip -S .gz";
  
  # Path to the translation files
