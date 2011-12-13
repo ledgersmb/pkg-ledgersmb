@@ -1,8 +1,9 @@
-ledgersmb (1.3.0-1~1) UNRELEASED; urgency=low
+ledgersmb (1.3.0-1) experimental; urgency=low
 
-  * New upstream release and first release in Debian.
+  * New upstream release, first in the v1.3 series.
+  * Initial adaptation of the Debian packaging to the new version as neccessary.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 08 Oct 2011 20:53:45 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 05 Nov 2011 22:42:43 -0400
 
 ledgersmb (1.2.25-1) stable; urgency=low
 
