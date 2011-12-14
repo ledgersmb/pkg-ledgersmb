@@ -14,7 +14,12 @@ Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
 
 Package: ledgersmb
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl, libconfig-any-perl, libmime-lite-perl, liblocale-maketext-lexicon-perl (>= 0.62-1), libdbi-perl, libdbd-pg-perl, postgresql-client-8.3 | postgresql-client-8.4, postgresql-contrib, apache2, libhtml-parser-perl, liblog-log4perl-perl, libdatetime-perl, libtemplate-perl (>=2.14-1), liberror-perl, libcgi-simple-perl, libfile-mimeinfo-perl, libio-stringy-perl
+Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl,
+  libconfig-any-perl, libmime-lite-perl, libdbi-perl, libdbd-pg-perl, liberror-perl,
+  liblocale-maketext-lexicon-perl (>= 0.62-1), libtemplate-perl (>=2.14-1), apache2,
+  libhtml-parser-perl, liblog-log4perl-perl, libdatetime-perl,
+  libcgi-simple-perl, libfile-mimeinfo-perl, libio-stringy-perl,
+  postgresql-client-8.3 | postgresql-client-8.4, postgresql-contrib,
 Recommends: mail-transport-agent, texlive-latex-recommended, lpr, libmath-bigint-gmp-perl, libparse-recdescent-perl, libxml-twig-perl
 Suggests: postgresql-8.3 | postgresql-8.4, libnet-tclink-perl, latex-cjk-all
 Conflicts: ledger-smb
