@@ -20,7 +20,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-pe
   libhtml-parser-perl, liblog-log4perl-perl, libdatetime-perl,
   libcgi-simple-perl, libfile-mimeinfo-perl, libio-stringy-perl,
   postgresql-client-8.3 | postgresql-client-8.4, postgresql-contrib,
-Recommends: mail-transport-agent, texlive-latex-recommended, lpr, libmath-bigint-gmp-perl, libparse-recdescent-perl, libxml-twig-perl
+Recommends: mail-transport-agent, texlive-latex-recommended, lpr, libxml-twig-perl,
+  libmath-bigint-gmp-perl, libparse-recdescent-perl
 Suggests: postgresql-8.3 | postgresql-8.4, libnet-tclink-perl, latex-cjk-all
 Conflicts: ledger-smb
 Replaces: ledger-smb
