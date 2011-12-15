@@ -25,7 +25,7 @@ Recommends: mail-transport-agent, texlive-latex-recommended, lpr, libxml-twig-pe
 Suggests: postgresql-8.3 | postgresql-8.4, libnet-tclink-perl, latex-cjk-all
 Conflicts: ledger-smb
 Replaces: ledger-smb
-Description: A web based double-entry accounting program
+Description: Web based double-entry accounting program
  LedgerSMB is a double-entry accounting system written
  in perl. It has been tested with PostgreSQL, Apache,
  Netscape, Mozilla, Galeon, Explorer, Links, Lynx,
