@@ -1,0 +1,42 @@
+debian/TODO for LedgerSMB v1.3
+
+
+- Use a patch to create an updated example of the ledgersmb.conf.default file
+instead of the sed line in debian/rules, then create a copy of it as ledgersmb.conf
+for installation to /etc/ledgersmb.
+
+- Autoconfiguration of PostgreSQL and access to it by LedgerSMB using dbconfig-common.
+Password for postgres superuser? For LedgerSMB admin?  Run prepare-company-database.sh
+script?)
+
+- Any post install processing for Apache2 should include "a2enmod rewrite" at some
+point to ensure that module is enabled, and a restart as well because of the newly
+installed /ledgersmb-httpd.conf.  (wwwconfig-common ?)
+
+- Correct the following Lintian warnings:
+W: ledgersmb source: out-of-date-standards-version 3.9.1 (current is 3.9.2)
+W: ledgersmb source: debian-rules-missing-recommended-target build-arch
+W: ledgersmb source: debian-rules-missing-recommended-target build-indep
+
+- New 1.3 version contains an embedded javascript library
+W: ledgersmb: extra-license-file usr/share/ledgersmb/UI/ajax/scriptaculous/MIT-LICENSE
+W: ledgersmb: embedded-javascript-library usr/share/ledgersmb/UI/ajax/scriptaculous/lib/prototype.js
+W: ledgersmb: embedded-javascript-library usr/share/ledgersmb/UI/ajax/scriptaculous/src/scriptaculous.js
+-> embedded version appears to be 1.8.2.   It is available in Debian;  1.8.1 in lenny (current oldstable),
+   1.8.3 in lenny-backports, 1.8.3 in squeeze, 1.9.0 in wheezy
+p   libjs-scriptaculous  - JavaScript library for dynamic web applications 
+
+- Suppress and/or otherwise handle the multiple instances of the following
+Lintian warnings:
+W: ledgersmb: executable-not-elf-or-script  (various directories)
+W: ledgersmb: extra-license-file usr/share/ledgersmb/locale/legacy/
+
+- It was announced back in Sept 2010 that LSMB v1.2 works with Postgresql v9,
+which is now available in Debian Testing (wheezy).   After testing that version
+with LSMB, add v9.0 to the possible Postgresql versions in debian/control. There 
+are different needs for the v8 & v9 Postgresql.
+
+- As neccessary, add any other docs that could be registered to doc-base files.
+
+
+ -- Robert James Clay <jame@rocasa.us>  Tue, 15 Dec 2011 14:32:54 -0500
