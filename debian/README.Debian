@@ -6,7 +6,7 @@ Optional Perl modules
       Net::TCLink               [Support for TrustCommerce credit card processing]
       Parse::RecDescent         [Support for the *experimental* scripting engine]
       Template::Plugin::Latex   [Support for Postscript and PDF output]
-      libopenoffice-oodoc-per   [Support for OpenOffice output]
+      OpenOffice::OODoc         [Support for OpenOffice output]
       Excel::Template::Plus     [Support for Excel output]
 
     The credit card processing support for TrustCommerce is available
