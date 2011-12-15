@@ -3,17 +3,17 @@ LedgerSMB for Debian
 
 Optional Perl modules
 
-      Net::TCLink        [Support for TrustCommerce credit card processing]
-      Parse::RecDescent  [Support for the *experimental* scripting engine]
-      Template::Plugin::Latex [Support for Postscript and PDF output]
-      XML::Twig               [Support for OpenOffice output]
-      Excel::Template::Plus   [Support for Excel output]
+      Net::TCLink               [Support for TrustCommerce credit card processing]
+      Parse::RecDescent         [Support for the *experimental* scripting engine]
+      Template::Plugin::Latex   [Support for Postscript and PDF output]
+      libopenoffice-oodoc-per   [Support for OpenOffice output]
+      Excel::Template::Plus     [Support for Excel output]
 
     The credit card processing support for TrustCommerce is available
     repository as libnet-tclink-perl if not already installed:
 
-    The Open Office output support is available as libxml-twig-perl if it is
-    not already installed.
+    The Open Office output support is available as libopenoffice-oodoc-perl if
+    it is not already installed.
 
     The scripting engine support is available as libparse-recdescent-perl
     if it is not already installed:
