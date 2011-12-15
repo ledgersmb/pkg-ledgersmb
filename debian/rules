@@ -42,6 +42,9 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/ledgersmb.
+
+	cp ledgersmb-httpd.conf.template ledgersmb-httpd.conf
+
 	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
