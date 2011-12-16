@@ -1,11 +1,14 @@
 ledgersmb (1.3.9-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * Correct spelling error and correct missing note about upstream release
+    in the 1.3.8-1 entry for the debian/changelog.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 15 Dec 2011 22:37:22 -0500
+ -- Robert James Clay <jame@rocasa.us>  Thu, 15 Dec 2011 22:45:37 -0500
 
 ledgersmb (1.3.8-1) experimental; urgency=low
 
+  * New upstream release.
   * Added a debian/TODO file.
   * Do not install v1.3.x INSTALL file with package.
   * Update debian/patches/05_confdir.patch for v1.3.8.
@@ -15,7 +18,7 @@ ledgersmb (1.3.8-1) experimental; urgency=low
   * Update to v1.3.x README.Debian adapted from v1.3 INSTALL file.
   * Add ledgersmb-httpd.conf.template to debian/ledgersmb.examples.
   * Create default ledgersmb-httpd.conf from ledgersmb-httpd.conf.template.
-  * Remove chmod of /etc/ledgersmb/*.pl from postinst as no longer neccessary.
+  * Remove chmod of /etc/ledgersmb/*.pl from postinst as no longer necessary.
   * Upstream no longer providing an HTML version of the manual, so remove that
     entry in debian/ledgersmb.doc-base.
 
