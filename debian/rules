@@ -15,7 +15,11 @@ configure-stamp:
 	touch configure-stamp
 
 
-build: build-stamp
+build: build-arch build-indep
+
+build-arch: build-stamp
+
+build-indep: build-stamp
 
 build-stamp: configure-stamp
 	dh_testdir
@@ -93,4 +97,4 @@ binary-arch: build install
 # We have nothing to do by default.
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install
+.PHONY: build build-indep build-arch clean binary-indep binary-arch binary install
