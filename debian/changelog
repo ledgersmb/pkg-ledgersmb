@@ -1,10 +1,26 @@
-ledgersmb (1.3.9-1) UNRELEASED; urgency=low
+ledgersmb (1.3.9-1) experimental; urgency=low
 
   * New upstream release.
+  * Clean up the debian/watch control file.
+  * Changes to debian/rules:
+    - Add build-arch and build-indep targets.
+    - Add a call for dh_perl to the binary-indep target.
+    - Add removal of created ledgersmb-httpd.conf to clean target.
+    - Run 'make distclean' in the clean target if the created Makefile
+      is present.
+  * Changes to debian/control:
+    - Add ${perl:Depends} to the Depends line.
+    - Change the Recommends for the lpr package to a Suggests.
+    - Updated the Standards-Version to 3.9.2, no changes needed.
+    - Remove ${shlibs:Depends} from Depends line as it is unneeded.
+    - Replace the Recommends for a mail-transport-agent with
+      "default-mta | mail-transport-agent".
   * Correct spelling error and correct missing note about upstream release
     in the 1.3.8-1 entry for the debian/changelog.
+  * Override Lintian warnings regarding the embedded Scriptaculous Javascript
+    library until LedgerSMB can be tested with the versions available in Debian.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 15 Dec 2011 22:45:37 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sat, 24 Dec 2011 13:40:35 -0500
 
 ledgersmb (1.3.8-1) experimental; urgency=low
 
