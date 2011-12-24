@@ -32,6 +32,7 @@ clean:
 
 	# Add here commands to clean up after the build process.
 	rm -f ledgersmb.conf
+	$(MAKE) distclean
 
 	dh_clean 
 
