@@ -15,7 +15,11 @@ configure-stamp:
 	touch configure-stamp
 
 
-build: build-stamp
+build: build-arch build-indep
+
+build-arch: build-stamp
+
+build-indep: build-stamp
 
 build-stamp: configure-stamp
 	dh_testdir
@@ -31,7 +35,9 @@ clean:
 	rm -f build-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
+	rm -f ledgersmb-httpd.conf
 	rm -f ledgersmb.conf
+	if test -e Makefile; then $(MAKE) distclean; fi
 
 	dh_clean 
 
@@ -81,6 +87,7 @@ binary-indep: build install
 	dh_compress
 	dh_fixperms
 	dh_installdeb
+	dh_perl
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
@@ -90,4 +97,4 @@ binary-arch: build install
 # We have nothing to do by default.
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install
+.PHONY: build build-indep build-arch clean binary-indep binary-arch binary install
