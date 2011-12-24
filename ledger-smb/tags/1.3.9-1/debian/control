@@ -1,0 +1,40 @@
+Source: ledgersmb
+Section: web
+Priority: optional
+Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
+Uploaders: Robert James Clay <jame@rocasa.us>,
+  Elizabeth Krumbach <lyz@princessleia.com>,
+  Seneca Cunningham <tetragon@ledgersmb.org>,
+  Michael C. Schultheiss <schultmc@debian.org>
+Build-Depends: debhelper (>= 7.0.50), libmodule-install-perl
+Standards-Version: 3.9.2
+Homepage: http://www.ledgersmb.org/
+Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/trunk
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
+
+Package: ledgersmb
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl,
+  libconfig-any-perl, libmime-lite-perl, libdbi-perl, libdbd-pg-perl, liberror-perl,
+  liblocale-maketext-lexicon-perl (>= 0.62-1), libtemplate-perl (>=2.14-1), apache2,
+  libhtml-parser-perl, liblog-log4perl-perl, libdatetime-perl,
+  libcgi-simple-perl, libfile-mimeinfo-perl, libio-stringy-perl,
+  postgresql-client-8.3 | postgresql-client-8.4, postgresql-contrib,
+Recommends: default-mta | mail-transport-agent, texlive-latex-recommended, libopenoffice-oodoc-perl,
+  libmath-bigint-gmp-perl, libparse-recdescent-perl
+Suggests: postgresql-8.3 | postgresql-8.4, lpr, libnet-tclink-perl, latex-cjk-all
+Conflicts: ledger-smb
+Replaces: ledger-smb
+Description: Web based double-entry accounting program
+ LedgerSMB is a double-entry accounting system written
+ in perl. It has been tested with PostgreSQL, Apache,
+ Netscape, Mozilla, Galeon, Explorer, Links, Lynx,
+ Konqueror, Voyager, W3M and Opera clients on Linux,
+ FreeBSD, Solaris, Windows, Mac computers and PDA's.
+ .
+ Data is stored in a SQL database server, either locally or
+ remote, the display is through a text or GUI web browser.
+ The system is linked by a chart of accounts.  All transactions
+ for AR, AP and GL are stored in a transaction table. Hyper-links
+ from the chart of accounts let you view transactions posted
+ through AR, AP and GL.

@@ -1,0 +1,15 @@
+BUGS
+CONTRIBUTORS
+README.translations
+UPGRADE
+ledgersmb.conf.default
+debian/README.source
+doc/LedgerSMB-manual.pdf
+doc/coding-standard.pdf
+doc/release_notes
+doc/faq.html
+doc/API
+doc/database
+doc/manual
+doc/samples
+doc/templating
