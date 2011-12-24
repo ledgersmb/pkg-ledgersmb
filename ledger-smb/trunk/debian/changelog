@@ -1,3 +1,9 @@
+ledgersmb (1.3.9-2) UNRELEASED; urgency=low
+
+  * Bump package version to 1.3.9-2.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 24 Dec 2011 15:08:14 -0500
+
 ledgersmb (1.3.9-1) experimental; urgency=low
 
   * New upstream release.
