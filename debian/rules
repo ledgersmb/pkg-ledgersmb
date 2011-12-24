@@ -33,7 +33,7 @@ clean:
 	# Add here commands to clean up after the build process.
 	rm -f ledgersmb-httpd.conf
 	rm -f ledgersmb.conf
-	if test -e makefile; then $(MAKE) distclean; fi
+	if test -e Makefile; then $(MAKE) distclean; fi
 
 	dh_clean 
 
