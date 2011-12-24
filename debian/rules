@@ -15,7 +15,11 @@ configure-stamp:
 	touch configure-stamp
 
 
-build: build-stamp
+build: build-arch build-indep
+
+build-arch: build-stamp
+
+build-indep: build-stamp
 
 build-stamp: configure-stamp
 	dh_testdir
@@ -31,7 +35,9 @@ clean:
 	rm -f build-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
+	rm -f ledgersmb-httpd.conf
 	rm -f ledgersmb.conf
+	if test -e Makefile; then $(MAKE) distclean; fi
 
 	dh_clean 
 
@@ -42,6 +48,9 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/ledgersmb.
+
+	cp ledgersmb-httpd.conf.template ledgersmb-httpd.conf
+
 	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
 	    -e 's|^templates  = .*$$|templates  = /etc/ledgersmb/templates|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
@@ -51,19 +60,17 @@ install: build
 	perl Makefile.PL --skipdeps
 	$(MAKE)
 
-	chmod +x $(CURDIR)/configure_apache.sh
-	chmod +x $(CURDIR)/upgrade-templates.pl
-	chmod -x $(CURDIR)/favicon.ico
-	chmod -x $(CURDIR)/css/*css
+    # Corrections to file permissions
+	chmod +x $(CURDIR)/blib/lib/*.pl
+	chmod +x $(CURDIR)/scripts/*.pl
+	chmod +x $(CURDIR)/sql/modules/*.sh
+	chmod +x $(CURDIR)/tools/*.sh
 	chmod -x $(CURDIR)/locale/po/*
+	chmod -x $(CURDIR)/locale/html/*
 	chmod -x $(CURDIR)/sql/*sql
-	chmod -x $(CURDIR)/sql/legacy/*sql
-	chmod -x $(CURDIR)/templates/*.html
-	chmod -x $(CURDIR)/templates/*.tex
-	chmod -x $(CURDIR)/templates/*logo*
+	chmod -x $(CURDIR)/sql/coa/*sql
 	chmod -x $(CURDIR)/LedgerSMB/*pm
-	chmod -x $(CURDIR)/LedgerSMB/CreditCard/*pm
-	chmod -x $(CURDIR)/LedgerSMB/Session/*pm
+	chmod -x $(CURDIR)/LedgerSMB/Auth/*pm
 	chmod -x $(CURDIR)/LedgerSMB/Taxes/*pm
 	chmod -x $(CURDIR)/LedgerSMB/Template/*pm
 
@@ -82,6 +89,7 @@ binary-indep: build install
 	dh_compress
 	dh_fixperms
 	dh_installdeb
+	dh_perl
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
@@ -91,4 +99,4 @@ binary-arch: build install
 # We have nothing to do by default.
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install
+.PHONY: build build-indep build-arch clean binary-indep binary-arch binary install

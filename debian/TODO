@@ -1,19 +1,67 @@
+debian/TODO for LedgerSMB v1.3
 
-debian/TODO for LedgerSMB v1.2
+- Change how the file permissions are being set for the resulting binary package;
+for both corrections and for what might be required for the installed pacakge. See
+also if the 'make install' option takes care of any of the changes, so it doesn't
+need to be done by the packaging. (See next 2 items for related Lintian results.)
 
-- Autoconfigurtion for PostgreSQL and access to it by LedgerSMB
+- Multiple instances of the following of the following Lintian warnings:
+W: ledgersmb: script-not-executable (6)
+    -> Contact upstream. Could do a chmod on those in debian/rules.
+W: ledgersmb: executable-not-elf-or-script (72)
+    -> Contact upstream. For now, do a chmod on those in debian/rules.
 
-- Autoconfiguration of Apache2
+- Multiple instances of the following from Lintian. At least one is named
+  "custom" so may need an override because it is meant to be that way.
+  Investigate why the others are showing as empty.
+I: ledgersmb: package-contains-empty-directory (9)
 
-- Suppress and/or otherwise handle the multiple instances of the following
-Lintian warnings:
-W: ledgersmb: executable-not-elf-or-script  (various directories)
-W: ledgersmb: extra-license-file usr/share/ledgersmb/locale/legacy/
+- Autoconfiguration of PostgreSQL and access to it by LedgerSMB using dbconfig-common.
+Password for postgres superuser? For LedgerSMB admin?  Run prepare-company-database.sh
+script?
+
+- Any post install processing for Apache2 should include "a2enmod rewrite" at some
+point to ensure that module is enabled, and a restart as well because of the newly
+installed /ledgersmb-httpd.conf.  (wwwconfig-common ?)  And verify that any apache
+or other httpd specific commands are verified as installed before attepting to use
+them.
+
+- Investigate using the LedgerSMB 'make install' instead of using dh_install for
+all of the file installation setup.
+
+- Investigate updating the debian packaging to use debhelper compatibility level 8
+and using 'dh' to simplify debian/rules.
 
 - It was announced back in Sept 2010 that LSMB v1.2 works with Postgresql v9,
-which is now available in Debian Testing (wheezy). After testing that version
-with LSMB, add v9.0 to the possible Postgresql versions in debian/control?
+which is now available in Debian Testing (wheezy).   After testing that version
+with LSMB, add v9.0 to the possible Postgresql versions in debian/control. There 
+are different needs for the v8 & v9 Postgresql.  Or, instead of depending on the
+versioned postgresql packages, just depend on postgresql;  since which version(s)
+of postgresql might be installed is up to the system administrator, any database
+related differences for LedgerSMB would need to be taken care of and/or at least
+referenced in the debian packaging in any case, so it would be better to just
+depend on postgresql which will get whichever is the current default version.
+
+- New 1.3 version of LedgerSMB contains an embedded javascript library. The embedded
+version appears to be 1.8.2.  The library is available in Debian as the package
+libjs-scriptaculous:  v1.8.1 in lenny (current oldstable), v1.8.3 in lenny-backports,
+v1.8.3 in squeeze, v1.9.0 in wheezy. Provide a Lintian override with description of
+issue, until otherwise resolved.
+  From Chris Travers in the Ledger-smb-devel mailing list:
+  "I don't know of any testing we have done on other versions.  We don't use a lot
+   of advanced stuff so I would expect it would work.  If bugs are found, though,
+   we can correct them."
+Test usage of libjs-scriptaculous and change over to using that when it is found
+to be operational with it.
+
+- As neccessary, add any other docs that could be registered to doc-base files.
+
+- Rewrite the debian/copyright file, following DEP-5.
+
+- Use a patch to create an updated example of the ledgersmb.conf.default file
+instead of the sed line in debian/rules? Then create a copy of it as ledgersmb.conf
+for installation to /etc/ledgersmb?
 
 
 
-
+ -- Robert James Clay <jame@rocasa.us>  Sat, 24 Dec 2011 13:17:21 -0500

@@ -1,18 +1,19 @@
-Author: <seneca@localhost.localdomain>
+Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
---- ledgersmb-1.2.25.orig/ledgersmb-httpd.conf
-+++ ledgersmb-1.2.25/ledgersmb-httpd.conf
-@@ -1,7 +1,7 @@
+--- a/ledgersmb-httpd.conf.template
++++ b/ledgersmb-httpd.conf.template
+@@ -1,8 +1,8 @@
+ # This file must be edited to substitute the current path with WORKING_DIR
  
--Alias /ledgersmb WORKING_DIR
+-Alias /ledgersmb WORKING_DIR/
 +Alias /ledgersmb /usr/share/ledgersmb/
  
 -<Directory WORKING_DIR>
 +<Directory /usr/share/ledgersmb>
-   AllowOverride All
-   AddHandler cgi-script .pl
-   Options ExecCGI Includes FollowSymlinks
-@@ -13,22 +13,22 @@
+ 
+   # Rewrite rule to allow HTTP Authorization information to the scripts only
+   # from this directory.
+@@ -36,32 +36,32 @@
    </Files>
  </Directory>
  
@@ -21,29 +22,41 @@ Description: Changing paths in Apache config
    Order Deny,Allow
    Deny from All
  </Directory>
-   
+ 
 -<Directory WORKING_DIR/bin>
 +<Directory /usr/share/ledgersmb/bin>
    Order Deny,Allow
    Deny from All
  </Directory>
-   
+ 
 -<Directory WORKING_DIR/utils>
 +<Directory /usr/share/ledgersmb/utils>
    Order Deny,Allow
    Deny from All
  </Directory>
-   
+ 
+-<Directory WORKING_DIR/spool>
++<Directory /usr/share/ledgersmb/spool>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/templates>
++<Directory /usr/share/ledgersmb/templates>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
 -<Directory WORKING_DIR/LedgerSMB>
 +<Directory /usr/share/ledgersmb/LedgerSMB>
    Order Deny,Allow
    Deny from All
  </Directory>
 --- /dev/null
-+++ ledgersmb-1.2.25/ledgersmb-httpd.conf.rej
++++ b/ledgersmb-httpd.conf.rej
 @@ -0,0 +1,32 @@
-+--- ledgersmb-httpd.conf	2007-02-23 00:44:50.000000000 -0500
-++++ ledgersmb-httpd.conf	2007-02-19 20:46:47.000000000 -0500
++--- ledgersmb-httpd.conf.template	2007-02-23 00:44:50.000000000 -0500
+++++ ledgersmb-httpd.conf.template	2007-02-19 20:46:47.000000000 -0500
 +@@ -13,27 +13,12 @@
 +   </Files>
 + </Directory>

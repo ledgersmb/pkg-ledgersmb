@@ -1,83 +1,126 @@
 LedgerSMB for Debian
 --------------------
 
-LedgerSMB can be accessed at http://127.0.0.1/ledgersmb, although initial
-set up is required.
+Optional Perl modules
 
-To prepare LedgerSMB for use:
+      Net::TCLink               [Support for TrustCommerce credit card processing]
+      Parse::RecDescent         [Support for the *experimental* scripting engine]
+      Template::Plugin::Latex   [Support for Postscript and PDF output]
+      OpenOffice::OODoc         [Support for OpenOffice output]
+      Excel::Template::Plus     [Support for Excel output]
 
-  1) As the postgres user, create a database user for LedgerSMB authentication
+    The credit card processing support for TrustCommerce is available
+    repository as libnet-tclink-perl if not already installed:
 
-    $ createuser --no-superuser --createdb --no-createrole \
-        -U postgres --pwprompt --encrypted ledgersmb
+    The Open Office output support is available as libopenoffice-oodoc-perl if
+    it is not already installed.
 
-  Here it will prompt twice for the ledgersmb postgres user password, remember
-  what you enter here for step 5.  Note that you may need to update the access
-  for that user in the postgresql configuration (as also in step 6).
+    The scripting engine support is available as libparse-recdescent-perl
+    if it is not already installed:
 
-  2) Create postgres database for ledgersmb
+    If the libtemplate-plugin-latex-perl package needed for the PDF/Postscript
+    output option is not available, then if you want to use that option you will
+    need to download the module Template::Plugin::Latex from CPAN.
 
-    $ createdb -U ledgersmb -O ledgersmb -E UNICODE ledgersmb
-        $ createlang plpgsql -U postgres ledgersmb
+    Please note that the PDF/Postscript module depends on the TeX/LaTeX
+    package which is available as texlive-latex-recommended.
 
-  3) Add databases for all datasets which you want to have available
+    If the libexcel-template-plus-perl package needed for the Excel output
+    option is not available, then if you want to use that option you will
+    need to download Excel::Template::Plus module from CPAN.
 
-  For instance, we want a dataset for each of examplecom, exampleorg and 
-  examplenet, so...
 
-    $ createdb -T ledgersmb examplecom
-    $ createdb -T ledgersmb exampleorg
-    $ createdb -T ledgersmb examplenet
+Initializing a company database
 
-  4) Populate the user database and set an admin password (this admin password
-  will be used to log into the administrative interface).
+    LedgerSMB 1.3 stores data for each company in a separate "database".  A
+    database is a PostgreSQL concept for grouping tables, indexes, etc.
 
-    $ psql -U ledgersmb -d ledgersmb -f \
-        /usr/share/ledgersmb/sql/Pg-central.sql 
-    $ psql -U ledgersmb -d ledgersmb
+    Each company database must be named.  This name is essentially the system
+    identifier within PostgreSQL for the company's dataset.  The name for the
+    company database can only contain letters, digits and underscores.
+    Additionally, it must start with a letter.  Company database names are
+    case insensitive, meaning you can't create two separate company databases
+    called 'Ledgersmb' and 'ledgersmb'.
 
-        ledgersmb=> UPDATE users_conf SET password = md5('admin-password') \
-        WHERE id = 1;
+    One way you can create databases fairly easily is by directing your web browser
+    to the setup.pl script at your installed ledgersmb directory.  So if the 
+    base URL is http://localhost/ledgersmb/, you can access the database setup and 
+    upgrade script at http://localhost/ledgersmb/setup.pl.  This is very different
+    from the approaches taken by LedgerSMB 1.2.x and earlier and SQL-Ledger, but
+    rather forms a wizard to walk you through the process.
 
-  5) Edit /etc/ledgersmb/ledgersmb.conf
+    Please note that the setup.pl file assumes that LedgerSMB is already configured 
+    to be able to access the database and locate the relevant PostgreSQL contrib 
+    scripts.  In particular, you must have the  contrib_dir directive set to point
+    to those scripts properly in your ledgersmb.conf before you begin.
 
-  Scroll down to the very bottom and check your database settings, they 
-  will need to be changed.  Insert the ledgersmb postgres user password 
-  you used in step 1.
+    If you are upgrading from 1.2, your 1.2 tables will be moved to schema lsmb12.
+    Please keep this schema for some months. Updates which need this schema may
+    still be necessary.
 
-  6) Edit /etc/postgresql/8.x/main/pg_hba.conf so that ledgersmb user may
-  connect. Depending on your security infrastructure you can use the METHOD
-  md5 or trust.
+    An alternative method is the 'prepare-company-database.sh' script, which can
+    be useful in creating and populating databases from the command line and it
+    offers a reference implementation written in BASH for how this process is done.
 
-  Reload postgres so your changes take effect.
+    The 'prepare-company-database.sh' script in the tools/ directory will set
+    up databases to be used for LedgerSMB. The script should be run as 'root'
+    because it wants to 'su' to the postgres user.  Alternatively, if you
+    know the password of the postgres user, you can run the script as any other
+    user.  You'll be prompted for the password.  Additionally, the script creates
+    a superuser to assign ownership of the created company database to. By
+    default this user is called 'ledgersmb'.  The reason for this choice is that
+    when removing the ledgersmb user, you'll be told about any unremoved parts
+    of the database, because the owner of an existing database can't be removed
+    until that database is itself removed.
 
-  7) Configure apache2
+    The following invocation of the script sets up your first test company,
+    when invoked as the root user and from the root directory of the LedgerSMB
+    sources:
 
-   Check /etc/ledgersmb/ledgersmb-httpd.conf and see if it is what you want 
-   - it will usually be fine just the way it is.
+     $ ./tools/prepare-company-database.sh --company testinc
 
-   The default configuration will make this accessible to everyone who can 
-   get to your ip address on port 80.  If you want to lock it down to 
-   localhost, do so now in the forementioned configuration file!
+    The script assumes your PostgreSQL server runs on 'localhost' with
+    PostgreSQL's default port (5432).
 
-    $ cd /etc/apache2/conf.d/
-    $ ln -s ../../ledgersmb/ledgersmb-httpd.conf
+    Upon completion, it'll have created a company database with the name
+    'testinc', a user called 'ledgersmb' (password: 'LEDGERSMBINITIALPASSWORD'),
+    a single user called 'admin' (password: 'admin') and the roles required to
+    manage authorizations.
 
-  8) Reload apache2
+    Additionally, it'll have loaded a minimal list of languages required
+    to successfully navigate the various screens.
 
-    $ /etc/init.d/apache2 reload
+    All these can be adjusted using arguments provided to the setup script. See
+    the output generated by the --help option for a full list of options.
 
-At this point you can connect to http://127.0.0.1/ledgersmb/admin.pl and login
-with the password set in step 4.
+    Note: The script expects to be able to connect to the postgresql database
+      server over a TCP/IP connection after initial creation of the ledgersmb
+      user.  The ledgersmb user will be used to log in. To ensure that's
+      possible, it's easiest to ensure there's a row in the pg_hba.conf file
+      [the file which says how PostgreSQL should enforce its login policy]
+      with a 'host' configuration for the 127.0.0.1/32 address and the md5
+      authentication enforcement.  This line can be inserted for the duration
+      of the configuration of LedgerSMB, if the file doesn't have one.  The
+      line can safely be removed afterwards.
 
-If upgrading from LedgerSMB < 1.2.0-rc5, you need to edit 
-/etc/ledgersmb/ledgersmb.conf to adjust your configuration to match the new
-options and renaming.
 
-If upgrading from LedgerSMB < 1.2.0-beta1 or from SQL-Ledger, read UPGRADE. The
-config format, locale names, database schema, and per-user configuration 
-locations have been sufficiently changed with 1.2.0-beta1 so as to require
-special attention in upgrading.
+Manual configuration
+====================
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 22 Oct 2011 00:59:31 -0400
- -- Elizabeth Krumbach <lyz@princessleia.com>  Tue, 6 Jan 2009 05:38:48 -0500
+    If you want to perform the installation of the company database completely
+    manually, you should consult the 'prepare-company-database.sh' script that
+    is available in the /usr/share/ledgersmb/tools/ directory as the authorative
+    documentation of the steps to perform.
+
+
+Company database removal
+========================
+
+    In the /usr/share/ledgersmb/tools/ directory, there's a script which will
+    remove a company database and all the standard authorization data that had
+    been created by the 'prepare-company-database.sh' script.  The script is
+    named 'delete-company-database.sh'.
+
+
+
+ -- Robert James Clay <jame@rocasa.us>  Tue, 15 Dec 2011 11:46:38 -0500
