@@ -82,10 +82,7 @@ binary-indep: build install
 	chmod -x $(LSMBDIR)/locale/html/*
 	chmod -x $(LSMBDIR)/sql/*sql
 	chmod -x $(LSMBDIR)/sql/coa/*sql
-	chmod -x $(LSMBDIR)/LedgerSMB/*pm
-	chmod -x $(LSMBDIR)/LedgerSMB/Auth/*pm
-	chmod -x $(LSMBDIR)/LedgerSMB/Taxes/*pm
-	chmod -x $(LSMBDIR)/LedgerSMB/Template/*pm
+	find $(LSMBDIR) -name '*.pm' -exec chmod -x '{}' \;
 	dh_installdeb
 	dh_perl
 	dh_gencontrol
