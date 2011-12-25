@@ -4,6 +4,7 @@
 #export DH_VERBOSE=1
 
 DESTDIR = $(CURDIR)/debian/ledgersmb
+LSMBDIR = $(DESTDIR)/usr/share/ledgersmb
 INSTALL = install
 
 
@@ -59,19 +60,6 @@ install: build
 	perl Makefile.PL --skipdeps
 	$(MAKE)
 
-    # Corrections to file permissions
-	chmod +x $(CURDIR)/blib/lib/*.pl
-	chmod +x $(CURDIR)/scripts/*.pl
-	chmod +x $(CURDIR)/sql/modules/*.sh
-	chmod +x $(CURDIR)/tools/*.sh
-	chmod -x $(CURDIR)/locale/po/*
-	chmod -x $(CURDIR)/locale/html/*
-	chmod -x $(CURDIR)/sql/*sql
-	chmod -x $(CURDIR)/sql/coa/*sql
-	chmod -x $(CURDIR)/LedgerSMB/*pm
-	chmod -x $(CURDIR)/LedgerSMB/Auth/*pm
-	chmod -x $(CURDIR)/LedgerSMB/Taxes/*pm
-	chmod -x $(CURDIR)/LedgerSMB/Template/*pm
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -86,6 +74,18 @@ binary-indep: build install
 	dh_link
 	dh_compress
 	dh_fixperms
+    # Corrections to file permissions
+	chmod +x $(LSMBDIR)/scripts/*.pl
+	chmod +x $(LSMBDIR)/sql/modules/*.sh
+	chmod +x $(LSMBDIR)/tools/*.sh
+	chmod -x $(LSMBDIR)/locale/po/*
+	chmod -x $(LSMBDIR)/locale/html/*
+	chmod -x $(LSMBDIR)/sql/*sql
+	chmod -x $(LSMBDIR)/sql/coa/*sql
+	chmod -x $(LSMBDIR)/LedgerSMB/*pm
+	chmod -x $(LSMBDIR)/LedgerSMB/Auth/*pm
+	chmod -x $(LSMBDIR)/LedgerSMB/Taxes/*pm
+	chmod -x $(LSMBDIR)/LedgerSMB/Template/*pm
 	dh_installdeb
 	dh_perl
 	dh_gencontrol
