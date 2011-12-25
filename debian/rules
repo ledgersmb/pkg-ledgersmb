@@ -76,10 +76,9 @@ binary-indep: build install
 	dh_fixperms
     # Corrections to file permissions
 	chmod +x $(LSMBDIR)/scripts/*.pl
-	chmod +x $(LSMBDIR)/sql/modules/*.sh
-	chmod +x $(LSMBDIR)/tools/*.sh
 	chmod -x $(LSMBDIR)/locale/po/*
 	chmod -x $(LSMBDIR)/locale/html/*
+	find $(LSMBDIR) -name '*.sh' -exec chmod +x '{}' \;
 	find $(LSMBDIR) -name '*.pm' -exec chmod -x '{}' \;
 	find $(LSMBDIR) -name '*.sql' -exec chmod -x '{}' \;
 	dh_installdeb
