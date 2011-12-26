@@ -75,8 +75,12 @@ binary-indep: build install
 	dh_compress
 	dh_fixperms
     #   Set default user:group & permissions for etc/ledgersmb
-	chmod 0600 $(LSMBDIR)/etc/ledgersmb/*.conf
 	chown -R www-data:www-data $(LSMBDIR)/etc/ledgersmb
+	chmod 0600 $(LSMBDIR)/etc/ledgersmb/*.conf
+	chmod 2755 $(LSMBDIR)/etc/ledgersmb
+	chmod 2755 $(LSMBDIR)/etc/ledgersmb/images
+	chmod 2755 $(LSMBDIR)/etc/ledgersmb/images/demo
+	chmod 2755 $(LSMBDIR)/etc/ledgersmb/templates
     # Corrections to file permissions in the package build directory.
 	chmod +x $(LSMBDIR)/scripts/*.pl
 	chmod -x $(LSMBDIR)/locale/po/*
