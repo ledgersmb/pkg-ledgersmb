@@ -6,7 +6,7 @@ Uploaders: Robert James Clay <jame@rocasa.us>,
   Elizabeth Krumbach <lyz@princessleia.com>,
   Seneca Cunningham <tetragon@ledgersmb.org>,
   Michael C. Schultheiss <schultmc@debian.org>
-Build-Depends: debhelper (>= 7.0.50), libmodule-install-perl
+Build-Depends: debhelper (>= 8), libmodule-install-perl
 Standards-Version: 3.9.2
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/trunk
