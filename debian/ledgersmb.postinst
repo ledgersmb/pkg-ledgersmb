@@ -20,10 +20,6 @@ set -e
 
 case "$1" in
     configure)
-    #   Set default user:group & permissions for etc/ledgersmb
-    chown -R www-data:www-data /etc/ledgersmb
-    chmod 0600 /etc/ledgersmb/*.conf
-
     #   Remove if present then install the stat setting for /etc/ledgersmb
     dpkg-statoverride --remove /etc/ledgersmb >/dev/null 2>&1 || true
     dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb
