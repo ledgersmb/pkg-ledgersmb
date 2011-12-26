@@ -74,7 +74,10 @@ binary-indep: build install
 	dh_link
 	dh_compress
 	dh_fixperms
-    # Corrections to file permissions
+    #   Set default user:group & permissions for etc/ledgersmb
+	chmod 0600 $(LSMBDIR)/etc/ledgersmb/*.conf
+	chown -R www-data:www-data $(LSMBDIR)/etc/ledgersmb
+    # Corrections to file permissions in the package build directory.
 	chmod +x $(LSMBDIR)/scripts/*.pl
 	chmod -x $(LSMBDIR)/locale/po/*
 	chmod -x $(LSMBDIR)/locale/html/*
