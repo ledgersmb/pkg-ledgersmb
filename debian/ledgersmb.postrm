@@ -20,15 +20,16 @@ set -e
 
 
 case "$1" in
-    purge|remove)
-    #   Remove the stat setting for /etc/ledgersmb/*
+    upgrade|purge|remove)
+    #   Remove the stats setting for /etc/ledgersmb/*, as dpkg-statoverride
+    # is no longer being used in debian/postinst to set it.  (Remote later.)
     dpkg-statoverride --remove /etc/ledgersmb >/dev/null 2>&1 || true
     dpkg-statoverride --remove /etc/ledgersmb/images >/dev/null 2>&1 || true
     dpkg-statoverride --remove /etc/ledgersmb/images/demo >/dev/null 2>&1 || true
     dpkg-statoverride --remove /etc/ledgersmb/templates* >/dev/null 2>&1 || true
     ;;
 
-    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
 
     *)
