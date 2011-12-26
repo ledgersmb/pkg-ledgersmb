@@ -1,102 +1,30 @@
 #!/usr/bin/make -f
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+%:
+	dh $@
 
-DESTDIR = $(CURDIR)/debian/ledgersmb
-LSMBDIR = $(DESTDIR)/usr/share/ledgersmb
-INSTALL = install
-
-
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	# Add here commands to configure the package.
-
-	touch configure-stamp
-
-
-build: build-arch build-indep
-
-build-arch: build-stamp
-
-build-indep: build-stamp
-
-build-stamp: configure-stamp
-	dh_testdir
-
-        # Add here commands to compile the package.
-        #docbook-to-man debian/ledgersmb.sgml > ledgersmb.1
-
-	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
-	rm -f ledgersmb-httpd.conf
-	rm -f ledgersmb.conf
-	if test -e Makefile; then $(MAKE) distclean; fi
-
-	dh_clean 
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_prep
-	dh_installdirs
-
-	# Add here commands to install the package into debian/ledgersmb.
-
-	cp ledgersmb-httpd.conf.template ledgersmb-httpd.conf
-
+override_dh_auto_configure:
+	rm Build.PL
 	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
+	dh_auto_configure
 
-	perl Makefile.PL --skipdeps
-	$(MAKE)
+override_dh_auto_build:
 
+override_dh_auto_test:
 
-# Build architecture-independent files here.
-binary-indep: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs Changelog
-	dh_installdocs
-	dh_installexamples
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -f ledgersmb.conf
+	rm -f ledgersmb-httpd.conf
+
+override_dh_install:
 	dh_install
-	dh_lintian
-#	dh_installdebconf
-	dh_link
-	dh_compress
-	dh_fixperms
-    #   Set default user:group & permissions for etc/ledgersmb
-	chown -R www-data:www-data $(DESTDIR)/etc/ledgersmb
-	chmod 0600 $(DESTDIR)/etc/ledgersmb/*.conf
-	chmod 2755 $(DESTDIR)/etc/ledgersmb
-	chmod 2755 $(DESTDIR)/etc/ledgersmb/images
-	chmod 2755 $(DESTDIR)/etc/ledgersmb/images/demo
-	chmod 2755 $(DESTDIR)/etc/ledgersmb/templates
-    # Corrections to file permissions in the package build directory.
-	chmod +x $(LSMBDIR)/scripts/*.pl
-	chmod -x $(LSMBDIR)/locale/po/*
-	chmod -x $(LSMBDIR)/locale/html/*
-	find $(LSMBDIR) -name '*.sh' -exec chmod +x '{}' \;
-	find $(LSMBDIR) -name '*.pm' -exec chmod -x '{}' \;
-	find $(LSMBDIR) -name '*.sql' -exec chmod -x '{}' \;
-	dh_installdeb
-	dh_perl
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
+	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/po/*
+	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/po/html/splash.html
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.sh' -exec chmod +x '{}' \;
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.pm' -exec chmod -x '{}' \;
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.sql' -exec chmod -x '{}' \;
 
-# Build architecture-dependent files here.
-binary-arch: build install
-# We have nothing to do by default.
-
-binary: binary-indep binary-arch
-.PHONY: build build-indep build-arch clean binary-indep binary-arch binary install
