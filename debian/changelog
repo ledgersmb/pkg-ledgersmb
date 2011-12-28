@@ -1,9 +1,16 @@
 ledgersmb (1.2.25-2) UNRELEASED; urgency=low
 
+  TODO: Until such time as a new release in the v1.2 series becomes available,
+        update the v1.2 series Debian packaging as neccessary or needed.
   * Changes to debian/control:
     - Change web server dependency to 'apache2 | httpd-cgi'.
+  * Change how the configuration files are installed.
+  * Install ledgersmb.conf.default as an example file.
+  * Add the LedgerSBM FAQ to the documents being registered.
+  * Install softlink to the /etc/ledgersmb/ledgersmb-httpd.conf configuration
+    file from /etc/apache2/conf.d/ledgersmb-httpd.conf.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 28 Dec 2011 12:52:33 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 28 Dec 2011 13:17:33 -0500
 
 ledgersmb (1.2.25-1) stable; urgency=low
 
