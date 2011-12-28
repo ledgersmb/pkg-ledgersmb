@@ -1,8 +1,9 @@
-ledgersmb (1.2.26-1) UNRELEASED; urgency=low
+ledgersmb (1.2.25-2) UNRELEASED; urgency=low
 
-  * New upstream release, ...
+  * Changes to debian/control:
+    - Change web server dependency to 'apache2 | httpd-cgi'.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 03 Nov 2011 19:33:36 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 28 Dec 2011 12:52:33 -0400
 
 ledgersmb (1.2.25-1) stable; urgency=low
 
