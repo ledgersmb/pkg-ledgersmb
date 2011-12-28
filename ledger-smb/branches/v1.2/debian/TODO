@@ -1,9 +1,17 @@
-
 debian/TODO for LedgerSMB v1.2
 
-- Autoconfigurtion for PostgreSQL and access to it by LedgerSMB
 
-- Autoconfiguration of Apache2
+- Review updates & changes to v1.3, backport anything useful or needed for v.1.2
+
+- Add an apache2 restart to postinst, now that the softlink to the LSMB httpd
+configuration is being installed automatically?
+
+- Update/expand the information provided in the debian/patches files.
+
+- As neccessary, add any other docs that could be registered to doc-base files.
+For instance;  FAQ.html (done), others?
+
+- Autoconfiguration for PostgreSQL and access to it by LedgerSMB
 
 - Suppress and/or otherwise handle the multiple instances of the following
 Lintian warnings:
