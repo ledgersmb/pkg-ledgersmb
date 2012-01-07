@@ -19,10 +19,10 @@ Depends: ${perl:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl
   liblocale-maketext-lexicon-perl (>= 0.62-1), libtemplate-perl (>=2.14-1),
   libhtml-parser-perl, liblog-log4perl-perl, libdatetime-perl, apache2 | httpd-cgi,
   libcgi-simple-perl, libfile-mimeinfo-perl, libio-stringy-perl,
-  postgresql-client-8.3 | postgresql-client-8.4, postgresql-contrib,
+  postgresql-client, postgresql-contrib
 Recommends: default-mta | mail-transport-agent, texlive-latex-recommended, libopenoffice-oodoc-perl,
   libmath-bigint-gmp-perl, libparse-recdescent-perl
-Suggests: postgresql-8.3 | postgresql-8.4, lpr, libnet-tclink-perl, latex-cjk-all
+Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all
 Conflicts: ledger-smb
 Replaces: ledger-smb
 Description: Web based double-entry accounting program
