@@ -20,8 +20,8 @@ override_dh_auto_clean:
 	rm -f ledgersmb.conf
 	rm -f ledgersmb-httpd.conf
 
-override_dh_install:
-	dh_install
+override_dh_fixperms:
+	dh_fixperms
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/po/*
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/po/html/splash.html
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.sh' -exec chmod +x '{}' \;
