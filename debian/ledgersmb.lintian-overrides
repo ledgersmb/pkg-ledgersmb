@@ -9,6 +9,6 @@ ledgersmb binary: embedded-javascript-library usr/share/ledgersmb/UI/ajax/script
 ledgersmb binary: embedded-javascript-library usr/share/ledgersmb/UI/ajax/scriptaculous/src/scriptaculous.js
 #
 # Override instances of the manpage-has-bad-whatis-entry Lintian warning,
-# which results from issues with the pod NAME entries in the cooresponding
+# which results from issues with the pod NAME entries in the corresponding
 # Perl source files.
 ledgersmb: manpage-has-bad-whatis-entry
