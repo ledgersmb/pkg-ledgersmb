@@ -7,3 +7,8 @@ ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/bin/custo
 # versions that are available in Debian.
 ledgersmb binary: embedded-javascript-library usr/share/ledgersmb/UI/ajax/scriptaculous/lib/prototype.js
 ledgersmb binary: embedded-javascript-library usr/share/ledgersmb/UI/ajax/scriptaculous/src/scriptaculous.js
+#
+# Override instances of the manpage-has-bad-whatis-entry Lintian warning,
+# which results from issues with the pod NAME entries in the cooresponding
+# Perl source files.
+ledgersmb: manpage-has-bad-whatis-entry
