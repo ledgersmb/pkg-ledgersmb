@@ -5,6 +5,10 @@
 
 override_dh_auto_configure:
 	[ ! -e Build.PL ] || rm -f Build.PL
+    # Per upstream; remove these empty directories if present, as they are not
+    # needed for an installed LedgerSMB directory.
+	[ ! -e LedgerSMB/Assets ] || rmdir LedgerSMB/Assets
+	[ ! -e LedgerSMB/Entity ] || rmdir LedgerSMB/Entity
 	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
