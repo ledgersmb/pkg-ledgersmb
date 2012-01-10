@@ -1,2 +1,3 @@
 usr/share/ledgersmb/bin/custom
 usr/share/ledgersmb/scripts/custom
+usr/share/ledgersmb/LedgerSMB/Reconciliation/CSV/Formats
