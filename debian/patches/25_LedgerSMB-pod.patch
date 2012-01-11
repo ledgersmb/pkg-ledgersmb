@@ -1,0 +1,16 @@
+Description: Correct POD issues in LedgerSMB.pm
+ Is missing the dash from in the NAME entry.
+Bug: https://sourceforge.net/tracker/?func=detail&aid=3472500&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB.pm
++++ b/LedgerSMB.pm
+@@ -1,7 +1,7 @@
+ 
+ =head1 NAME
+ 
+-LedgerSMB  The Base class for many LedgerSMB objects, including DBObject.
++LedgerSMB - The Base class for many LedgerSMB objects, including DBObject.
+ 
+ =head1 SYNOPSIS
+ 
