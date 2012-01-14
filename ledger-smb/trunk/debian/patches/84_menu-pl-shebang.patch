@@ -1,0 +1,14 @@
+Description: Unneccessary shebang line in scripts/menu.pl
+ Correct issue with unneccessary shebang line in scripts/menu.pl
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3473848&group_id=175965&atid=875350
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/scripts/menu.pl
++++ b/scripts/menu.pl
+@@ -1,5 +1,4 @@
+-#!/usr/bin/perl
+-
++=pod
+ 
+ =head1 NAME
+ 
