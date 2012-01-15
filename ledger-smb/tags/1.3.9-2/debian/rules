@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	[ ! -e Build.PL ] || rm -f Build.PL
+    # Per upstream; remove these empty directories if present, as they are not
+    # needed for an installed LedgerSMB directory.
+	[ ! -e LedgerSMB/Assets ] || rmdir LedgerSMB/Assets
+	[ ! -e LedgerSMB/Entity ] || rmdir LedgerSMB/Entity
+	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
+	    -e 's|^latex : 1$$|latex : 0|' \
+	    -e '/^localepath/d' \
+	    ledgersmb.conf.default > ledgersmb.conf
+	dh_auto_configure
+
+override_dh_auto_test:
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -f ledgersmb.conf
+	rm -f ledgersmb-httpd.conf
+
+override_dh_auto_install:
+
+override_dh_install:
+	rm -f blib/lib/install_interactive.pl
+	dh_install -XMIT-LICENSE
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/po/*
+	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/html/splash.html
+	chmod +x debian/ledgersmb/usr/share/ledgersmb/Reconciliation.pl
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.sh' -exec chmod +x '{}' \;
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.pm' -exec chmod -x '{}' \;
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.sql' -exec chmod -x '{}' \;
+

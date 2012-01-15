@@ -1,0 +1,13 @@
+Description: Unneccessary shebang line in scripts/taxform.pl
+ Correct issue with unneccessary shebang line in scripts/taxform.pl
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3473848&group_id=175965&atid=875350
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/scripts/taxform.pl
++++ b/scripts/taxform.pl
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++=pod
+ 
+ =head1 NAME
+ 
