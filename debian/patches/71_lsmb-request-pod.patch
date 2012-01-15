@@ -7,11 +7,11 @@ Author: Robert James Clay <jame@rocasa.us>
 --- a/lsmb-request.pl
 +++ b/lsmb-request.pl
 @@ -1,6 +1,8 @@
--=head1 NAME
- #!/usr/bin/perl
--The LedgerSMB Request Handler
++=pod
 +
-+=head1 NAME
+ =head1 NAME
+-#!/usr/bin/perl
+-The LedgerSMB Request Handler
 +
 +lsmb-request.pl - The LedgerSMB Request Handler
  
