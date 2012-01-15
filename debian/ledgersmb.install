@@ -15,5 +15,4 @@ scripts/* usr/share/ledgersmb/scripts
 sql/* usr/share/ledgersmb/sql
 templates/* etc/ledgersmb/templates
 tools/* /usr/share/ledgersmb/tools
-utils/* usr/share/ledgersmb/utils
 UI/* usr/share/ledgersmb/UI

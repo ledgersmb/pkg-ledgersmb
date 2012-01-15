@@ -1,0 +1,21 @@
+Description: Correct pod NAME issue in LedgerSMB/DBObject/User.pm
+ Is missing a pod NAME entry altogether.
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472576&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/DBObject/User.pm
++++ b/LedgerSMB/DBObject/User.pm
+@@ -1,3 +1,13 @@
++=pod
++
++=head1 NAME
++
++LedgerSMB::DBObject::User - LedgerSMB User DB Objects
++
++=over
++
++=cut
++
+ package LedgerSMB::DBObject::User;
+ 
+ use base qw/LedgerSMB::DBObject/;
