@@ -1,46 +1,32 @@
 debian/TODO for LedgerSMB v1.3
 
-- Change how the file permissions are being set for the resulting binary package;
-for both corrections and for what might be required for the installed pacakge. See
-also if the 'make install' option takes care of any of the changes, so it doesn't
-need to be done by the packaging. (See next 2 items for related Lintian results.)
+- The pos.conf.pl file is a configuration file for the Point Of Sale related processing:
+1) Check what's changed for it in 1.3.10, as the rc2 change log notes changes for it
+   related to update installs?
+2) Install a copy of it as an example file.
+3) Since it is a config file;  instead of installing the file directly, install
+   it using postinst only if it is not already present.
 
-- Multiple instances of the following of the following Lintian warnings:
-W: ledgersmb: script-not-executable (6)
-    -> Contact upstream. Could do a chmod on those in debian/rules.
-W: ledgersmb: executable-not-elf-or-script (72)
-    -> Contact upstream. For now, do a chmod on those in debian/rules.
-
-- Multiple instances of the following from Lintian. At least one is named
-  "custom" so may need an override because it is meant to be that way.
-  Investigate why the others are showing as empty.
-I: ledgersmb: package-contains-empty-directory (9)
-
-- Autoconfiguration of PostgreSQL and access to it by LedgerSMB using dbconfig-common.
+- Auto-configuration of PostgreSQL and access to it by LedgerSMB using dbconfig-common.
 Password for postgres superuser? For LedgerSMB admin?  Run prepare-company-database.sh
-script?
+script looks to be usable but the current version looks like it needs a patch even
+if it not used by the package setup, because lines 197 & 197 are being used to 
+create a new ledgersmb-httpd.conf each time it runs by changing the $WORK_DIR variable
+in the template file to that found by the script.  Such a variable shouldn't be 
+found there because the package install creates the correct template file.  Patch it
+to at least comment those lines out?
 
-- Any post install processing for Apache2 should include "a2enmod rewrite" at some
-point to ensure that module is enabled, and a restart as well because of the newly
-installed /ledgersmb-httpd.conf.  (wwwconfig-common ?)  And verify that any apache
-or other httpd specific commands are verified as installed before attepting to use
-them.
+- The long description in debian/control needs to be rewritten.  (Note also that
+upstream has rewritten the project description, essentially for the first time
+since the writeup at the time of the fork from sql-ledger.)
 
-- Investigate using the LedgerSMB 'make install' instead of using dh_install for
-all of the file installation setup.
+- Rewrite the debian/copyright file, following DEP-5.
 
-- Investigate updating the debian packaging to use debhelper compatibility level 8
-and using 'dh' to simplify debian/rules.
-
-- It was announced back in Sept 2010 that LSMB v1.2 works with Postgresql v9,
-which is now available in Debian Testing (wheezy).   After testing that version
-with LSMB, add v9.0 to the possible Postgresql versions in debian/control. There 
-are different needs for the v8 & v9 Postgresql.  Or, instead of depending on the
-versioned postgresql packages, just depend on postgresql;  since which version(s)
-of postgresql might be installed is up to the system administrator, any database
-related differences for LedgerSMB would need to be taken care of and/or at least
-referenced in the debian packaging in any case, so it would be better to just
-depend on postgresql which will get whichever is the current default version.
+- Use a patch to create an updated example of the ledgersmb.conf.default file
+instead of the sed line in debian/rules? Then create a copy of it as ledgersmb.conf
+for installation to /etc/ledgersmb?  It is also needed for a default build, at
+least in the testing phase, so this would be useful for simplifying debian/rules
+as well.
 
 - New 1.3 version of LedgerSMB contains an embedded javascript library. The embedded
 version appears to be 1.8.2.  The library is available in Debian as the package
@@ -54,14 +40,6 @@ issue, until otherwise resolved.
 Test usage of libjs-scriptaculous and change over to using that when it is found
 to be operational with it.
 
-- As neccessary, add any other docs that could be registered to doc-base files.
-
-- Rewrite the debian/copyright file, following DEP-5.
-
-- Use a patch to create an updated example of the ledgersmb.conf.default file
-instead of the sed line in debian/rules? Then create a copy of it as ledgersmb.conf
-for installation to /etc/ledgersmb?
 
 
-
- -- Robert James Clay <jame@rocasa.us>  Sat, 24 Dec 2011 13:17:21 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sun, 15 Jan 2012 13:24:05 -0500
