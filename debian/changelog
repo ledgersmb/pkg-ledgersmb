@@ -1,4 +1,4 @@
-ledgersmb (1.3.9-2~b) UNRELEASED; urgency=low
+ledgersmb (1.3.9-2) experimental; urgency=low
 
   * Change debhelper compatibility to 8.
   * Changes to debian/control:
@@ -9,6 +9,7 @@ ledgersmb (1.3.9-2~b) UNRELEASED; urgency=low
     - Rewrite how the old dpkg-statoverride usage is being dealt with.
   * Changes to debian/postinst:
     - Do not use dpkg-statoverride to set default permissions.
+    - If Apache is present, configure it for use with LedgerSMB.
   * Changes to debian/rules:
     - Changed to using dh and a mimimal debian/rules.
     - Do not install MIT-LICENSE file from the embedded Scriptaculous library.
@@ -18,13 +19,17 @@ ledgersmb (1.3.9-2~b) UNRELEASED; urgency=low
     - Update the end year for my debian directory copyright information.
     - Add information regarding the embedded Scriptaculous Javascript library.
   * Changes to debian/ledgersmb.lintian-override:
-    - Override manpage-has-bad-whatis-entry Lintian Warnings.
-    - Remove override related to the Scriptaculous license file.
+    - Override the package-contains-empty-directory Lintian Warnings for the
+      directories scripts/custom and LedgerSMB/Reconciliation/CSV/Formats.
+    - Remove the override related to the Scriptaculous license file.
+  * Change how the ledgersmb-httpd.conf file is installed.
+  * Include patches for some application cgi script shebang issues.
+  * Include patches for application documentation spelling & NAME entry issues.
   * Use debian/ledgersmb.manpages to list the man pages to be installed.
   * Prefix binary-package specific file names in the debian directory with
     the package name.
 
- -- Robert James Clay <jame@rocasa.us>  Sun,  8 Jan 2012 20:43:34 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sun, 15 Jan 2012 13:38:19 -0500
 
 ledgersmb (1.3.9-1) experimental; urgency=low
 
