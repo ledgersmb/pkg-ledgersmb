@@ -1,0 +1,23 @@
+Description: Correct POD issues in LedgerSMB/Log.pm
+ Spelling error in line 9: Seperate Separate
+ Spelling error in line 9: apche apache
+ Spelling error in line 13: loosly loosely
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472492&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/Log.pm
++++ b/LedgerSMB/Log.pm
+@@ -6,11 +6,11 @@
+ =head1 SYOPSIS
+ 
+ This module maintains a connection to the LedgerSMB log file 
+-(Seperate from the apche error log, for now)
++(Separate from the apache error log, for now)
+ 
+ =head1 METHODS
+ 
+-This module is loosly based on Apache::Log.
++This module is loosely based on Apache::Log.
+ 
+ Available methods: (in order, most to least severe)
+ 

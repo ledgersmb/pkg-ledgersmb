@@ -1,0 +1,24 @@
+Description: Correct POD issues in LedgerSMB/RESTXML/Document/Session.pm
+ Has the module name but does not the dash plus short description in the NAME
+ entry. Spelling error in line 9: recieve receive.
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472019&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/RESTXML/Document/Session.pm
++++ b/LedgerSMB/RESTXML/Document/Session.pm
+@@ -1,12 +1,12 @@
+ 
+ =head1 NAME
+ 
+-LedgerSMB::RESTXML::Document::Session
++LedgerSMB::RESTXML::Document::Session - Sets up an authentication session for iteratively accessing documents in LedgerSMB
+ 
+ =head1 SYNOPSIS
+ 
+-This sets up an authentication session for iterativly accessing documents in LedgerSMB.  A user should
+-post a login document to /Session/userid, and upon success, they will recieve a cookie which they can use to further
++This sets up an authentication session for iteratively accessing documents in LedgerSMB.  A user should
++post a login document to /Session/userid, and upon success, they will receive a cookie which they can use to further
+ access other resources.
+ 
+ =cut

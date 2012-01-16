@@ -1,0 +1,16 @@
+Description: Correct pod NAME issue in LedgerSMB/Template/LaTeX.pm
+ Is missing the dash from the pod NAME entry.
+Bug: http://sourceforge.net/tracker/index.php?func=detail&aid=3472622&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/Template/LaTeX.pm
++++ b/LedgerSMB/Template/LaTeX.pm
+@@ -1,7 +1,7 @@
+ 
+ =head1 NAME
+ 
+-LedgerSMB::Template::LaTeX  Template support module for LedgerSMB
++LedgerSMB::Template::LaTeX - Template support module for LedgerSMB
+ 
+ =head1 SYNOPSIS
+ 

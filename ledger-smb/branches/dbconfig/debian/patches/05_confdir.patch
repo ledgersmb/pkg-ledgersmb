@@ -1,0 +1,36 @@
+Author: Robert James Clay <jame@rocasa.us>
+Description: Change default directories
+--- a/LedgerSMB/Sysconfig.pm
++++ b/LedgerSMB/Sysconfig.pm
+@@ -56,11 +56,11 @@
+ our $cookie_name = "LedgerSMB-1.3";
+ 
+ # spool directory for batch printing
+-our $spool = "spool";
++our $spool = "/var/lib/ledgersmb/spool";
+ 
+ our $cache_templates = 0;
+ # path to user configuration files
+-our $userspath = "users";
++our $userspath = "/var/lib/ledgersmb/users";
+ 
+ # templates base directory
+ our $templates = "templates";
+@@ -69,7 +69,7 @@
+ our $tempdir = ( $ENV{TEMP} || '/tmp' );
+ 
+ # member file
+-our $memberfile = "users/members";
++our $memberfile = "/var/lib/ledgersmb/users/members";
+ 
+ # location of sendmail
+ our $sendmail = "/usr/sbin/sendmail -t";
+@@ -91,7 +91,7 @@
+ our $gzip = "gzip -S .gz";
+ 
+ # Path to the translation files
+-our $localepath = 'locale/po';
++our $localepath = '/usr/share/ledgersmb/locale/po';
+ 
+ our $no_db_str = 'database';
+ our $log_level = 'ERROR';
