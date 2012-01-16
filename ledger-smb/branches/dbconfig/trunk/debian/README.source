@@ -1,8 +1,0 @@
-Note that an original source archive is created by downloading the archive for
-version n.n.nn as ledgersmb-n.n.nn.tar.gz and its associated gpg signature file
-ledgersmb-n.n.nn.tar.gz.asc. The file is verified against the signature and it
-is then renamed as ledgersmb_n.n.nn.orig.tar.gz.
-
-Please read /usr/share/doc/quilt/README.source to know how to apply
-and manage Debian specific patches on this package.
-

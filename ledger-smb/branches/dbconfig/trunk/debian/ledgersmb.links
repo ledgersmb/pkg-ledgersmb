@@ -1,2 +1,0 @@
-/etc/ledgersmb/ledgersmb.conf  /usr/share/ledgersmb/ledgersmb.conf
-/etc/apache2/conf.d/ledgersmb-httpd.conf /etc/ledgersmb/ledgersmb-httpd.conf 
