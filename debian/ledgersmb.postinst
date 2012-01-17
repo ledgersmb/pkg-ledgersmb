@@ -44,6 +44,13 @@ case "$1" in
         fi
       fi
     fi
+    # Only do these if this is the initial install.
+    if [ "$2" = "" ]; then
+      # Install a default copy of pos.conf.pl using the example template file.
+      if [ ! -e "/usr/share/ledgersmb/pos.conf.pl" ]; then
+        cp /usr/share/doc/ledgersmb/examples/pos.conf.pl.template /usr/share/ledgersmb/pos.conf.pl
+      fi
+    fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
