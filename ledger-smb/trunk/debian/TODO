@@ -1,12 +1,5 @@
 debian/TODO for LedgerSMB v1.3
 
-- The pos.conf.pl file is a configuration file for the Point Of Sale related processing:
-1) Check what's changed for it in 1.3.10, as the rc2 change log notes changes for it
-   related to update installs?
-2) Install a copy of it as an example file.
-3) Since it is a config file;  instead of installing the file directly, install
-   it using postinst only if it is not already present.
-
 - Auto-configuration of PostgreSQL and access to it by LedgerSMB using dbconfig-common.
 Password for postgres superuser? For LedgerSMB admin?  Run prepare-company-database.sh
 script looks to be usable but the current version looks like it needs a patch even
@@ -42,4 +35,4 @@ to be operational with it.
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 15 Jan 2012 13:24:05 -0500
+ -- Robert James Clay <jame@rocasa.us>  Tue, 17 Jan 2012 17:41:20 -0500
