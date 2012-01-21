@@ -17,11 +17,6 @@ override_dh_auto_configure:
 
 override_dh_auto_test:
 
-override_dh_auto_clean:
-	dh_auto_clean
-	rm -f ledgersmb.conf
-	rm -f ledgersmb-httpd.conf
-
 override_dh_auto_install:
 
 override_dh_install:
