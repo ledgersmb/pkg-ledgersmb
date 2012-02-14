@@ -35,7 +35,7 @@ case "$1" in
               a2enmod rewrite
         fi
         # Restart apache
-        if [ -e "/etc/init.d/apache2" ]; then
+        if [ -x "/etc/init.d/apache2" ]; then
           invoke-rc.d apache2 restart || true
         fi
       fi
