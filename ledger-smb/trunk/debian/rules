@@ -4,7 +4,7 @@
 	dh $@
 
 override_dh_auto_configure:
-	[ ! -e Build.PL ] || rm -f Build.PL
+	rm -f Build.PL
     # Per upstream; remove these empty directories if present, as they are not
     # needed for an installed LedgerSMB directory.
 	[ ! -e LedgerSMB/Assets ] || rmdir LedgerSMB/Assets
