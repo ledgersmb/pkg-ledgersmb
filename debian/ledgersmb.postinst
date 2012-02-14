@@ -30,13 +30,9 @@ case "$1" in
             cp /usr/share/doc/ledgersmb/examples/ledgersmb-httpd.conf.template /etc/apache2/conf.d/ledgersmb-httpd.conf
           fi
         fi
-        # Enable mod rewrite if it is not already enabled.
-        if [ -d "/etc/apache2/mods-enabled" ]; then
-          if [ ! -h "/etc/apache2/mods-enabled/rewrite.load" ]; then
-            if [ -e "/usr/sbin/a2enmod" ]; then
+        # Enable Apache mod_rewrite
+        if [ -x "`which a2enmod 2>/dev/null`" ]; then
               a2enmod rewrite
-            fi
-          fi
         fi
         # Restart apache
         if [ -e "/etc/init.d/apache2" ]; then
