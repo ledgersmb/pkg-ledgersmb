@@ -22,30 +22,30 @@ case "$1" in
     configure)
     # Do Apache related processing if it is present.
     if [ -d "/etc/apache2" ]; then
-      # Only do these if this is the initial install.
-      if [ "$2" = "" ]; then
-        # Install ledgersmb-httpd.conf if a copy is not already installed.
-        if [ -d "/etc/apache2/conf.d" ]; then
-          if [ ! -e "/etc/apache2/conf.d/ledgersmb-httpd.conf" ]; then
-            cp /usr/share/doc/ledgersmb/examples/ledgersmb-httpd.conf.template /etc/apache2/conf.d/ledgersmb-httpd.conf
-          fi
+        # Only do these if this is the initial install.
+        if [ "$2" = "" ]; then
+            # Install ledgersmb-httpd.conf if a copy is not already installed.
+            if [ -d "/etc/apache2/conf.d" ]; then
+                if [ ! -e "/etc/apache2/conf.d/ledgersmb-httpd.conf" ]; then
+                    cp /usr/share/doc/ledgersmb/examples/ledgersmb-httpd.conf.template /etc/apache2/conf.d/ledgersmb-httpd.conf
+                fi
+            fi
+            # Enable Apache mod_rewrite
+            if [ -x "`which a2enmod 2>/dev/null`" ]; then
+                a2enmod rewrite
+            fi
+            # Restart apache
+            if [ -x "/etc/init.d/apache2" ]; then
+                invoke-rc.d apache2 restart || true
+            fi
         fi
-        # Enable Apache mod_rewrite
-        if [ -x "`which a2enmod 2>/dev/null`" ]; then
-              a2enmod rewrite
-        fi
-        # Restart apache
-        if [ -x "/etc/init.d/apache2" ]; then
-          invoke-rc.d apache2 restart || true
-        fi
-      fi
     fi
     # Only do these if this is the initial install.
     if [ "$2" = "" ]; then
-      # Install a default copy of pos.conf.pl using the example template file.
-      if [ ! -e "/usr/share/ledgersmb/pos.conf.pl" ]; then
-        cp /usr/share/doc/ledgersmb/examples/pos.conf.pl.template /usr/share/ledgersmb/pos.conf.pl
-      fi
+        # Install a default copy of pos.conf.pl using the example template file.
+        if [ ! -e "/usr/share/ledgersmb/pos.conf.pl" ]; then
+            cp /usr/share/doc/ledgersmb/examples/pos.conf.pl.template /usr/share/ledgersmb/pos.conf.pl
+        fi
     fi
     ;;
 
