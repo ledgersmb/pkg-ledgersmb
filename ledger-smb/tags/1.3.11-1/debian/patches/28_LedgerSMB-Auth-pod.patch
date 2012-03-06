@@ -1,0 +1,17 @@
+Description: Correct pod NAME issues in LedgerSMB/Auth.pm
+ Has the module file name and does not have the dash plus short description
+ in the NAME entry.
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472534&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/Auth.pm
++++ b/LedgerSMB/Auth.pm
+@@ -2,7 +2,7 @@
+ 
+ =head1 NAME
+ 
+-LedgerSMB::Auth.pm
++LedgerSMB::Auth - Provides an abstraction layer for session management and authentication.
+ 
+ =head1 SYNOPSIS
+ 

@@ -1,0 +1,16 @@
+Description: Correct pod NAME issue in LedgerSMB/Template/ODS.pm
+ Is missing the dash from the pod NAME entry.
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472639&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/Template/ODS.pm
++++ b/LedgerSMB/Template/ODS.pm
+@@ -1,7 +1,7 @@
+ 
+ =head1 NAME
+ 
+-LedgerSMB::Template::ODS  Template support module for LedgerSMB
++LedgerSMB::Template::ODS - Template support module for LedgerSMB
+ 
+ =head1 SYNOPSIS
+ 

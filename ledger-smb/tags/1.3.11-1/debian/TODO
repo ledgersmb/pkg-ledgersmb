@@ -1,0 +1,38 @@
+debian/TODO for LedgerSMB v1.3
+
+- Auto-configuration of PostgreSQL and access to it by LedgerSMB using dbconfig-common.
+Password for postgres superuser? For LedgerSMB admin?  Run prepare-company-database.sh
+script looks to be usable but the current version looks like it needs a patch even
+if it not used by the package setup, because lines 197 & 197 are being used to 
+create a new ledgersmb-httpd.conf each time it runs by changing the $WORK_DIR variable
+in the template file to that found by the script.  Such a variable shouldn't be 
+found there because the package install creates the correct template file.  Patch it
+to at least comment those lines out?
+
+- The long description in debian/control needs to be rewritten.  (Note also that
+upstream has rewritten the project description, essentially for the first time
+since the writeup at the time of the fork from sql-ledger.)
+
+- Rewrite the debian/copyright file, following DEP-5.
+
+- Use a patch to create an updated example of the ledgersmb.conf.default file
+instead of the sed line in debian/rules? Then create a copy of it as ledgersmb.conf
+for installation to /etc/ledgersmb?  It is also needed for a default build, at
+least in the testing phase, so this would be useful for simplifying debian/rules
+as well.
+
+- New 1.3 version of LedgerSMB contains an embedded javascript library. The embedded
+version appears to be 1.8.2.  The library is available in Debian as the package
+libjs-scriptaculous:  v1.8.1 in lenny (current oldstable), v1.8.3 in lenny-backports,
+v1.8.3 in squeeze, v1.9.0 in wheezy. Provide a Lintian override with description of
+issue, until otherwise resolved.
+  From Chris Travers in the Ledger-smb-devel mailing list:
+  "I don't know of any testing we have done on other versions.  We don't use a lot
+   of advanced stuff so I would expect it would work.  If bugs are found, though,
+   we can correct them."
+Test usage of libjs-scriptaculous and change over to using that when it is found
+to be operational with it.
+
+
+
+ -- Robert James Clay <jame@rocasa.us>  Tue, 17 Jan 2012 17:41:20 -0500
