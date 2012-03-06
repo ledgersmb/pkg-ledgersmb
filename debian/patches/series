@@ -52,12 +52,3 @@
 69_LedgerSMB-Template-XLS-pod.patch
 70_LedgerSMB-User-pod.patch
 71_lsmb-request-pod.patch
-80_admin-pl-shebang.patch
-81_customer-pl-shebang.patch
-82_employee-pl-shebang.patch
-83_journal-pl-shebang.patch
-84_menu-pl-shebang.patch
-85_recon-pl-shebang.patch
-86_taxform-pl-shebang.patch
-87_vendor-pl-shebang.patch
-88_vouchers-pl-shebang.patch
