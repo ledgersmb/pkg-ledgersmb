@@ -1,4 +1,5 @@
 *.conf etc/ledgersmb
+pos.conf.pl etc/ledgersmb
 favicon.ico usr/share/ledgersmb
 index.html usr/share/ledgersmb
 VERSION usr/share/ledgersmb

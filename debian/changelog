@@ -1,3 +1,38 @@
+ledgersmb (1.3.11-1) experimental; urgency=low
+
+  * New upstream release.
+  * Changes for debian/patches/*:
+    - Remove unneeded changes from the 15_httpdconf.patch file.
+    - The nine patches for the scripts/* files are no longer needed. Removed.
+  * Changes for debian/clean:
+    - Add the debian/clean file for use by dh_clean during package builds.
+    - Remove the created pos.conf.pl file during the package build cleanup.
+    - Remove the created ledgersmb.conf and ledgersmb-httpd.conf files using
+      dh_clean instead of directly in debian/rules.
+  * Changes to debian/ledgersmb.postinst:
+    - Correct the whitespace indentation in the script.
+    - Simplify the section using a2enmod to enable mod_rewrite.
+  * Changes to debian/ledgersmb.postrm:
+    - Correct the whitespace indentation in the script.
+  * Changes to debian/ledgersmb.install:
+    - Install default pos.conf.pl configuration file to /etc/ledgersmb.
+  * Changes to debian/ledgersmb.links:
+    - Install symbolic link for the pos.conf.pl configuration file.
+  * Changes to debian/rules:
+    - Remove the override_dh_auto_clean target as it is no longer needed.
+    - Change how Build.PL is removed in the override_dh_auto_configure target.
+    - Create default pos.conf.pl file in the override_dh_auto_configure target.
+
+ -- Robert James Clay <jame@rocasa.us>  Fri, 01 Mar 2012 14:26:52 -0500
+
+ledgersmb (1.3.10-1) experimental; urgency=low
+
+  * New upstream release.
+  * Install pos.conf.pl.template as an example file.
+  * Correct softlink for the ledgersmb-httpd.conf file.
+
+ -- Robert James Clay <jame@rocasa.us>  Tue, 17 Jan 2012 19:38:09 -0500
+
 ledgersmb (1.3.9-2) experimental; urgency=low
 
   * Change debhelper compatibility to 8.

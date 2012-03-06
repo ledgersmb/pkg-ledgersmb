@@ -4,7 +4,7 @@
 	dh $@
 
 override_dh_auto_configure:
-	[ ! -e Build.PL ] || rm -f Build.PL
+	rm -f Build.PL
     # Per upstream; remove these empty directories if present, as they are not
     # needed for an installed LedgerSMB directory.
 	[ ! -e LedgerSMB/Assets ] || rmdir LedgerSMB/Assets
@@ -14,14 +14,10 @@ override_dh_auto_configure:
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
+	cp pos.conf.pl.template pos.conf.pl
 	dh_auto_configure
 
 override_dh_auto_test:
-
-override_dh_auto_clean:
-	dh_auto_clean
-	rm -f ledgersmb.conf
-	rm -f ledgersmb-httpd.conf
 
 override_dh_auto_install:
 
