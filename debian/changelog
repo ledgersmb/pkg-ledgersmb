@@ -1,8 +1,15 @@
-ledgersmb (1.3.12-1) UNRELEASED; urgency=low
+ledgersmb (1.3.12-1~1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * Rewrote the LedgerSMB debian/copyright in accordance with DEP-5.
+  * Changes for debian/patches/*:
+    - Added 10_Makefile-PL.patch to correct issue with an incorrect version
+      number being listed in Makefile.PL.
+  * Changes to debian/control:
+    - Rewrote the short and long package descriptions.
+    - Updated the Standards-Version to 3.9.3, no changes required.
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 06 Mar 2012 09:04:53 -0500
+ -- Robert James Clay <jame@rocasa.us>  Tue, 06 Mar 2012 21:00:04 -0500
 
 ledgersmb (1.3.11-1) experimental; urgency=low
 
