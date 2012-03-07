@@ -1,4 +1,5 @@
 05_confdir.patch
+10_Makefile-PL.patch
 15_httpdconf.patch
 20_LedgerSMB-DBObject-Account-pod.patch
 21_LedgerSMB-Form-pod.patch
