@@ -1,0 +1,18 @@
+Description: Incorrect version number listed in Makefile.PL
+ Changed the version entry in the Makefile.PL file from "version '1.3.11';"
+ to "version_from 'LedgerSMB.pm';"
+Author: Robert James Clay <jame@rocasa.us>
+
+Index: ledgersmb/Makefile.PL
+===================================================================
+--- ledgersmb.orig/Makefile.PL	2012-03-06 20:28:23.000000000 -0500
++++ ledgersmb/Makefile.PL	2012-03-06 20:42:31.000000000 -0500
+@@ -5,7 +5,7 @@
+ use inc::Module::Install 0.65;
+ 
+ name 'LedgerSMB';
+-version '1.3.11';
++version_from 'LedgerSMB.pm';
+ license 'GPL';
+ 
+ perl_version '5.8.1';
