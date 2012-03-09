@@ -13,6 +13,7 @@ override_dh_auto_configure:
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
+	cp ledgersmb-httpd.conf.template ledgersmb-httpd.conf
 	cp pos.conf.pl.template pos.conf.pl
 	dh_auto_configure
 
