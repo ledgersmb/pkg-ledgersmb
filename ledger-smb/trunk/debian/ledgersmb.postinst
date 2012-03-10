@@ -17,30 +17,47 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+#   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
+# is no longer being used in debian/postinst to set it
+drop_statoverride() {
+    for file in /etc/ledgersmb /etc/ledgersmb/images \
+        /etc/ledgersmb/images/demo /etc/ledgersmb/templates \
+        /etc/ledgersmb/templates/*;
+    do
+    if dpkg-statoverride --list $file >/dev/null; then
+        dpkg-statoverride --remove $file
+    fi
+    done
+}
 
 case "$1" in
     configure)
-    # Do Apache related processing if it is present.
-    if [ -d "/etc/apache2" ]; then
+        # Do Apache related processing if it is present.
+        if [ -d "/etc/apache2" ]; then
+            # Only do these if this is the initial install.
+            if [ "$2" = "" ]; then
+                # Enable Apache mod_rewrite
+                if [ -x "`which a2enmod 2>/dev/null`" ]; then
+                    a2enmod rewrite
+                fi
+                # Restart apache
+                if [ -x "/etc/init.d/apache2" ]; then
+                    invoke-rc.d apache2 restart || true
+                fi
+            fi
+        fi
         # Only do these if this is the initial install.
         if [ "$2" = "" ]; then
-            # Enable Apache mod_rewrite
-            if [ -x "`which a2enmod 2>/dev/null`" ]; then
-                a2enmod rewrite
-            fi
-            # Restart apache
-            if [ -x "/etc/init.d/apache2" ]; then
-                invoke-rc.d apache2 restart || true
+            # Install a default copy of pos.conf.pl using the example template file.
+            if [ ! -e "/usr/share/ledgersmb/pos.conf.pl" ]; then
+                cp /usr/share/doc/ledgersmb/examples/pos.conf.pl.template /usr/share/ledgersmb/pos.conf.pl
             fi
         fi
-    fi
-    # Only do these if this is the initial install.
-    if [ "$2" = "" ]; then
-        # Install a default copy of pos.conf.pl using the example template file.
-        if [ ! -e "/usr/share/ledgersmb/pos.conf.pl" ]; then
-            cp /usr/share/doc/ledgersmb/examples/pos.conf.pl.template /usr/share/ledgersmb/pos.conf.pl
+        #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
+        # is no longer being used in debian/postinst to set it.
+        if dpkg --compare-versions $2 lt 1.3.9-2; then
+            drop_statoverride;
         fi
-    fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
