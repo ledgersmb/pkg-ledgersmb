@@ -21,8 +21,7 @@ set -e
 # is no longer being used in debian/postinst to set it
 drop_statoverride() {
     for file in /etc/ledgersmb /etc/ledgersmb/images \
-        /etc/ledgersmb/images/demo /etc/ledgersmb/templates \
-        /etc/ledgersmb/templates/*;
+        /etc/ledgersmb/images/demo /etc/ledgersmb/template ;
     do
     if dpkg-statoverride --list $file >/dev/null; then
         dpkg-statoverride --remove $file
