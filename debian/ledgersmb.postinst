@@ -23,9 +23,9 @@ drop_statoverride() {
     for file in /etc/ledgersmb /etc/ledgersmb/images \
         /etc/ledgersmb/images/demo /etc/ledgersmb/template ;
     do
-    if dpkg-statoverride --list $file >/dev/null; then
-        dpkg-statoverride --remove $file
-    fi
+        if dpkg-statoverride --list $file >/dev/null; then
+            dpkg-statoverride --remove $file
+        fi
     done
 }
 
@@ -55,7 +55,7 @@ case "$1" in
         #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
         # is no longer being used in debian/postinst to set it.
         if dpkg --compare-versions $2 lt 1.3.9-2; then
-            drop_statoverride;
+            drop_statoverride
         fi
     ;;
 
