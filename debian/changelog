@@ -1,3 +1,29 @@
+ledgersmb (1.3.12-1) experimental; urgency=low
+
+  * New upstream release.
+  * Move removal of the no longer used statoverrides to ledgersmb.postinst.
+  * Correct how the /var/lib/ledgersmb/spool and /var/lib/ledgersmb/users
+    subdirectories are installed.
+  * Rewrote the LedgerSMB debian/copyright in accordance with DEP-5.
+  * Changes to debian/ledgersmb.postinst:
+    - Remove the unneeded code that conditionally installed pos.conf.pl.
+    - Remove the code that attempted install a copy of ledgersmb-httpd.conf.
+  * Changes for debian/patches/*:
+    - Add setting the templates base directory to 05_confdir.patch.
+    - Added 10_Makefile-PL.patch to correct issue with an incorrect version
+      number being listed in Makefile.PL.
+  * Changes to debian/rules:
+    - Create a copy of ledgersmb-httpd.conf.template as ledgersmb-httpd.conf.
+    - Set ownership of installed /var/lib/ledgersmb/* to www-data:www-data.
+    - Set ownership of installed /etc/ledgersmb/templates to www-data:www-data.
+    - Change how the unneeded directories LedgerSMB/Assets and LedgerSMB/Entity
+      are removed.
+  * Changes to debian/control:
+    - Rewrote the short and long package descriptions.
+    - Updated the Standards-Version to 3.9.3, no changes required.
+
+ -- Robert James Clay <jame@rocasa.us>  Wed, 14 Mar 2012 13:30:17 -0400
+
 ledgersmb (1.3.11-1) experimental; urgency=low
 
   * New upstream release.
