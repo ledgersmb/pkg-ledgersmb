@@ -7,12 +7,12 @@ override_dh_auto_configure:
 	rm -f Build.PL
     # Per upstream; remove these empty directories if present, as they are not
     # needed for an installed LedgerSMB directory.
-	[ ! -e LedgerSMB/Assets ] || rmdir LedgerSMB/Assets
-	[ ! -e LedgerSMB/Entity ] || rmdir LedgerSMB/Entity
+	rm -rf LedgerSMB/Assets LedgerSMB/Entity
 	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
+	cp ledgersmb-httpd.conf.template ledgersmb-httpd.conf
 	cp pos.conf.pl.template pos.conf.pl
 	dh_auto_configure
 
@@ -32,4 +32,6 @@ override_dh_fixperms:
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.sh' -exec chmod +x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.pm' -exec chmod -x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.sql' -exec chmod -x '{}' \;
+	chown -R www-data:www-data debian/ledgersmb/etc/ledgersmb/templates
+	chown -R www-data:www-data debian/ledgersmb/var/lib/ledgersmb
 
