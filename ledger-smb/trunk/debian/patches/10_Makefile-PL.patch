@@ -1,17 +1,24 @@
-Description: Incorrect version number listed in Makefile.PL
- Changed the version entry in the Makefile.PL file from "version '1.3.11';"
- to "version_from 'LedgerSMB.pm';"
+Description: Change version reference in Makefile.PL for Debian package build.
+ The Debian package build fails with the current way the Makefile.PL is set to
+ obtain the current version of LedgerSMB, because of the module requirements
+ brought in by the 'use LedgerSMB.pm' in order to get the VERSION that way.
+ Removed the 'user LedgerSMB.pm;' line and changed the version entry from 
+ "version $LedgerSMB::VERSION;" to "version_from 'LedgerSMB.pm';"
 Author: Robert James Clay <jame@rocasa.us>
 
 Index: ledgersmb/Makefile.PL
 ===================================================================
---- ledgersmb.orig/Makefile.PL	2012-03-06 20:28:23.000000000 -0500
-+++ ledgersmb/Makefile.PL	2012-03-06 20:42:31.000000000 -0500
-@@ -5,7 +5,7 @@
+--- ledgersmb.orig/Makefile.PL	2012-03-07 09:58:30.000000000 -0500
++++ ledgersmb/Makefile.PL	2012-03-14 15:47:01.000000000 -0400
+@@ -2,11 +2,10 @@
+ 
+ use strict;
+ use warnings;
+-use LedgerSMB;
  use inc::Module::Install 0.65;
  
  name 'LedgerSMB';
--version '1.3.11';
+-version $LedgerSMB::VERSION;
 +version_from 'LedgerSMB.pm';
  license 'GPL';
  
