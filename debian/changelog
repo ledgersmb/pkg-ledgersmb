@@ -1,8 +1,10 @@
-ledgersmb (1.3.13-1) UNRELEASED; urgency=low
+ledgersmb (1.3.13-1~1) UNRELEASED; urgency=low
 
-  * Start packaging for new upstream release.
+  * New upstream release.
+  * Changes for debian/patches/*:
+    - Update 10_Makefile-PL.patch against the new version of Makefile.PL.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 14 Mar 2012 14:27:21 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 14 Mar 2012 16:21:43 -0400
 
 ledgersmb (1.3.12-1) experimental; urgency=low
 
