@@ -1,0 +1,16 @@
+Description: Correct pod NAME issues in LedgerSMB/DBObject/Asset.pm
+ Has an incorrect module name and a comma instead of a dash in the NAME entry.
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472547&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/DBObject/Asset.pm
++++ b/LedgerSMB/DBObject/Asset.pm
+@@ -2,7 +2,7 @@
+ 
+ =head1 NAME
+ 
+-LedgerSMB::DBObject::Asset.pm, LedgerSMB Base Class for Fixed Assets
++LedgerSMB::DBObject::Asset - LedgerSMB Base Class for Fixed Assets
+ 
+ =head1 SYNOPSIS
+ 

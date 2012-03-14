@@ -1,0 +1,17 @@
+Description: Correct pod NAME issues in LedgerSMB/AM.pm
+ Has an incomplete module name and does not have the dash plus short description
+ in the NAME entry.
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472506&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/AM.pm
++++ b/LedgerSMB/AM.pm
+@@ -1,7 +1,7 @@
+ 
+ =head1 NAME
+ 
+-AM
++LedgerSMB::AM - Provides some administrative functions
+ 
+ =head1 SYNOPSIS
+ 

@@ -1,0 +1,25 @@
+Description: Correct POD issues in LedgerSMB/DBObject/Account.pm
+ Has a colon instead of a dash in the NAME entry.
+ Spelling error in line 124: Attemps Attempts.
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472011&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/LedgerSMB/DBObject/Account.pm
++++ b/LedgerSMB/DBObject/Account.pm
+@@ -1,6 +1,6 @@
+ =head1 NAME
+ 
+-LedgerSMB::DBObject::Account: Base class for chart of accounts entries
++LedgerSMB::DBObject::Account - Base class for chart of accounts entries
+ 
+ =head1 SYNOPSYS
+ 
+@@ -121,7 +121,7 @@
+ 
+ =item delete()
+ 
+-Attemps to delete the account.  This will NOT succeed if the account is 
++Attempts to delete the account.  This will NOT succeed if the account is
+ referenced in any way by any transactions, credit accounts, etc.
+ 
+ $account->{id} must be set.
