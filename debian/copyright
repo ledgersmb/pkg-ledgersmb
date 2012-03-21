@@ -51,6 +51,18 @@ Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
              2008,    Roberto C. Sanchez <robert@debian.org>
            2009-2012, Robert James Clay <jame@rocasa.us>
 License: GPL
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Files: doc/ledgersmb-manual.pdf doc/manual/*
 Copyright: 2006-2012, The LedgerSMB Project
