@@ -39,9 +39,6 @@ License: GPL-2+
  License version 2 can be found in the file
  `/usr/share/common-licenses/GPL-2'.
 
-Files: LedgerSMB/*.pm
-License: GPL-2+
-
 Files: bin/*
 Copyright:  2006-2012, The LedgerSMB Core Team
             1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
