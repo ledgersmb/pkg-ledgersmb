@@ -2,9 +2,6 @@
 ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/bin/custom/
 ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/scripts/custom/
 ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/LedgerSMB/Reconciliation/CSV/Formats/
-# Upstream includes empty directory intentionally, as standard locations for the application
-ledgersmb binary: package-contains-empty-directory var/lib/ledgersmb/spool
-ledgersmb binary: package-contains-empty-directory var/lib/ledgersmb/users
 
 # Upstream now includes an embedded copy of the Scriptaculous Javascript Library. There is a package for it
 # available in Debian but not of the same version they are using. They have not done any testing but they
