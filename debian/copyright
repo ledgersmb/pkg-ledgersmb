@@ -55,7 +55,7 @@ Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
            2009-2012, Robert James Clay <jame@rocasa.us>
 License: GPL
 
-Files: doc/ledgersmb-manual.pdf, doc/manual/*
+Files: doc/ledgersmb-manual.pdf doc/manual/*
 Copyright: 2006-2012, The LedgerSMB Project
 License:
  Redistribution and use in source (LaTeX) and 'compiled' forms (SGML,
