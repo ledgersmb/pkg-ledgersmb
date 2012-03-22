@@ -1,0 +1,19 @@
+Description: Correct pod NAME issues in lsmb-request.pl
+ Is missing the file name in the pod NAME entry,
+ If the '#!/usr/bin/perl' is even needed, it is on the wrong line.
+Bug: http://sourceforge.net/tracker/?func=detail&aid=3472648&group_id=175965&atid=1005191
+Author: Robert James Clay <jame@rocasa.us>
+
+--- a/lsmb-request.pl
++++ b/lsmb-request.pl
+@@ -1,6 +1,8 @@
++=pod
++
+ =head1 NAME
+-#!/usr/bin/perl
+-The LedgerSMB Request Handler
++
++lsmb-request.pl - The LedgerSMB Request Handler
+ 
+ =head1 SYNOPSYS
+ This file receives the web request, instantiates the proper objects, and passes
