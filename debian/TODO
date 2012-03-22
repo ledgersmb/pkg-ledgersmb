@@ -1,26 +1,15 @@
 debian/TODO for LedgerSMB v1.3
 
 
-- Thought this had been fixed but it is still coming up:
-W: ledgersmb source: syntax-error-in-dep5-copyright line 65: Continuation line
- outside a paragraph.
+
+- Lintian Info ledgersmb: I unused-override, package-contains-empty-directory.
+Don't know why that's coming up because the two listed directories are being
+installed with the package and they are empty. Possibly an issue with how
+they're entered in the file. 
 
 - Auto-configuration of PostgreSQL and access to it by LedgerSMB using dbconfig-common.
-Password for postgres superuser? For LedgerSMB admin?  Run prepare-company-database.sh
-script looks to be usable but the current version looks like it needs a patch even
-if it not used by the package setup, because lines 197 & 197 are being used to 
-create a new ledgersmb-httpd.conf each time it runs by changing the $WORK_DIR variable
-in the template file to that found by the script.  Such a variable shouldn't be 
-found there because the package install creates the correct template file.  Patch it
-to at least comment those lines out?
-
-- The LedgerSMB-manual.pdf is currently being installed as LedgerSMB-manual.pdf.gz
-to /usr/share/doc/ledgersmb/ but the manual directory from which that is apparantly
-created (doc/manual) is also being installed.  Is that manual dir even needed? Esp
-if possible target files are created?  Including html?
-- Note also that the pdf file appears to be in the distribution;  upstream confirmed
-that pdflatex is used to generate the pdf file.
-
+First;  check if manual or assisted configuration.  If assisted, create ledgersmb
+postgresql user as LedgerSMB admin.  If manual;  msg about docs for manual set up?
 
 - If the tools/prepare-company-database.sh script is to be usable on the Debian
 installation, it will need to be patched. For instance:  Lines 199 and 200 (as
@@ -29,14 +18,12 @@ ledgersmb-httpd.conf.template apparantly each time it runs. Current Debian
 install does not have either the template file or the working file in the place
 it expects and in any case the debian package install takes care of those.
 
+- Upstream uses pdflatex to create distribution LedgerSMB-manual.pdf from the
+source file doc/manual/LedgerSMB-manual.tex. Use the same source file to create
+an HTML version?
+
 - The templates directory had been getting installed to /etc/ledgersmb/templates.
 Should that be /var/lib/ledgersmb/templates instead?
-
-- Use a patch to create an updated example of the ledgersmb.conf.default file
-instead of the sed line in debian/rules? Then create a copy of it as ledgersmb.conf
-for installation to /etc/ledgersmb?  It is also needed for a default build, at
-least in the testing phase, so this would be useful for simplifying debian/rules
-as well.
 
 - New 1.3 version of LedgerSMB contains an embedded javascript library. The embedded
 version appears to be 1.8.2.  The library is available in Debian as the package
@@ -52,4 +39,4 @@ to be operational with it.
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 14 Mar 2012 12:30:22 -0500
+ -- Robert James Clay <jame@rocasa.us>  Wed, 21 Mar 2012 20:17:22 -0500
