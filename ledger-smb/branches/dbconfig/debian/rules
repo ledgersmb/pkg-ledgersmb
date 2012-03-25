@@ -4,6 +4,7 @@
 	dh $@
 
 override_dh_auto_configure:
+<<<<<<< HEAD
 	[ ! -e Build.PL ] || rm -f Build.PL
     # Per upstream; remove these empty directories if present, as they are not
     # needed for an installed LedgerSMB directory.
@@ -13,15 +14,27 @@ override_dh_auto_configure:
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
+=======
+	rm -f Build.PL
+    # Per upstream; remove these empty directories if present, as they are not
+    # needed for an installed LedgerSMB directory.
+	rm -rf LedgerSMB/Assets LedgerSMB/Entity
+	cp ledgersmb.conf.default ledgersmb.conf
+	cp ledgersmb-httpd.conf.template ledgersmb-httpd.conf
+	cp pos.conf.pl.template pos.conf.pl
+>>>>>>> master
 	dh_auto_configure
 
 override_dh_auto_test:
 
+<<<<<<< HEAD
 override_dh_auto_clean:
 	dh_auto_clean
 	rm -f ledgersmb.conf
 	rm -f ledgersmb-httpd.conf
 
+=======
+>>>>>>> master
 override_dh_auto_install:
 
 override_dh_install:
@@ -36,4 +49,9 @@ override_dh_fixperms:
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.sh' -exec chmod +x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.pm' -exec chmod -x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.sql' -exec chmod -x '{}' \;
+<<<<<<< HEAD
+=======
+	chown -R www-data:www-data debian/ledgersmb/etc/ledgersmb/templates
+	chown -R www-data:www-data debian/ledgersmb/var/lib/ledgersmb
+>>>>>>> master
 
