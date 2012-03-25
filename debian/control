@@ -7,7 +7,7 @@ Uploaders: Robert James Clay <jame@rocasa.us>,
   Seneca Cunningham <tetragon@ledgersmb.org>,
   Michael C. Schultheiss <schultmc@debian.org>
 Build-Depends: debhelper (>= 8), libmodule-install-perl
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/trunk
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
@@ -25,16 +25,10 @@ Recommends: default-mta | mail-transport-agent, texlive-latex-recommended, libop
 Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all
 Conflicts: ledger-smb
 Replaces: ledger-smb
-Description: Web based double-entry accounting program
- LedgerSMB is a double-entry accounting system written
- in perl. It has been tested with PostgreSQL, Apache,
- Netscape, Mozilla, Galeon, Explorer, Links, Lynx,
- Konqueror, Voyager, W3M and Opera clients on Linux,
- FreeBSD, Solaris, Windows, Mac computers and PDA's.
- .
- Data is stored in a SQL database server, either locally or
- remote, the display is through a text or GUI web browser.
- The system is linked by a chart of accounts.  All transactions
- for AR, AP and GL are stored in a transaction table. Hyper-links
- from the chart of accounts let you view transactions posted
- through AR, AP and GL.
+Description: Financial accounting and ERP program
+ LedgerSMB is a double-entry financial accounting and Enterprise Resource
+ Planning system which offers Accounts Receivable, Accounts Payable and General
+ Ledger tracking as well as inventory control and fixed assets handling. The
+ LedgerSMB client can be a web browser or a programmed API call. The goal of the
+ LedgerSMB project is to bring high quality ERP and accounting capabilities to
+ small and midsize businesses.
