@@ -18,29 +18,6 @@ Copyright:  2006-2012, Chris Travers <chris@metatrontech.com>
             2006-2011, Seneca Cunningham <tentra@gmail.com>
             2006-2011, Jason Rodrigues <jasonjayr+ledgersmb@gmail.com>
 License: GPL-2+
- This program is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public
- License as published by the Free Software Foundation; either
- version 2 of the License, or (at your option) any later
- version.
- .
- This program is distributed in the hope that it will be
- useful, but WITHOUT ANY WARRANTY; without even the implied
- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- PURPOSE.  See the GNU General Public License for more
- details.
- .
- You should have received a copy of the GNU General Public
- License along with this package; if not, write to the Free
- Software Foundation, Inc., 51 Franklin St, Fifth Floor,
- Boston, MA  02110-1301 USA
- .
- On Debian systems, the full text of the GNU General Public
- License version 2 can be found in the file
- `/usr/share/common-licenses/GPL-2'.
-
-Files: LedgerSMB/*.pm
-License: GPL-2+
 
 Files: bin/*
 Copyright:  2006-2012, The LedgerSMB Core Team
@@ -54,23 +31,35 @@ Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
              2008,    Roberto C. Sanchez <robert@debian.org>
            2009-2012, Robert James Clay <jame@rocasa.us>
 License: GPL
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Files: doc/ledgersmb-manual.pdf, doc/manual/*
+Files: doc/ledgersmb-manual.pdf doc/manual/*
 Copyright: 2006-2012, The LedgerSMB Project
 License:
  Redistribution and use in source (LaTeX) and 'compiled' forms (SGML,
  HTML, PDF, PostScript, RTF and so forth) with or without modification, are
  permitted provided that the following conditions are met:
-
+ .
  Redistributions of source code (LaTeX) must retain the above copyright notice,
  this list of conditions and the following disclaimer as the first lines of this
  file unmodified.
-
+ .
  Redistributions in compiled form (converted to PDF, PostScript, RTF and other
  formats) must reproduce the above copyright  notice, this list of conditions
  and the following disclaimer in the documentation and/or other materials
  provided with the distribution.
-
+ .
  THIS DOCUMENTATION IS PROVIDED BY THE LEDGERSMB PROJECT "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -93,10 +82,10 @@ License: MIT
  distribute, sublicense, and/or sell copies of the Software, and to
  permit persons to whom the Software is furnished to do so, subject to
  the following conditions:
-
+ .
  The above copyright notice and this permission notice shall be
  included in all copies or substantial portions of the Software.
-
+ .
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -339,3 +328,24 @@ Copyright:  2004, Edmund Lian <elian@inbrief.net>
             2004, Kent Tong <kent@cpttm.org.mo>
 License: GPL-2+
 
+License: GPL-2+
+ This program is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later
+ version.
+ .
+ This program is distributed in the hope that it will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied
+ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ You should have received a copy of the GNU General Public
+ License along with this package; if not, write to the Free
+ Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/GPL-2'.

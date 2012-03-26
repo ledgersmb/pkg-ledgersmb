@@ -1,3 +1,17 @@
+ledgersmb (1.3.13-1) experimental; urgency=low
+
+  * New upstream release.
+  * Correct formatting issues in the debian/copyright file.
+  * Do not install doc/manual/*tex source files with package.
+  * Changes for debian/patches/*:
+    - Add patching of ledgersmb.conf.default to 05_confdir.patch.
+    - Update 10_Makefile-PL.patch against the new version of Makefile.PL.
+  * Changes to debian/rules:
+    - Remove the sed code for patching the ledgersmb.conf.default file from
+      the override_dh_auto_configure target.
+
+ -- Robert James Clay <jame@rocasa.us>  Wed, 21 Mar 2012 20:45:18 -0400
+
 ledgersmb (1.3.12-1) experimental; urgency=low
 
   * New upstream release.
