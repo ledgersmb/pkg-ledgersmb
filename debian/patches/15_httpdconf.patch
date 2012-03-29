@@ -18,7 +18,7 @@ Description: Changing paths in Apache config
  </Directory>
  
 -<Directory WORKING_DIR/users>
-+<Directory /usr/share/ledgersmb/users>
++<Directory /var/lib/ledgersmb/users>
    Order Deny,Allow
    Deny from All
  </Directory>
@@ -36,13 +36,13 @@ Description: Changing paths in Apache config
  </Directory>
  
 -<Directory WORKING_DIR/spool>
-+<Directory /usr/share/ledgersmb/spool>
++<Directory /var/lib/ledgersmb/spool>
    Order Deny,Allow
    Deny from All
  </Directory>
  
 -<Directory WORKING_DIR/templates>
-+<Directory /usr/share/ledgersmb/templates>
++<Directory /etc/ledgersmb/templates>
    Order Deny,Allow
    Deny from All
  </Directory>
