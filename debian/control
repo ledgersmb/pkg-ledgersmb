@@ -2,10 +2,7 @@ Source: ledgersmb
 Section: web
 Priority: optional
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
-Uploaders: Robert James Clay <jame@rocasa.us>,
-  Elizabeth Krumbach <lyz@princessleia.com>,
-  Seneca Cunningham <tetragon@ledgersmb.org>,
-  Michael C. Schultheiss <schultmc@debian.org>
+Uploaders: Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 8), libmodule-install-perl
 Standards-Version: 3.9.3
 Homepage: http://www.ledgersmb.org/
