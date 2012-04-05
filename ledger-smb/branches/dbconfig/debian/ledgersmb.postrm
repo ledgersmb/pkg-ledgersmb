@@ -31,6 +31,16 @@ drop_statoverride() {
     done
 }
 
+if [ -f /usr/share/debconf/confmodule ]; then
+    . /usr/share/debconf/confmodule
+fi
+
+if [ -f /usr/share/dbconfig-common/dpkg/postrm ]; then
+    . /usr/share/dbconfig-common/dpkg/postrm
+
+    dbc_go ledgersmb $@
+fi
+
 case "$1" in
     upgrade)
     #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
