@@ -1,3 +1,14 @@
+ledgersmb (1.3.14-2~3) UNRELEASED; urgency=low
+
+  * Initial addition of debconf/dbconfig usage to ledgersmb.
+  * Changes to debian/ledgersmb.postinst:
+    - Rewrite the statoverride version check.
+    - Change how the version variable is being used.
+  * Add patches/20_LedgerSMB-Form-pod.patch to correct spelling error.
+  * Add lintian override for empty directory ledgersmb/sql/coa/ar/gifi/.
+
+ -- Robert James Clay <jame@rocasa.us>  Thu, 05 Apr 2012 15:39:20 -0400
+
 ledgersmb (1.3.14-2~2) UNRELEASED; urgency=low
 
   * Initial addition of debconf/dbconcig to ledgersmb.
