@@ -4,6 +4,7 @@ Default: ledgersmb
 _Description: Login for the Database Administrative user:
  Please enter the login of the LedgerSMB Database Administrative user. This
  login is needed for, for instance, running setup.pl in the Web Interface.
+ Note that 'ledgersmb' is the standard for this.
 
 Template: ledgersmb/lsmb_password
 Type: password
