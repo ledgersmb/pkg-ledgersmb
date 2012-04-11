@@ -1,9 +1,18 @@
-ledgersmb (1.3.14-2~1) UNRELEASED; urgency=low
+ledgersmb (1.3.14-2) experimental; urgency=low
 
-  * Add patches/20_LedgerSMB-Form-pod.patch to correct spelling error.
+  * Add initial version of the debian/NEWS file.
+  * Update and rewrite of debian/README.Debian.
+  * Changes to debian/ledgersmb.postinst:
+    - Rewrite the statoverride version check.
+    - Change how the version variable is being used.
+    - Update how apache is restarted when that is needed.
+  * Add patches/20_LedgerSMB-Form-pod.patch to correct spelling errors.
   * Add lintian override for empty directory ledgersmb/sql/coa/ar/gifi/.
+  * Initial addition of experimental debconf/dbconfig usage to ledgersmb.
+  * Add a symbolic link from /usr/share/ledgersmb/css to the directory
+    /var/lib/ledgersmb/css.
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 03 Apr 2012 22:40:17 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 11 Apr 2012 16:37:30 -0400
 
 ledgersmb (1.3.14-1) experimental; urgency=low
 
