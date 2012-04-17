@@ -60,7 +60,7 @@ case "$1" in
             drop_statoverride
         fi
         # If enabled, do the debconf supported configuration
-        db_get ledgersmb/lsmb_debconf
+        db_get ledgersmb/debconf_install
         if [ "$RET" = true ]; then 
             dbc_go ledgersmb $@
         fi
