@@ -2,11 +2,8 @@ Source: ledgersmb
 Section: web
 Priority: optional
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
-Uploaders: Robert James Clay <jame@rocasa.us>,
-  Elizabeth Krumbach <lyz@princessleia.com>,
-  Seneca Cunningham <tetragon@ledgersmb.org>,
-  Michael C. Schultheiss <schultmc@debian.org>
-Build-Depends: debhelper (>= 8), libmodule-install-perl
+Uploaders: Robert James Clay <jame@rocasa.us>
+Build-Depends: debhelper (>= 8), po-debconf, libmodule-install-perl
 Standards-Version: 3.9.3
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/branches/v1.2
@@ -19,7 +16,7 @@ Depends: ${perl:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl
   liblocale-maketext-lexicon-perl (>= 0.62-1), libtemplate-perl (>=2.14-1),
   libhtml-parser-perl, liblog-log4perl-perl, libdatetime-perl, apache2 | httpd-cgi,
   libcgi-simple-perl, libfile-mimeinfo-perl, libio-stringy-perl,
-  postgresql-client, postgresql-contrib
+  postgresql-client, postgresql-contrib, dbconfig-common
 Recommends: default-mta | mail-transport-agent, texlive-latex-recommended, libopenoffice-oodoc-perl,
   libmath-bigint-gmp-perl, libparse-recdescent-perl
 Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all

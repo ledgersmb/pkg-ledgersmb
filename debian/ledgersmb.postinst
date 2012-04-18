@@ -17,6 +17,9 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+#  Set old_version variable for use later in the script.
+old_version=$2
+
 #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
 # is no longer being used in debian/postinst to set it
 drop_statoverride() {
@@ -29,26 +32,37 @@ drop_statoverride() {
     done
 }
 
+dbc_first_version="1.3.14-2"
+dbc_dbtypes="pgsql"
+
+. /usr/share/debconf/confmodule
+. /usr/share/dbconfig-common/dpkg/postinst.pgsql
+
 case "$1" in
     configure)
         # Do Apache related processing if it is present.
         if [ -d "/etc/apache2" ]; then
             # Only do these if this is the initial install.
-            if [ "$2" = "" ]; then
+            if [ -z "$old_version" ]; then
                 # Enable Apache mod_rewrite
                 if [ -x "`which a2enmod 2>/dev/null`" ]; then
                     a2enmod rewrite
                 fi
                 # Restart apache
                 if [ -x "/etc/init.d/apache2" ]; then
-                    invoke-rc.d apache2 restart || true
+                    invoke-rc.d apache2 restart 3>/dev/null || true
                 fi
             fi
         fi
         #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
         # is no longer being used in debian/postinst to set it.
-        if dpkg --compare-versions $2 lt 1.3.9-2; then
+        if [ -n "$old_version" ] &&  dpkg --compare-versions $old_version lt 1.3.9-2; then
             drop_statoverride
+        fi
+        # If enabled, do the debconf supported configuration
+        db_get ledgersmb/lsmb_debconf
+        if [ "$RET" = true ]; then 
+            dbc_go ledgersmb $@
         fi
     ;;
 
