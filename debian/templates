@@ -19,5 +19,8 @@ Type: boolean
 Default: false
 _Description: Configure LedgerSMB automatically?
  The configuration program for the package can automatically configure
- LedgerSMB, at least and especially for the LedgerSMB Database User.
+ LedgerSMB, at least and especially for the LedgerSMB Database User. It
+ is, however, expermental;  it may not be fully operational, and therefore
+ the current default is to not run it.  Information about the initial
+ configuration of the application can be found in README.Debian.
 
