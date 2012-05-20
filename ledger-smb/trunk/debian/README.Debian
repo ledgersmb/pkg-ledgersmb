@@ -41,6 +41,7 @@ Optional Perl modules
     Excel::Template::Plus    [Support for Excel output]
     Template::Plugin::Latex  [Support for Postscript and PDF output]
     Parse::RecDescent        [Support for the *experimental* scripting engine]
+    Image::Size              [Support for image size detection in templates]
 
     The credit card processing support for TrustCommerce is available as
     the package libnet-tclink-perl if not already installed.
@@ -56,6 +57,9 @@ Optional Perl modules
 
     The scripting engine support is available as libparse-recdescent-perl
     if it is not already installed.
+
+    The support for size detection for images for embedding in LaTex templates
+    is available as libimage-size-perl if it is not already installed.
 
 
 Manual addition of a company database
@@ -77,4 +81,4 @@ Company database removal
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Mon,  7 May 2012 14:28:24 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 20 May 2012 18:54:14 -0400
