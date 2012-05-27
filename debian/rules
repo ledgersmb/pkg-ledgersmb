@@ -31,6 +31,5 @@ override_dh_fixperms:
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.pm' -exec chmod -x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.sql' -exec chmod -x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb/utils -name '*.pl*' -exec chmod +x '{}' \;
-	chown -R www-data:www-data debian/ledgersmb/etc/ledgersmb/templates
 	chown -R www-data:www-data debian/ledgersmb/var/lib/ledgersmb
 
