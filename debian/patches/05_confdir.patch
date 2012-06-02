@@ -16,7 +16,7 @@ Description: Change default directories
  
  # templates base directory
 -our $templates = "templates";
-+our $templates = "/etc/ledgersmb/templates";
++our $templates = "/var/lib/ledgersmb/templates";
  
  # Temporary files stored at"
  our $tempdir = ( $ENV{TEMP} || '/tmp' );
@@ -49,7 +49,7 @@ Description: Change default directories
 +userspath  = /var/lib/ledgersmb/users
  # templates base directory
 -templates  = templates
-+templates  = /etc/ledgersmb/templates
++templates  = /var/lib/ledgersmb/templates
  # images base directory
 -images  = images
 +images  = /usr/share/ledgersmb/images
