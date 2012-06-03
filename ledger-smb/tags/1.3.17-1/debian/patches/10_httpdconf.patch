@@ -1,0 +1,54 @@
+Author: Robert James Clay <jame@rocasa.us>
+Description: Changing paths in Apache config
+--- a/ledgersmb-httpd.conf.template
++++ b/ledgersmb-httpd.conf.template
+@@ -1,8 +1,8 @@
+ # This file must be edited to substitute the current path with WORKING_DIR
+ 
+-Alias /ledgersmb WORKING_DIR/
++Alias /ledgersmb /usr/share/ledgersmb/
+ 
+-<Directory WORKING_DIR>
++<Directory /usr/share/ledgersmb>
+ 
+   # Rewrite rule to allow HTTP Authorization information to the scripts only
+   # from this directory.
+@@ -36,32 +36,32 @@
+   </Files>
+ </Directory>
+ 
+-<Directory WORKING_DIR/users>
++<Directory /var/lib/ledgersmb/users>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/bin>
++<Directory /usr/share/ledgersmb/bin>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/utils>
++<Directory /usr/share/ledgersmb/utils>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/spool>
++<Directory /var/lib/ledgersmb/spool>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/templates>
++<Directory /etc/ledgersmb/templates>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/LedgerSMB>
++<Directory /usr/share/ledgersmb/LedgerSMB>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
