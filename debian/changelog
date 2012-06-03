@@ -1,3 +1,9 @@
+ledgersmb (1.3.17-2~1) UNRELEASED; urgency=low
+
+  * Start development for next LedgerSMB debian package.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 02 Jun 2012 22:39:53 -0400
+
 ledgersmb (1.3.17-1) unstable; urgency=low
 
   * New upstream release.
