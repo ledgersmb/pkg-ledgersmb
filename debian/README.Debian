@@ -1,39 +1,8 @@
 LedgerSMB for Debian
 --------------------
 
-Optional Perl modules
-=====================
-
-    Net::TCLink              [Support for TrustCommerce credit card processing]
-    Parse::RecDescent        [Support for the *experimental* scripting engine]
-    Template::Plugin::Latex  [Support for Postscript and PDF output]
-    OpenOffice::OODoc        [Support for OpenOffice output]
-    Excel::Template::Plus    [Support for Excel output]
-
-    The credit card processing support for TrustCommerce is available as
-    the package libnet-tclink-perl if not already installed:
-
-    The Open Office output support is available as libopenoffice-oodoc-perl if
-    it is not already installed.
-
-    The scripting engine support is available as libparse-recdescent-perl
-    if it is not already installed:
-
-    If the libtemplate-plugin-latex-perl package needed for the PDF/Postscript
-    output option is not available, then if you want to use that option you
-    will need to download and install the module Template::Plugin::Latex from
-    CPAN.
-
-    Please note that the PDF/Postscript module depends on the TeX/LaTeX
-    package which is available as texlive-latex-recommended.
-
-    If the libexcel-template-plus-perl package needed for the Excel output
-    option is not available, then if you want to use that option you will
-    need to download and install Excel::Template::Plus module from CPAN.
-
-
-Initializing a company database
-===============================
+LedgerSMB Configuration
+=======================
 
     LedgerSMB 1.3 stores data for each company in a separate "database". A
     database is a PostgreSQL concept for grouping tables, indexes, etc. Each
@@ -52,9 +21,9 @@ Initializing a company database
     those databases.
 
     The standard database superuser used in the setup.pl script has the name
-    'ledgersmb'. If it is not created during the package configuration,
+    'ledgersmb'. If it is not created during the package installation,
     it can be created using the following sql statement:
-    
+
 CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'password';
 
     Besides assuming that a database superuser is known, the setup.pl script
@@ -62,7 +31,36 @@ CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'passwor
     /etc/ledgersmb/ledgersmb.conf for the location of the PostgreSQL contrib
     scripts. For v8.4 it would be /usr/share/postresql/8.4/contrib; or for
     v9.1 that would be /usr/share/postgresql/9.1/extension.
-    
+
+
+Optional Perl modules
+=====================
+
+    Net::TCLink              [Support for TrustCommerce credit card processing]
+    OpenOffice::OODoc        [Support for OpenOffice output]
+    Excel::Template::Plus    [Support for Excel output]
+    Template::Plugin::Latex  [Support for Postscript and PDF output]
+    Parse::RecDescent        [Support for the *experimental* scripting engine]
+    Image::Size              [Support for image size detection in templates]
+
+    The credit card processing support for TrustCommerce is available as
+    the package libnet-tclink-perl if not already installed.
+
+    The Open Office output support is available as libopenoffice-oodoc-perl if
+    it is not already installed.
+
+    The Excel output support is available as libexcel-template-plus-perl if
+    it is not already installed.
+
+    The PDF/Postscript support is available as libtemplate-plugin-latex-perl
+    if it is not already installed. 
+
+    The scripting engine support is available as libparse-recdescent-perl
+    if it is not already installed.
+
+    The support for size detection for images for embedding in LaTex templates
+    is available as libimage-size-perl if it is not already installed.
+
 
 Manual addition of a company database
 =====================================
@@ -83,4 +81,4 @@ Company database removal
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 18 Apr 2012 15:24:06 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sun, 20 May 2012 18:54:14 -0400
