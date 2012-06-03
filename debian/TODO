@@ -1,44 +1,47 @@
 debian/TODO for LedgerSMB v1.3
 
-- Add libexcel-template-plus-perl and libtemplate-plugin-latex-perl to at
-least Suggests in debian/control.
+
+- Add a section in README.Debian about how HTML, LaTeX, and Text templates are
+handled now?
+
+- The application UPGRADE file does not really need to be installed with the
+package?; any useful information should be moved to README.Debian.
 
 - The dbconfig configuration is apparently capable of creating the ledgersmb
 user but it is not getting created with the necessary permissions. It is also
 apparently automatically creating a database named ledgersmb when it creates
 that user.  The owner of it can come up as postgres; should make that
-ledgersmb, if the database is even needed.
-
-- Review the tools/* shell and perl scripts to see what if any need changes for
-usage on a Debian installation.
+ledgersmb, if that database is even needed.
 
 - Upstream uses pdflatex to create distribution LedgerSMB-manual.pdf from the
 source file doc/manual/LedgerSMB-manual.tex. Use the same source file to create
 an HTML version?
 
+- Create an HTML and/or PDF file of templateing/templating-guide.tex?
+
+- Add registration of at least database/ledgersmb.html to doc-base?
+
+- Review the tools/* shell and perl scripts to see what if any need changes for
+usage on a Debian installation.
+
 - The package installs the LedgerSMB css directory to /var/lib/ledgersmb/css,
 but the application itself currently expects it to be in the main installation
-directory; reference also upstream bug # 3516730. (A symbolic link pointing to
-it is installed with the current packaging as a workaround for the issue.)
-
-- The templates directory has been getting installed to the directory
-/etc/ledgersmb/templates. Should that be /var/lib/ledgersmb/templates instead?
+directory; reference also upstream bug # 3516730. Fixed with v1.3.18? (A symbolic
+link pointing to it is installed with the current packaging as a workaround for
+the issue.)
 
 - New 1.3 version of LedgerSMB contains an embedded javascript library. The
 embedded version appears to be 1.8.2.  The library is available in Debian as the
-package libjs-scriptaculous:  v1.8.1 in lenny (current oldstable), v1.8.3 in
-lenny-backports and squeeze, v1.9.0 in wheezy and sid. Provide a Lintian override
-with description of issue, until otherwise resolved.
+package libjs-scriptaculous:  v1.8.1 in lenny, v1.8.3 in lenny-backports and
+squeeze, v1.9.0 in wheezy and sid. Provide a Lintian override with description
+of issue, until otherwise resolved.
   From Chris Travers in the Ledger-smb-devel mailing list:
   "I don't know of any testing we have done on other versions.  We don't use a
    lot of advanced stuff so I would expect it would work.  If bugs are found,
    though, we can correct them."
 Test usage of libjs-scriptaculous and change over to using that when it is found
 to be operational with it.
+-> Instead of patching the files that use it directly, try using dh_linktree to
+create the set of links to the debian packages.
 
-- Apache v2.4 was released in February 2012 and is being prepared for upload into
-Debian. Ref: http://lists.debian.org/debian-devel-announce/2012/03/msg00013.html
-at least regarding packaging guidelines.
-
-
- -- Robert James Clay <jame@rocasa.us>  Mon,  7 May 2012 15:04:55 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat,  2 Jun 2012 20:47:06 -0400
