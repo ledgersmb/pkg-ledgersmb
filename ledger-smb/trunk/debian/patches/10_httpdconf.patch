@@ -13,7 +13,7 @@ Description: Changing paths in Apache config
  
    # Rewrite rule to allow HTTP Authorization information to the scripts only
    # from this directory.
-@@ -36,32 +36,32 @@
+@@ -36,32 +36,41 @@
    </Files>
  </Directory>
  
@@ -52,3 +52,12 @@ Description: Changing paths in Apache config
    Order Deny,Allow
    Deny from All
  </Directory>
++
++Alias /lsmbcss /var/lib/ledgersmb/css/
++<Directory /var/lib/ledgersmb/css>
++  Order Deny,Allow
++  Allow from 127.0.0.1
++  Allow from localhost
++  Deny from All
++</Directory>
++
