@@ -45,12 +45,12 @@ case "$1" in
             # Create initial default set of css files from the examples
             if [ ! -d "/var/lib/ledgersmb/css" ]; then
                 cp -r /usr/share/doc/ledgersmb/examples/css /var/lib/ledgersmb
-                chown -r www-data:www-data /var/lib/ledgersmb/css
+                chown -R www-data:www-data /var/lib/ledgersmb/css
             fi
             # Create initial default set of templates from the examples
             if [ ! -d "/var/lib/ledgersmb/templates" ]; then
                 cp -r /usr/share/doc/ledgersmb/examples/templates /var/lib/ledgersmb
-                chown -r www-data:www-data /var/lib/ledgersmb/templates
+                chown -R www-data:www-data /var/lib/ledgersmb/templates
             fi
             # Do Apache related processing if it is present.
             if [ -d "/etc/apache2" ]; then
