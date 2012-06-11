@@ -1,12 +1,14 @@
-ledgersmb (1.3.18-1~2) UNRELEASED; urgency=low
+ledgersmb (1.3.18-1) unstable; urgency=low
 
   * Changes to debian/patches/:
     - Update 05_confdir.patch for the new cssdir configuration item.
     - Update 10_httpdconf.patch for the new cssdir configuration item.
+  * Changes to debian/ledgersmb.postinst:
+    - Add code that creates the initial default set of css files from the
+      example files.
+    - Correct a typo in the similar code for /var/lib/ledgersmb/templates.
   * Add the application css directory to the debian/ledgersmb.examples file
     and remove it from the debian/ledgersmb.install file.
-  * Add code in ledgersmb.postinst to create the initial default set of css
-    files from the example css files.
   * Add code in ledgersmb.postrm to remove /var/lib/ledgersmb/css during
     a package purge.  (Like for /var/lib/ledgersmb/templates, which was 
     actually added with 1.3.17-1.)
@@ -16,7 +18,7 @@ ledgersmb (1.3.18-1~2) UNRELEASED; urgency=low
   * Add the removal of empty example language specifc template directories to
     debian/rules.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 10 Jun 2012 18:34:20 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 10 Jun 2012 22:51:41 -0400
 
 ledgersmb (1.3.17-1) unstable; urgency=low
 
