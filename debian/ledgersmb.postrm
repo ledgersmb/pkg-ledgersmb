@@ -50,7 +50,18 @@ case "$1" in
       fi
     ;;
 
-    purge|remove|failed-upgrade|abort-install|abort-upgrade|disappear)
+    purge)
+    # When being purged; if /var/lib/ledgersmb/css exists, remove it.
+      if [ -d "/var/lib/ledgersmb/css" ]; then
+          rm -rf /var/lib/ledgersmb/css
+      fi
+    # When being purged; if /var/lib/ledgersmb/templates exists, remove it.
+      if [ -d "/var/lib/ledgersmb/templates" ]; then
+          rm -rf /var/lib/ledgersmb/templates
+      fi
+    ;;
+
+    remove|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
 
     *)
