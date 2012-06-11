@@ -1,3 +1,18 @@
+ledgersmb (1.3.18-1) unstable; urgency=low
+
+  Empty language specific HTML, LaTeX, and Text directories are no longer being
+  installed with the package. In order to edit templates online for a particular
+  language; create the language specific directory, like templates/demo/en_US,
+  then manually copy the default version of the template to that directory.
+
+  The application css directory is /var/lib/ledgersmb/css and the default files
+  for it are now installed there from the example files during an initial package
+  install. There is also a new URL related configuration item in ledgersmb.conf,
+  cssdir, which will need to be updated manually when upgrading from a previous
+  version.
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 10 Jun 2012 18:25:17 -0400
+
 ledgersmb (1.3.17-1) unstable; urgency=low
 
   The templates directory is now at /var/lib/ledgersmb/templates instead of

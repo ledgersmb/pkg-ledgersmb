@@ -55,7 +55,6 @@ blib/man3/LedgerSMB::Template::LaTeX.3pm
 blib/man3/LedgerSMB::Template::ODS.3pm
 blib/man3/LedgerSMB::Template::TTI18N.3pm
 blib/man3/LedgerSMB::Template::TXT.3pm
-blib/man3/LedgerSMB::Template::XLS.3pm
 blib/man3/LedgerSMB::User.3pm
 blib/man3/lsmb-request.3pm
 blib/man3/rest.3pm
