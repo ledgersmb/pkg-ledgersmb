@@ -7,7 +7,6 @@ VERSION usr/share/ledgersmb
 blib/lib/* usr/share/ledgersmb
 bin/*.pl usr/share/ledgersmb/bin
 contrib/* usr/share/ledgersmb/contrib
-css/* var/lib/ledgersmb/css
 drivers/* usr/share/ledgersmb/drivers
 images/*.gif usr/share/ledgersmb/images
 images/*.png usr/share/ledgersmb/images
@@ -15,7 +14,6 @@ LedgerSMB/* usr/share/ledgersmb/LedgerSMB
 locale/* usr/share/ledgersmb/locale
 scripts/* usr/share/ledgersmb/scripts
 sql/* usr/share/ledgersmb/sql
-templates/* etc/ledgersmb/templates
 tools/* /usr/share/ledgersmb/tools
 utils/* /usr/share/ledgersmb/utils
 UI/* usr/share/ledgersmb/UI

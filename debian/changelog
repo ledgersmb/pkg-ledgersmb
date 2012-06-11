@@ -1,3 +1,56 @@
+ledgersmb (1.3.18-1) unstable; urgency=low
+
+  * Changes to debian/patches/:
+    - Update 05_confdir.patch for the new cssdir configuration item.
+    - Update 10_httpdconf.patch for the new cssdir configuration item.
+  * Changes to debian/ledgersmb.postinst:
+    - Add code that creates the initial default set of css files from the
+      example files.
+    - Correct a typo in the similar code for /var/lib/ledgersmb/templates.
+  * Add the application css directory to the debian/ledgersmb.examples file
+    and remove it from the debian/ledgersmb.install file.
+  * Add code in ledgersmb.postrm to remove /var/lib/ledgersmb/css during
+    a package purge.  (Like for /var/lib/ledgersmb/templates, which was 
+    actually added with 1.3.17-1.)
+  * Removed the no longer needed references to libexcel-template-plus-perl from
+    debian/control and debian/README.Debian.
+  * Removed blib/man3/LedgerSMB::Template::XLS.3pm from ledgersmb.manpages.
+  * Add the removal of empty example language specifc template directories to
+    debian/rules.
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 10 Jun 2012 22:51:41 -0400
+
+ledgersmb (1.3.17-1) unstable; urgency=low
+
+  * New upstream release.
+  * Add a note regarding libimage-size-perl to README.Debian.
+  * Changes to debian/patches/05_confdir.patch:
+    - Update the templates path to be /var/lib/ledgersmb/templates.
+  * No longer need to set ownership of /etc/ledgersmb/templates in debian/rules.
+  * Add the application templates directory to the debian/ledgersmb.examples
+    file and remove it from the debian/ledgersmb.install file.
+  * Changes to debian/control:
+    - Add libtemplate-plugin-latex-perl module to Recommends.
+    - Add the libexcel-template-plus-perl and libimage-size-perl modules
+      to Suggests.
+  * Add code in ledgersmb.postinst to create the initial default set of
+    templates from the example templates.
+  * Add code with debian/ledgersmb.preinst to, if it exists, move the
+    directory /etc/ledgersmb/templates to /var/lib/ledgersmb.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 02 Jun 2012 20:59:37 -0400
+
+ledgersmb (1.3.16-1) unstable; urgency=low
+
+  * New upstream release.
+  * Resolves package ITP. (Closes: #406935)
+  * Update and rewrite debian/TODO and README.Debian.
+  * Update debian/NEWS, debian/templates and README.Debian regarding the initial
+    configuration of the package.
+  * Add update of PostgreSQL contrib_dir variable to patches/05_confdir.patch.
+
+ -- Robert James Clay <jame@rocasa.us>  Tue, 08 May 2012 07:55:30 -0400
+
 ledgersmb (1.3.15-2) unstable; urgency=low
 
   * Rewrite LedgerSMB README.Debian, including database related information.

@@ -1306,6 +1306,10 @@ sub trial_balance {
     my ( $self, $myconfig, $form ) = @_;
     my $p;
     my $year_end = $form->{ignore_yearend};
+    ( $form->{fromdate}, $form->{todate} ) =
+      $form->from_to( $form->{fromyear}, $form->{frommonth}, $form->{interval} )
+      if $form->{fromyear} && $form->{frommonth};
+
     my $dbh = $form->{dbh};
     my $approved = 'FALSE';
 
@@ -1786,7 +1790,7 @@ sub aging {
         $form->{arap} = 'ap';
     }
         $query .= qq|
-		SELECT c.entity_id AS ctid, 
+		SELECT c.id AS ctid, 
 		       c.meta_number as $form->{ct}number, e.legal_name as name,
 		       '' as address1, '' as address2, '' as city,
 		       '' as state, 
@@ -1836,12 +1840,12 @@ sub aging {
                        ON (a.entity_credit_account = c.id)
 		  JOIN company e ON e.entity_id = c.entity_id
 		 WHERE $where
-              GROUP BY c.entity_id, c.meta_number, e.legal_name, a.invnumber,
+              GROUP BY c.id, c.meta_number, e.legal_name, a.invnumber,
                        a.transdate, a.ordnumber, a.duedate, a.invoice, a.id,
                        a.curr, a.ponumber, a.notes, c.language_code
 		HAVING sum(p.due) <> 0|;
 
-    $query .= qq| ORDER BY e.legal_name, ctid, curr, $transdate, invnumber|;
+    $query .= qq| ORDER BY curr, e.legal_name, ctid, $transdate, invnumber|;
     $sth = $dbh->prepare($query) || $form->dberror($query);
 
     $sth->execute($form->{todate}, $form->{todate}, $form->{todate}, 
@@ -1881,20 +1885,39 @@ sub get_customer {
     my $dbh = $form->{dbh};
 
     my $query = qq|
-		SELECT e.name, c.contact, cc.class 
+		SELECT e.name, c.contact, c.contact_class_id as class_id 
                   FROM entity_credit_account eca
-                  JOIN entity USING (entity_id)
-                  JOIN eca_to_contact c ON (eca.credit_id = eca.id)
-                  JOIN contact_class cc ON (c.contact_class_id = cc.id)
+                  JOIN entity e ON e.id = eca.entity_id
+                  JOIN eca_to_contact c ON (c.credit_id = eca.id)
 		 WHERE eca.id = ?
-                       AND cc.id BETWEEN 12 AND 17|;
+                       AND contact_class_id BETWEEN 12 AND 17
+                 ORDER BY contact_class_id DESC|;
     $sth = $dbh->prepare($query);
     $sth->execute( $form->{"$form->{ct}_id"} );
-    while (my $ref = $sth->fetchrow_hashref('NAME_lc')){
+
+    # This is a copy from code also present in Form.pm
+    my %id_map = ( 12 => 'email',
+                   13 => 'cc',
+                   14 => 'bcc',
+                   15 => 'email',
+                   16 => 'cc',
+                   17 => 'bcc' );
+
+    my $ctype;
+    my $billing_email = 0;
+    while (my $ref = $sth->fetchrow_hashref('NAME_lc')) {
+        $ctype = $id_map{$ref->{class_id}};
+
+        $billing_email = 1
+           if $ref->{class_id} == 15;
+
         $form->{ $form->{ct} } = $ref->{name}; # each 'name' row is the same
-        $form->{ lc($ref->{class}) } .=
-	    ($form->{ lc($ref->{class}) } ? ", " : "") . $ref->{contact};
+        $form->{$ctype} .=
+	    ($form->{$ctype} ? ", " : "") . $ref->{contact}
+          if (($ref->{class_id} < 15) && ! $billing_email)
+              || $ref->{class_id} >= 15;
     }
+    
 
     $dbh->commit;
 

@@ -5,7 +5,7 @@ use warnings;
 use inc::Module::Install 0.65;
 
 name 'LedgerSMB';
-version 1.3.15;
+version 1.3.18;
 license 'GPL';
 
 perl_version '5.8.1';
@@ -39,6 +39,10 @@ test_requires 'Test::More';
 test_requires 'Test::Trap';
 test_requires 'Test::Exception';
 
+feature 'Size detection for images for embedding in LaTeX templates',
+    -default => 0,
+    'Image::Size' => 0;
+
 feature 'POS module credit card processing support',
     -default => 0,
     'Net::TCLink' => 0;
@@ -63,10 +67,6 @@ feature 'OpenOffice.org output',
     -default => 0,
     'XML::Twig' => 0,
     'OpenOffice::OODoc' => 0;
-
-feature 'Excel output',
-    -default => 0,
-    'Excel::Template::Plus' => 0;
 
 Makefile->postamble(
      qq{installdb :: \n\tLSMB_INSTALL_DB=1 LSMB_TEST_DB=1 make test\n}

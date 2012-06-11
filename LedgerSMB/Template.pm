@@ -213,7 +213,13 @@ sub new {
 	} elsif (lc $self->{format} eq 'ps' or lc $self->{format} eq 'postscript') {
 		$self->{format} = 'LaTeX';
 		$self->{format_args}{filetype} = 'ps';
-	}	
+	} elsif (lc $self->{format} eq 'xlsx'){
+                $self->{format} = 'XML';
+                $self->{format_args}{filetype} = 'xlsx';
+        } elsif (lc $self->{format} eq 'XML'){
+                $self->{format} = 'XML';
+                $self->{format_args}{filetype} = 'xml';
+        }
 	bless $self, $class;
 
 	if ($self->{format} !~ /^\p{IsAlnum}+$/) {
@@ -277,6 +283,7 @@ sub render {
 	my $self = shift;
 	my $vars = shift;
         $vars->{FORMATS} = $self->available_formats;
+        $vars->{CSSDIR} = $LedgerSMB::Sysconfig::cssdir;
 	if ($self->{format} !~ /^\p{IsAlnum}+$/) {
 		throw Error::Simple "Invalid format";
 	}

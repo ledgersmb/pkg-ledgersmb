@@ -18,8 +18,9 @@ Depends: ${perl:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl
   libcgi-simple-perl, libfile-mimeinfo-perl, libio-stringy-perl,
   postgresql-client, postgresql-contrib, dbconfig-common
 Recommends: default-mta | mail-transport-agent, texlive-latex-recommended, libopenoffice-oodoc-perl,
-  libmath-bigint-gmp-perl, libparse-recdescent-perl
-Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all
+  libmath-bigint-gmp-perl, libparse-recdescent-perl, libtemplate-plugin-latex-perl
+Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all,
+  libimage-size-perl
 Conflicts: ledger-smb
 Replaces: ledger-smb
 Description: Financial accounting and ERP program
