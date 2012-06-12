@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 8), po-debconf, libmodule-install-perl
 Standards-Version: 3.9.3
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/trunk
-Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/trunk
+Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
 
 Package: ledgersmb
 Architecture: all
