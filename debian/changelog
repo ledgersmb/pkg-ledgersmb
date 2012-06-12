@@ -1,3 +1,9 @@
+ledgersmb (1.3.18-2~1) UNRELEASED; urgency=low
+
+  * Start development for package v1.3.18-2..
+
+ -- Robert James Clay <jame@rocasa.us>  Tue, 12 Jun 2012 18:13:24 -0400
+
 ledgersmb (1.3.18-1) unstable; urgency=low
 
   * Changes to debian/patches/:
