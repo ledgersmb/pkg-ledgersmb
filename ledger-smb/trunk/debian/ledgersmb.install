@@ -7,6 +7,7 @@ VERSION usr/share/ledgersmb
 blib/lib/* usr/share/ledgersmb
 bin/*.pl usr/share/ledgersmb/bin
 contrib/* usr/share/ledgersmb/contrib
+css /usr/share/ledgersmb/css
 drivers/* usr/share/ledgersmb/drivers
 images/*.gif usr/share/ledgersmb/images
 images/*.png usr/share/ledgersmb/images
@@ -17,4 +18,5 @@ sql/* usr/share/ledgersmb/sql
 tools/* /usr/share/ledgersmb/tools
 utils/* /usr/share/ledgersmb/utils
 UI/* usr/share/ledgersmb/UI
+templates/* /usr/share/ledgersmb/templates
 debian/sql/pgsql usr/share/dbconfig-common/data/ledgermsb/install-dbadmin
