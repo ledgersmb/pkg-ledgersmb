@@ -3,12 +3,12 @@ ledgersmb (1.3.19-1~1) UNRELEASED; urgency=low
   * New upstream release.
     - Fixed discarded input/bad label on 1.2 upgrade screen. (Closes: #677098)
   * Changes to debian/patches/:
-    - Update 05_confdir.patch for the new fs_cssdir configuration item.
+    - Updated 05_confdir.patch for the new fs_cssdir configuration item.
   * Changes for debian/control:
     - Update the URL in the Vcs-Browser entry.
   * Changes for debian/ledgersmb.preinst:
     - Add setting of an old_version variable for use in the script.
-    - Move templates/* to /var/lib/ledgersmb if neccessary during upgrade.
+    - Move templates/* to /var/lib/ledgersmb if necessary during upgrade.
     - Remove old ledgersmb css and/or templates symbolic links as neccessary.
   * Changes for debian/ledgersmb.postinst:
     - Update source path for when creating working css & templates directories.
@@ -16,8 +16,9 @@ ledgersmb (1.3.19-1~1) UNRELEASED; urgency=low
   * Update debian/watch to exclude development snapshots. (Closes: #677612)
   * Move installation of css & templates directories from ledgersmb.examples
     to ledgersmb.install.
+  * Update path for the distribution templates directory in debian/rules.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 24 Jun 2012 07:37:44 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 24 Jun 2012 08:15:37 -0400
 
 ledgersmb (1.3.18-1) unstable; urgency=low
 
