@@ -1,3 +1,24 @@
+[21~ledgersmb (1.3.18-2~1) UNRELEASED; urgency=low
+
+  * Debconf templates and debian/control reviewed by the debian-l10n-
+    english team as part of the Smith review project. (Closes: #674023)
+  * Debconf translation updates:
+    - Czech (Michal Simunek). (Closes: #676494)
+    - Polish (Michał Kułach). (Closes: #676511)
+    - Swedish (Martin Bagge / brother). (Closes: #676556)
+    - Russian (Yuri Kozlov). (Closes: #676662)
+    - Brazilian Portuguese (Adriano Rafael Gomes). (Closes: #677793)
+    - Portuguese (Miguel Figueiredo). (Closes: #677839)
+    - French (Julien Patriarca). (Closes: #677953)
+    - Italian (Beatrice Torracca). (Closes: #678442)
+    - Slovak (Ivan Masár). (Closes: #678488)
+    - Spanish; (Camaleón). (Closes: #678265)
+    - German (Erik Pfannenstein). (Closes: #678547)
+    - Galician (Jorge Barreiro). (Closes: #678597)
+  * Update debian/watch to exclude development snapshots. (Closes: #677612)
+
+ -- Robert James Clay <jame@rocasa.us>  Mon,  2 Jul 2012 10:11:54 -0400
+
 ledgersmb (1.3.18-1) unstable; urgency=low
 
   * Changes to debian/patches/:
