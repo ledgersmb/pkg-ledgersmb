@@ -28,5 +28,5 @@ Description: financial accounting and ERP program
  Planning system which offers "Accounts Receivable", "Accounts Payable" and
  "General Ledger" tracking as well as inventory control and fixed assets
  handling. The LedgerSMB client can be a web browser or a programmed API call.
- The goal of the  LedgerSMB project is to bring high quality ERP and accounting
+ The goal of the LedgerSMB project is to bring high quality ERP and accounting
  capabilities to Small and Midsize Businesses.
