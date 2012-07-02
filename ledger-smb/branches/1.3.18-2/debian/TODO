@@ -1,0 +1,49 @@
+debian/TODO for LedgerSMB v1.3
+
+- The package installs the LedgerSMB css directory to /var/lib/ledgersmb/css,
+but the application itself currently expects it to be in the main installation
+directory. The issue at least partially resolved with v1.3.18 and v1.3.19.
+(A symbolic link pointing to it is installed with the current packaging
+as a workaround for the issue.)
+
+- A review and translation process is underway for LedgerSMB debian/templates
+and debian/po/*; do updates provided by debian-l10n-english once that process
+has been completed. Reference also # 674023, 676494 (cs.po), 676511 (pl.po),
+676556 (sv.po), and 676662 (ru.po).
+
+- The application UPGRADE file does not really need to be installed with the
+package?  Any useful information could be moved to README.Debian.
+
+- The dbconfig configuration is apparently capable of creating the ledgersmb
+user but it is not getting created with the necessary permissions. It is also
+apparently automatically creating a database named ledgersmb when it creates
+that user.  The owner of it can come up as postgres; should make that
+ledgersmb, if that database is even needed.
+
+- Upstream uses pdflatex to create distribution LedgerSMB-manual.pdf from the
+source file doc/manual/LedgerSMB-manual.tex. Use the same source file to create
+an HTML version?
+
+- Create an HTML and/or PDF file of templateing/templating-guide.tex?  And
+then register it with doc-base?
+
+- Add registration of at least database/ledgersmb.html to doc-base?
+
+- Review the tools/* shell and perl scripts to determine what changes may be
+necessary to make them usable on a Debian installation.
+
+- New 1.3 version of LedgerSMB contains an embedded javascript library. The
+embedded version appears to be 1.8.2.  The library is available in Debian as the
+package libjs-scriptaculous:  v1.8.1 in lenny, v1.8.3 in lenny-backports and
+squeeze, v1.9.0 in wheezy and sid. Provide a Lintian override with description
+of issue, until otherwise resolved.
+  From Chris Travers in the Ledger-smb-devel mailing list:
+  "I don't know of any testing we have done on other versions.  We don't use a
+   lot of advanced stuff so I would expect it would work.  If bugs are found,
+   though, we can correct them."
+Test usage of libjs-scriptaculous and change over to using that when it is found
+to be operational with it.
+-> Instead of patching the files that use it directly, try using dh_linktree to
+create the set of links to the debian packages.
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 10 Jun 2012 18:39:04 -0400

@@ -1,0 +1,36 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	rm -f Build.PL
+    # Per upstream; remove these empty directories if present, as they are not
+    # needed for an installed LedgerSMB directory.
+	rm -rf LedgerSMB/Assets LedgerSMB/Entity
+	cp ledgersmb.conf.default ledgersmb.conf
+	cp ledgersmb-httpd.conf.template ledgersmb-httpd.conf
+	cp pos.conf.pl.template pos.conf.pl
+	dh_auto_configure
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+
+override_dh_install:
+	rm -f blib/lib/install_interactive.pl
+	dh_install -XMIT-LICENSE
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/po/*
+	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/html/splash.html
+	chmod +x debian/ledgersmb/usr/share/ledgersmb/Reconciliation.pl
+	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/*.pl
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.sh' -exec chmod +x '{}' \;
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.pm' -exec chmod -x '{}' \;
+	find debian/ledgersmb/usr/share/ledgersmb -name '*.sql' -exec chmod -x '{}' \;
+	find debian/ledgersmb/usr/share/ledgersmb/utils -name '*.pl*' -exec chmod +x '{}' \;
+	find debian/ledgersmb/usr/share/doc/ledgersmb/examples/templates -type d -empty -delete
+	chown -R www-data:www-data debian/ledgersmb/var/lib/ledgersmb
+
