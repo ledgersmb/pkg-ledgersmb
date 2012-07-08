@@ -1,26 +1,34 @@
+# These templates have been reviewed by the debian-l10n-english
+# team
+#
+# If modifications/additions/rewording are needed, please ask
+# debian-l10n-english@lists.debian.org for advice.
+#
+# Even minor modifications require translation updates and such
+# changes should be coordinated with translators and reviewers.
+
 Template: ledgersmb/admin_login
 Type: string
 Default: ledgersmb
-_Description: Login for the Database Administrative user:
- Please enter the login of the LedgerSMB Database Administrative user. This
- login is needed for, for instance, running setup.pl in the Web Interface.
- Note that 'ledgersmb' is the standard for this.
+_Description: Database administrative user login:
+ Please enter the login of the LedgerSMB database administrative user. This
+ login is needed for the administrative web user interface, typically at
+ http://localhost/ledgersmb/setup.pl.
 
 Template: ledgersmb/admin_password
 Type: password
 Default: LEDGERSMBINITIAL
-_Description: Password for the Database Administrative user:
- Please enter the password of the LedgerSMB Database Administrative user.
- This password is needed for, for instance, running setup.pl in the Web
- Interface.
+_Description: Database administrative user password:
+ Please enter the password of the LedgerSMB database administrative user. This
+ password is needed for the administrative web user interface, typically at
+ http://localhost/ledgersmb/setup.pl.
 
 Template: ledgersmb/debconf_install
 Type: boolean
 Default: false
 _Description: Configure LedgerSMB automatically?
  The configuration program for the package can automatically configure
- LedgerSMB, at least and especially for the LedgerSMB Database User. It
- is, however, expermental;  it may not be fully operational, and therefore
- the current default is to not run it.  Information about the initial
- configuration of the application can be found in README.Debian.
-
+ some aspects of LedgerSMB, such as the LedgerSMB database user.
+ .
+ More general information about the initial configuration of the application
+ can be found in /usr/share/doc/ledgersmb/README.Debian.
