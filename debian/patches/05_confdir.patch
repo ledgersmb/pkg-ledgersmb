@@ -2,18 +2,16 @@ Author: Robert James Clay <jame@rocasa.us>
 Description: Change default directories
 --- a/LedgerSMB/Sysconfig.pm
 +++ b/LedgerSMB/Sysconfig.pm
-@@ -20,8 +20,8 @@
+@@ -20,7 +20,7 @@
  our $auth = 'DB';
  our $logging = 0;      # No logging on by default
  our $images = getcwd() . '/images'; 
 -our $cssdir = 'css/';
--our $fs_cssdir = 'css/';
 +our $cssdir = '/lsmbcss/';
-+our $fs_cssdir = '/var/lib/ledgersmb/css/';
  
  our $force_username_case = undef; # don't force case
  
-@@ -58,20 +58,20 @@
+@@ -57,20 +57,20 @@
  our $cookie_name = "LedgerSMB-1.3";
  
  # spool directory for batch printing
@@ -38,7 +36,7 @@ Description: Change default directories
  
  # location of sendmail
  our $sendmail = "/usr/sbin/sendmail -t";
-@@ -93,7 +93,7 @@
+@@ -92,7 +92,7 @@
  our $gzip = "gzip -S .gz";
  
  # Path to the translation files
@@ -49,21 +47,16 @@ Description: Change default directories
  our $log_level = 'ERROR';
 --- a/ledgersmb.conf.default
 +++ b/ledgersmb.conf.default
-@@ -6,11 +6,11 @@
- # This is the logical CSS directory.  I.e. it is what comes before the 
- # ledgersmb.css in the url.  Example might be /my_css_dir/ or 
- # http://localhost/other_css_dir/
+@@ -3,7 +3,7 @@
+ #Be aware of tempdir setting.If client_browser and server_apache on same machine, sharing tmp-dir , problems 'Permission denied' if server tries to write temp-file wich already exists as client-owned
+ tempdir : /tmp/ledgersmb
+ 
 -cssdir = css/
 +cssdir = /lsmbcss/
  
- # THis is the location on the file system where the css files are, for editing 
- # and selection.  An example might be /var/www/ledgersmb_css/
--fs_cssdir = css/
-+fs_cssdir = /var/lib/ledgersmb/css/
- 
  # Set language for login and admin pages
- language : en
-@@ -55,16 +55,16 @@
+ language : 
+@@ -48,16 +48,16 @@
  
  [paths]
  # spool directory for batch printing
@@ -86,7 +79,7 @@ Description: Change default directories
  
  [programs]
  # program to use for file compression
-@@ -92,7 +92,7 @@
+@@ -85,7 +85,7 @@
  db_namespace = public
  #contrib_dir PG_CONTRIB_DIR 
  #with postgresql-9.1 this stuff is in /usr/share/postgresql/9.1/extension and is injected in database with create extension pg_trgm,btree_gist...
