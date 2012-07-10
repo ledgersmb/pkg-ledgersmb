@@ -23,10 +23,10 @@ Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all,
   libimage-size-perl
 Conflicts: ledger-smb
 Replaces: ledger-smb
-Description: Financial accounting and ERP program
+Description: financial accounting and ERP program
  LedgerSMB is a double-entry financial accounting and Enterprise Resource
- Planning system which offers Accounts Receivable, Accounts Payable and General
- Ledger tracking as well as inventory control and fixed assets handling. The
- LedgerSMB client can be a web browser or a programmed API call. The goal of the
- LedgerSMB project is to bring high quality ERP and accounting capabilities to
- small and midsize businesses.
+ Planning system which offers "Accounts Receivable", "Accounts Payable" and
+ "General Ledger" tracking as well as inventory control and fixed assets
+ handling. The LedgerSMB client can be a web browser or a programmed API call.
+ The goal of the LedgerSMB project is to bring high quality ERP and accounting
+ capabilities to Small and Midsize Businesses.

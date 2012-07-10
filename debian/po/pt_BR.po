@@ -1,27 +1,27 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Debconf translations for ledgersmb.
+# Copyright (C) 2012 THE ledgersmb'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the ledgersmb package.
+# Adriano Rafael Gomes <adrianorg@gmail.com>, 2012.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: ledgersmb\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
 "POT-Creation-Date: 2012-06-07 08:21+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2012-06-07 13:19-0300\n"
+"Last-Translator: Adriano Rafael Gomes <adrianorg@gmail.com>\n"
+"Language-Team: Brazilian Portuguese <debian-l10n-portuguese@lists.debian."
+"org>\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #. Type: string
 #. Description
 #: ../templates:2001
 msgid "Database administrative user login:"
-msgstr ""
+msgstr "Login do usuário administrativo do banco de dados:"
 
 #. Type: string
 #. Description
@@ -31,12 +31,15 @@ msgid ""
 "login is needed for the administrative web user interface, typically at "
 "http://localhost/ledgersmb/setup.pl."
 msgstr ""
+"Por favor, informe o login do usuário administrativo do banco de dados do "
+"LedgerSMB. Esse login é necessário para a interface web do usuário "
+"administrativo, tipicamente em http://localhost/ledgersmb/setup.pl."
 
 #. Type: password
 #. Description
 #: ../templates:3001
 msgid "Database administrative user password:"
-msgstr ""
+msgstr "Senha do usuário administrativo do banco de dados:"
 
 #. Type: password
 #. Description
@@ -46,12 +49,15 @@ msgid ""
 "This password is needed for the administrative web user interface, typically "
 "at http://localhost/ledgersmb/setup.pl."
 msgstr ""
+"Por favor, informe a senha do usuário administrativo do banco de dados do "
+"LedgerSMB. Essa senha é necessária para a interface web do usuário "
+"administrativo, tipicamente em http://localhost/ledgersmb/setup.pl."
 
 #. Type: boolean
 #. Description
 #: ../templates:4001
 msgid "Configure LedgerSMB automatically?"
-msgstr ""
+msgstr "Configurar o LedgerSMB automaticamente?"
 
 #. Type: boolean
 #. Description
@@ -60,6 +66,9 @@ msgid ""
 "The configuration program for the package can automatically configure some "
 "aspects of LedgerSMB, such as the LedgerSMB database user."
 msgstr ""
+"O programa de configuração para o pacote pode configurar automaticamente "
+"alguns aspectos do LedgerSMB, tais como o usuário do banco de dados do "
+"LedgerSMB."
 
 #. Type: boolean
 #. Description
@@ -68,3 +77,5 @@ msgid ""
 "More general information about the initial configuration of the application "
 "can be found in /usr/share/doc/ledgersmb/README.Debian."
 msgstr ""
+"Mais informações gerais sobre a configuração inicial do aplicativo podem ser "
+"encontradas em /usr/share/doc/ledgersmb/README.Debian."
