@@ -1,0 +1,36 @@
+debian/TODO for LedgerSMB v1.3
+
+- The dbconfig-common based database configuration that is being used during
+installations and upgrades needs to be reviewed and improved. It is capable
+of creating the 'ledgersmb' database administrative user but it is not getting
+created with the necessary permissions. It is also apparently automatically
+creating a database named ledgersmb with the current way that user is being
+created, which is not really needed for the application.
+
+- Upstream uses pdflatex to create distribution LedgerSMB-manual.pdf from the
+source file doc/manual/LedgerSMB-manual.tex. Use the same source file to create
+an HTML version?
+
+- Create an HTML and/or PDF file of templateing/templating-guide.tex?  And
+then register it with doc-base?
+
+- Add registration of at least database/ledgersmb.html to doc-base?
+
+- Review the tools/* shell and perl scripts to determine what changes may be
+necessary to make them usable on a Debian installation.
+
+- New 1.3 version of LedgerSMB contains an embedded javascript library. The
+embedded version appears to be 1.8.2.  The library is available in Debian as the
+package libjs-scriptaculous:  v1.8.1 in lenny, v1.8.3 in lenny-backports and
+squeeze, v1.9.0 in wheezy and sid. Provide a Lintian override with description
+of issue, until otherwise resolved.
+  From Chris Travers in the Ledger-smb-devel mailing list:
+  "I don't know of any testing we have done on other versions.  We don't use a
+   lot of advanced stuff so I would expect it would work.  If bugs are found,
+   though, we can correct them."
+Test usage of libjs-scriptaculous and change over to using that when it is found
+to be operational with it.
+-> Instead of patching the files that use it directly, try using dh_linktree to
+create the set of links to the debian packages?
+
+ -- Robert James Clay <jame@rocasa.us>  Mon,  6 Aug 2012 19:31:26 -0400
