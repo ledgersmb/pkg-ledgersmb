@@ -1,27 +1,11 @@
 debian/TODO for LedgerSMB v1.3
 
-- The package installs the LedgerSMB css directory to /var/lib/ledgersmb/css,
-but the application itself currently expects it to be in the main installation
-directory. The issue is at least partially resolved with v1.3.18 and v1.3.19.
-(A symbolic link pointing to it is installed with the current packaging
-as a workaround for the issue.)
-
--  Errors 'duplicate message definition' in locale/po/es_AR.po.  The author
-(Andres) took a look at the issue and fixed it.  His changes were imported
-and are likley to be available with upstream v1.3.20. Debian bug # 678281.
-
-- The dbconfig configuration is apparently capable of creating the ledgersmb
-user but it is not getting created with the necessary permissions. It is also
-apparently automatically creating a database named ledgersmb when it creates
-that user.  The owner of it can come up as postgres; should make that
-ledgersmb, if that database is even needed.
-
-- The initial default set of HTML/LaTeX/Text templates is being installed as
-examples and copied to the /var/lib/ledgersmb/templates directory during the
-initial package install.  Because example files over a certain size are 
-automatically compressed, there may be files that have been compressed in that
-default set of templates.  Example: invoice.tex.gz. (If move where these are
-installed again, this may be moot.)
+- The dbconfig-common based database configuration that is being used during
+installations and upgrades needs to be reviewed and improved. It is capable
+of creating the 'ledgersmb' database administrative user but it is not getting
+created with the necessary permissions. It is also apparently automatically
+creating a database named ledgersmb with the current way that user is being
+created, which is not really needed for the application.
 
 - Upstream uses pdflatex to create distribution LedgerSMB-manual.pdf from the
 source file doc/manual/LedgerSMB-manual.tex. Use the same source file to create
@@ -49,4 +33,4 @@ to be operational with it.
 -> Instead of patching the files that use it directly, try using dh_linktree to
 create the set of links to the debian packages?
 
- -- Robert James Clay <jame@rocasa.us>  Sat,  7 Jul 2012 09:26:53 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon,  6 Aug 2012 19:31:26 -0400
