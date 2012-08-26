@@ -1,8 +1,15 @@
 ledgersmb (1.3.21-2~1) UNRELEASED; urgency=low
 
-  * Start packaging development for v1.3.21-2.
+  * Make indentation consistant in all maintainer scripts.
+  * Add 20_Makefile-PL.patch to resolve version reference issue in Makefile.PL.
+  * Changes for debian/ledgersmb.preinst:
+    - Correct version being checked against for css/templates softlinks removal.
+    - Update how the old_version variable is being used for the version checks.
+  * Changes for debian/control:
+    - Add accidently removed libtemplate-plugin-latex-perl back into Recommends.
+    - Add accidently removed libimage-size-perl back into Suggests.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 09 Aug 2012 09:25:07 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 25 Aug 2012 10:03:29 -0400
 
 ledgersmb (1.3.21-1) unstable; urgency=low
 
