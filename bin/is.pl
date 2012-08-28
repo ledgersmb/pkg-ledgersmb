@@ -392,7 +392,9 @@ sub form_header {
           . $form->escape( $form->{selectcustomer}, 1 ) . qq|">|;
     }
     else {
-        $customer = qq|<input name="customer" value="$form->{customer}" size="35">|;
+        $customer = qq|<input name="customer" value="$form->{customer}" size="35"> 
+     <a target="new" id="new-contact" href="customer.pl?action=add">[| . 
+        $locale->text('New') . qq|]</a> |;
     }
 
     $department = qq|
@@ -440,7 +442,8 @@ sub form_header {
     $form->header;
 
     print qq|
-<body onLoad="document.forms[0].${focus}.focus()" />
+<body onLoad="document.forms[0].${focus}.focus()" /> 
+| . $form->open_status_div . qq|
 
 <form method=post action="$form->{script}">
 |;
@@ -588,11 +591,23 @@ sub form_header {
 }
 
 sub void {
+    if ($form->{invnumber} =~ /-VOID$/){
+       $form->error($locale->text(
+           "Can't void a voided invoice!"
+       ));
+    }
     for my $i (1 .. $form->{rowcount}){
         $form->{"qty_$_"} *= -1;
     }
     $form->{invnumber} .= '-VOID';
     $form->{reverse} = 1;
+    $form->{paidaccounts} = 1;
+    if ($form->{paid_1}){
+        warn $locale->text(
+             'Payments associated with voided invoice may need to be reversed.'
+        );
+        delete $form->{paid_1};
+    }
     &post_as_new;
 }
 
@@ -950,16 +965,16 @@ qq|<td align="center"><input name="memo_$i" size="11" value="$form->{"memo_$i"}"
             'on_hold' =>
               { ndx => 12, key => 'O', value => $locale->text('On Hold') },
              'void'  => 
-                { ndx => 12, key => 'V', value => $locale->text('Void') },
+                { ndx => 13, key => 'V', value => $locale->text('Void') },
              'save_info'  => 
-                { ndx => 13, key => 'I', value => $locale->text('Save Info') },
+                { ndx => 14, key => 'I', value => $locale->text('Save Info') },
             'new_screen' => # Create a blank ar/ap invoice.
-             { ndx => 14, key=> 'N', value => $locale->text('New') }
+             { ndx => 15, key=> 'N', value => $locale->text('New') }
 
         );
 
 
-
+       delete $button{void} if $form->{invnumber} =~ /-VOID/;
 
         if ( $form->{id} ) {
 
@@ -996,7 +1011,6 @@ qq|<td align="center"><input name="memo_$i" size="11" value="$form->{"memo_$i"}"
                 %button = ();
             }
         }
-
         for ( sort { $button{$a}->{ndx} <=> $button{$b}->{ndx} } keys %button )
         {
             $form->print_button( \%button, $_ );
@@ -1070,7 +1084,7 @@ qq|<td align="center"><input name="memo_$i" size="11" value="$form->{"memo_$i"}"
 
     print qq|
 </form>
-
+| . $form->close_status_div . qq|
 </body>
 </html>
 |;
@@ -1506,6 +1520,5 @@ sub save_info {
 	    }
 
 }
-
 
 

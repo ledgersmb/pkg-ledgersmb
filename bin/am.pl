@@ -39,6 +39,7 @@ use LedgerSMB::User;
 use LedgerSMB::RP;
 use LedgerSMB::GL;
 use LedgerSMB::Template;
+use LedgerSMB::Sysconfig;
 
 1;
 
@@ -1272,7 +1273,7 @@ sub yes_delete_language {
 
 sub display_stylesheet {
 
-    $form->{file} = "css/$myconfig{stylesheet}";
+    $form->{file} = "$LedgerSMB::Sysconfig::fs_cssdir/$myconfig{stylesheet}";
     &display_form;
 
 }
@@ -1372,7 +1373,7 @@ sub display_form {
 s/<%include (.*?)%>/<a href=$form->{script}\?action=display_form&file=$myconfig{templates}\/$form->{code}\/$1&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}>$1<\/a>/g;
 
     $form->{type} = "template";
-    $hiddens{$_} = $form->{$_} foreach qw(file type path login sessionid);
+    $hiddens{$_} = $form->{$_} foreach qw(file type path login sessionid code);
 
 ##SC: Temporary commenting
 ##    if ( $form->{lynx} ) {
@@ -1407,7 +1408,7 @@ sub edit_template {
     $form->{body} =~ s/&nbsp;/&amp;nbsp;/gi;
 
     $hiddens{type} = 'template';
-    $hiddens{$_} = $form->{$_} foreach qw(file path login sessionid);
+    $hiddens{$_} = $form->{$_} foreach qw(file path login sessionid code);
     $hiddens{callback} = qq|$form->{script}?action=display_form&file=$form->{file}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}|;
 
 ##SC: Temporary commenting
@@ -1715,7 +1716,7 @@ sub config {
             };
     }
 
-    opendir CSS, "css/.";
+    opendir CSS, $LedgerSMB::Sysconfig::fs_cssdir;
     @all = grep /.*\.css$/, readdir CSS;
     closedir CSS;
 

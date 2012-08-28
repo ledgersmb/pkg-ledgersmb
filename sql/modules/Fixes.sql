@@ -429,6 +429,7 @@ This function inserts menu items at arbitrary positions.  The arguments are, in
 order:  parent, position, label.  The return value is the id number of the menu
 item created. $$;
 
+DROP VIEW menu_friendly;
 CREATE VIEW menu_friendly AS
 WITH RECURSIVE tree (path, id, parent, level, positions)
                                AS (select id::text as path, id, parent, 
@@ -451,5 +452,12 @@ SELECT t."level", t.path,
 COMMENT ON VIEW menu_friendly IS
 $$ A nice human-readable view for investigating the menu tree.  Does not
 show menu attributes or acls.$$;
+
+COMMIT;
+
+BEGIN;
+-- Fix for menu anomilies
+DELETE FROM menu_acl
+ where node_id in (select node_id from menu_attribute where attribute = 'menu');
 
 COMMIT;

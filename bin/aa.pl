@@ -444,6 +444,11 @@ sub form_header {
     # 	$locale->text('Add AP Transaction');
     #   $locale->text('Edit AR Transaction');
     #   $locale->text('Edit AP Transaction');
+    if ($form->{ARAP} eq 'AP'){
+        $vcscript = 'vendor.pl';
+    } elsif ($form->{ARAP} eq 'AR'){
+        $vcscript = 'customer.pl';
+    }
     my $title_msgid="$title $form->{ARAP} Transaction";
     if ($form->{reverse} == 0){
        #$form->{title} = $locale->text("[_1] [_2] Transaction", $title, $form->{ARAP});
@@ -558,7 +563,9 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
     $name =
       ( $form->{"select$form->{vc}"} )
       ? qq|<select name="$form->{vc}">$form->{"select$form->{vc}"}</select>|
-      : qq|<input name="$form->{vc}" value="$form->{$form->{vc}}" size=35>|;
+      : qq|<input name="$form->{vc}" value="$form->{$form->{vc}}" size=35> 
+                 <a href="$vcscript?action=add" target="new" id="new-contact">[|
+                 .  $locale->text('New') . qq|]</a>|;
 
     $employee = qq|
                 <input type=hidden name=employee value="$form->{employee}">
@@ -585,9 +592,8 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
     $form->header;
 
  print qq|
-<body onload="document.forms[0].${focus}.focus()" />
-
-
+<body onload="document.forms[0].${focus}.focus()" /> | .
+$form->open_status_div . qq|
 <form method=post action=$form->{script}>
 <input type=hidden name=type value="$form->{formname}">
 <input type=hidden name=title value="$title">
@@ -632,12 +638,12 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
 	    <table>
 	      <tr>
 		<th align="right" nowrap>$label</th>
-		<td colspan=3>$name</td>
+		<td colspan=3>$name 
+                </td>
 		<input type=hidden name="select$form->{vc}" value="|
       . $form->escape( $form->{"select$form->{vc}"}, 1 ) . qq|">
 	      </tr>
 	      <tr>
-		<td></td>
 		<td colspan=3>
 		  <table width=100%>
 		    <tr>
@@ -994,7 +1000,7 @@ sub form_footer {
                    ndx   => 3, 
                    key   => 'O', 
                    value => $locale->text('Post as Saved') };
-           if (grep /^lsmb_$form->{company}__draft_modify$/, @{$form->{_roles}}){
+           if (grep /^lsmb_$form->{company}__draft_edit$/, @{$form->{_roles}}){
                $button{edit_and_approve} = { 
                    ndx   => 4, 
                    key   => 'O', 
@@ -1108,7 +1114,7 @@ sub form_footer {
 
     print qq|
 </form>
-
+| . $form->close_status_header . qq|
 </body>
 </html>
 |;

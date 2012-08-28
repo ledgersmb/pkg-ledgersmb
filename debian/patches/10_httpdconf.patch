@@ -42,7 +42,7 @@ Description: Changing paths in Apache config
  </Directory>
  
 -<Directory WORKING_DIR/templates>
-+<Directory /etc/ledgersmb/templates>
++<Directory /var/lib/ledgersmb/templates>
    Order Deny,Allow
    Deny from All
  </Directory>

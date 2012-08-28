@@ -48,6 +48,7 @@ sub get {
         print $cgi->redirect($file->content);
         return 0;
     }
+    binmode (STDOUT, ':bytes');
 
     print $cgi->header(
           -type       => $file->get_mime_type,
@@ -111,7 +112,6 @@ sub attach_file {
         $file->content($fdata);
     }
     $request->{content} = $file->content;
-    $request->debug({file => '/tmp/file'});
     $file->attach;
     my $cgi = CGI::Simple->new;
     print $cgi->redirect($request->{callback});
