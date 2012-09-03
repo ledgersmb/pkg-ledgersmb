@@ -1,7 +1,9 @@
-ledgersmb (1.3.21-2~1) UNRELEASED; urgency=low
+ledgersmb (1.3.21-2) unstable; urgency=low
 
-  * Make indentation consistant in all maintainer scripts.
-  * Add 20_Makefile-PL.patch to resolve version reference issue in Makefile.PL.
+  * Make indentation consistent in all maintainer scripts.
+  * Changes to debian/patches/:
+    - Add 20_Makefile-PL.patch for a version reference issue in Makefile.PL.
+    - Update 10_httpdconf.patch templates path to /var/lib/ledgersmb/templates.
   * Changes for debian/ledgersmb.preinst:
     - Correct version being checked against for css/templates softlinks removal.
     - Update how the old_version variable is being used for the version checks.
@@ -9,7 +11,7 @@ ledgersmb (1.3.21-2~1) UNRELEASED; urgency=low
     - Add accidently removed libtemplate-plugin-latex-perl back into Recommends.
     - Add accidently removed libimage-size-perl back into Suggests.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 25 Aug 2012 10:03:29 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 28 Aug 2012 13:45:43 -0400
 
 ledgersmb (1.3.21-1) unstable; urgency=low
 
