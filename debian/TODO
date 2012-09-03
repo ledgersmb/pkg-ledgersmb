@@ -7,14 +7,23 @@ created with the necessary permissions. It is also apparently automatically
 creating a database named ledgersmb with the current way that user is being
 created, which is not really needed for the application.
 
+- Most of the upstream locale/po/* files need to be reviewed and/or updated;
+several of the files have fatal errors in them which need to be resolved.
+
 - Upstream uses pdflatex to create distribution LedgerSMB-manual.pdf from the
 source file doc/manual/LedgerSMB-manual.tex. Use the same source file to create
 an HTML version?
 
-- Create an HTML and/or PDF file of templateing/templating-guide.tex?  And
+- Create an HTML and/or PDF file of templateing/templating-guide.tex? And
 then register it with doc-base?
 
 - Add registration of at least database/ledgersmb.html to doc-base?
+
+- The doc/release-notes file is getting installed with the package; should it
+be referenced in README.Debian?
+
+- Add installation option for a versioned directory name? Or add a package
+build time option to create a versioned package name?
 
 - Review the tools/* shell and perl scripts to determine what changes may be
 necessary to make them usable on a Debian installation.
@@ -33,4 +42,4 @@ to be operational with it.
 -> Instead of patching the files that use it directly, try using dh_linktree to
 create the set of links to the debian packages?
 
- -- Robert James Clay <jame@rocasa.us>  Mon,  6 Aug 2012 19:31:26 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 18 Aug 2012 10:18:31 -0400

@@ -22,12 +22,12 @@ set -e
 # is no longer being used in debian/postinst to set it
 drop_statoverride() {
     for file in /etc/ledgersmb /etc/ledgersmb/images \
-      /etc/ledgersmb/images/demo /etc/ledgersmb/templates \
-      /etc/ledgersmb/templates/*;
+        /etc/ledgersmb/images/demo /etc/ledgersmb/templates \
+        /etc/ledgersmb/templates/*;
     do
-    if dpkg-statoverride --list $file >/dev/null; then
-      dpkg-statoverride --remove $file
-    fi
+        if dpkg-statoverride --list $file >/dev/null; then
+            dpkg-statoverride --remove $file
+        fi
     done
 }
 
@@ -43,22 +43,22 @@ fi
 
 case "$1" in
     upgrade)
-    #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
-    # is no longer being used in debian/postinst to set it.
-      if dpkg --compare-versions $2 lt 1.3.9-2; then
-        drop_statoverride;
-      fi
+        #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
+        # is no longer being used in debian/postinst to set it.
+        if dpkg --compare-versions $2 lt 1.3.9-2; then
+            drop_statoverride;
+        fi
     ;;
 
     purge)
-    # When being purged; if /var/lib/ledgersmb/css exists, remove it.
-      if [ -d "/var/lib/ledgersmb/css" ]; then
-          rm -rf /var/lib/ledgersmb/css
-      fi
-    # When being purged; if /var/lib/ledgersmb/templates exists, remove it.
-      if [ -d "/var/lib/ledgersmb/templates" ]; then
-          rm -rf /var/lib/ledgersmb/templates
-      fi
+        # When being purged; if /var/lib/ledgersmb/css exists, remove it.
+        if [ -d "/var/lib/ledgersmb/css" ]; then
+            rm -rf /var/lib/ledgersmb/css
+        fi
+        # When being purged; if /var/lib/ledgersmb/templates exists, remove it.
+        if [ -d "/var/lib/ledgersmb/templates" ]; then
+            rm -rf /var/lib/ledgersmb/templates
+        fi
     ;;
 
     remove|failed-upgrade|abort-install|abort-upgrade|disappear)
