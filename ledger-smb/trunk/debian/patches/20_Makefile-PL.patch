@@ -1,0 +1,13 @@
+Author: Robert James Clay <jame@rocasa.us>
+Description: Correction for a version reference issue in Makefile.PL
+--- a/Makefile.PL
++++ b/Makefile.PL
+@@ -5,7 +5,7 @@
+ use inc::Module::Install 0.65;
+ 
+ name 'LedgerSMB';
+-version 1.3.23;
++version_from 'LedgerSMB.pm';
+ license 'GPL';
+ 
+ perl_version '5.8.1';
