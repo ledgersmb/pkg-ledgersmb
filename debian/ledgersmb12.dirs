@@ -1,4 +1,4 @@
-etc/ledgersmb
+etc/ledgersmb12
 etc/ledgersmb12/images
 etc/ledgersmb12/images/demo
 etc/ledgersmb12/templates
@@ -21,7 +21,7 @@ usr/share/ledgersmb12/locale/po
 usr/share/ledgersmb12/sql
 usr/share/ledgersmb12/sql/legacy
 usr/share/ledgersmb12/sql/fixes
-usr/share/lintian/overrides
+usr/share/lintian12/overrides
 var/lib/ledgersmb12
 var/lib/ledgersmb12/css
 var/lib/ledgersmb12/spool

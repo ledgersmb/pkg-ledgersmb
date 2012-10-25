@@ -1,14 +1,11 @@
-ledgersmb12 (1.2.26-1) UNRELEASED; urgency=low
+ledgersmb12 (1.2.26-1~1) UNRELEASED; urgency=low
 
-  * Start packaging v1.2.26 release.
+  * Change to creating a v1.2 series only package.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 25 Apr 2012 07:59:22 -0500
+ -- Robert James Clay <jame@rocasa.us>  Thu, 25 Oct 2012 11:19:53 -0400
 
 ledgersmb (1.2.25-2) experimental; urgency=low
 
-  TODO: Until such time as a new release in the v1.2 series becomes available,
-        update the v1.2 series Debian packaging as necessary or needed. For
-        more details, see also the file debian/TODO.
   * Changes to debian/rules:
     - Rewrite debian/rules to use the dh command.
   * Changes to debian/control:
