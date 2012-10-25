@@ -1,8 +1,9 @@
-# LedgerSMB debian/watch control file for uscan
+# LedgerSMB v1.2 debian/watch control file for uscan
 
 # Compulsory line, this is a version 3 file
 version=3
 
-# Uncomment to find new files on sourceforge, for debscripts >= 2.9
+# Exclude development snapshots
+opts="uversionmangle=s/^1\.2\.\d*/0/" \
 http://sf.net/ledger-smb/ledgersmb-([\d\.]+)\.tar\.gz
 

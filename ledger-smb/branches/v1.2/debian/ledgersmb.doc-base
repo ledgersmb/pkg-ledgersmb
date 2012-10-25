@@ -1,13 +1,13 @@
-Document: ledgersmb
-Title: LedgerSMB Manual
+Document: ledgersmb12
+Title: LedgerSMB v1.2 Manual
 Author: The LedgerSMB Core Team
 Abstract: This manual describes how to use
  LedgerSMB 
 Section: Office
 
 Format: PDF
-Files: /usr/share/doc/ledgersmb/LedgerSMB-manual.pdf.gz
+Files: /usr/share/doc/ledgersmb12/LedgerSMB-manual.pdf.gz
 
 Format: HTML
-Index: /usr/share/doc/ledgersmb/html_manual/LedgerSMB-manual.html
-Files: /usr/share/doc/ledgersmb/html_manual/*.html
+Index: /usr/share/doc/ledgersmb12/html_manual/LedgerSMB-manual.html
+Files: /usr/share/doc/ledgersmb12/html_manual/*.html

@@ -1,3 +1,3 @@
-/usr/share/doc/ledgersmb/html_manual/LedgerSMB-manual.html  /usr/share/doc/ledgersmb/html_manual/index.html
-/etc/ledgersmb/ledgersmb.conf  /usr/share/ledgersmb/ledgersmb.conf
-/etc/ledgersmb/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb-httpd.conf
+/usr/share/doc/ledgersmb12/html_manual/LedgerSMB-manual.html  /usr/share/doc/ledgersmb12/html_manual/index.html
+/etc/ledgersmb12/ledgersmb.conf  /usr/share/ledgersmb12/ledgersmb.conf
+/etc/ledgersmb12/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb12-httpd.conf

@@ -20,26 +20,26 @@ set -e
 
 case "$1" in
     configure)
-    #   Set default user:group & permissions for etc/ledgersmb
-    chown -R www-data:www-data /etc/ledgersmb
-    chmod 0600 /etc/ledgersmb/*.conf
-    chmod 0600 /etc/ledgersmb/*.pl
+    #   Set default user:group & permissions for etc/ledgersmb12
+    chown -R www-data:www-data /etc/ledgersmb12
+    chmod 0600 /etc/ledgersmb12/*.conf
+    chmod 0600 /etc/ledgersmb12/*.pl
 
-    #   Remove if present then install the stat setting for /etc/ledgersmb
-    dpkg-statoverride --remove /etc/ledgersmb >/dev/null 2>&1 || true
-    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb
+    #   Remove if present then install the stat setting for /etc/ledgersmb12
+    dpkg-statoverride --remove /etc/ledgersmb12 >/dev/null 2>&1 || true
+    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb12
 
-    #   Remove if present then install the stat setting for /etc/ledgersmb/images
-    dpkg-statoverride --remove /etc/ledgersmb/images >/dev/null 2>&1 || true
-    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb/images
+    #   Remove if present then install the stat setting for /etc/ledgersmb12/images
+    dpkg-statoverride --remove /etc/ledgersmb12/images >/dev/null 2>&1 || true
+    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb12/images
 
-    #   Remove if present then install the stat setting for /etc/ledgersmb/images/demo
-    dpkg-statoverride --remove /etc/ledgersmb/images/demo >/dev/null 2>&1 || true
-    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb/images/demo
+    #   Remove if present then install the stat setting for /etc/ledgersmb12/images/demo
+    dpkg-statoverride --remove /etc/ledgersmb12/images/demo >/dev/null 2>&1 || true
+    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb12/images/demo
 
-    #   Remove if present then install the stat setting for /etc/ledgersmb/templates
-    dpkg-statoverride --remove /etc/ledgersmb/templates >/dev/null 2>&1 || true
-    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb/templates
+    #   Remove if present then install the stat setting for /etc/ledgersmb12/templates
+    dpkg-statoverride --remove /etc/ledgersmb12/templates >/dev/null 2>&1 || true
+    dpkg-statoverride --update --add www-data www-data 2755 /etc/ledgersmb12/templates
 
     ;;
 
