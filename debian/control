@@ -12,7 +12,7 @@ Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/branches/v1.2
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-sql-ledger/ledger-smb/branches/v1.2
 
-Package: ledgersmb
+Package: ledgersmb12
 Architecture: all
 Depends: ${perl:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libclass-std-perl, libconfig-std-perl, libconfig-any-perl, libmime-lite-perl, liblocale-maketext-lexicon-perl (>= 0.56-1), libdbi-perl, libdbd-pg-perl, postgresql-client-8.3 | postgresql-client-8.4 | postgresql-client-9.1, apache2 | httpd-cgi, libhtml-linkextractor-perl, libdata-dumper-simple-perl
 Recommends: default-mta | mail-transport-agent, texlive-full | tetex-extra, libparse-recdescent-perl

@@ -1,8 +1,8 @@
 LedgerSMB for Debian
 --------------------
 
-LedgerSMB can be accessed at http://127.0.0.1/ledgersmb, although initial
-set up is required.
+LedgerSMB v1.2 can be accessed by default at http://127.0.0.1/ledgersmb12,
+although initial set up is required.
 
 To prepare LedgerSMB for use:
 
@@ -60,15 +60,15 @@ To prepare LedgerSMB for use:
    get to your ip address on port 80.  If you want to lock it down to 
    localhost, do so now in the forementioned configuration file!
 
-  8) Reload apache2 if you made changes to /etc/ledgersmb/ledgersmb-httpd.conf
+  8) Reload apache2 if you made changes to /etc/ledgersmb/ledgersmb12-httpd.conf
 
     $ /etc/init.d/apache2 reload
 
-At this point you can connect to http://127.0.0.1/ledgersmb/admin.pl and login
+At this point you can connect to http://127.0.0.1/ledgersmb12/admin.pl and login
 with the password set in step 4.
 
 If upgrading from LedgerSMB < 1.2.0-rc5, you need to edit 
-/etc/ledgersmb/ledgersmb.conf to adjust your configuration to match the new
+/etc/ledgersmb12/ledgersmb.conf to adjust your configuration to match the new
 options and renaming.
 
 If upgrading from LedgerSMB < 1.2.0-beta1 or from SQL-Ledger, read UPGRADE. The
@@ -76,5 +76,5 @@ config format, locale names, database schema, and per-user configuration
 locations have been sufficiently changed with 1.2.0-beta1 so as to require
 special attention in upgrading.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 22 Oct 2011 00:59:31 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 25 Oct 2012 10:02:59 -0400
  -- Elizabeth Krumbach <lyz@princessleia.com>  Tue, 6 Jan 2009 05:38:48 -0500
