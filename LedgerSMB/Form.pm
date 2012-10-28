@@ -103,20 +103,17 @@ sub new {
         print "Status: 413\n Request entity too large\n\n";
         die "Error: Request entity too large\n";
     }
-
-    read( STDIN, $_, $ENV{CONTENT_LENGTH} ) unless $ENV{CONTENT_LENGTH} == 0;
-
     if ($argstr) {
         $_ = $argstr;
+    }elsif ($ENV{CONTENT_LENGTH}!= 0){
+        read( STDIN, $_, $ENV{CONTENT_LENGTH} );
     }
     elsif ( $ENV{QUERY_STRING} ) {
         $_ = $ENV{QUERY_STRING};
     }
-
     elsif ( $ARGV[0] ) {
         $_ = $ARGV[0];
     }
-
     my $self = {};
     my $orig = {};
     %$orig = split /[&=]/ unless !defined $_;
@@ -167,8 +164,8 @@ sub new {
     #menubar will be deprecated, replaced with below
     $self->{lynx} = 1 if ( ( defined $self->{path} ) && ( $self->{path} =~ /lynx/i ) );
 
-    $self->{version}   = "1.3.21";
-    $self->{dbversion} = "1.3.21";
+    $self->{version}   = "1.3.23";
+    $self->{dbversion} = "1.3.23";
 
     bless $self, $type;
 
