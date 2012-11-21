@@ -61,9 +61,9 @@ Description: Change default directories
 -fs_cssdir = css/
 +fs_cssdir = /var/lib/ledgersmb/css/
  
- # Set language for login and admin pages
- language : en
-@@ -55,16 +55,16 @@
+ # If set to a true value this caches templates.  Typically it will be set to 0 
+ # to disable or 1 to enable.
+@@ -60,16 +60,16 @@
  
  [paths]
  # spool directory for batch printing
@@ -86,7 +86,7 @@ Description: Change default directories
  
  [programs]
  # program to use for file compression
-@@ -92,7 +92,7 @@
+@@ -97,7 +97,7 @@
  db_namespace = public
  #contrib_dir PG_CONTRIB_DIR 
  #with postgresql-9.1 this stuff is in /usr/share/postgresql/9.1/extension and is injected in database with create extension pg_trgm,btree_gist...
