@@ -1,7 +1,7 @@
-Author: <seneca@localhost.localdomain>
+Author:  Robert James Clay <jame@rocasa.us>
 Description: Change default directories
---- ledgersmb-1.2.25.orig/LedgerSMB/Sysconfig.pm
-+++ ledgersmb-1.2.25/LedgerSMB/Sysconfig.pm
+--- a/LedgerSMB/Sysconfig.pm
++++ b/LedgerSMB/Sysconfig.pm
 @@ -30,13 +30,13 @@
  );
  
