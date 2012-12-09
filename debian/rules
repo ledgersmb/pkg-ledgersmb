@@ -5,7 +5,7 @@
 
 override_dh_auto_configure:
 	[ ! -e Build.PL ] || rm -f Build.PL
-	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb12/spool|' \
+	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb-1.2/spool|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
@@ -22,11 +22,11 @@ override_dh_auto_install:
 
 override_dh_install:
 	dh_install
-	chmod -x debian/ledgersmb12/usr/share/ledgersmb12/locale/po/*
-	find debian/ledgersmb12/etc/ledgersmb12 -d -not -exec chmod -x '{}' \;
-	find debian/ledgersmb12/usr/share/ledgersmb12 -name '*.html' -exec chmod -x '{}' \;
-	find debian/ledgersmb12/usr/share/ledgersmb12 -name '*.sh' -exec chmod +x '{}' \;
-	find debian/ledgersmb12/usr/share/ledgersmb12 -name '*.pm' -exec chmod -x '{}' \;
-	find debian/ledgersmb12/usr/share/ledgersmb12 -name '*.sql' -exec chmod -x '{}' \;
-	find debian/ledgersmb12/usr/share/ledgersmb12/locale/legacy -d -not -name '*.pl' -not -exec chmod -x '{}' \;
+	chmod -x debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/locale/po/*
+	find debian/ledgersmb-1.2/etc/ledgersmb-1.2 -d -not -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.html' -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.sh' -exec chmod +x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.pm' -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.sql' -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/locale/legacy -d -not -name '*.pl' -not -exec chmod -x '{}' \;
 

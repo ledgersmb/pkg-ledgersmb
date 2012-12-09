@@ -1,4 +1,4 @@
-ledgersmb12 (1.2.26-1~1) UNRELEASED; urgency=low
+ledgersmb-1.2 (1.2.26-1~1) UNRELEASED; urgency=low
 
   * Change to creating a v1.2 series only package.
 
