@@ -824,7 +824,6 @@ sub new_item {
 }
 
 sub display_form {
-
     $form->close_form();
     $form->open_form();
     $form->{dbh}->commit;
@@ -1464,18 +1463,11 @@ sub print_select { # Needed to print new printoptions output from non-template
 }
 sub print {
 
-    my $csettings = $LedgerSMB::Company_Config::settings;
-    $form->{company} = $csettings->{company_name};
-    $form->{businessnumber} = $csettings->{businessnumber};
-    $form->{email} = $csettings->{company_email};
-    $form->{address} = $csettings->{company_address};
-    $form->{tel} = $csettings->{company_phone};
-    #$form->{myCompanyFax} = $csettings->{company_fax};#fax should be named myCompanyFax ?
-    $form->{fax} = $csettings->{company_fax};
     $logger->trace("setting fax from LedgerSMB::Company_Config::settings \$form->{formname}=$form->{formname} \$form->{fax}=$form->{fax}");
 
 
     # if this goes to the printer pass through
+    my $old_form = undef;
     if ( $form->{media} !~ /(screen|email)/ ) {
         $form->error( $locale->text('Select txt, postscript or PDF!') )
           if ( $form->{format} !~ /(txt|postscript|pdf)/ );
@@ -1484,13 +1476,20 @@ sub print {
         for ( keys %$form ) { $old_form->{$_} = $form->{$_} }
 
     }
-
     &print_form($old_form);
+
 
 }
 
 sub print_form {
     my ($old_form) = @_;
+    my $csettings = $LedgerSMB::Company_Config::settings;
+    $form->{company} = $csettings->{company_name};
+    $form->{businessnumber} = $csettings->{businessnumber};
+    $form->{address} = $csettings->{company_address};
+    $form->{tel} = $csettings->{company_phone};
+    #$form->{myCompanyFax} = $csettings->{company_fax};#fax should be named myCompanyFax ?
+    $form->{fax} = $csettings->{company_fax};
     my $inv = "inv";
     my $due = "due";
 
@@ -1592,7 +1591,17 @@ sub print_form {
         my @files = $file->get_for_template(
                 {ref_key => $form->{id}, file_class => $fc}
         );
-        $form->{file_list} = \@files;
+        my @main_files;
+        my %parts_files;
+        for my $f (@files){
+            if ($f->{file_class} == 3) {
+              $parts_files{$f->{ref_key}} = $f;
+            } else {
+               push @main_files, $f;
+            }
+        }
+        $form->{file_list} = \@main_files;
+        $form->{parts_files} = \%parts_files;
         $form->{file_path} = $file->file_path;
     }
 
@@ -1634,7 +1643,7 @@ sub print_form {
             "projectnumber_$i", "partsgroup_$i",
             "serialnumber_$i",  "bin_$i",
             "unit_$i",          "notes_$i", 
-            "image_$i",
+            "image_$i",         "id_$i"
           );
     }
     for ( split / /, $form->{taxaccounts} ) { push @vars, "${_}_description" }
@@ -1672,7 +1681,7 @@ sub print_form {
     }
     else {
         IS->invoice_details( \%myconfig, $form );
-    }
+    } 
     if ( exists $form->{longformat} ) {
         $form->{"${due}date"} = $duedate;
         for ( "${inv}date", "${due}date", "shippingdate", "transdate" ) {
@@ -1680,7 +1689,6 @@ sub print_form {
               $locale->date( \%myconfig, $form->{$_}, $form->{longformat} );
         }
     }
-
     @vars =
       qw(name address1 address2 city state zipcode country contact phone fax email);
 

@@ -136,6 +136,9 @@ and these optional ones:
   XML::Twig               [Support for OpenOffice output]
   Excel::Template::Plus   [Support for Excel output]
 
+To build using the Makefile.PL you will also need:
+
+  Module::Install
 
 All these modules can be downloaded from CPAN, the modules distribution
 archive for Perl. However our experience has been that if your distribution
@@ -151,7 +154,7 @@ When you have completed the distribution specific steps described below,
 you should proceed to run:
 
  $ perl Makefile.PL
- $ make install
+ $ make test
 
 which will ask you which modules it should download, if you didn't install
 - using your package manager - all of the required and optional modules
@@ -271,7 +274,9 @@ still be necessary.
 An alternative method is the 'prepare-company-database.sh' script contributed by
 Erik Huelsmann.  This script can be useful in creating and populating databases
 from the command line and it offers a reference implementation written in BASH
-for how this process is done.
+for how this process is done.   The prepare-company-database.sh script is only
+supported on GNU environments, but a prepare-company-database.pl is included
+with nearly identical syntax which is supported everywhere LedgerSMB is.
 
 The 'prepare-company-database.sh' script in the tools/ directory will set
 up databases to be used for LedgerSMB. The script should be run as 'root'
