@@ -1,11 +1,11 @@
-Author: <seneca@localhost.localdomain>
+Author:  Robert James Clay <jame@rocasa.us>, 
 Description: Changing paths in Apache config
---- ledgersmb-1.2.25.orig/ledgersmb-httpd.conf
-+++ ledgersmb-1.2.25/ledgersmb-httpd.conf
+--- a/ledgersmb-httpd.conf
++++ b/ledgersmb-httpd.conf
 @@ -1,7 +1,7 @@
  
--Alias /ledgersmb-1.2 WORKING_DIR
-+Alias /ledgersmb-1.2 /usr/share/ledgersmb-1.2/
+-Alias /ledgersmb WORKING_DIR
++Alias /ledgersmb-1.2 /usr/share/ledgersmb-1.2
  
 -<Directory WORKING_DIR>
 +<Directory /usr/share/ledgersmb-1.2>
@@ -21,56 +21,24 @@ Description: Changing paths in Apache config
    Order Deny,Allow
    Deny from All
  </Directory>
-   
+-  
 -<Directory WORKING_DIR/bin>
++
 +<Directory /usr/share/ledgersmb-1.2/bin>
    Order Deny,Allow
    Deny from All
  </Directory>
-   
+-  
 -<Directory WORKING_DIR/utils>
++
 +<Directory /usr/share/ledgersmb-1.2/utils>
    Order Deny,Allow
    Deny from All
  </Directory>
-   
--<Directory WORKING_DIR/ledgersmb-1.2>
-+<Directory /usr/share/ledgersmb-1.2/ledgersmb-1.2>
+-  
+-<Directory WORKING_DIR/LedgerSMB>
++
++<Directory /usr/share/ledgersmb-1.2/ledgersmb>
    Order Deny,Allow
    Deny from All
  </Directory>
---- /dev/null
-+++ ledgersmb-1.2.25/ledgersmb-httpd.conf.rej
-@@ -0,0 +1,32 @@
-+--- ledgersmb-httpd.conf	2007-02-23 00:44:50.000000000 -0500
-++++ ledgersmb-httpd.conf	2007-02-19 20:46:47.000000000 -0500
-+@@ -13,27 +13,12 @@
-+   </Files>
-+ </Directory>
-+
-+-<Directory WORKING_DIR/users>
-++<Directory /usr/share/ledgersmb-1.2/bin>
-+   Order Deny,Allow
-+   Deny from All
-+ </Directory>
-+
-+-<Directory WORKING_DIR/bin>
-+-  Order Deny,Allow
-+-  Deny from All
-+-</Directory>
-+-
-+-<Directory WORKING_DIR/utils>
-+-  Order Deny,Allow
-+-  Deny from All
-+-</Directory>
-+-
-+-<Directory WORKING_DIR/spool>
-+-  Order Deny,Allow
-+-  Deny from All
-+-</Directory>
-+-
-+-<Directory WORKING_DIR/ledgersmb-1.2>
-++<Directory /usr/share/ledgersmb-1.2/LedgerSMB>
-+   Order Deny,Allow
-+   Deny from All
-+ </Directory>
