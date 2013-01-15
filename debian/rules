@@ -8,7 +8,6 @@ override_dh_auto_configure:
     # Per upstream; remove these empty directories if present, as they are not
     # needed for an installed LedgerSMB directory.
 	rm -rf LedgerSMB/Assets LedgerSMB/Entity
-	cp ledgersmb.conf.default ledgersmb.conf
 	cp ledgersmb-httpd.conf.template ledgersmb-httpd.conf
 	cp pos.conf.pl.template pos.conf.pl
 	dh_auto_configure
