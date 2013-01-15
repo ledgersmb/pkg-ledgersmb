@@ -8,11 +8,11 @@ Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
  Christopher Murtagh, Joshua Drake, and Seneca Cunningham. For a full list
  including contact information of contributors, maintainers, and copyright
  holders, see the CONTRIBUTORS file.
-Copyright:  2006-2012, The LedgerSMB Core Team
+Copyright:  2006-2013, The LedgerSMB Core Team
             1999-2006, DWS Systems Inc.
 
 Files: *
-Copyright:  2006-2012, Chris Travers <chris@metatrontech.com>
+Copyright:  2006-2013, Chris Travers <chris@metatrontech.com>
             2006-2007, Christopher Murtagh <christopher.murtagh@gmail.com>
             2006-2007, Joshua Drake <jd@commandprompt.com>
             2006-2011, Seneca Cunningham <tentra@gmail.com>
@@ -20,7 +20,7 @@ Copyright:  2006-2012, Chris Travers <chris@metatrontech.com>
 License: GPL-2+
 
 Files: bin/*
-Copyright:  2006-2012, The LedgerSMB Core Team
+Copyright:  2006-2013, The LedgerSMB Core Team
             1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
 License: GPL-2+
 
@@ -29,7 +29,7 @@ Comment: Copyright and License for debian directory files.
 Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org> 
            2008-2009, Elizabeth Krumbach <lyz@princessleia.com>
              2008,    Roberto C. Sanchez <robert@debian.org>
-           2009-2012, Robert James Clay <jame@rocasa.us>
+           2009-2013, Robert James Clay <jame@rocasa.us>
 License: GPL
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
