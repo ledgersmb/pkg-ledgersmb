@@ -19,7 +19,7 @@ Depends: ${perl:Depends}, ${misc:Depends}, perl (>= 5.8.0-1), libconfig-std-perl
   postgresql-client, postgresql-contrib, dbconfig-common
 Recommends: default-mta | mail-transport-agent, texlive-latex-recommended, libopenoffice-oodoc-perl,
   libmath-bigint-gmp-perl, libparse-recdescent-perl, libtemplate-plugin-latex-perl
-Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all,
+Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all, libplack-perl,
   libimage-size-perl
 Conflicts: ledger-smb
 Replaces: ledger-smb
