@@ -1,14 +1,20 @@
-ledgersmb (1.3.29-1~1) UNRELEASED; urgency=low
+ledgersmb (1.3.29-1~2) UNRELEASED; urgency=low
 
   * New upstream release.
   * Changes to debian/copyright:
     - Update copyright end years as necessary to 2013.
+    - Add an entry for the tools/prepare-company-database.* scripts.
   * Changes to debian/rules:
-    - Remove line used to copy ledgersmb.conf.template, it is no longer needed.
-  * Add README.plack to file listing in debian/ledgersmb.docs file.
+    - Add line to make tools/system/lsmb* scripts executables.
+    - Remove the line used to copy the ledgersmb.conf.template file as it is
+      no longer needed.
+  * Changes to debian/patches/:
+    - Add 20_BashPath.patch to resolve bash path issues in tools/ scripts.
+  * Add README.plack to the files listed in the debian/ledgersmb.docs file.
+  * Add the libplack-perl package as a Suggests in debian/control.
   * Register the release notes using debian/ledgersmb.doc-base.notes.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 30 Jan 2013 11:41:14 -0500
+ -- Robert James Clay <jame@rocasa.us>  Wed, 30 Jan 2013 18:21:07 -0500
 
 ledgersmb (1.3.25-1) unstable; urgency=low
 
