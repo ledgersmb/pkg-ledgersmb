@@ -26,6 +26,7 @@ override_dh_fixperms:
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/html/splash.html
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/Reconciliation.pl
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/*.pl
+	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/system/lsmb*
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.sh' -exec chmod +x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.pm' -exec chmod -x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb -name '*.sql' -exec chmod -x '{}' \;
