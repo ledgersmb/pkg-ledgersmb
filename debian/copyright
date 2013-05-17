@@ -143,6 +143,7 @@ Files: locale/po/da.po
 Comment: Danish texts
 Copyright:  2001, Keld Jørn Simonsen <keld@dkuug.dk>
             2001, Jonas Smedegaard <jonas@jones.dk>
+            2006, Mads Kiilerich <mads@kiilerich.com>
 License: GPL-2+
 
 Files: locale/po/de.po
@@ -157,7 +158,7 @@ Files: locale/po/de_CH.po
 Comment: Swiss-German texts
 Copyright:  2006, Alain Haymoz <alain.haymoz@leanux.ch>
             2006, Fabian Schiltknecht <fabian.schiltknecht@leanux.ch>
-            2006,  Martin Elmer <martin.elmer@leanux.ch>
+            2006, Martin Elmer <martin.elmer@leanux.ch>
 License: GPL-2+
 
 Files: locale/po/el.po
@@ -171,6 +172,11 @@ Copyright:  2002, Maria Gabriela Fong <mgfong@maga.tzo.org>
             2002, John Stoddart <jstypo@imagencolor.com.ve>
             2002, Federico Montesino Pouzols <fedemp@arrok.com>
             2002, Tomás Pereira <topec@percar.com>
+License: GPL-2+
+
+Files: locale/po/es_AR.po
+Comment: Spanish (Argentina) texts
+Copyright:  2012, Andres Basile <basile@gmail.com>
 License: GPL-2+
 
 Files: locale/po/es_CO.po
@@ -253,7 +259,7 @@ License: GPL-2+
 
 Files: locale/po/hu.po
 Comment: Hungarian texts
-Copyright:  2003, Pongrácz István <pongracz.istvan@osbusiness.hu>
+Copyright:  2013, Pongrácz István <pongracz.istvan@@startit.hu>
 License: GPL-2+
 
 Files: locale/po/id.po
@@ -281,11 +287,11 @@ License: GPL-2+
 
 Files: locale/po/nb.po
 Comment: Norwegian Bokmål texts
-Copyright:  2001, 2004, Keld Jørn Simonsen <keld@dkuug.dk>
-            2001, 2004, Morten Pedersen <morten@workzone.no>
-            2001, 2004, Finn-Arne Johansen <faj@bzz.no>
-            2001, 2004, Petter Reinholdtsen <pere@hungry.com>
-            2001, 2004, Erik Inge Bolsø <knan@tvilsom.org>
+Copyright:  2001, 2004, 2012, Keld Jørn Simonsen <keld@dkuug.dk>
+            2001, 2004, 2012, Morten Pedersen <morten@workzone.no>
+            2001, 2004, 2012, Finn-Arne Johansen <faj@bzz.no>
+            2001, 2004, 2012, Petter Reinholdtsen <pere@hungry.com>
+            2001, 2004, 2012, Erik Inge Bolsø <knan@tvilsom.org>
 License: GPL-2+
 
 Files: locale/po/nl.po
