@@ -1,4 +1,4 @@
-ledgersmb (1.3.32-1~1) UNRELEASED; urgency=low
+ledgersmb (1.3.33-1~1) UNRELEASED; urgency=low
 
   * New upstream release.
   * Changes to debian/copyright:
@@ -14,7 +14,7 @@ ledgersmb (1.3.32-1~1) UNRELEASED; urgency=low
   * Add the libplack-perl package as a Suggests in debian/control.
   * Register the release notes using debian/ledgersmb.doc-base.notes.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 17 May 2013 09:48:37 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 30 May 2013 11:35:09 -0400
 
 ledgersmb (1.3.25-1) unstable; urgency=low
 
