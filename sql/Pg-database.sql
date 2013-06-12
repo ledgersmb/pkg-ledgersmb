@@ -966,9 +966,10 @@ $$ references entity_credit_account.id$$;
 
 --
 CREATE TABLE makemodel (
-  parts_id int PRIMARY KEY,
+  parts_id int,
   make text,
-  model text
+  model text,
+  PRIMARY KEY (parts_id, make, model)
 );
 
 COMMENT ON TABLE makemodel IS
@@ -1019,7 +1020,7 @@ sinumber|1
 sonumber|1
 yearend|1
 businessnumber|1
-version|1.3.21
+version|1.3.23
 closedto|\N
 revtrans|1
 ponumber|1
@@ -1061,6 +1062,7 @@ insert into batch_class (id,class) values (3,'payment');
 insert into batch_class (id,class) values (4,'payment_reversal');
 insert into batch_class (id,class) values (5,'gl');
 insert into batch_class (id,class) values (6,'receipt');
+insert into batch_class (id,class) values (7,'receipt_reversal');
 
 SELECT SETVAL('batch_class_id_seq',6);
 
@@ -4715,5 +4717,9 @@ COMMENT ON TABLE payment_links IS $$
 
  This reasoning is hacky and i hope it can dissapear when we get to 1.4 - D.M.
 $$;
+
+-- helpful to keeping the selection of all years fast
+create index ac_transdate_year_idx on acc_trans(EXTRACT ('YEAR' FROM transdate));
+
  
 commit;

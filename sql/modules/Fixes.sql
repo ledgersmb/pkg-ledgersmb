@@ -461,3 +461,23 @@ DELETE FROM menu_acl
  where node_id in (select node_id from menu_attribute where attribute = 'menu');
 
 COMMIT;
+
+BEGIN;
+-- fix primary key for make/model
+ALTER TABLE makemodel DROP CONSTRAINT makemodel_pkey;
+ALTER TABLE makemodel ADD PRIMARY KEY(parts_id, make, model);
+COMMIT;
+
+BEGIN;
+-- performance fix for all years list  functions
+
+create index ac_transdate_year_idx on acc_trans(EXTRACT ('YEAR' FROM transdate));
+
+COMMIT;
+
+BEGIN;
+-- RECEIPT REVERSAL broken:
+
+insert into batch_class (id,class) values (7,'receipt_reversal');
+
+COMMIT;
