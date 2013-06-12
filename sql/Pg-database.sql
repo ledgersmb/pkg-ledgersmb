@@ -1019,7 +1019,7 @@ sinumber|1
 sonumber|1
 yearend|1
 businessnumber|1
-version|1.3.15
+version|1.3.18
 closedto|\N
 revtrans|1
 ponumber|1
@@ -1460,6 +1460,8 @@ COMMENT ON TABLE partstax IS $$ Mapping of parts to taxes.$$;
 CREATE TABLE tax (
   chart_id int REFERENCES account(id),
   rate numeric,
+  minvalue numeric,
+  maxvalue numeric,
   taxnumber text,
   validto timestamp not null default 'infinity',
   pass integer DEFAULT 0 NOT NULL,
@@ -3009,8 +3011,8 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 166	template	purchase_order	427
 167	template	bin_list	428
 168	template	statement	429
-169	template	quotation	430
-170	template	rfq	431
+169	template	sales_quotation	430
+170	template	request_quotation	431
 171	template	timecard	432
 241	template	letterhead	644
 157	format	HTML	433
@@ -3766,7 +3768,8 @@ $$ Maps disposal method to line items in the asset disposal report.$$;
 
 CREATE TABLE mime_type (
        id serial not null unique,
-       mime_type text primary key
+       mime_type text primary key,
+       invoice_include bool default false
 );
 
 COMMENT ON TABLE mime_type IS
@@ -4456,6 +4459,8 @@ INSERT INTO mime_type (mime_type) VALUES('application/vnd.iccprofile');
 INSERT INTO mime_type (mime_type) VALUES('application/vnd.oasis.opendocument.graphics');
 INSERT INTO mime_type (mime_type) VALUES('application/vnd.ms-tnef');
 INSERT INTO mime_type (mime_type) VALUES('video/vnd.rn-realvideo');
+
+UPDATE mime_type SET invoice_include = 'true' where mime_type like 'image/%';
 
 CREATE TABLE file_class (
        id serial not null unique,

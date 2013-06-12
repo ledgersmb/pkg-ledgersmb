@@ -43,6 +43,7 @@ use LedgerSMB::Tax;
 use LedgerSMB::Template;
 use LedgerSMB::Sysconfig;
 use LedgerSMB::Company_Config;
+use LedgerSMB::File;
 
 # any custom scripts for this one
 if ( -f "bin/custom/io.pl" ) {
@@ -85,6 +86,7 @@ if ( -f "bin/custom/$form->{login}_io.pl" ) {
 # $locale->text('Dec')
 
 sub _calc_taxes {
+    $form->{subtotal} = $form->{invsubtotal};
     for $i (1 .. $form->{rowcount}){
         my $linetotal = 
              $form->parse_amount(\%myconfig, $form->{"sellprice_$i"}) 
@@ -1398,7 +1400,8 @@ sub print_options {
     $options{format} = {
         name => 'format',
         default_values => $form->{selectformat},
-        options => [{text => 'HTML', value => 'html'}],
+        options => [{text => 'HTML', value => 'html'},
+                    {text => 'CSV', value => 'csv'} ],
         };
     if ( ${LedgerSMB::Sysconfig::latex} ) {
         push @{$options{format}{options}}, {
@@ -1573,6 +1576,23 @@ sub print_form {
         $form->{label} = $locale->text('Quotation');
         $numberfld     = "rfqnumber";
         $order         = 1;
+    }
+
+    if ($form->test_should_get_images){
+        my $file = LedgerSMB::File->new();
+        $file->new_dbobject({base => $form, locale => $locale});
+        my @files;
+        my $fc;
+        if ($inv eq 'inv') {
+           $fc = 1;
+        } else {
+           $fc = 2;
+        }
+        my @files = $file->get_for_template(
+                {ref_key => $form->{id}, file_class => $fc}
+        );
+        $form->{file_list} = \@files;
+        $form->{file_path} = $file->file_path;
     }
 
     &validate_items;

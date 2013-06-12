@@ -158,13 +158,12 @@ sub delete_account {
     my ($rowcount) = $sth->fetchrow_array();
 
     if ($rowcount) {
-        $form->error( "Cannot delete accounts with associated transactions!" );
+        $form->error( "Cannot delete accounts with associated or pending transactions!" );
     }
 
     # delete chart of account record
     $query = qq|
-		DELETE FROM chart
-		      WHERE id = ?|;
+		DELETE FROM account where id = ?|;
 
     $sth = $dbh->prepare($query);
     $sth->execute( $form->{id} ) || $form->dberror($query);
@@ -1501,7 +1500,11 @@ sub check_template_name {
     my ( $self, $myconfig, $form ) = @_;
 
     my @allowedsuff = qw(css tex txt html xml);
-    if ( $form->{file} =~ /^(.:)*?\/|:|\.\.\// ) {
+    my $test = $form->{file};
+    if ($LedgerSMB::Sysconfig::templates =~ /^(.:)*?\//){
+        $test =~ s#^$LedgerSMB::Sysconfig::templates/?\\?##;
+    }
+    if ( $test =~ /^(.:)*?\/|:|\.\.\// ) {
         $form->error("Directory transversal not allowed.");
     }
     if ( $form->{file} =~ /^${LedgerSMB::Sysconfig::backuppath}\// ) {
@@ -1700,7 +1703,7 @@ sub save_defaults {
                       sonumber ponumber sqnumber rfqnumber partnumber 
                       employeenumber customernumber vendornumber projectnumber 
                       yearend curr weightunit businessnumber default_country 
-                      check_prefix password_duration templates vclimit)
+                      check_prefix password_duration templates vclimit template_images)
     }
     for (@$defaults)
     {
@@ -1856,7 +1859,7 @@ sub taxes {
     my $query = qq|
 		  SELECT c.id, c.accno, c.description, 
 		         t.rate * 100 AS rate, t.taxnumber, t.validto,
-			 t.pass, m.taxmodulename
+			 t.minvalue, t.pass, m.taxmodulename
 		    FROM chart c
 		    LEFT JOIN
                      (tax t JOIN taxmodule m 
@@ -1943,12 +1946,13 @@ sub save_taxes {
         $validto = 'infinity' if not $validto;
         $form->{"pass_$i"} = 0 if not $form->{"pass_$i"};
         delete $form->{"old_validto_$i"} if ! $form->{"old_validto_$i"};
-
-        $sth = $dbh->prepare('select account__save_tax(?,?,?,?,?,?,?)');         
+	
+        $sth = $dbh->prepare('select account__save_tax(?,?,?,?,?,?,?,?,?)');         
         my @queryargs = (
-            $chart_id, $validto, $rate, $form->{"taxnumber_$i"},
-            $form->{"pass_$i"}, $form->{"taxmodule_id_$i"},
-            $form->{"old_validto_$i"}
+            $chart_id, $validto, $rate, 
+            $form->{"minvalue_$i"}, $form->{"maxvalue_$i"},
+            $form->{"taxnumber_$i"}, $form->{"pass_$i"}, 
+            $form->{"taxmodule_id_$i"}, $form->{"old_validto_$i"}
         );
        $sth->execute(@queryargs) ||$form->dberror($query);
        $sth->finish;

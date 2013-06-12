@@ -221,7 +221,7 @@ use utf8;
 $CGI::Simple::POST_MAX = -1;
 
 package LedgerSMB;
-our $VERSION = '1.3.15';
+our $VERSION = '1.3.18';
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB');
 
@@ -241,7 +241,7 @@ sub new {
     $logger->debug("Begin called from \$filename=$filename \$line=$line \$type=$type \$argstr=$argstr ref argstr=".ref $argstr);
 
     $self->{version} = $VERSION;
-    $self->{dbversion} = "1.3.15";
+    $self->{dbversion} = "1.3.18";
     
     bless $self, $type;
 
@@ -1017,7 +1017,7 @@ sub _db_init {
 
     ($self->{_role_prefix}) = $sth->fetchrow_array;
     if ($dbversion ne $self->{dbversion}){
-        $self->error("Database is not the expected version.  Was $dbversion, expected $self->{dbversion}.  Please re-run setup.pl against this database to correct.");
+        $self->error("Database is not the expected version.  Was $dbversion, expected $self->{dbversion}.  Please re-run setup.pl against this database to correct.<a href='setup.pl'>setup.pl</a>");
     }
 
     $sth = $self->{dbh}->prepare('SELECT check_expiration()');
@@ -1069,7 +1069,7 @@ sub dberror{
    my $self = shift @_;
    my $state_error = {};
    if ($self->{_locale}){
-       my $state_error = {
+       $state_error = {
             '42883' => $self->{_locale}->text('Internal Database Error'),
             '42501' => $self->{_locale}->text('Access Denied'),
             '42401' => $self->{_locale}->text('Access Denied'),
@@ -1077,7 +1077,7 @@ sub dberror{
             '22012' => $self->{_locale}->text('Division by 0 error'),
             '22004' => $self->{_locale}->text('Required input not provided'),
             '23502' => $self->{_locale}->text('Required input not provided'),
-            '23505' => $self->{_locale}->text('Conflict with Existing Data'),
+            '23505' => $self->{_locale}->text('Conflict with Existing Data.  Perhaps you already entered this?'),
             'P0001' => $self->{_locale}->text('Error from Function:') . "\n" .
                     $self->{dbh}->errstr,
        };

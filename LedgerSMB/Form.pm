@@ -96,7 +96,9 @@ sub new {
 
     $ENV{CONTENT_LENGTH} = 0 unless defined $ENV{CONTENT_LENGTH};
 
-    if ( ( $ENV{CONTENT_LENGTH} != 0 ) && ( $ENV{CONTENT_LENGTH} > $LedgerSMB::Sysconfig::max_post_size ) ) {
+    if ( ( $ENV{CONTENT_LENGTH} != 0 ) 
+         && ( $ENV{CONTENT_LENGTH} > $LedgerSMB::Sysconfig::max_post_size ) 
+         && $LedgerSMB::Sysconfig::max_post_size  != -1) {
         print "Status: 413\n Request entity too large\n\n";
         die "Error: Request entity too large\n";
     }
@@ -164,8 +166,8 @@ sub new {
     #menubar will be deprecated, replaced with below
     $self->{lynx} = 1 if ( ( defined $self->{path} ) && ( $self->{path} =~ /lynx/i ) );
 
-    $self->{version}   = "1.3.15";
-    $self->{dbversion} = "1.3.15";
+    $self->{version}   = "1.3.18";
+    $self->{dbversion} = "1.3.18";
 
     bless $self, $type;
 
@@ -610,7 +612,8 @@ sub header {
     if ( $ENV{GATEWAY_INTERFACE} ) {
         if ( $self->{stylesheet} && ( -f "css/$self->{stylesheet}" ) ) {
             $stylesheet =
-qq|<link rel="stylesheet" href="css/$self->{stylesheet}" type="text/css" title="LedgerSMB stylesheet" />\n|;
+qq|<link rel="stylesheet" href="$LedgerSMB::Sysconfig::cssdir| . 
+qq|$self->{stylesheet}" type="text/css" title="LedgerSMB stylesheet" />\n|;
         }
 
         $self->{charset} ||= "utf-8";
@@ -1290,6 +1293,26 @@ sub print_button {
 qq|<button class="submit" type="submit" name="action" value="$name" accesskey="$button->{$name}{key}" title="$button->{$name}{value} [Alt-$button->{$name}{key}]">$button->{$name}{value}</button>\n|;
 }
 
+
+=item test_should_get_images
+
+Returns true if images should get be retrieved for embedding in templates
+
+=cut
+
+
+sub test_should_get_images {
+    my ($self)  = @_;
+    my $dbh = $self->{dbh};
+    my $sth = $dbh->prepare(
+        "SELECT value FROM defaults WHERE setting_key = 'template_images'"
+    );
+    $sth->execute;
+    my ($retval) = $sth->fetchrow_array();
+    return $retval;
+}
+
+
 # Database routines used throughout
 
 =item $form->db_init($myconfig);
@@ -1878,9 +1901,16 @@ sub get_name {
 
     # Vendor and Customer are now views into entity_credit_account.
     my $query = qq/
-		SELECT c.*, e.name, e.control_code, ctf.default_reportable
+		SELECT c.*, ecl.*, e.name, e.control_code, ctf.default_reportable
                   FROM entity_credit_account c
 		  JOIN entity e ON (c.entity_id = e.id)
+             LEFT JOIN (SELECT coalesce(line_one, '')
+                               || ' ' || coalesce(line_two, '') as address,
+                               l.city, etl.credit_id
+                          FROM eca_to_location etl
+                          JOIN location l ON etl.location_id = l.id
+                          WHERE etl.location_class = 2) ecl
+                        ON (c.id = ecl.credit_id)
              LEFT JOIN country_tax_form ctf ON (c.taxform_id = ctf.id)
 		 WHERE (lower(e.name) LIKE ?
 		       OR c.meta_number ILIKE ?)
@@ -3732,8 +3762,9 @@ sub from_to {
     $t[4] = substr( "0$t[4]", -2 );
     $t[3] = substr( "0$t[3]", -2 );
     $t[5] += 1900;
-    
-    return ( $self->format_date($fromdate), $self->format_date("$t[5]-$t[4]-$t[3]") );
+
+        
+    return ( $fromdate, "$t[5]-$t[4]-$t[3]" );
 }
 
 =item $form->audittrail($dbh, $myconfig, $audittrail);

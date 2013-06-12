@@ -48,51 +48,29 @@ require "bin/arap.pl";
 use LedgerSMB::Template;
 use LedgerSMB::PE;
 use LedgerSMB::RP;
+use LedgerSMB::Company_Config;
 
 1;
 
 # end of main
 
-# this is for our long dates
-# $locale->text('January')
-# $locale->text('February')
-# $locale->text('March')
-# $locale->text('April')
-# $locale->text('May ')
-# $locale->text('June')
-# $locale->text('July')
-# $locale->text('August')
-# $locale->text('September')
-# $locale->text('October')
-# $locale->text('November')
-# $locale->text('December')
+=item init_company_config
 
-# this is for our short month
-# $locale->text('Jan')
-# $locale->text('Feb')
-# $locale->text('Mar')
-# $locale->text('Apr')
-# $locale->text('May')
-# $locale->text('Jun')
-# $locale->text('Jul')
-# $locale->text('Aug')
-# $locale->text('Sep')
-# $locale->text('Oct')
-# $locale->text('Nov')
-# $locale->text('Dec')
+Sets $form->{company} and $form->{address} for income statement and balance 
+statement
 
-# $locale->text('Balance Sheet')
-# $locale->text('Income Statement')
-# $locale->text('Trial Balance')
-# $locale->text('AR Aging')
-# $locale->text('AP Aging')
-# $locale->text('Tax collected')
-# $locale->text('Tax paid')
-# $locale->text('Receipts')
-# $locale->text('Payments')
-# $locale->text('Project Transactions')
-# $locale->text('Non-taxable Sales')
-# $locale->text('Non-taxable Purchases')
+=cut
+
+sub init_company_config {
+   my ($form) = @_;
+   $cconfig = LedgerSMB::Company_Config->new();
+   $cconfig->merge($form);
+   $cconfig->initialize;
+   $form->{company} = $LedgerSMB::Company_Config::settings->{company_name};
+   $form->{address} = $LedgerSMB::Company_Config::settings->{company_address};
+}
+
+
 
 sub report {
     my %hiddens;
@@ -464,6 +442,7 @@ qq|rp.pl?path=$form->{path}&action=continue&accounttype=$form->{accounttype}&log
 }
 
 sub generate_income_statement {
+    init_company_config($form);
 
     RP->income_statement( \%myconfig, \%$form );
 
@@ -507,9 +486,6 @@ sub generate_income_statement {
             $longcomparefromdate, $longcomparetodate);
     }
 
-    # setup variables for the form
-    my @vars = qw(company address businessnumber);
-    for (@vars) { $form->{$_} = $myconfig{$_} }
     ##SC: The escaped form will be converted in-template
     $form->{address} =~ s/\\n/<br>/g;
 
@@ -533,7 +509,7 @@ sub generate_income_statement {
 }
 
 sub generate_balance_sheet {
-
+    init_company_config($form);
     RP->balance_sheet( \%myconfig, \%$form );
 
     $form->{asofdate} = $form->current_date( \%myconfig )
@@ -556,7 +532,7 @@ sub generate_balance_sheet {
       $locale->date( \%myconfig, $form->{compareasofdate}, 0 );
 
     # setup company variables for the form
-    for (qw(company address businessnumber nativecurr login)) {
+    for (qw(nativecurr login)) {
         $form->{$_} = $myconfig{$_};
     }
     ##SC: The escaped form will be converted in-template
@@ -857,11 +833,10 @@ qq|gl.pl?path=$form->{path}&action=generate_report&accounttype=$form->{accountty
 
     my %can_load;
     $can_load{CSV} = 1;
-    $can_load{XLS} = ! eval { require Excel::Template::Plus };
-    $can_load{ODS} = ! eval { require OpenOffice::OODoc };
+    $can_load{ODS} =  eval { require OpenOffice::OODoc };
 
     my @buttons;
-    for my $type (qw(CSV XLS ODS)) {
+    for my $type (qw(CSV ODS)) {
         push @buttons, {
             name => 'action',
             value => lc "${type}_$form->{nextsub}",
@@ -1054,7 +1029,7 @@ sub aging {
                 $column_data{c90}   = $c90total;
                 $column_data{total} = $total;
 
-                push @{$currencies[0]{totals}}, \%column_data;
+                $currencies[0]{totals} =  \%column_data;
 
                 $c0subtotal  = 0;
                 $c30subtotal = 0;
@@ -1096,6 +1071,7 @@ sub aging {
                 };
             $column_data{statement}{checked} = 'checked' if $ref->{checked};
             $hiddens{"curr_$i"} = $ref->{curr};
+            $hiddens{"$form->{ct}_id_$i"} = $ref->{ctid};
         }
 
 
@@ -1221,8 +1197,8 @@ qq|$ref->{module}.pl?path=$form->{path}&action=edit&id=$ref->{id}&login=$form->{
     $column_data{c60}   = $c60total;
     $column_data{c90}   = $c90total;
     $column_data{total} = $total;
-    
-    $currencies[0]{total} = \%column_data;
+
+    $currencies[0]{totals} = \%column_data;
 
     $row_alignment{c0}     = 'right';
     $row_alignment{c30}    = 'right';
@@ -1274,10 +1250,9 @@ qq|$ref->{module}.pl?path=$form->{path}&action=edit&id=$ref->{id}&login=$form->{
 
     my %can_load;
     $can_load{CSV} = 1;
-    $can_load{XLS} = ! eval { require Excel::Template::Plus };
     $can_load{ODS} = ! eval { require OpenOffice::OODoc };
 
-    for my $type (qw(CSV XLS ODS)) {
+    for my $type (qw(CSV ODS)) {
         push @buttons, {
             name => 'action',
             value => lc "${type}_$form->{nextsub}",
@@ -1303,6 +1278,7 @@ qq|$ref->{module}.pl?path=$form->{path}&action=edit&id=$ref->{id}&login=$form->{
         path => 'UI',
         format => $format,
         );
+
     $template->render({
         form => $form,
         hiddens => \%hiddens,

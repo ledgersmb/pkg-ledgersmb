@@ -2,6 +2,70 @@ Changelog for 1.3 Series
 Initial Release:  Monday, Oct 12 2011
 Supported Presently
 
+Changelog for 1.3.18
+* Fixed missing template for CSV pricelists (Chris T)
+* Added ODS pricelists (Chris T)
+* Better CSV escaping (Chris T, h/t Erik H)
+* Fixed menu errors preventing quote/rfq template editing (Chris T, 3524793)
+* Fixed customer email not showing emailing statements (Chris T and Erik H)
+* Approved recon reports no longer show invalid balance info (Chris T,3518283)
+* CSS directory is now configurable (Chris T, 3516730, h/t Robert C)
+* Corrected cannot delete accounts (Chris T, 3529383, h/t David M)
+* Fixed ODS output broken due to missing export (Chris T)
+* Fixed button disable inverted (Chris T)
+* Fixed internal server error on requirements report (Chris T, h/t Nigel T)
+* Fixed formatting issues with long dates and ISO db dates (Chris T 3525843)
+* Removing XLS support which has been broken for some time (Chris T)
+* Fixes for slow menu performance on menu (Chris T)
+
+Chris T is Chris Travers
+David M is David Mora
+Erik H is Erik Huelsmann
+Nigel T is Nigel Titley
+Robert C is Robert James Clay
+
+
+Changelog for 1.3.17
+* Address now shows on ECA selection screen (Erik H)
+* Taxes::Simple now respects min/max values based on subtotal (Chris T)
+* Fixed company name/address missing from income statement (Chris T, h/t Mark L)
+* Fixed company name/address missing from balance sheet (Chris T, h/t Mark L)
+* Optional image retrieval with size detection for latex templates (Chris T)
+* Added option to attach images to LaTeX PDF invoices/orders/etc (Chris T)
+* Corrected one is_zero error with latest Math::BigInt (Chris T)
+* Fixed file uploads sometimes hanging (Chris T)
+* Fixed file uploads sometimes throwing action not found errors (Chris T)
+* Fixed helpful DB error messages not displayed (Chris T)
+* Fixing Form.pm so that max_post_size = -1 behaves as in CGI::Simple (Chris T)
+* Fixed internal server error on tax lookup (Chris T)
+* Better error message on db version error (Herman V)
+* Fixed parsing error in xedemo bin_list.tex (Erik H)
+
+Chris T is Chris Travers
+Erik H is Erik Huelsmann
+Herman V is Herman Vierendiels
+Mark L is Matt Lubratt
+
+Changelog for 1.3.16
+
+* Changes in <head> element for non-Latin characters, HTML invoices (Erik H)
+* Corrected untranslated string in Contact management screen (Chris T)
+* Corrected permissions issue creating pricelist (Chris T, 3513861)
+* Correcting ordering of aging reports so currencies are clustered (Chris T)
+* Fixed curr totals not showing for aging rpts (Chris T, 3512591, h/t John L)
+* Fixed new user screen not respecting default country (Chris T, 3513760)
+* Fixed hash(...) in HTML payment receipt (Chris T, 3515924, h/t Michael R)
+* Fixed errors about Concat() not found on Pg 8.4 (Erik H)
+* Fixed can't edit templates with absolute templates path (Chris T 3516725)
+* Added API for minimum value for taxes for local tax modules (Chris T)
+* Added API (but not UI) for tax max value (Chris T)
+
+Chris T is Chris Travers
+Erik H is Erik Huelsmann
+John L is John Locke
+Michael R is Michael Richardson
+
+
 Changelog for 1.3.15
 * Update WX POS (almost there) - readme and code  (Andres B, item 3516949)
 * Adding Perl-based database-setup and teardown scripts (Chris B)
