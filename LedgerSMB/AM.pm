@@ -1501,6 +1501,11 @@ sub check_template_name {
 
     my @allowedsuff = qw(css tex txt html xml);
     my $test = $form->{file};
+    $test =~ s|^$LedgerSMB::Sysconfig::fs_cssdir||;
+    if ($LedgerSMB::Sysconfig::fs_cssdir 
+           and $LedgerSMB::Sysconfig::fs_cssdir !~ m|/$|){
+         $test =~ s|^/||;
+    }
     if ($LedgerSMB::Sysconfig::templates =~ /^(.:)*?\//){
         $test =~ s#^$LedgerSMB::Sysconfig::templates/?\\?##;
     }
@@ -1524,7 +1529,7 @@ sub check_template_name {
 
     if ( $form->{file} !~ /^$myconfig->{templates}\// ) {
         $form->error("Not in a whitelisted directory: $form->{file}")
-          unless $form->{file} =~ /^css\//;
+          unless $form->{file} =~ /^$LedgerSMB::Sysconfig::fs_cssdir\//;
     }
 }
 
@@ -1543,8 +1548,11 @@ sub load_template {
     $self->check_template_name( \%$myconfig, \%$form );
     open( TEMPLATE, '<', "$form->{file}" ) || ($testval = 1);
     if ($testval == 1 && ($! eq 'No such file or directory')){
-      $form->error('Template not found.  
-         Perhaps you meant to edit the default template instead?');
+      my $file = $form->{file};
+      $file =~ s|$form->{code}/|| if $form->{code};
+      open( TEMPLATE, '<', "$file" ) ||  $form->error(
+                    "Template not found: $file"
+      );
     } elsif ($testval == 1){
        $form->error("$form->{file} : $!");
     }
@@ -1667,6 +1675,10 @@ provided, a default list is used.
 sub save_defaults {
 
     my ( $self, $myconfig, $form, $defaults) = @_;
+
+    my @roles = @{$form->{_roles}};
+    $form->error('Access Denied') unless grep /system_settings_change/, @roles;
+    
 
     for (qw(inventory income expense fxgain fxloss)) {
         ( $form->{$_ . "_accno_id"} ) = split /--/, $form->{$_ . "_accno_id"};

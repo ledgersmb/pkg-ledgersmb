@@ -65,9 +65,10 @@ END ?>
 	<li class="nav"><a href="#hr_div"><?lsmb text('HR') ?></a></li>
 	<?lsmb ELSE ?>
 	<li class="nav"><a href="#company_div"><?lsmb text('Company') ?></a></li>
+        <?lsmb IF entity_id ?>
 	<li class="nav"><a href="#credit_div"><?lsmb text('Accounts') ?></a></li>
-	<?lsmb END ?>
-	<?lsmb IF entity_id ?>
+	<?lsmb END; END ?>
+	<?lsmb IF entity_id AND entity_class == 3 OR credit_id ?>
 	<li class="nav"><a href="#location_div"><?lsmb text('Addresses') ?></a></li>
 	<li class="nav"><a href="#contact_div"><?lsmb text('Contact Info') ?></a></li>
 	<li class="nav"><a href="#bank_div"><?lsmb text('Bank Accounts') ?></a></li>
@@ -174,7 +175,7 @@ problems with multi-word single-quoted constructs in PI tags. -CT  -->
 	} ?> 
 </div>
 </div>
-<div id="employee_div">
+<div id="employee_div" class="input_line">
 <div class="input_group">
 <?lsmb PROCESS input element_data = {
 	label = text('Employee Number')
@@ -191,10 +192,11 @@ problems with multi-word single-quoted constructs in PI tags. -CT  -->
        options = all_managers
 default_values = [manager_id]
      text_attr = 'label'
-    value_attr = 'id'
+    value_attr = 'entity_id'
 } ?> 
 </div>
-<div id="hr_dates_div">
+</div>
+<div id="hr_dates_div" class="input_line">
 <div class="input_group">
 <?lsmb PROCESS input element_data = {
 	label = text('DOB')

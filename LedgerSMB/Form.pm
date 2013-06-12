@@ -66,6 +66,7 @@ use Time::Local;
 use Cwd;
 use File::Copy;
 use LedgerSMB::Company_Config;
+use LedgerSMB::App_State;
 
 use charnames qw(:full);
 use open ':utf8';
@@ -166,8 +167,8 @@ sub new {
     #menubar will be deprecated, replaced with below
     $self->{lynx} = 1 if ( ( defined $self->{path} ) && ( $self->{path} =~ /lynx/i ) );
 
-    $self->{version}   = "1.3.18";
-    $self->{dbversion} = "1.3.18";
+    $self->{version}   = "1.3.21";
+    $self->{dbversion} = "1.3.21";
 
     bless $self, $type;
 
@@ -652,6 +653,41 @@ qq|<meta http-equiv="content-type" content="text/html; charset=$self->{charset}"
     $self->{header} = 1;
 }
 
+=item $form->open_status_div
+
+Returns a div tag with an id of statusdiv.
+
+If $form->{id} is set and $form->{approved} the class is set to "posted" and if
+id is set but not approved, this is set to "saved."  If neither applies, we set
+to "new."
+
+=cut
+
+sub open_status_div {
+    my ($self) = @_;
+    my $class;
+    if ($self->{approved} and $self->{id}){
+        $class = "posted";
+    } elsif ($self->{id}){
+        $class = "saved";
+    } else {
+        $class = "new";
+    }
+    my $status = $LedgerSMB::App_State::Locale->text(
+            'Action: [_1], ID: [_2]', $self->{action}, $self->{id}
+    );
+    return "<div id='statusdiv' class='$class'>
+            <div id='history'>$status</div>";
+}
+
+=item $form->close_status_div
+
+Simply returns a </div> tag.  This is included for clarity of code.
+
+=cut 
+
+sub close_status_div { return '</div>'; }
+
 =item $form->redirect([$msg]);
 
 If $form->{callback} is set or $msg is not set, call the redirect function in
@@ -842,13 +878,14 @@ sub format_amount {
 
     $self = "" unless defined $self;
     my $negative;
-    $myconfig = "" unless defined $myconfig;
+    $myconfig = {} unless defined $myconfig;
     $amount = "" unless defined $amount;
     $places = "" unless defined $places;
     $dash = "" unless defined $dash;
     if ($self->{money_precision}){
        $places= $self->{money_precision};
     }
+    $myconfig->{numberformat} = '1000.00' unless $myconfig->{numberformat};
     $amount = $self->parse_amount( $myconfig, $amount );
     $negative = ( $amount < 0 );
     $amount =~ s/-//;
@@ -1349,6 +1386,12 @@ sub db_init {
     $logger->debug("acquired dbh \$self->{dbh}=$self->{dbh}");
     $self->{dbh}->{pg_server_prepare} = 0;
     my $dbh = $self->{dbh};
+
+    my $datequery = 'select dateformat from user_preference join users using(id)
+                      where username = CURRENT_USER';
+    my $date_sth = $dbh->prepare($datequery);
+    $date_sth->execute;
+    my ($datestyle) = $date_sth->fetchrow_array;
     my %date_query = (
         'mm/dd/yy' => 'set DateStyle to \'SQL, US\'',
         'mm-dd-yy' => 'set DateStyle to \'POSTGRES, US\'',
@@ -1356,11 +1399,7 @@ sub db_init {
         'dd-mm-yy' => 'set DateStyle to \'POSTGRES, EUROPEAN\'',
         'dd.mm.yy' => 'set DateStyle to \'GERMAN\''
     );
-    if ( !$myconfig->{dateformat}) {
-        $myconfig->{dateformat} = 'yyyy-mm-dd';
-    } else {
-        $self->{dbh}->do( $date_query{ $myconfig->{dateformat} } );
-    }
+    $self->{dbh}->do( $date_query{ $datestyle } );
     $self->{db_dateformat} = $myconfig->{dateformat};    #shim
 
     # This is the general version check
@@ -1388,12 +1427,19 @@ sub db_init {
     # Roles tracking
     $self->{_roles} = [];
     $query = "select rolname from pg_roles 
-               where pg_has_role(SESSION_USER, 'USAGE')";
+               where pg_has_role(rolname, 'USAGE')
+                     and rolname like 
+                          coalesce((select value from defaults
+                                     where setting_key = 'role_prefix'), 
+                                   'lsmb_' || current_database() || '__') || '%'";
     $sth = $dbh->prepare($query);
     $sth->execute();
     while (my @roles = $sth->fetchrow_array){
         push @{$self->{_roles}}, $roles[0];
     }
+    $LedgerSMB::App_State::Roles = @{$self->{_roles}};
+    $LedgerSMB::App_State::Role_Prefix = $self->{_role_prefix};
+    $LedgerSMB::App_State::DBName = $dbname;
 
     $sth = $dbh->prepare('SELECT check_expiration()');
     $sth->execute;
@@ -1403,6 +1449,7 @@ sub db_init {
         $sth->execute;
         ($self->{pw_expires})  = $sth->fetchrow_array;
     }
+    $LedgerSMB::App_State::DBH = $self->{dbh};
     LedgerSMB::Company_Config::initialize($self);
     $sth->finish();
     $logger->trace("end");

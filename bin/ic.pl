@@ -743,6 +743,7 @@ qq|<textarea name="description" rows=$rows cols=40 wrap=soft>$form->{description
 
     print qq|
 <body>
+| . $form->open_status_div . qq|
 
 <form method=post action="$form->{script}">
 |;
@@ -935,7 +936,7 @@ sub form_footer {
        print qq|
 </table>|;
        $callback = $form->escape(
-               lc($form->{ARAP}) . ".pl?action=edit&id=".$form->{id}
+               "ic.pl?action=edit&id=".$form->{id}
        );
        print qq|
 <a href="file.pl?action=show_attachment_screen&ref_key=$form->{id}&file_class=3&callback=$callback"
@@ -954,7 +955,7 @@ sub form_footer {
 
     print qq|
 </form>
-
+| . $form->close_status_div . qq|
 </body>
 </html>
 |;
@@ -3740,9 +3741,9 @@ sub save {
     }
 
     if ($rc) {
-
+        edit();
         # redirect
-        $form->redirect("Part Saved");
+        # $form->redirect("Part Saved");
     }
     else {
         $form->error;

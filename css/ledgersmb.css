@@ -227,6 +227,22 @@ tr.record {
 tr.warning {
 	background-color: yellow;
 }
+
+/* Theming controls based on transaction status */
+/* disabled for now to speed release 
+#statusdiv.new input {
+}
+
+#statusdiv.posted input {
+       background-color: white;
+}
+
+#statusdiv.saved input {
+       background-color: #ccccff;
+}
+
+*/
+
 /* media stuff */
 
 @media screen {

@@ -531,7 +531,9 @@ sub form_header {
           . $form->escape( $form->{"select$form->{vc}"}, 1 ) . qq|">|;
     }
     else {
-        $vc = qq|<input name=$form->{vc} value="$form->{$form->{vc}}" size=35>|;
+        $vc = qq|<input name=$form->{vc} value="$form->{$form->{vc}}" size=35>
+             <a id="new-contact" target="new" href="$form->{vc}.pl?action=add">
+                 [| . $locale->text('New') . qq|]</a>|;
     }
 
     $department = qq|
@@ -580,6 +582,7 @@ sub form_header {
 
     print qq|
 <body onLoad="document.forms[0].${focus}.focus()" />
+| . $form->open_status_div . qq|
 
 <form method=post action="$form->{script}">
 |;
@@ -955,7 +958,7 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
 
     print qq| 
 </form>
-
+| . $form->close_status_div . qq|
 </body>
 </html>
 |;
@@ -993,6 +996,10 @@ sub update {
     if ( $newname = &check_name( $form->{vc} ) ) {
         &rebuild_vc( $form->{vc}, $ARAP, $form->{transdate}, 1 );
     }
+
+    # I think this is safe because the shipping or receiving is tied to the 
+    # order which is tied to the customer or vendor.  -CT
+    $newname = 1 if $form->{type} =~ /(ship|receive)/;
 
     if ( $form->{transdate} ne $form->{oldtransdate} ) {
         $form->{reqdate} =
@@ -1622,7 +1629,7 @@ sub transactions {
     for (
         "oldsort",     "direction", "path",      "type",
         "vc",          "login",     "sessionid", "transdatefrom",
-        "transdateto", "open",      "closed"
+        "transdateto", "open",      "closed", "oe_class_id"
       )
     {
         $callback .= qq|&$_=$form->{$_}|;
