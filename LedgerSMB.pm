@@ -222,7 +222,7 @@ use utf8;
 $CGI::Simple::POST_MAX = -1;
 
 package LedgerSMB;
-our $VERSION = '1.3.23';
+our $VERSION = '1.3.25';
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB');
 
@@ -242,7 +242,7 @@ sub new {
     $logger->debug("Begin called from \$filename=$filename \$line=$line \$type=$type \$argstr=$argstr ref argstr=".ref $argstr);
 
     $self->{version} = $VERSION;
-    $self->{dbversion} = "1.3.23";
+    $self->{dbversion} = "1.3.25";
     
     bless $self, $type;
 
@@ -366,7 +366,7 @@ sub new {
        if (!LedgerSMB::Auth::session_check( $cookie{${LedgerSMB::Sysconfig::cookie_name}}, $self) ) {
             $logger->error("Session did not check");
             $self->_get_password("Session Expired");
-            exit;
+            die;
        }
        $logger->debug("session_check completed OK \$self->{session_id}=$self->{session_id} caller=\$filename=$filename \$line=$line");
     }
@@ -441,7 +441,7 @@ sub _get_password {
     my ($self) = shift @_;
     $self->{sessionexpired} = shift @_;
     LedgerSMB::Auth::credential_prompt();
-    exit;
+    die;
 }
 
 sub debug {
@@ -555,7 +555,7 @@ sub redirect {
     if ( $self->{callback} || !$msg ) {
 
         main::redirect();
-	exit;
+	die;
     }
     else {
 
@@ -949,7 +949,7 @@ sub error {
         print
           qq|<body><h2 class="error">Error!</h2> <p><b>$self->{msg}</b></body>|;
 
-        exit;
+        die;
 
     }
     else {
@@ -1102,7 +1102,7 @@ sub dberror{
            . "\n" . 
           $locale->text('More information has been reported in the error logs'));
        $dbh->rollback;
-       exit;
+       die;
    }
    $self->error($dbh->state . ":" . $dbh->errstr);
 }

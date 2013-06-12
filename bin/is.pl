@@ -751,10 +751,13 @@ qq|<textarea name="intnotes" rows="$rows" cols="40" wrap="soft">$form->{intnotes
     $form->format_amount( \%myconfig, $form->{invtotal}, 2, 0 );
     
     my $hold;
-    
+    my $hold_button_text;
     if ($form->{on_hold}) {
         
         $hold = qq| <font size="17"><b> This invoice is On Hold </b></font> |;
+        $hold_button_text = $locale->text('Off Hold');
+    } else {
+        $hold_button_text = $locale->text('On Hold');
     }
 
     print qq|
@@ -963,7 +966,7 @@ qq|<td align="center"><input name="memo_$i" size="11" value="$form->{"memo_$i"}"
             'delete' =>
               { ndx => 11, key => 'D', value => $locale->text('Delete') },
             'on_hold' =>
-              { ndx => 12, key => 'O', value => $locale->text('On Hold') },
+              { ndx => 12, key => 'O',  value => $hold_button_text },
              'void'  => 
                 { ndx => 13, key => 'V', value => $locale->text('Void') },
              'save_info'  => 
@@ -1383,10 +1386,7 @@ sub post {
     ( $form->{AR_paid} ) = split /--/, $form->{AR_paid};
 
     if ( IS->post_invoice( \%myconfig, \%$form ) ) {
-	$form->{callback} =
-	    "$form->{script}?action=edit&type=$form->{type}&login=$form->{login}&path=$form->{path}&sessionid=$form->{sessionid}&id=$form->{id}";
-        $form->redirect(
-            $locale->text( 'Invoice [_1] posted!', $form->{invnumber} ) );
+        &edit;
     }
     else {
         $form->error( $locale->text('Cannot post invoice!') );

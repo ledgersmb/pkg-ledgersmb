@@ -108,7 +108,6 @@ sub new_screen {
 }
 
 sub add {
-
     $form->{title} = "Add";
 	
     $form->{callback} =
@@ -2409,7 +2408,7 @@ qq|<button class="submit" type="submit" name="action" value="ar_transaction">|
             $button{'AR--Add Transaction'}{order} = $i++;
             $button{'AR--Sales Invoice'}{code} =
 qq|<button class="submit" type="submit" name="action" value="sales_invoice_">|
-              . $locale->text('Sales Invoice.')
+              . $locale->text('Sales Invoice')
               . qq|</button> |;
             $button{'AR--Sales Invoice'}{order} = $i++;
         }
