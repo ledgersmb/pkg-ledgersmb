@@ -16,12 +16,12 @@ override_dh_auto_test:
 override_dh_auto_clean:
 	dh_auto_clean
 	rm -f ledgersmb.conf
-	rm -f ledgersmb-httpd.conf
 
 override_dh_auto_install:
 
 override_dh_install:
 	dh_install
+	chmod -x debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/bin/*
 	chmod -x debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/locale/po/*
 	find debian/ledgersmb-1.2/etc/ledgersmb-1.2 -d -not -exec chmod -x '{}' \;
 	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.html' -exec chmod -x '{}' \;
