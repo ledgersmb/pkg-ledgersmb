@@ -1,3 +1,3 @@
 /etc/ledgersmb/ledgersmb.conf  /usr/share/ledgersmb/ledgersmb.conf
 /etc/ledgersmb/pos.conf.pl  /usr/share/ledgersmb/pos.conf.pl
-/etc/apache2/conf.d/ledgersmb-httpd.conf /etc/ledgersmb/ledgersmb-httpd.conf 
+/etc/apache2/conf.d/ledgersmb-httpd-2.0-2.2.conf /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf 
