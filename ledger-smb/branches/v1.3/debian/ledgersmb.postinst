@@ -54,13 +54,21 @@ case "$1" in
             fi
             # Do Apache related processing if it is present.
             if [ -d "/etc/apache2" ]; then
-                # Enable Apache mod_rewrite
-                if [ -x "`which a2enmod 2>/dev/null`" ]; then
-                    a2enmod rewrite
-                fi
-                # Restart apache
-                if [ -x "/etc/init.d/apache2" ]; then
-                    invoke-rc.d apache2 restart 3>/dev/null || true
+                if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
+                    . /usr/share/apache2/apache2-maintscript-helper
+                    apache2_invoke enconf ledgersmb.conf
+                elif  dpkg-query -f '${Version}'  -W 'apache2.2-common' > /dev/null 2>&1 ; then
+                    # if the configuration uses <IfVersion> uncomment the next line
+                    # a2enmod -q version
+                    [ -d /etc/apache2/conf.d/ ] && [ ! -l /etc/apache2/conf.d/ledgersmb.conf ] && ln -s /etc/apache2/conf-available/ledgersmb.conf /etc/apache2/conf.d/ledgersmb.conf
+                    # Enable Apache mod_rewrite
+                    if [ -x "`which a2enmod 2>/dev/null`" ]; then
+                        a2enmod rewrite
+                    fi
+                    # Restart apache
+                    if [ -x "/etc/init.d/apache2" ]; then
+                        invoke-rc.d apache2 restart 3>/dev/null || true
+                    fi
                 fi
             fi
         fi

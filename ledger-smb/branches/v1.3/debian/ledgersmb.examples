@@ -1,4 +1,5 @@
 ledgersmb.conf.default
 ledgersmb-httpd-2.0-2.2.conf
+ledgersmb-httpd-2.4.conf
 pos.conf.pl.template
 utils
