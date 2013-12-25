@@ -19,4 +19,4 @@ tools/* /usr/share/ledgersmb/tools
 utils/* /usr/share/ledgersmb/utils
 UI/* usr/share/ledgersmb/UI
 templates/* /usr/share/ledgersmb/templates
-debian/sql/pgsql usr/share/dbconfig-common/data/ledgermsb/install-dbadmin
+debian/adm/sql/pgsql usr/share/dbconfig-common/data/ledgersmb/install-dbadmin
