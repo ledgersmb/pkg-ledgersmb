@@ -9,6 +9,7 @@ override_dh_auto_configure:
     # needed for an installed LedgerSMB directory.
 	rm -rf LedgerSMB/Assets LedgerSMB/Entity
 	cp ledgersmb-httpd.conf.template ledgersmb-httpd-2.0-2.2.conf
+	cp debian/adm/ledgersmb-httpd.2.4.conf ledgersmb-httpd-2.4.conf.template
 	cp pos.conf.pl.template pos.conf.pl
 	dh_auto_configure
 
