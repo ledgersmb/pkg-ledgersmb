@@ -1,6 +1,6 @@
-ledgersmb (1.3.35-1~1) UNRELEASED; urgency=low
+ledgersmb (1.3.35-1~2) UNRELEASED; urgency=low
 
-  * New upstream release.
+  * New upstream release. (Closes: #732997)
   * Changes to debian/copyright:
     - Update copyright end years as necessary to 2013.
     - Add an entry for the tools/prepare-company-database.* scripts.
@@ -10,11 +10,14 @@ ledgersmb (1.3.35-1~1) UNRELEASED; urgency=low
       no longer needed.
   * Changes to debian/patches/:
     - Add 20_BashPath.patch to resolve bash path issues in tools/ scripts.
+  * Update packaging for installation of ledgersmb-httpd configuration for
+    Apache v2.2 and v2.4.  (Closes: #725758) 
   * Add README.plack to the files listed in the debian/ledgersmb.docs file.
+  * Backport debian/adm/ledgersmb-httpd-2.4.conf from LedgerSMB v1.4.
   * Add the libplack-perl package as a Suggests in debian/control.
   * Register the release notes using debian/ledgersmb.doc-base.notes.
 
- -- Robert James Clay <jame@rocasa.us>  Wed,  5 Nov 2013 04:11:49 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 10 Jan 2014 13:45:30 -0500
 
 ledgersmb (1.3.25-1) unstable; urgency=low
 
