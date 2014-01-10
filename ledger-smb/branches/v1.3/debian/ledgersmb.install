@@ -1,7 +1,5 @@
 *.conf etc/ledgersmb
 pos.conf.pl etc/ledgersmb
-ledgersmb-httpd-2.0-2.2.conf etc/apache2/conf.d
-debian/adm/ledgersmb-httpd-2.4.conf etc/apache2/conf-available
 favicon.ico usr/share/ledgersmb
 index.html usr/share/ledgersmb
 VERSION usr/share/ledgersmb

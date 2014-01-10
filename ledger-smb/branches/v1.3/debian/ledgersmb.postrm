@@ -59,6 +59,14 @@ case "$1" in
         if [ -d "/var/lib/ledgersmb/templates" ]; then
             rm -rf /var/lib/ledgersmb/templates
         fi
+        # When being purged; if /etc/apache2/conf.d/ledgersmb.conf exists, remove it.
+        if [ -d "/etc/apache2/conf.d/ledgersmb.conf" ]; then
+            rm -rf /etc/apache2/conf.d/ledgersmb.conf
+        fi
+        # When being purged; if /etc/apache2/conf-available/ledgersmb.conf exists, remove it.
+        if [ -d "/etc/apache2/conf-available/ledgersmb.conf" ]; then
+            rm -rf /etc/apache2/conf-available/ledgersmb.conf
+        fi
     ;;
 
     remove|failed-upgrade|abort-install|abort-upgrade|disappear)
