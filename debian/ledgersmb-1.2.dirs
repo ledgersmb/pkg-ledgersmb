@@ -21,7 +21,7 @@ usr/share/ledgersmb-1.2/locale/po
 usr/share/ledgersmb-1.2/sql
 usr/share/ledgersmb-1.2/sql/legacy
 usr/share/ledgersmb-1.2/sql/fixes
-usr/share/lintian12/overrides
+usr/share/lintian/overrides
 var/lib/ledgersmb-1.2
 var/lib/ledgersmb-1.2/css
 var/lib/ledgersmb-1.2/spool
