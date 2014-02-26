@@ -1,14 +1,14 @@
-Author: <seneca@localhost.localdomain>
+Author:  Robert James Clay <jame@rocasa.us>, 
 Description: Changing paths in Apache config
---- ledgersmb-1.2.25.orig/ledgersmb-httpd.conf
-+++ ledgersmb-1.2.25/ledgersmb-httpd.conf
+--- a/ledgersmb-httpd.conf
++++ b/ledgersmb-httpd.conf
 @@ -1,7 +1,7 @@
  
 -Alias /ledgersmb WORKING_DIR
-+Alias /ledgersmb /usr/share/ledgersmb/
++Alias /ledgersmb-1.2 /usr/share/ledgersmb-1.2
  
 -<Directory WORKING_DIR>
-+<Directory /usr/share/ledgersmb>
++<Directory /usr/share/ledgersmb-1.2>
    AllowOverride All
    AddHandler cgi-script .pl
    Options ExecCGI Includes FollowSymlinks
@@ -17,60 +17,28 @@ Description: Changing paths in Apache config
  </Directory>
  
 -<Directory WORKING_DIR/users>
-+<Directory /usr/share/ledgersmb/users>
++<Directory /usr/share/ledgersmb-1.2/users>
    Order Deny,Allow
    Deny from All
  </Directory>
-   
+-  
 -<Directory WORKING_DIR/bin>
-+<Directory /usr/share/ledgersmb/bin>
++
++<Directory /usr/share/ledgersmb-1.2/bin>
    Order Deny,Allow
    Deny from All
  </Directory>
-   
+-  
 -<Directory WORKING_DIR/utils>
-+<Directory /usr/share/ledgersmb/utils>
++
++<Directory /usr/share/ledgersmb-1.2/utils>
    Order Deny,Allow
    Deny from All
  </Directory>
-   
+-  
 -<Directory WORKING_DIR/LedgerSMB>
-+<Directory /usr/share/ledgersmb/LedgerSMB>
++
++<Directory /usr/share/ledgersmb-1.2/ledgersmb>
    Order Deny,Allow
    Deny from All
  </Directory>
---- /dev/null
-+++ ledgersmb-1.2.25/ledgersmb-httpd.conf.rej
-@@ -0,0 +1,32 @@
-+--- ledgersmb-httpd.conf	2007-02-23 00:44:50.000000000 -0500
-++++ ledgersmb-httpd.conf	2007-02-19 20:46:47.000000000 -0500
-+@@ -13,27 +13,12 @@
-+   </Files>
-+ </Directory>
-+
-+-<Directory WORKING_DIR/users>
-++<Directory /usr/share/ledgersmb/bin>
-+   Order Deny,Allow
-+   Deny from All
-+ </Directory>
-+
-+-<Directory WORKING_DIR/bin>
-+-  Order Deny,Allow
-+-  Deny from All
-+-</Directory>
-+-
-+-<Directory WORKING_DIR/utils>
-+-  Order Deny,Allow
-+-  Deny from All
-+-</Directory>
-+-
-+-<Directory WORKING_DIR/spool>
-+-  Order Deny,Allow
-+-  Deny from All
-+-</Directory>
-+-
-+-<Directory WORKING_DIR/LedgerSMB>
-++<Directory /usr/share/ledgersmb/LedgerSMB>
-+   Order Deny,Allow
-+   Deny from All
-+ </Directory>

@@ -1,0 +1,13 @@
+Document: ledgersmb-1.2
+Title: LedgerSMB v1.2 Manual
+Author: The LedgerSMB Core Team
+Abstract: This manual describes how to use
+ LedgerSMB v1.2
+Section: Office
+
+Format: PDF
+Files: /usr/share/doc/ledgersmb-1.2/LedgerSMB-manual.pdf.gz
+
+Format: HTML
+Index: /usr/share/doc/ledgersmb-1.2/html_manual/LedgerSMB-manual.html
+Files: /usr/share/doc/ledgersmb-1.2/html_manual/*.html

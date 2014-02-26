@@ -1,19 +1,65 @@
 
+Correct this commit message to "Do not use dpkg-statoverride in debian/postinst
+to set permissions."
+
+svn ci -m "Do not use dpkg-statoverride in debian/statoverride to set permissions."
+Committed revision 361.
+
+----------------------------------------------------------------------------------
+
 debian/TODO for LedgerSMB v1.2
 
-- Autoconfigurtion for PostgreSQL and access to it by LedgerSMB
+- Change package name & installation directory to something that includes the 
+ version;  that way both 1.2 & 1.3 (& later, 1.4?) can be installed in parallel
+ on the same system.
 
-- Autoconfiguration of Apache2
+- Review updates & changes to v1.3, backport anything useful or needed for v.1.2
 
-- Suppress and/or otherwise handle the multiple instances of the following
+- With the new debian/rules, a copy of the LedgerSMB *.pl files are also getting
+installed to /usr/share/perl5; possibly a result of the application makefile and
+possibly why the application 'make install' was not being used for the packaging
+for the previous debian packages.  Keep the new debian/rules as a basis and then
+determine the cause of that and correct and/or patch as necessary.
+
+- Do not use dpkg-statoverride or chown/chmod in debian/postinst to make corrections
+for file/directory permissions issues. Leave 'dpkg-statoverride remove' in the 
+postinst configuration step for an upgrade, at least for now, and move such
+changes to debian/rules;  in a dh_fixperms override, for instance.
+
+- Update standards version & review if changes are needed for it.
+W: ledgersmb source: out-of-date-standards-version 3.9.1 (current is 3.9.2)
+
+- Rewrite the package description in debian/control, including the following:
+W: ledgersmb: description-synopsis-starts-with-article
+
+- Resolve and/or otherwise handle the multiple instances of the following
 Lintian warnings:
 W: ledgersmb: executable-not-elf-or-script  (various directories)
-W: ledgersmb: extra-license-file usr/share/ledgersmb/locale/legacy/
+W: ledgersmb: extra-license-file usr/share/ledgersmb/locale/legacy/* 
+W: ledgersmb: non-standard-dir-perm  usr/share/ledgersmb/locale/legacy/*
+W: ledgersmb: manpage-has-bad-whatis-entry  usr/share/man/man3/LedgerSMB::*
+W: ledgersmb: executable-not-elf-or-script  var/lib/ledgersmb/css/*.css
+W: ledgersmb: executable-not-elf-or-script  usr/share/ledgersmb/favicon.ico
+W: ledgersmb: manpage-has-errors-from-pod2man usr/share/man/man3/LedgerSMB::Locale.3pm.gz:194
+
+- Resolve and/or otherwise handle the multiple instances of the following,
+from Lintian:
+I: ledgersmb: ored-depends-on-obsolete-package  recommends: tetex-extra
+I: ledgersmb: package-contains-empty-directory  usr/share/ledgersmb/css/
+I: ledgersmb: spelling-error-in-manpage usr/share/man/man3/LedgerSMB::*
+
+- Add an apache2 restart to postinst, now that the softlink to the LSMB httpd
+configuration is being installed automatically?
+
+- Update/expand the information provided in the debian/patches files.
+
+- As neccessary, add any other docs that could be registered to doc-base files.
+For instance, why isn't the README.sql-ledger file being installed?
+
+- Autoconfiguration for PostgreSQL and access to it by LedgerSMB
 
 - It was announced back in Sept 2010 that LSMB v1.2 works with Postgresql v9,
 which is now available in Debian Testing (wheezy). After testing that version
 with LSMB, add v9.0 to the possible Postgresql versions in debian/control?
-
-
 
 

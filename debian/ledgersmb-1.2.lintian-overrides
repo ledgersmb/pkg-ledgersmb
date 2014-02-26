@@ -1,0 +1,5 @@
+# Upstream includes empty directory intentionally
+ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb12/bin/custom/
+# INSTALL document in upstream contains FAQ and other useful information in 
+# addition to typical compilation instructions
+ledgersmb binary: package-contains-upstream-install-documentation usr/share/doc/ledgersmb12/INSTALL.gz

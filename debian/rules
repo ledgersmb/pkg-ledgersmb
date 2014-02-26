@@ -1,94 +1,34 @@
 #!/usr/bin/make -f
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+%:
+	dh $@
 
-DESTDIR = $(CURDIR)/debian/ledgersmb
-INSTALL = install
-
-
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	# Add here commands to configure the package.
-
-	touch configure-stamp
-
-
-build: build-stamp
-
-build-stamp: configure-stamp
-	dh_testdir
-
-        # Add here commands to compile the package.
-        #docbook-to-man debian/ledgersmb.sgml > ledgersmb.1
-
-	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
-	rm -f ledgersmb.conf
-
-	dh_clean 
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_prep
-	dh_installdirs
-
-	# Add here commands to install the package into debian/ledgersmb.
-	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb/spool|' \
-	    -e 's|^templates  = .*$$|templates  = /etc/ledgersmb/templates|' \
+override_dh_auto_configure:
+	[ ! -e Build.PL ] || rm -f Build.PL
+	sed -e 's|^spool      = .*$$|spool  = /var/lib/ledgersmb-1.2/spool|' \
 	    -e 's|^latex : 1$$|latex : 0|' \
 	    -e '/^localepath/d' \
 	    ledgersmb.conf.default > ledgersmb.conf
+	dh_auto_configure
 
-	perl Makefile.PL --skipdeps
-	$(MAKE)
+override_dh_auto_test:
 
-	chmod +x $(CURDIR)/configure_apache.sh
-	chmod +x $(CURDIR)/upgrade-templates.pl
-	chmod -x $(CURDIR)/favicon.ico
-	chmod -x $(CURDIR)/css/*css
-	chmod -x $(CURDIR)/locale/po/*
-	chmod -x $(CURDIR)/sql/*sql
-	chmod -x $(CURDIR)/sql/legacy/*sql
-	chmod -x $(CURDIR)/templates/*.html
-	chmod -x $(CURDIR)/templates/*.tex
-	chmod -x $(CURDIR)/templates/*logo*
-	chmod -x $(CURDIR)/LedgerSMB/*pm
-	chmod -x $(CURDIR)/LedgerSMB/CreditCard/*pm
-	chmod -x $(CURDIR)/LedgerSMB/Session/*pm
-	chmod -x $(CURDIR)/LedgerSMB/Taxes/*pm
-	chmod -x $(CURDIR)/LedgerSMB/Template/*pm
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -f ledgersmb.conf
 
-# Build architecture-independent files here.
-binary-indep: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs Changelog
-	dh_installdocs
-	dh_installexamples
-	dh_install -Xauto/
-	dh_installman blib/man3/*
-	dh_lintian
-#	dh_installdebconf
-	dh_link
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
+override_dh_auto_install:
 
-# Build architecture-dependent files here.
-binary-arch: build install
-# We have nothing to do by default.
+override_dh_install:
+	dh_install
+	chmod -x debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/bin/*
+	chmod -x debian/ledgersmb-1.2/var/lib/ledgersmb-1.2/css/*
+	chmod -x debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/locale/po/*
+	chmod +x debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/upgrade-templates.pl
+	find debian/ledgersmb-1.2/etc/ledgersmb-1.2 -d -not -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.html' -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.sh' -exec chmod +x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.pm' -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.sql' -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/locale/legacy -d -not -name '*.pl' -not -exec chmod -x '{}' \;
 
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install
