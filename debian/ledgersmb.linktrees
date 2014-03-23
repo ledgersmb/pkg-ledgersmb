@@ -1,0 +1,2 @@
+dh_linktree embed usr/share/javascript/scriptaculous usr/share/ledgersmb/UI/ajax/scriptaculous/src
+dh_linktree embed usr/share/javascript/prototype usr/share/ledgersmb/UI/ajax/scriptaculous/sib
