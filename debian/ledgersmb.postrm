@@ -60,12 +60,24 @@ case "$1" in
             rm -rf /var/lib/ledgersmb/templates
         fi
         # When being purged; if /etc/apache2/conf.d/ledgersmb.conf exists, remove it.
+        if [ -d "/etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf" ]; then
+            rm -rf /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
+        fi
         if [ -d "/etc/apache2/conf.d/ledgersmb.conf" ]; then
             rm -rf /etc/apache2/conf.d/ledgersmb.conf
         fi
         # When being purged; if /etc/apache2/conf-available/ledgersmb.conf exists, remove it.
         if [ -d "/etc/apache2/conf-available/ledgersmb.conf" ]; then
             rm -rf /etc/apache2/conf-available/ledgersmb.conf
+        fi
+        if [ -d "/etc/apache2/conf-available/ledgersmb.conf" ]; then
+            rm -rf /etc/apache2/conf-available/ledgersmb.conf
+        fi
+        if [ -h "/etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf" ]; then
+            rm -f /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
+        fi
+        if [ -h "/etc/ledgersmb/ledgersmb-httpd-2.4.conf" ]; then
+            rm -f /etc/ledgersmb/ledgersmb-httpd-2.4.conf
         fi
     ;;
 

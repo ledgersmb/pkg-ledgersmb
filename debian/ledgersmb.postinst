@@ -58,10 +58,12 @@ case "$1" in
                     [ -d /etc/apache2/conf-available/ ] && [ ! -l /etc/apache2/conf-available/ledgersmb.conf ] && cp /usr/share/ledgersmb/ledgersmb-http-2.4.conf.template /etc/apache2/conf-available/ledgersmb.conf
                     . /usr/share/apache2/apache2-maintscript-helper
                     apache2_invoke enconf ledgersmb.conf
+                    ls -s /etc/apache2/conf-available/ledgersmb.conf /etc/ledgersmb/ledgersmb-httpd-2.4.conf
                 elif  dpkg-query -f '${Version}'  -W 'apache2.2-common' > /dev/null 2>&1 ; then
                     # if the configuration uses <IfVersion> uncomment the next line
                     # a2enmod -q version
                     [ -d /etc/apache2/conf.d/ ] && [ ! -l /etc/apache2/conf.d/ledgersmb.conf ] && cp /usr/share/ledgersmb/ledgersmb-http-2.0-2.2.conf.template /etc/apache2/conf.d/ledgersmb.conf
+                    ls -s /etc/apache2/conf.d/ledgersmb.conf /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
                     # Enable Apache mod_rewrite
                     if [ -x "`which a2enmod 2>/dev/null`" ]; then
                         a2enmod rewrite
@@ -72,7 +74,6 @@ case "$1" in
                     fi
                 fi
             fi
-        fi
         else
             if dpkg-maintscript-helper supports mv_conffile; then
                # If the old ledgersmb-httpd.conf is present, rename it.
