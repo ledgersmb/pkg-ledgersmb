@@ -38,9 +38,13 @@ case "$1" in
             fi
         fi
         if dpkg --compare-versions $old_version lt 1.3.35-1; then
-            # If old ledgersmb-httpd.conf are present, rename them
+            # If the old ledgersmb-httpd.conf is present, rename it
             if [ -f "/etc/apache2/conf.d/ledgersmb-httpd.conf" ]; then
-                mv -f /etc/apache2/conf.d/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb.conf
+                if dpkg-maintscript-helper supports mv_conffile; then
+                    # If the old ledgersmb-httpd.conf is present, rename it.
+                    dpkg-maintscript-helper mv_conffile \
+                    /etc/apache2/conf.d/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb.conf 1.3.25-1 ledgersmb -- "$@"
+                fi
             fi
         fi
     ;;
