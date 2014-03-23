@@ -57,6 +57,10 @@ License:
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  POSSIBILITY OF SUCH DAMAGE.
 
+Files: utils/notify_short/*.pl,README
+Copyright:  200?-2014, Chris Travers <chris@metatrontech.com>
+License: GPL-2+
+
 Files: debian/*
 Comment: Copyright and License for debian directory files.
 Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org> 
