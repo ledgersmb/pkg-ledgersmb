@@ -6,7 +6,8 @@ Uploaders: Robert James Clay <jame@rocasa.us>,
            Elizabeth Krumbach <lyz@princessleia.com>,
            Seneca Cunningham <tetragon@ledgersmb.org>,
            Michael C. Schultheiss <schultmc@debian.org>
-Build-Depends: debhelper (>= 8)
+Build-Depends: debhelper (>= 8),
+               libmodule-install-perl
 Standards-Version: 3.9.1
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://svn.debian.org/pkg-sql-ledger/ledger-smb/branches/v1.2
