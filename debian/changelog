@@ -1,8 +1,8 @@
-ledgersmb-1.2 (1.2.26-1~1) UNRELEASED; urgency=low
+ledgersmb-1.2 (1.2.26-1) stable; urgency=low
 
-  * Change to creating a v1.2 series only package.
+  * Move Packaging for v1.2.x series versions to ledgersmb-1.2 package.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 25 Oct 2012 11:19:53 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 29 Mar 2014 01:19:42 -0400
 
 ledgersmb (1.2.25-2) experimental; urgency=low
 
