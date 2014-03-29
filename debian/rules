@@ -33,5 +33,5 @@ override_dh_fixperms:
 	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.sh' -exec chmod +x '{}' \;
 	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.pm' -exec chmod -x '{}' \;
 	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2 -name '*.sql' -exec chmod -x '{}' \;
-	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/locale/legacy -d -not -name '*.pl' -not -exec chmod -x '{}' \;
+	find debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/locale/legacy -d -type f -not -name '*.pl' -not -exec chmod -x '{}' \;
 
