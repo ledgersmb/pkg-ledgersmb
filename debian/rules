@@ -20,7 +20,10 @@ override_dh_auto_clean:
 override_dh_auto_install:
 
 override_dh_install:
-	dh_install
+	dh_install -XCOPYING
+
+override_dh_fixperms:
+	dh_fixperms
 	chmod -x debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/bin/*
 	chmod -x debian/ledgersmb-1.2/var/lib/ledgersmb-1.2/css/*
 	chmod -x debian/ledgersmb-1.2/usr/share/ledgersmb-1.2/locale/po/*
