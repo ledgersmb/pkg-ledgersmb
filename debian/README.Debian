@@ -53,6 +53,7 @@ Optional Perl modules
     Template::Plugin::Latex  [Support for Postscript and PDF output]
     Parse::RecDescent        [Support for the *experimental* scripting engine]
     Image::Size              [Support for image size detection in templates]
+    Plack                    [Support for using Plack to run LedgerSMB]
 
     The credit card processing support for TrustCommerce is available as
     the package libnet-tclink-perl if not already installed.
@@ -68,6 +69,9 @@ Optional Perl modules
 
     The support for size detection for images for embedding in LaTex templates
     is available as libimage-size-perl if it is not already installed.
+
+    The support for running LedgerSMB using Plack is available as libplack-perl
+    if it is not already installed.
 
 
 Manual addition of a company database
