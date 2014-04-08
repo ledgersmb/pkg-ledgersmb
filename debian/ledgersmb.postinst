@@ -55,13 +55,15 @@ case "$1" in
             # Do Apache related processing if it is present.
             if [ -d "/etc/apache2" ]; then
                 if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
-                    [ -d /etc/apache2/conf-available/ ] && [ ! -l /etc/apache2/conf-available/ledgersmb.conf ] && cp /usr/share/ledgersmb/ledgersmb-http-2.4.conf.template /etc/apache2/conf-available/ledgersmb.conf
+                    [ -d /etc/apache2/conf-available/ ] && [ ! -e /etc/apache2/conf-available/ledgersmb.conf ] && cp /usr/share/ledgersmb/ledgersmb-http-2.4.conf.template /etc/apache2/conf-available/ledgersmb.conf
                     . /usr/share/apache2/apache2-maintscript-helper
                     apache2_invoke enconf ledgersmb.conf
+                    ln -s /etc/apache2/conf-available/ledgersmb.conf /etc/ledgersmb/ledgersmb-httpd-2.4.conf
                 elif  dpkg-query -f '${Version}'  -W 'apache2.2-common' > /dev/null 2>&1 ; then
                     # if the configuration uses <IfVersion> uncomment the next line
                     # a2enmod -q version
                     [ -d /etc/apache2/conf.d/ ] && [ ! -l /etc/apache2/conf.d/ledgersmb.conf ] && cp /usr/share/ledgersmb/ledgersmb-http-2.0-2.2.conf.template /etc/apache2/conf.d/ledgersmb.conf
+                    ln -s /etc/apache2/conf.d/ledgersmb.conf /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
                     # Enable Apache mod_rewrite
                     if [ -x "`which a2enmod 2>/dev/null`" ]; then
                         a2enmod rewrite
@@ -72,11 +74,17 @@ case "$1" in
                     fi
                 fi
             fi
-        fi
-        #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
-        # is no longer being used in debian/postinst to set it.
-        if [ -n "$old_version" ] &&  dpkg --compare-versions $old_version lt 1.3.9-2; then
-            drop_statoverride
+        else
+            if dpkg-maintscript-helper supports mv_conffile; then
+               # If the old ledgersmb-httpd.conf is present, rename it.
+                    dpkg-maintscript-helper mv_conffile \
+                    /etc/apache2/conf.d/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb.conf 1.3.25-1 ledgersmb -- "$@"
+            fi
+            #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
+            # is no longer being used in debian/postinst to set it.
+            if dpkg --compare-versions $old_version lt 1.3.9-2; then
+                drop_statoverride
+            fi
         fi
         # If enabled, do the debconf supported configuration
         db_get ledgersmb/debconf_install
