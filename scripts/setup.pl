@@ -21,6 +21,7 @@ package LedgerSMB::Scripts::setup;
 use Locale::Country;
 use LedgerSMB::Auth;
 use LedgerSMB::Database;
+use LedgerSMB::App_State;
 use strict;
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB::Scripts::setup');
@@ -50,7 +51,8 @@ sub login {
     #$request->{_locale}->new('en'); why not continue to use already set $request->{_locale}
     my $creds = LedgerSMB::Auth::get_credentials();
     if (!$request->{database}){
-        $request->error($request->{_locale}->text('No database specified'));
+        list_databases($request);
+        return;
     }
     my $database = LedgerSMB::Database->new(
                {username => $creds->{login},
@@ -128,6 +130,7 @@ sub login {
                     'Rebuild/Upgrade?'
              );
              $request->{next_action} = 'rebuild_modules';
+             $request->{lsmb_info} = $database->lsmb_info();
          } else {
             $request->{message} = $request->{_locale}->text(
                  'Unknown version found.'
@@ -155,6 +158,57 @@ sub login {
     $template->render($request);
 
 }
+
+=item list_databases
+Lists all databases as hyperlinks to continue operations.
+
+=cut
+
+sub list_databases {
+    my ($request) = @_;
+    my $creds = LedgerSMB::Auth::get_credentials('setup');
+    my $database = LedgerSMB::Database->new(
+               {username => $creds->{login},
+            company_name => $request->{database},
+                password => $creds->{password}}
+    );
+    my @results = $database->list;
+    $request->{dbs} = [];
+    for my $r (@results){
+       push @{$request->{dbs}}, {row_id => $r, db => $r };
+    }
+    my $template = LedgerSMB::Template->new(
+            path => 'UI/setup',
+            template => 'list_databases',
+	    format => 'HTML',
+    );
+    $template->render($request);
+}
+
+=item copy_db
+
+Copies db to the name of $request->{new_name}
+
+=cut
+
+sub copy_db {
+    my ($request) = @_;
+    my $creds = LedgerSMB::Auth::get_credentials('setup');
+    my $database = LedgerSMB::Database->new(
+               {username => $creds->{login},
+            company_name => $request->{database},
+                password => $creds->{password}}
+    );
+    my $rc = $database->copy($request->{new_name}) 
+           || die 'An error occurred. Please check your database logs.' ;
+    my $template = LedgerSMB::Template->new(
+            path => 'UI/setup',
+            template => 'complete',
+            format => 'HTML',
+    );
+    $template->render($request);
+}
+
 
 =item backup_db
 
@@ -275,7 +329,7 @@ Beginning of an SQL-Ledger 2.7/2.8 migration.
 
 =cut
 
-sub migrate_sl{
+sub migrate_sl {
     my ($request) = @_;
     my $creds = LedgerSMB::Auth::get_credentials();
     my $database = LedgerSMB::Database->new(
@@ -290,7 +344,141 @@ sub migrate_sl{
     $ENV{PGDATABASE} = $request->{database};
 
     # Credentials set above via environment variables --CT
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}");
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+        undef, undef, { pg_enable_utf8 => 1 });
+    my $locale = $request->{_locale};
+
+    my @pre_upgrade_checks = (
+        { query => "select *
+                    from customer
+                   where customernumber in (select customernumber
+                                              from customer
+                                             group by customernumber
+                                             having count(*) > 1)",
+          name => $locale->text('Double customernumbers'), 
+          cols => ['id', 'customernumber', 'name'],
+          edit => 'customernumber',
+          table => 'customer'},
+        { query => "select *
+                    from vendor
+                   where vendornumber in (select vendornumber
+                                              from vendor
+                                             group by vendornumber
+                                             having count(*) > 1)",
+          name => $locale->text('Double vendornumbers'), 
+          cols => ['id', 'vendornumber', 'name'],
+          edit => 'vendornumber',
+          table => 'vendor'},
+        { query => "select *
+                     from employee
+                    where employeenumber is null",
+          name => $locale->text('Null employee numbers'),
+          cols => ['id', 'login', 'name', 'employeenumber'],
+          edit => 'employeenumber',
+          table => 'employee'},
+        { query => "select *
+                     from employee
+                    where employeenumber in (select employeenumber
+                                               from employee
+                                              group by employeenumber
+                                              having count(*) > 1)",
+          name => $locale->text('Null employee numbers'),
+          cols => ['id', 'login', 'name', 'employeenumber'],
+          edit => 'employeenumber',
+          table => 'employee'},
+        { query => "select *
+                     from ar
+                    where invnumber in (select invnumber
+                                          from ar
+                                         group by invnumber
+                                         having count(*) > 1)
+                   order by invnumber",
+          name => $locale->text('Non-unique invoice numbers'),
+          cols => ['id', 'invnumber', 'transdate', 'duedate', 'datepaid',
+                     'ordnumber', 'quonumber', 'approved'],
+          edit => 'invnumber',
+          table => 'ar'},
+        { query => "select *
+                     from makemodel
+                    where model is null",
+          name => $locale->text('Null model numbers'),
+          cols => ['parts_id', 'make', 'model'],
+          edit => 'model',
+          table => 'makemodel'},
+        { query => "select *
+                     from makemodel
+                    where make is null",
+          name => $locale->text('Null make numbers'),
+          cols => ['parts_id', 'make', 'model'],
+          edit => 'make',
+          table => 'makemodel'},
+        { query => "select *
+                     from partscustomer
+                    where pricegroup_id is not null and
+                          not exists (select 1
+                                        from pricegroup
+                                       where id = pricegroup_id)",
+          name => $locale->text("Non-existing customer pricegroups in partscustomer (can't be edited through the web interface)"),
+          # No 'edit =>' section: this is an informational query
+          cols => ['parts_id', 'credit_id', 'pricegroup_id'],
+          table => 'partscustomer'}
+        );
+    for my $check (@pre_upgrade_checks){
+        my $sth = $request->{dbh}->prepare($check->{query});
+        $sth->execute();
+        if ($sth->rows > 0){ # Check failed --CT
+             _failed_check($request, $check, $sth, 'fix_sl_tests');
+        }
+    }
+
+    @{$request->{ar_accounts}} = _get_linked_accounts($request, "AR");
+    @{$request->{ap_accounts}} = _get_linked_accounts($request, "AP");
+    unshift @{$request->{ar_accounts}}, {}
+       unless scalar(@{$request->{ar_accounts}}) == 1;
+    unshift @{$request->{ap_accounts}}, {}
+       unless scalar(@{$request->{ap_accounts}}) == 1;
+
+    @{$request->{countries}} = ();
+    foreach my $iso2 (all_country_codes()) {
+        push @{$request->{countries}}, { code    => uc($iso2),
+                                         country => code2country($iso2) };
+    }
+    @{$request->{countries}} =
+        sort { $a->{country} cmp $b->{country} } @{$request->{countries}};
+    unshift @{$request->{countries}}, {};
+
+
+    my $template = LedgerSMB::Template->new(
+            path => 'UI/setup',
+            template => 'migrate_sl_info',
+            format => 'HTML',
+    );
+    $template->render($request);
+}
+
+
+=item run_migrate_sl
+
+
+=cut
+
+sub run_migrate_sl{
+    my ($request) = @_;
+    my $creds = LedgerSMB::Auth::get_credentials();
+    my $database = LedgerSMB::Database->new(
+               {username => $creds->{login},
+            company_name => $request->{database},
+                password => $creds->{password}}
+    );
+
+    # ENVIRONMENT NECESSARY
+    $ENV{PGUSER} = $creds->{login};
+    $ENV{PGPASSWORD} = $creds->{password};
+    $ENV{PGDATABASE} = $request->{database};
+
+    # Credentials set above via environment variables --CT
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+        undef, undef, { pg_enable_utf8 => 1 });
     my $dbh = $request->{dbh};
     $dbh->do('ALTER SCHEMA public RENAME TO sl28');
     $dbh->do('CREATE SCHEMA PUBLIC');
@@ -304,12 +492,14 @@ sub migrate_sl{
          $rc2=system("psql -f $ENV{PG_CONTRIB_DIR}/$contrib.sql >> $temp/dblog_stdout 2>>$temp/dblog_stderr");
          $rc ||= $rc2
      }
+    $logger->info("loaded extensions");
      my $rc2 = system("psql -f sql/Pg-database.sql >> $temp/dblog_stdout 2>>$temp/dblog_stderr");
      
      $rc ||= $rc2;
 
     $database->load_modules('LOADORDER');
     $database->process_roles('Roles.sql');
+    $logger->info("loaded LOADORDER and Roles");
     my $dbtemplate = LedgerSMB::Template->new(
         user => {}, 
         path => 'sql/upgrade',
@@ -322,7 +512,8 @@ sub migrate_sl{
     $rc2 = system("psql -f $temp/sl2.8-1.3-upgrade.sql >> $temp/dblog_stdout 2>>$temp/dblog_stderr");
     $rc ||= $rc2;
 
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}");
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+                                   undef, undef, { pg_enable_utf8 => 1 });
 
    @{$request->{salutations}} 
     = $request->call_procedure(procname => 'person__list_salutations' ); 
@@ -394,7 +585,8 @@ sub upgrade{
     $ENV{PGDATABASE} = $request->{database};
 
     # Credentials set above via environment variables --CT
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}");
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+                                   undef, undef, { pg_enable_utf8 => 1 });
     my $locale = $request->{_locale};
 
     my @pre_upgrade_checks = (
@@ -455,7 +647,7 @@ sub upgrade{
         my $sth = $request->{dbh}->prepare($check->{query});
         $sth->execute();
         if ($sth->rows > 0){ # Check failed --CT
-             _failed_check($request, $check, $sth);
+             _failed_check($request, $check, $sth, 'fix_tests');
         }
     }
 
@@ -485,7 +677,7 @@ sub upgrade{
 }
 
 sub _failed_check{
-    my ($request, $check, $sth) = @_;
+    my ($request, $check, $sth, $next_action) = @_;
     my $template = LedgerSMB::Template->new(
             path => 'UI',
             template => 'form-dynatable',
@@ -517,7 +709,7 @@ sub _failed_check{
     my $buttons = [
            { type => 'submit',
              name => 'action',
-            value => 'fix_tests',
+            value => $next_action,
              text => $request->{_locale}->text('Save and Retry'),
             class => 'submit' },
     ];
@@ -531,14 +723,14 @@ sub _failed_check{
     });
 }
 
-=item fix_tests
 
-Handles input from the failed test function and then re-runs the migrate db 
-script.
+=item _fix_tests
+
+
 
 =cut
 
-sub fix_tests{
+sub _fix_tests {
     my ($request) = @_;
     my $creds = LedgerSMB::Auth::get_credentials();
     # ENVIRONMENT NECESSARY
@@ -547,7 +739,8 @@ sub fix_tests{
     $ENV{PGDATABASE} = $request->{database};
 
     # Credentials set above via environment variables --CT
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}");
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+                                   undef, undef, { pg_enable_utf8 => 1 });
     my $locale = $request->{_locale};
 
     my $table = $request->{dbh}->quote_identifier($request->{table});
@@ -562,7 +755,32 @@ sub fix_tests{
             $request->error($sth->errstr);
     }
     $request->{dbh}->commit;
+}
+
+=item fix_tests
+
+Handles input from the failed test function and then re-runs the migrate db 
+script.
+
+=cut
+
+sub fix_tests{
+    my ($request) = @_;
+    _fix_tests($request);
     upgrade($request);
+}
+
+=item fix_sl_tests
+
+Handles input from the failed test function and then re-runs the migrate db 
+script.
+
+=cut
+
+sub fix_sl_tests{
+    my ($request) = @_;
+    _fix_tests($request);    
+    migrate_sl($request);
 }
 
 =item create_db
@@ -737,7 +955,8 @@ sub _render_new_user {
 
 
 
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}");
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+                                   undef, undef, { pg_enable_utf8 => 1 });
     $request->{dbh}->{AutoCommit} = 0;
 
     @{$request->{salutations}} 
@@ -779,9 +998,11 @@ sub save_user {
     use LedgerSMB::DBObject::Admin;
     my ($request) = @_;
     my $creds = LedgerSMB::Auth::get_credentials();
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}",
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
                                    $creds->{login},
-                                   $creds->{password});
+                                   $creds->{password},
+                                   { pg_enable_utf8 => 1 });
+    $LedgerSMB::App_State::DBH = $request->{dbh};
     my $user = LedgerSMB::DBObject::Admin->new({base => $request});
     if (8 == $user->save_user){ # Told not to import but user exists in db
         $request->{notice} = $request->{_locale}->text(
@@ -855,7 +1076,8 @@ sub run_upgrade {
     $ENV{PGDATABASE} = $request->{database};
 
     # Credentials set above via environment variables --CT
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}");
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+                                   undef, undef, { pg_enable_utf8 => 1 });
     my $dbh = $request->{dbh};
     $dbh->do('ALTER SCHEMA public RENAME TO lsmb12');
     $dbh->do('CREATE SCHEMA PUBLIC');
@@ -887,7 +1109,8 @@ sub run_upgrade {
     $rc2 = system("psql -f $temp/1.2-1.3-upgrade.sql >> $temp/dblog_stdout 2>>$temp/dblog_stderr");
     $rc ||= $rc2;
 
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}");
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+                                   undef, undef, { pg_enable_utf8 => 1 });
 
    @{$request->{salutations}} 
     = $request->call_procedure(procname => 'person__list_salutations' ); 
@@ -942,9 +1165,12 @@ sub rebuild_modules {
     
     $database->load_modules('LOADORDER');
     $database->process_roles('Roles.sql');
+    $request->{lsmb_info} = $database->lsmb_info();
     # Credentials set above via environment variables --CT
     #avoid msg commit ineffective with AutoCommit enabled
-    $request->{dbh} = DBI->connect("dbi:Pg:dbname=$request->{database}",$creds->{login},$creds->{password},{AutoCommit=>0});
+    $request->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$request->{database}"|,
+                                   $creds->{login},$creds->{password},
+                                   { AutoCommit => 0, pg_enable_utf8 => 1 });
     my $dbh = $request->{dbh};
     my $sth = $dbh->prepare(
           'UPDATE defaults SET value = ? WHERE setting_key = ?'

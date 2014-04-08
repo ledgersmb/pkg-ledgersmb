@@ -3,6 +3,13 @@
 --
 -- Chris Travers
 
+BEGIN; -- PRE-RC update
+
+ALTER TABLE partscustomer RENAME customer_id TO credit_id;
+ALTER TABLE partsvendor RENAME entity_id TO credit_id;
+
+COMMIT;
+
 
 BEGIN; -- 1.3.4, fix for menu-- David Bandel
 update menu_attribute set value = 'receive_order' where value  =
@@ -480,4 +487,195 @@ BEGIN;
 
 insert into batch_class (id,class) values (7,'receipt_reversal');
 
+COMMIT;
+
+BEGIN;
+
+-- FIXING AP MENU
+
+ update menu_attribute set value = 'tax_paid' where node_id = 28 and attribute = 'report';
+
+update menu_attribute set value = 'ap_aging' where node_id = 27 and attribute = 'report';
+
+COMMIT;
+
+BEGIN;
+
+-- inventory from 1.3.30 and lower
+
+UPDATE parts 
+   SET onhand = onhand + coalesce((select sum(qty) 
+                            from inventory 
+                           where orderitems_id 
+                                 IN (select id 
+                                       from orderitems oi
+                                       join oe on oi.trans_id = oe.id
+                                      where closed is not true)
+                                 and parts_id = parts.id), 0)
+ WHERE string_to_array((setting_get('version')).value::text, '.')::int[] 
+       < '{1,3,31}';
+
+COMMIT;
+
+BEGIN;
+delete from menu_attribute where node_id = 192 and attribute = 'menu';
+
+DELETE FROM menu_acl WHERE node_id = 60 AND exists (select 1 from menu_attribute where node_id = 60 and attribute = 'menu');
+
+COMMIT;
+
+BEGIN;
+ALTER FUNCTION admin__save_user(int, int, text, text, bool) SET datestyle = 'ISO,YMD';
+ALTER FUNCTION user__change_password(text) SET datestyle = 'ISO,YMD';
+COMMIT;
+
+BEGIN;
+ALTER TABLE ar DISABLE TRIGGER ALL;
+ALTER TABLE ap DISABLE TRIGGER ALL;
+
+ALTER TABLE ap ADD COLUMN crdate date;
+ALTER TABLE ar ADD COLUMN crdate date;
+
+UPDATE ap SET crdate=transdate;
+UPDATE ar SET crdate=transdate;
+
+COMMENT ON COLUMN ap.crdate IS
+$$ This is for recording the AR/AP creation date, which is always that date, when the invoice created. This is different, than transdate or duedate.
+This kind of date does not effect on ledger/financial data, but for administrative purposes in Hungary, probably in other countries, too.
+Use case:
+if somebody pay in cash, crdate=transdate=duedate
+if somebody will receive goods T+5 days and have 15 days term, the dates are the following:  crdate: now,  transdate=crdate+5,  duedate=transdate+15.
+There are rules in Hungary, how to fill out a correct invoice, where the crdate and transdate should be important.$$;
+
+COMMENT ON COLUMN ar.crdate IS
+$$ This is for recording the AR/AP creation date, which is always that date, when the invoice created. This is different, than transdate or duedate.
+This kind of date does not effect on ledger/financial data, but for administrative purposes in Hungary, probably in other countries, too.
+Use case:
+if somebody pay in cash, crdate=transdate=duedate
+if somebody will receive goods T+5 days and have 15 days term, the dates are the following:  crdate: now,  transdate=crdate+5,  duedate=transdate+15.
+There are rules in Hungary, how to fill out a correct invoice, where the crdate and transdate should be important.$$;
+
+ALTER TABLE ar ENABLE TRIGGER ALL;
+ALTER TABLE ap ENABLE TRIGGER ALL;
+
+COMMIT;
+
+BEGIN;
+	ALTER TABLE entity_bank_account ADD COLUMN remark varchar;
+	COMMENT ON COLUMN entity_bank_account.remark IS
+$$ This field contains the notes for an account, like: This is USD account, this one is HUF account, this one is the default account, this account for paying specific taxes. If a partner has more than one account, now you are able to write remarks for them.
+$$;
+
+DROP FUNCTION eca__save_bank_account (int, int, text, text, int);
+DROP FUNCTION entity__save_bank_account (int, text, text, int);
+
+CREATE OR REPLACE FUNCTION eca__save_bank_account
+(in_entity_id int, in_credit_id int, in_bic text, in_iban text, in_remark text,
+in_bank_account_id int)
+RETURNS int AS
+$$
+DECLARE out_id int;
+BEGIN
+        UPDATE entity_bank_account
+           SET bic = in_bic,
+               iban = in_iban,
+               remark = in_remark
+         WHERE id = in_bank_account_id;
+
+        IF FOUND THEN   
+                out_id = in_bank_account_id;
+        ELSE
+                INSERT INTO entity_bank_account(entity_id, bic, iban, remark)
+                VALUES(in_entity_id, in_bic, in_iban, in_remark);
+                SELECT CURRVAL('entity_bank_account_id_seq') INTO out_id ;
+        END IF;
+
+        IF in_credit_id IS NOT NULL THEN
+                UPDATE entity_credit_account SET bank_account = out_id
+                WHERE id = in_credit_id;
+        END IF;
+
+        RETURN out_id;
+END;
+$$ LANGUAGE PLPGSQL;
+
+COMMENT ON  FUNCTION eca__save_bank_account
+(in_entity_id int, in_credit_id int, in_bic text, in_iban text, in_remark text,
+in_bank_account_id int) IS
+$$ Saves bank account to the credit account.$$;
+
+CREATE OR REPLACE FUNCTION entity__save_bank_account
+(in_entity_id int, in_bic text, in_iban text, in_remark text, in_bank_account_id int)
+RETURNS int AS
+$$
+DECLARE out_id int;     
+BEGIN   
+        UPDATE entity_bank_account
+           SET bic = in_bic,
+               iban = in_iban,
+               remark = in_remark
+         WHERE id = in_bank_account_id;
+
+        IF FOUND THEN
+                out_id = in_bank_account_id;
+        ELSE   
+                INSERT INTO entity_bank_account(entity_id, bic, iban, remark)
+                VALUES(in_entity_id, in_bic, in_iban, in_remark);
+                SELECT CURRVAL('entity_bank_account_id_seq') INTO out_id ;
+        END IF;
+
+        RETURN out_id;
+END;
+$$ LANGUAGE PLPGSQL;
+
+COMMENT ON FUNCTION entity__save_bank_account
+(in_entity_id int, in_bic text, in_iban text, in_remark text, in_bank_account_id int) IS
+$$Saves a bank account to the entity.$$;
+
+COMMIT;
+
+BEGIN;
+ALTER TABLE location ALTER COLUMN mail_code DROP NOT NULL;
+COMMIT;
+
+BEGIN;
+UPDATE menu_attribute 
+   SET value = 'sales_quotation' 
+ where value = 'quotation' AND attribute='template';
+COMMIT;
+
+BEGIN;
+CREATE FUNCTION prevent_closed_transactions() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE t_end_date date;
+BEGIN
+SELECT max(end_date) into t_end_date FROM account_checkpoint;
+IF new.transdate <= t_end_date THEN
+    RAISE EXCEPTION 'Transaction entered into closed period.  Transdate: %',
+                   new.transdate;
+END IF;
+RETURN new;
+END;
+$$;
+
+
+CREATE TRIGGER acc_trans_prevent_closed BEFORE INSERT ON acc_trans 
+FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
+CREATE TRIGGER ap_prevent_closed BEFORE INSERT ON ap 
+FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
+CREATE TRIGGER ar_prevent_closed BEFORE INSERT ON ar 
+FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
+CREATE TRIGGER gl_prevent_closed BEFORE INSERT ON gl 
+FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
+COMMIT;
+
+BEGIN;
+INSERT INTO defaults VALUES ('disable_back', '0');
+COMMIT;
+
+BEGIN;
+ALTER TABLE batch DROP CONSTRAINT "batch_locked_by_fkey";
+ALTER TABLE batch ADD FOREIGN KEY (locked_by) REFERENCES session(session_id)
+ON DELETE SET NULL;
 COMMIT;

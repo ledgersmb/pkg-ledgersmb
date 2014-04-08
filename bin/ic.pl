@@ -50,7 +50,6 @@ require "bin/io.pl";
 # end of main
 
 sub add {
-
     %label = (
         part     => 'Part',
         service  => 'Service',
@@ -155,7 +154,7 @@ sub link_part {
         $form->error(
             $locale->text(
                 'Cannot create Assembly; Income account does not exist!')
-        ) if !@{ $form->{IC_links}{IC_income} };
+        ) if !@{ $form->{IC_links}{IC_sale} };
     }
     if ( $form->{item} eq 'labor' ) {
         $form->{readonly} = 1
@@ -3602,7 +3601,6 @@ sub name_selected {
 }
 
 sub save {
-
     if ( $form->{obsolete} ) {
         $form->error(
             $locale->text(
@@ -3616,6 +3614,11 @@ sub save {
 # $locale->text('Inventory quantity must be zero before you can set this assembly obsolete!')
 
     $olditem = $form->{id};
+
+    check_vendor();
+    check_customer();
+    $form->{vendor_rows} += 1 if $form->{"vendor_$form->{vendor_rows}"};
+    $form->{customer_rows} += 1 if $form->{"customer_$form->{customer_rows}"};
 
     # save part
     $rc = IC->save( \%myconfig, \%$form );
@@ -3762,9 +3765,14 @@ sub save {
     }
 
     if ($rc) {
-        edit();
-        # redirect
-        # $form->redirect("Part Saved");
+        #if(!$form->{id}){$form->{id}=$parts_id;}#tshvr4 form->id lost somewhere before but needed for edit IC->get_part
+        if($form->{id}){
+         edit();
+        }
+        # redirect, after having set values for last added invoice/order item 
+        else{
+         $form->redirect("Part Saved");
+       }
     }
     else {
         $form->error;

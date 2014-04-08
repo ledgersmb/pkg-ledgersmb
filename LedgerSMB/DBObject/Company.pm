@@ -310,9 +310,7 @@ sub save_credit {
        );
        $sth->execute($self->{taxform1_id}, $self->{credit_id});
     }
-    if ($self->{tax_ids} ne '{}'){
-        $self->exec_method(funcname => 'eca__set_taxes');
-    }
+    $self->exec_method(funcname => 'eca__set_taxes');
     $self->{threshold} = $self->format_amount(amount => $self->{threshold});
     $self->{dbh}->commit;
 }
@@ -415,7 +413,7 @@ sub get_metadata {
          $self->exec_method(funcname => 'person__list_languages');
 
     for my $ref (@{$self->{language_code_list}}){
-        $ref->{text} = "$ref->{code}--$ref->{description}";
+        $ref->{text} = "$ref->{description}";
     }
     
     @{$self->{discount_acc_list}} =
@@ -445,13 +443,8 @@ sub get_metadata {
     @{$self->{contact_class_list}} = 
          $self->exec_method(funcname => 'entity_list_contact_class');
     #HV was $country_setting , given it a more general name, not only for country
-    my $setting_module = LedgerSMB::Setting->new({base => $self, copy => 'base'});
-    $setting_module->{key} = 'default_country';
-    $setting_module->get;
-    $self->{default_country} = $setting_module->{value};
-    $setting_module->{key} = 'default_language';
-    $setting_module->get;
-    $self->{default_language} = $setting_module->{value};
+    $self->{default_country} = LedgerSMB::Setting->get('default_country');
+    $self->{default_language} = LedgerSMB::Setting->get('default_language');
 }
 
 =item save_contact
@@ -485,6 +478,7 @@ Saves a bank account.  Requires the following be set:
 entity_id 
 bic (bank id)
 iban (account number)
+remark (remark for the account, optional)
 bank_account_id (id for record, optional)
 
 =cut
@@ -657,6 +651,8 @@ sub get {
             last;
         }
     }
+    my ($ref) = $self->exec_method({funcname => 'entity__get_by_cc'});
+    $self->merge($ref);
     $self->{name} = $self->{legal_name};
     if ($self->{credit_id} and $self->{meta_number}){
         $self->get_credit_id;
@@ -724,7 +720,7 @@ sub get_pricematrix {
     @{$self->{pricematrix}} = $self->exec_method(
                funcname => 'eca__get_pricematrix'
     );
-    if ($self->{account_class} == 1){
+    if ($self->{account_class} == 2){
         @{$self->{pricematrix_pricegroup}}= $self->exec_method(
                funcname => 'eca__get_pricematrix_by_pricegroup'
         );

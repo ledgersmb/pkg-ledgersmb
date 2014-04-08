@@ -209,18 +209,18 @@ sub new_dbobject{
              $dbobject = LedgerSMB::DBObject->new({base => $lsmb});
              $logger->debug("\$dbobject->{dbh}=$dbobject->{dbh}");
          } else {
-             $rc | 2; # No locale
+             $rc = $rc | 2; # No locale
          }
     }
     elsif (LedgerSMB->isa($args->{base})){
          $dbobject = LedgerSMB::DBObject->new({base => $args->{base}});
     }
     else {
-        $rc | 4; # Incorrect base type
+        $rc = $rc | 4; # Incorrect base type
     }
     $logger->debug("end");
     if (!$dbobject->{dbh}){
-        $rc | 1; # No database handle
+        $rc = $rc | 1; # No database handle
     }
     if ($rc){
         return $rc;  # Return error.
@@ -298,6 +298,7 @@ to a directive relative to tempdir where these files are stored.
 
 sub get_for_template{
     my ($self, $args) = @_;
+    warn 'entering get_for_template';
 
     my @results = $self->exec_method(
                  {funcname => 'file__get_for_template',
@@ -311,6 +312,7 @@ sub get_for_template{
     $self->file_path($LedgerSMB::Sysconfig::tempdir . '/' . $$);
     
     for my $result (@results) {
+        $result->{file_name} =~ s/\_//g;
         open FILE, '>', $self->file_path . "/$result->{file_name}";
         binmode FILE, ':bytes';
         print FILE $result->{content};
@@ -329,6 +331,7 @@ sub get_for_template{
            $result->{ref_key} = $args->{ref_key};
         }
     }
+    return @results;
 }
 
 

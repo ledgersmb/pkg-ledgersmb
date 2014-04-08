@@ -204,6 +204,29 @@ sub search_batch {
     $template->render($batch_request);
 }
 
+=item batch_unlock
+
+Unlocks selected batches 
+
+=cut
+
+sub batch_unlock {
+    my ($request) = @_;
+    my $batch = LedgerSMB::Batch->new(base => $request);
+    if ($request->{batch_id}){
+       $batch->unlock($request->{batch_id});
+    } else {
+        for my $count (1 .. $batch->{rowcount}){
+            next unless $batch->{"batch_" . $batch->{"row_$count"}};
+            $batch->unlock($request->{"row_$count"});
+        }
+    }
+    $request->{report_name} = 'unapproved'; 
+    $request->{search_type} = 'batches';
+    $request->{dbh}->commit;
+    search_batch($request);
+}
+
 =item list_batches
 
 This function displays the search results.
@@ -236,7 +259,7 @@ sub list_batches {
     $batch->{script} = "vouchers.pl";
 
     my @columns = 
-        qw(select id control_code description transaction_total payment_total default_date);
+        qw(select class id control_code description transaction_total payment_total default_date);
 
     my $base_href = "vouchers.pl";
     my $search_href = "$base_href?action=list_batches";
@@ -252,6 +275,7 @@ sub list_batches {
 	
     my $column_names = {
         'select'          => 'Select',
+        class             => 'Class',
         transaction_total => 'AR/AP/GL Total',
         payment_total => 'Paid/Received Total',
         description => 'Description',
@@ -274,6 +298,7 @@ sub list_batches {
                                            name  => "batch_$result->{id}"
                                  }
             },
+            class => $result->{batch_class},
             transaction_total => $batch->format_amount(
                                      amount => $result->{transaction_total}
 				),
@@ -329,6 +354,12 @@ sub list_batches {
                     type  => 'submit',
                     text  => $request->{_locale}->text('Delete'),
                     value => 'batch_delete',
+                    class => 'submit',
+                 },{
+                    name  => 'action',
+                    type  => 'submit',
+                    text  => $request->{_locale}->text('Unlock'),
+                    value => 'batch_unlock',
                     class => 'submit',
                 }];
     }
@@ -487,6 +518,10 @@ sub list_batches_batch_approve {
     batch_approve(@_);
 }
 
+sub list_batches_batch_unlock {
+    batch_unlock(@_);
+}
+
 =item get_batch_batch_approve
 
 Approves the single batch on the details screen.  Batch_id must be set.,
@@ -555,6 +590,7 @@ Deletes selected batches
 
 sub batch_delete {
     my ($request)  = @_;
+    warn 'batch_delete';
     my $batch = LedgerSMB::Batch->new(base => $request);
     if (!$batch->close_form){
         list_batches($request);

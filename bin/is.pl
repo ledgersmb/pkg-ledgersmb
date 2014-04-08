@@ -58,6 +58,11 @@ sub on_update{}
 sub copy_to_new{
     delete $form->{id};
     delete $form->{invnumber};
+    $form->{crdate} = $form->current_date( \%myconfig );
+    $form->{paidaccounts} = 1;
+    if ($form->{paid_1}){
+        delete $form->{paid_1};
+    }
     update();
 }
 
@@ -114,6 +119,7 @@ sub invoice_links {
     $form->{type} = "invoice";
 
     # create links
+    $form->all_projects;
     $form->create_links( module => "AR",
 			 myconfig => \%myconfig,
 			 vc => "customer",
@@ -259,6 +265,7 @@ qq|<option value="$_->{description}--$_->{id}">$_->{description}\n|;
 
     $form->{AR} = $form->{AR_1} unless $form->{id};
     $form->{transdate} = $form->{current_date} if (!$form->{transdate});
+    $form->{crdate} = $form->{current_date} if (!$form->{crdate});
     $form->{locked} =
       ( $form->{revtrans} )
       ? '1'
@@ -338,6 +345,7 @@ sub prepare_invoice {
 }
 
 sub form_header {
+    $form->{nextsub} = 'update';
 
     # set option selected
     for (qw(AR currency)) {
@@ -444,15 +452,27 @@ sub form_header {
     print qq|
 <body onLoad="document.forms[0].${focus}.focus()" /> 
 | . $form->open_status_div . qq|
-
-<form method=post action="$form->{script}">
+<script> 
+function on_return_submit(event){
+  var kc;
+  if (window.event){
+    kc = window.event.keyCode;
+  } else {
+    kc = event.which;
+  }
+  if (kc == '13' && document.activeElement.tagName != 'TEXTAREA'){
+        document.forms[0].submit();
+  }
+}
+</script>
+<form method=post action="$form->{script}" onkeypress="on_return_submit(event)">
 |;
 
     $form->hide_form(
         qw(form_id id type printed emailed queued title vc terms discount 
            creditlimit creditremaining tradediscount business closedto locked 
-           shipped oldtransdate recurring reverse batch_id subtype 
-           meta_number)
+           shipped oldtransdate recurring reverse batch_id subtype tax_id 
+           meta_number nextsub default_reportable address city lock_description)
     );
 
     if ($form->{notice}){
@@ -493,9 +513,8 @@ sub form_header {
 		<input type=hidden name="oldcustomer" value="$form->{oldcustomer}"> 
 	      </tr>
 	      <tr>
-		<td></td>
-		<td colspan=3>
-		  <table>
+		<td colspan=4>
+		  <table class="creditlimit">
 		    <tr>
 		      <th align=right nowrap>| . $locale->text('Credit Limit') . qq|</th>
 		      <td>|
@@ -513,11 +532,21 @@ sub form_header {
 	        <tr>
 		<th align="right" nowrap>| . 
 			$locale->text('Entity Code') . qq|</th>
-		<td colspan="2">$form->{entity_control_code}</td>
+		<td colspan="2" nowrap>$form->{entity_control_code}</td>
 		<th align="right" nowrap>| . 
 			$locale->text('Account') . qq|</th>
 		<td colspan=3>$form->{meta_number}</td>
 	      </tr>
+              <tr>
+                <th align="right" nowrap>| .
+                        $locale->text('Tax ID'). qq|</th>
+                <td colspan=3>$form->{tax_id}</td>
+              </tr>
+              <tr class="address_row">
+                <th align="right" nowrap>| .
+                        $locale->text('Address'). qq|</th>
+                <td colspan=3>$form->{address}, $form->{city}</td>
+              </tr>
 		|;
 	       }
 	print qq|
@@ -533,11 +562,11 @@ sub form_header {
 	      </tr>
 	      $department
 	      $exchangerate
-	      <tr>
+	      <tr class="shippingpoint-row">
 		<th align=right nowrap>| . $locale->text('Shipping Point') . qq|</th>
 		<td colspan=3><input name="shippingpoint" size="35" value="$form->{shippingpoint}"></td>
 	      </tr>
-	      <tr>
+	      <tr class="shipvia-row">
 		<th align=right nowrap>| . $locale->text('Ship via') . qq|</th>
 		<td colspan=3><input name="shipvia" size="35" value="$form->{shipvia}"></td>
 	      </tr>
@@ -546,24 +575,28 @@ sub form_header {
 	  <td align=right>
 	    <table>
 	      $employee
-	      <tr>
+	      <tr class="invnumber-row">
 		<th align=right nowrap>| . $locale->text('Invoice Number') . qq|</th>
 		<td><input name="invnumber" size="20" value="$form->{invnumber}"></td>
 	      </tr>
-	      <tr>
+	      <tr class="ordnumber-row">
 		<th align=right nowrap>| . $locale->text('Order Number') . qq|</th>
 		<td><input name="ordnumber" size="20" value="$form->{ordnumber}"></td>
 <input type=hidden name="quonumber" value="$form->{quonumber}">
 	      </tr>
-	      <tr>
+	      <tr class="crdate-row">
+		<th align=right>| . $locale->text('Invoice Created') . qq|</th>
+		<td><input class="date" name="crdate" size="11" title="$myconfig{dateformat}" value="$form->{crdate}" readonly></td>
+	      </tr>
+	      <tr class="transdate-row">
 		<th align=right>| . $locale->text('Invoice Date') . qq|</th>
 		<td><input class="date" name="transdate" size="11" title="$myconfig{dateformat}" value="$form->{transdate}"></td>
 	      </tr>
-	      <tr>
+	      <tr class="duedate-row">
 		<th align=right>| . $locale->text('Due Date') . qq|</th>
 		<td><input class="date" name="duedate" size="11" title="$myconfig{dateformat}" value="$form->{duedate}"></td>
 	      </tr>
-	      <tr>
+	      <tr class="ponumber-row">
 		<th align=right nowrap>| . $locale->text('PO Number') . qq|</th>
 		<td><input name="ponumber" size="20" value="$form->{ponumber}"></td>
 	      </tr>
@@ -817,7 +850,7 @@ qq|<textarea name="intnotes" rows="$rows" cols="40" wrap="soft">$form->{intnotes
   </tr>
   <tr>
     <td>
-      <table width=100%>
+      <table width=100% id="invoice-payments-table">
 	<tr class=listheading>
 	  <th colspan=6 class=listheading>| . $locale->text('Payments') . qq|</th>
 	</tr>
@@ -844,8 +877,9 @@ qq|<textarea name="intnotes" rows="$rows" cols="40" wrap="soft">$form->{intnotes
     print "
         </tr>
 ";
-
     $form->{paidaccounts}++ if ( $form->{"paid_$form->{paidaccounts}"} );
+    $form->{"selectAR_paid"} =~ /($form->{cash_accno}--[^<]*)/;
+    $form->{"AR_paid_$form->{paidaccounts}"} = $1;
     for $i ( 1 .. $form->{paidaccounts} ) {
 
         $form->hide_form("cleared_$i");
@@ -915,6 +949,7 @@ qq|<td align="center"><input name="memo_$i" size="11" value="$form->{"memo_$i"}"
     my $formname = { name => 'formname',
                      options => [
                                   {text=> $locale->text('Sales Invoice'), value => 'invoice'},
+                                  {text=> $locale->text('Packing List'), value => 'packing_list'},
                                 ]
                    };
     print_select($form, $formname);
@@ -1002,7 +1037,7 @@ qq|<td align="center"><input name="memo_$i" size="11" value="$form->{"memo_$i"}"
             if ( $transdate > $closedto ) {
                 # Added on_hold, by Aurynn.
                 for ( "update", "ship_to", "post",
-                    "schedule", "on_hold" )
+                    "schedule")
                 {
                     $allowed{$_} = 1;
                 }
@@ -1096,6 +1131,8 @@ qq|<td align="center"><input name="memo_$i" size="11" value="$form->{"memo_$i"}"
 
 sub update {
     on_update();#TODO meaning ?
+    delete $form->{"partnumber_$form->{delete_line}"} if $form->{delete_line};
+
     $form->{taxes} = {};
     $form->{exchangerate} =
       $form->parse_amount( \%myconfig, $form->{exchangerate} );
@@ -1320,6 +1357,7 @@ sub update {
             }
         }
     }
+    display_form();
 }
 
 sub post {
@@ -1341,8 +1379,7 @@ sub post {
         &update;
         $form->finalize_request();
     }
-
-    &validate_items;
+    check_form(1);
 
     $closedto  = $form->datetonum( \%myconfig, $form->{closedto} );
     $transdate = $form->datetonum( \%myconfig, $form->{transdate} );
@@ -1505,7 +1542,7 @@ sub save_info {
 
 		}
 		
-	    }    
+	    }   
 
 	    if ($form->{callback}){
 		print "Location: $form->{callback}\n";
@@ -1516,7 +1553,7 @@ sub save_info {
 			. qq|here</a>.</body></html>|;
 
 	    } else {
-		$form->info($locale->text('Draft Posted'));
+                edit();
 	    }
 
 }

@@ -159,6 +159,8 @@ use LedgerSMB::Sysconfig;
 use LedgerSMB::Mailer;
 use LedgerSMB::Company_Config;
 use LedgerSMB::Locale;
+use File::Copy "cp";
+use File::Copy;
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB::Template');
 
@@ -357,6 +359,8 @@ sub output {
         $method = '' if !defined $method;
 	if ('email' eq lc $method) {
 		$self->_email_output;
+        } elsif (defined $args{OUT} and $args{printmode} eq '>'){ # To file
+                cp($self->{rendered}, $args{OUT}); 
 	} elsif ('print' eq lc $method) {
 		$self->_lpr_output;
 	} elsif (defined $self->{output} or lc $method eq 'screen') {
@@ -367,11 +371,22 @@ sub output {
 	} else {
 		$self->_http_output_file;
 	}
+        binmode (STDOUT, ':utf8'); # Reset binmode *after* sending file to
+                                   # email, printer, or screen.  For screen
+                                   # this should have no effect.  For printer
+                                   # or email, this should fix bug 884. --CT 
 }
 
 sub _http_output {
 	my ($self, $data) = @_;
 	$data ||= $self->{output};
+        my $cache = 1; # default
+        if ($LedgerSMB::App_State::DBH){
+            # we have a db connection, so are logged in.  
+            # Let's see about caching.
+            $cache = 0 if LedgerSMB::Setting->get('disable_back');
+        }
+        
 	if ($self->{format} !~ /^\p{IsAlnum}+$/) {
 		throw Error::Simple "Invalid format";
 	}
@@ -396,6 +411,11 @@ sub _http_output {
 		$disposition .= qq|\nContent-Disposition: attachment; filename="$name"|;
 	}
         if (!$ENV{LSMB_NOHEAD}){
+            if (!$cache){
+                print "Cache-Control: no-store, no-cache, must-revalidate\n";
+                print "Cache-Control: post-check=0, pre-check=0, false\n";
+                print "Pragma: no-cache\n";
+            }
  	    if ($self->{mimetype} =~ /^text/) {
 		print "Content-Type: $self->{mimetype}; charset=utf-8$disposition\n\n";
 	    } else {

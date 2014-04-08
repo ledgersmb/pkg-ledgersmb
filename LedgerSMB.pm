@@ -222,7 +222,8 @@ use utf8;
 $CGI::Simple::POST_MAX = -1;
 
 package LedgerSMB;
-our $VERSION = '1.3.25';
+use base 'LedgerSMB::Request';
+our $VERSION = '1.3.39';
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB');
 
@@ -242,7 +243,7 @@ sub new {
     $logger->debug("Begin called from \$filename=$filename \$line=$line \$type=$type \$argstr=$argstr ref argstr=".ref $argstr);
 
     $self->{version} = $VERSION;
-    $self->{dbversion} = "1.3.25";
+    $self->{dbversion} = $VERSION;
     
     bless $self, $type;
 
@@ -332,7 +333,7 @@ sub new {
     #HV  why not trying _db_init also in case of login authenticate? quid logout-function?
     if ($self->{script} eq 'login.pl' &&
         ($self->{action} eq 'authenticate'  || $self->{action} eq '__default' 
-		|| !$self->{action})){
+		|| !$self->{action} || ($self->{action} eq 'logout_js'))){
         return $self;
     }
     if ($self->{script} eq 'setup.pl'){
@@ -386,7 +387,7 @@ sub new {
     $self->{_locale}=LedgerSMB::Locale->get_handle($self->{_user}->{language})
      or $self->error(__FILE__.':'.__LINE__.": Locale not loaded: $!\n");
 
-    $self->{stylesheet} = $self->{_user}->{stylesheet};
+    $self->{stylesheet} = $self->{_user}->{stylesheet} unless $self->{stylesheet};
 
     $logger->debug("End");
 
@@ -846,6 +847,7 @@ sub call_procedure {
 	for (0 .. $#names){
             #   numeric            float4/real
             if ($types[$_] == 3 or $types[$_] == 2) {
+                $ref->{$names[$_]} ||=0;
                 $ref->{$names[$_]} = Math::BigFloat->new($ref->{$names[$_]});
             }
         }
@@ -972,6 +974,7 @@ sub _db_init {
     }
 
     my $creds = LedgerSMB::Auth::get_credentials();
+    return unless $creds->{login};
   
     $self->{login} = $creds->{login};
     if (!$self->{company}){ 
@@ -984,8 +987,11 @@ sub _db_init {
     # Just in case, however, I think it is a good idea to include the DBI
     # error string.  CT
     $self->{dbh} = DBI->connect(
-        "dbi:Pg:dbname=$dbname", "$creds->{login}", "$creds->{password}", { AutoCommit => 0 }
+        qq|dbi:Pg:dbname="$dbname"|, "$creds->{login}", "$creds->{password}",
+        { AutoCommit => 0, pg_server_prepare => 0, pg_enable_utf8 => 1 }
     ); 
+    $LedgerSMB::App_State::DBH = $self->{dbh};
+    $LedgerSMB::App_State::DBName = $dbname;
     $logger->debug("DBI->connect dbh=$self->{dbh}");
     my $dbi_trace=$LedgerSMB::Sysconfig::DBI_TRACE;
     if($dbi_trace)
@@ -1005,10 +1011,6 @@ sub _db_init {
     elsif (!$self->{dbh}){
         $self->_get_password;
     }
-    $self->{dbh}->{pg_server_prepare} = 0;
-    $self->{dbh}->{pg_enable_utf8} = 1;
-    $LedgerSMB::App_State::DBH = $self->{dbh};
-    $LedgerSMB::App_State::DBName = $dbname;
 
     # This is the general version check
     my $sth = $self->{dbh}->prepare("
@@ -1023,7 +1025,9 @@ sub _db_init {
 
 
     ($self->{_role_prefix}) = $sth->fetchrow_array;
-    if ($dbversion ne $self->{dbversion}){
+    
+    my $ignore_version = LedgerSMB::Setting->get('ignore_version');
+    if (($dbversion ne $self->{dbversion}) and !$ignore_version){
         $self->error("Database is not the expected version.  Was $dbversion, expected $self->{dbversion}.  Please re-run setup.pl against this database to correct.<a href='setup.pl'>setup.pl</a>");
     }
 

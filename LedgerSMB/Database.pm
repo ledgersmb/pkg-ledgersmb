@@ -15,13 +15,12 @@ version.  See the COPYRIGHT and LICENSE files for more information.
 
 =head1 METHODS
 
-=over
-
 =cut
 
 # Methods are documented inline.  
 
 package LedgerSMB::Database;
+use DBI;
 
 our $VERSION = '1';
 
@@ -42,6 +41,8 @@ my $temp = $LedgerSMB::Sysconfig::tempdir;
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB::Database');
 
+=over
+
 =item LedgerSMB::Database->new({dbname = $dbname, countrycode = $cc, chart_name = $name, company_name = $company, username = $username, password = $password})
 
 This function creates a new database management object with the specified
@@ -55,6 +56,8 @@ a chart name as well.
 Note that the arguments can be any hashref. If it is a LedgerSMB object,
 however, it will attempt to copy all attributes beginning with _ into the 
 current object (_user, _locale, etc).
+
+=back
 
 =cut
 
@@ -76,6 +79,8 @@ sub new {
     return $self;
 }
 
+=over
+
 =item base_backup
 
 This routine connects to the database using pg_dumpall and returns a plain text,
@@ -91,6 +96,8 @@ yyyy-mm-dd format.
 
 It returns the full path of the resulting backup file on success, or undef on 
 failure.
+
+=back
 
 =cut
 
@@ -125,6 +132,8 @@ sub base_backup {
     return $backupfile;
 }
 
+=over
+
 =item db_backup()
 
 This routine connects to the database using pg_dump and creates a Pg-native 
@@ -138,6 +147,8 @@ yyyy-mm-dd format.
 
 It returns the full path of the resulting backup file on success, or undef on 
 failure.
+
+=back
 
 =cut
 
@@ -172,6 +183,8 @@ sub db_backup {
     return $backupfile;
 }
 
+=over
+
 =item get_info()
 
 This routine connects to the database using DBI and attempts to determine if a 
@@ -181,9 +194,11 @@ It returns a hashref with the following keys set:
 =over
 
 =item username
+
 Set to the user of the current connection
 
 =item appname
+
 Set to the current application name, one of:
 
 =over
@@ -197,11 +212,13 @@ Set to the current application name, one of:
 =back
 
 =item version
+
 The current version of the application.  One of:
 
 =over
 
 =item legacy
+
 SQL-Ledger 2.6 and below, and LedgerSMB 1.1 and below
 
 =item 1.2 (LedgerSMB only)
@@ -219,18 +236,23 @@ SQL-Ledger 2.6 and below, and LedgerSMB 1.1 and below
 =over
 
 =item full_version
+
 The full version number of the database version
 
 =item status
+
 Current status of the db.  One of:
 
 =item exists
+
 The database was confirmed to exist
 
 =item does not exist
+
 The database was confirmed to not exist
 
 =item undef
+
 The database could not be confirmed to exist, or not
 
 =back
@@ -270,10 +292,11 @@ Finally, it is important to note that LedgerSMB 1.1 and prior, and SQL-Ledger
 2.6.x and prior are lumped under appname => 'ledgersmb' and version => 'legacy',
 though the fullversion may give you an idea of what the actual version is run.
 
+=back
+
 =cut 
 
 sub get_info {
-    use DBI;
     use LedgerSMB::Auth;
     my $self = shift @_;
     my $retval = { # defaults
@@ -320,20 +343,42 @@ sub get_info {
        $sth = $dbh->prepare("SELECT SESSION_USER");
        $sth->execute;
        $retval->{username} = $sth->fetchrow_array();
-       # Legacy SL and LSMB
-       $sth = $dbh->prepare('SELECT version FROM defaults');
-       #avoid DBD::Pg::st fetchrow_hashref failed: no statement executing
-       my $rv=$sth->execute();     
-       if(defined($rv))
-       {
-        if (my $ref = $sth->fetchrow_hashref('NAME_lc')){
-           if ($ref->{version}){
-               $retval->{appname} = 'ledgersmb';
-               $retval->{version} = 'legacy';
-               $retval->{full_version} = $ref->{version};
-               return $retval;
-           }
-        }
+
+       # Is there a chance this is an SL or LSMB legacy version?
+       # (ie. is there a VERSION column to query in the DEFAULTS table?
+       $sth = $dbh->prepare(
+	   qq|select count(*)=1
+	        from pg_attribute attr
+	        join pg_class cls
+	          on cls.oid = attr.attrelid
+	        join pg_namespace nsp
+	          on nsp.oid = cls.relnamespace
+	       where cls.relname = 'defaults'
+	         and attr.attname='version'
+                 and nsp.nspname = 'public'
+             |
+	   );
+       $sth->execute();
+       my ($have_version_column) =
+	   $sth->fetchrow_array();
+       $sth->finish();
+
+       if ($have_version_column) {
+	   # Legacy SL and LSMB
+	   $sth = $dbh->prepare('SELECT version FROM defaults');
+	   #avoid DBD::Pg::st fetchrow_hashref failed: no statement executing
+	   my $rv=$sth->execute();     
+	   if(defined($rv))
+	   {
+	       if (my $ref = $sth->fetchrow_hashref('NAME_lc')){
+		   if ($ref->{version}){
+		       $retval->{appname} = 'ledgersmb';
+		       $retval->{version} = 'legacy';
+		       $retval->{full_version} = $ref->{version};
+		       return $retval;
+		   }
+	       }
+	   }
        }
        $dbh->rollback;
        # LedgerSMB 1.2 and above
@@ -359,8 +404,8 @@ sub get_info {
        $sth->execute('version');
        if (my $ref = $sth->fetchrow_hashref('NAME_lc')){
             $retval->{appname} = 'sql-ledger';
-            $retval->{full_version} = $ref->{fldname};
-            $retval->{version} = $ref->{fldname};
+            $retval->{full_version} = $ref->{fldvalue};
+            $retval->{version} = $ref->{fldvalue};
             $retval->{version} =~ s/(\d+\.\d+).*/$1/g;
        } else {
             $retval->{appname} = 'unknown';
@@ -373,9 +418,13 @@ sub get_info {
    return $retval;
 }
 
+=over
+
 =item $db->server_version();
 
 Connects to the server and returns the version number in x.y.z format.
+
+=back
 
 =cut
 
@@ -393,6 +442,42 @@ sub server_version {
     return $retval;
 }
 
+=over
+
+=item $db->list()
+
+Lists available databases except for those named "postgres" or starting with
+"template"
+
+Returns a list of strings of db names.
+
+=back
+
+=cut
+
+sub list {
+    my ($self) = @_;
+    my $creds = LedgerSMB::Auth->get_credentials();
+    my $dbh = DBI->connect(
+        "dbi:Pg:dbname=postgres", 
+         "$creds->{login}", "$creds->{password}", { AutoCommit => 0 }
+    );
+    my $resultref = $dbh->selectall_arrayref(
+        "SELECT datname FROM pg_database 
+          WHERE datname <> 'postgres' AND datname NOT LIKE 'template%'
+       ORDER BY datname"
+    );
+    my @results;
+    for my $r (@$resultref){
+        push @results, @$r;
+    }
+
+    $dbh->disconnect;
+    return @results;
+}
+
+=over
+
 =item $db->create();
 
 Creates a database and loads the contrib files.  This is done from template0, 
@@ -404,6 +489,8 @@ temporary directory with all the output from the psql files.
 
 In DEBUG mode, will show all lines to STDERR.  In ERROR logging mode, will 
 display only those lines containing the word ERROR.
+
+=back
 
 =cut
 
@@ -420,7 +507,6 @@ sub create {
     # 
     # Hat tip:  irc user nwnw -- CT
 
-    use DBI;
     my $dbh = DBI->connect('dbi:Pg:dbname=template1');
 
     $dbh->{RaiseError} = 1;
@@ -454,9 +540,36 @@ sub create {
      return $rc;
 }
 
+=over
+
+=item $db->copy('new_name')
+
+Copies the existing database to a new name.
+
+=back
+
+=cut
+
+sub copy {
+    my ($self, $new_name) = @_;
+    my $dbh = DBI->connect('dbi:Pg:dbname=postgres', 
+         $self->{username}, $self->{password},
+         { AutoCommit => 1, PrintError => 1, }
+    );
+    my $dbname = $dbh->quote_identifier($self->{company_name});
+    $new_name = $dbh->quote_identifier($new_name);
+    my $rc = $dbh->do("CREATE DATABASE $new_name WITH TEMPLATE $dbname");
+    $dbh->disconnect;
+    return $rc;
+}
+
+=over
+
 =item $db->load_modules($loadorder)
 
 Loads or reloads sql modules from $loadorder
+
+=back
 
 =cut
 
@@ -476,10 +589,14 @@ sub load_modules {
     close (LOADORDER);
 }
 
+=over 
+
 =item $db->exec_script({script => 'path/to/file', logfile => 'path/to/log'})
 
 Executes the script.  Returns 0 if successful, 1 if there are errors suggesting
 that types are already created, and 2 if there are other errors.
+
+=back
 
 =cut
 
@@ -503,9 +620,13 @@ sub exec_script {
     return $test;
 }
 
+=over
+
 =item $db->create_and_load();
 
 Creates a database and then loads it.
+
+=back
 
 =cut
 
@@ -515,21 +636,42 @@ sub create_and_load(){
     $self->load_modules('LOADORDER');
 }
 
+=over
 
 =item $db->process_roles($rolefile);
 
 Loads database Roles templates.
 
+=back
+
 =cut
 
 sub process_roles {
     my ($self, $rolefile) = @_;
+    my $company = $self->{company_name};
+
+    # DB connection logic below somewhat obtuse but only used for 1.3
+    # since 1.4 no longer needs special processing for Roles.sql.
+    # This prevents connection leakage though.
+
+    my $dbh = $LedgerSMB::App_State::DBH;
+    $dbh = DBI->connect(
+        qq|dbi:Pg:dbname="$self->{company_name}"|,
+         $self->{username}, $self->{password},
+         { AutoCommit => 0, PrintError => $logger->is_warn(), }
+    ) unless $dbh; 
+    $LedgerSMB::App_State::DBH = $dbh unless $LedgerSMB::App_State::DBH;
+
+    my $prefix = LedgerSMB::Setting->get('role_prefix');
+    $prefix =~ s/^lsmb_//;
+    $prefix =~ s/__$//;
+    $company = $prefix if $prefix;
 
     open (ROLES, '<', "sql/modules/$rolefile");
     open (TROLES, '>', "$temp/lsmb_roles.sql");
 
     for my $line (<ROLES>){
-        $line =~ s/<\?lsmb dbname \?>/$self->{company_name}/;
+        $line =~ s/<\?lsmb dbname \?>/$company/;
         print TROLES $line;
     }
 
@@ -540,9 +682,68 @@ sub process_roles {
                         log    => "$temp/dblog"});
 }
 
-=item $db->log_from_logfile();
+=over
 
-Process log file and log relevant pieces via the log classes.
+=item $db->lsmb_info()
+
+This routine retrieves general stats about the database and returns the output
+as a hashref with the following key/value pairs:
+
+=over
+
+=item ar_rows 
+
+=item ap_rows
+
+=item gl_rows
+
+=item acc_trans_rows
+
+=item eca_rows
+
+=item oe_rows
+
+=item transactions_rows
+
+=item users_rows
+
+=back
+
+=back
+
+=cut
+
+sub lsmb_info {
+    my ($self) = @_;
+    my @tables = qw(ar ap gl acc_trans entity_credit_account oe transactions 
+                    users);
+    my $retval = {};
+    my $qtemp = 'SELECT count(*) FROM TABLE';
+    my $dbh = DBI->connect(
+        qq|dbi:Pg:dbname="$self->{company_name}"|,  
+         $self->{username}, $self->{password},
+         { AutoCommit => 0, PrintError => $logger->is_warn(), }
+    );
+    for my $t (@tables) {
+        my $query = $qtemp;
+        $query =~ s/TABLE/$t/;
+        my ($count) = $dbh->selectrow_array($query);
+        my $key = $t;
+        $key = 'eca' if $t eq 'entity_credit_account';
+        $retval->{"${key}_count"} = $count;
+    }
+    return $retval;
+}
+
+=over
+
+=item $db->db_tests()
+
+This routine runs general db tests.
+
+TODO
+
+=back
 
 =cut
 

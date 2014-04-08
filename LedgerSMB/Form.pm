@@ -67,10 +67,12 @@ use Cwd;
 use File::Copy;
 use LedgerSMB::Company_Config;
 use LedgerSMB::App_State;
+use LedgerSMB::Setting;
 
 use charnames qw(:full);
 use open ':utf8';
 package Form;
+use base 'LedgerSMB::Request';
 use utf8;
 
 use LedgerSMB::Log;
@@ -164,8 +166,8 @@ sub new {
     #menubar will be deprecated, replaced with below
     $self->{lynx} = 1 if ( ( defined $self->{path} ) && ( $self->{path} =~ /lynx/i ) );
 
-    $self->{version}   = "1.3.25";
-    $self->{dbversion} = "1.3.25";
+    $self->{version}   = "1.3.39";
+    $self->{dbversion} = "1.3.39";
 
     bless $self, $type;
 
@@ -604,6 +606,12 @@ sub header {
     my ( $self, $init, $headeradd ) = @_;
 
     return if $self->{header} or $ENV{LSMB_NOHEAD};
+    my $cache = 1; # default
+    if ($LedgerSMB::App_State::DBH){
+        # we have a db connection, so are logged in.  Let's see about caching.
+        $cache = 0 if LedgerSMB::Setting->get('disable_back');
+    }
+
     $ENV{LSMB_NOHEAD} = 1; # Only run once.
     my ( $stylesheet, $favicon, $charset );
 
@@ -634,9 +642,14 @@ qq|<meta http-equiv="content-type" content="text/html; charset=$self->{charset}"
 		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-	<title>$self->{titlebar}</title>
+	<title>$self->{titlebar}</title> |;
+        if (!$cache){
+            print qq|
 	<meta http-equiv="Pragma" content="no-cache" />
-	<meta http-equiv="Expires" content="-1" />
+	<meta http-equiv="Cache-Control" content="must-revalidate" />
+	<meta http-equiv="Expires" content="-1" /> |;
+        }
+        print qq|
 	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 	$stylesheet
 	$charset
@@ -1085,6 +1098,8 @@ sub db_parse_numeric {
     for (0 .. $#names){
         #   numeric            float4/real
         if ($types[$_] == 3 or $types[$_] ==2) {
+            $arrayref->[$_] ||= 0 if defined $arrayref;
+            $hashref->{$names[$_]} ||=0 if defined $hashref;
             $arrayref->[$_] = Math::BigFloat->new($arrayref->[$_]) 
               if defined $arrayref;
             $hashref->{$names[$_]} = Math::BigFloat->new($hashref->{$names[$_]})
@@ -1361,26 +1376,20 @@ sub db_init {
     my ( $self, $myconfig ) = @_;
     $logger->trace("begin");
 
-    # Handling of HTTP Basic Auth headers
-    my $auth = $ENV{'HTTP_AUTHORIZATION'};
-	# Send HTTP 401 if the authorization header is missing
-    LedgerSMB::Auth::credential_prompt unless ($auth);
-	$auth =~ s/Basic //i; # strip out basic authentication preface
-    $auth = MIME::Base64::decode($auth);
-    my ($login, $password) = split(/:/, $auth);
+    my $creds = LedgerSMB::Auth::get_credentials;
+    my ($login, $password) = ($creds->{login}, $creds->{password});
+    LedgerSMB::Auth::credential_prompt unless ($login) and ($login ne 'logout');
     $self->{login} = $login;
     if (!$self->{company}){ 
         $self->{company} = $LedgerSMB::Sysconfig::default_db;
     }
     my $dbname = $self->{company};
-    my $dbconfig = { dbconnect => "dbi:Pg:dbname=$dbname",
-                  dbuser    => $login,
-                  dbpasswd  => $password
-    };
+    $self->{dbh} = DBI->connect(qq|dbi:Pg:dbname="$dbname"|, $login, $password,
+           { AutoCommit => 0, pg_enable_utf8 => 1, pg_server_prepare => 0 })
+        || LedgerSMB::Auth::credential_prompt();
 
-    $self->{dbh} = $self->dbconnect_noauto($dbconfig) || $self->dberror();
+    $LedgerSMB::App_State::DBH = $self->{dbh};
     $logger->debug("acquired dbh \$self->{dbh}=$self->{dbh}");
-    $self->{dbh}->{pg_server_prepare} = 0;
     my $dbh = $self->{dbh};
 
     my $datequery = 'select dateformat from user_preference join users using(id)
@@ -1404,7 +1413,8 @@ sub db_init {
              WHERE setting_key = 'version'");
     $sth->execute;
     my ($dbversion) = $sth->fetchrow_array;
-    if ($dbversion ne $self->{dbversion}){
+    my $ignore_version = LedgerSMB::Setting->get('ignore_version');
+    if (($dbversion ne $self->{dbversion}) and !$ignore_version){
         $self->error("Database is not the expected version.");
     }
 
@@ -1571,9 +1581,9 @@ sub dbconnect {
 
     # connect to database
     my $dbh = DBI->connect( $myconfig->{dbconnect},
-        $myconfig->{dbuser}, $myconfig->{dbpasswd} )
+        $myconfig->{dbuser}, $myconfig->{dbpasswd},
+        { AutoCommit => 0, pg_server_prepare => 0, pg_enable_utf8 => 1 })
       or $self->dberror;
-    $dbh->{pg_enable_utf8} = 1;
 
     # set db options
     if ( $myconfig->{dboptions} ) {
@@ -1597,7 +1607,7 @@ sub dbconnect_noauto {
     # connect to database
     my $dbh = DBI->connect(
         $myconfig->{dbconnect}, $myconfig->{dbuser},
-        $myconfig->{dbpasswd}, { AutoCommit => 0 }
+        $myconfig->{dbpasswd}, { AutoCommit => 0, pg_enable_utf8 => 1 }
     ) or $self->dberror;
     #HV trying to trace DBI->connect statements
     $logger->debug("DBI->connect dbh=$dbh");
@@ -1607,8 +1617,6 @@ sub dbconnect_noauto {
      $logger->debug("\$dbi_trace=$dbi_trace");
      $dbh->trace(split /=/,$dbi_trace,2);#http://search.cpan.org/~timb/DBI-1.616/DBI.pm#TRACING
     }
-
-    $dbh->{pg_enable_utf8} = 1;
 
     # set db options
     if ( $myconfig->{dboptions} ) {
@@ -1841,7 +1849,7 @@ $dbh is unused.
 
 sub add_shipto {
   
-  	my ( $self,$dbh,$id ) = @_;
+  	my ( $self,$dbh,$id, $oe) = @_;
         if (! $self->{locationid}) {
 		return;
 	}
@@ -1852,10 +1860,18 @@ sub add_shipto {
 			|;
 
         my $sth = $self->{dbh}->prepare($query) || $self->dberror($query);
-
+        my $trans_id;
+        my $oe_id;
+        if ($oe){
+           $trans_id = undef;
+           $oe_id = $id;
+        } else {
+           $trans_id = $id;
+           $oe_id = undef;
+        }  
         $sth->execute(
-                        undef,                     
-			$self->{id},
+                        $trans_id,                     
+			$oe_id,
 			$self->{locationid}
              
 		      ) || $self->dberror($query);
@@ -1865,6 +1881,32 @@ sub add_shipto {
 
      
     
+}
+
+=item $form->get_shipto ($location_id)
+
+Returns the shipto record of the corresponding location, and attaches the info
+as expected for the templates
+
+=cut
+
+sub get_shipto {
+    my ($self, $location_id) = @_;
+    my $query = qq| select line_one, line_two, city, state, mail_code,
+                           c.name as country 
+                      from location l 
+                      join country c on c.id = l.country_id
+                     where l.id = ? |;
+    my $sth = $self->{dbh}->prepare($query);
+    $sth->execute($location_id);
+    my $ref = $sth->fetchrow_hashref('NAME_lc');
+    $self->{shiptoaddress1} = $ref->{line_one};
+    $self->{shiptoaddress2} = $ref->{line_two};
+    $self->{shiptocity} = $ref->{city};
+    $self->{shiptostate} = $ref->{state};
+    $self->{shiptozipcode} = $ref->{mail_code};
+    $self->{shiptocountry} = $ref->{country};
+    return $ref;    
 }
 
 
@@ -1960,7 +2002,7 @@ sub get_name {
                                l.city, etl.credit_id
                           FROM eca_to_location etl
                           JOIN location l ON etl.location_id = l.id
-                          WHERE etl.location_class = 2) ecl
+                          WHERE etl.location_class = 1) ecl
                         ON (c.id = ecl.credit_id)
              LEFT JOIN country_tax_form ctf ON (c.taxform_id = ctf.id)
 		 WHERE (lower(e.name) LIKE ?
@@ -2234,6 +2276,8 @@ sub all_employees {
     my $dbh       = $self->{dbh};
     my @whereargs = ();
 
+    $self->{all_employee}=();#tshvr4 init properly
+
     # setup employees/sales contacts
     my $query = qq|
 		SELECT id, name
@@ -2290,6 +2334,8 @@ sub all_projects {
 
     my $where = "1 = 1";
 
+    $self->{all_project}=();#tshvr4 init properly
+
     $where = qq|id NOT IN (SELECT id
 							 FROM parts
 							WHERE project_id > 0)| if !$job;
@@ -2304,7 +2350,7 @@ sub all_projects {
 			SELECT pr.*, t.description AS translation
 			FROM project pr
 			LEFT JOIN translation t ON (t.trans_id = pr.id)
-			WHERE t.language_code = ?|;
+			          AND t.language_code = ?|;
         push( @queryargs, $self->{language_code} );
     }
 
@@ -2316,21 +2362,8 @@ sub all_projects {
 
     $query .= qq| ORDER BY projectnumber|;
  
-    #my $sth = $dbh->prepare($query);
-    #$sth->execute(@queryargs) || $self->dberror($query);
-    
-     #temporary query
-
-     $query=qq|SELECT pr.*, e.name AS customer
-               FROM project pr
-               LEFT JOIN entity_credit_account c ON (c.id = pr.credit_id) 
-               left join entity e on(e.id=c.entity_id)
-              |;
-my $sth = $dbh->prepare($query);
-    $sth->execute() || $self->dberror($query);
-    #temparary query	
-
-    
+    my $sth = $dbh->prepare($query);
+    $sth->execute(@queryargs) || $self->dberror($query);
 
     @{ $self->{all_project} } = ();
 
@@ -2363,6 +2396,8 @@ sub all_departments {
 
     my $where = "1 = 1";
 
+    $self->{all_department}=();#tshvr4 init properly 
+
     if ($vc) {
         if ( $vc eq 'customer' ) {
             $where = " role = 'P'";
@@ -2372,13 +2407,8 @@ sub all_departments {
     my $query = qq|SELECT id, description
 					 FROM department
 					WHERE $where
-				 ORDER BY id|;
+				 ORDER BY description|;
 
-#temporary
- $query = qq|SELECT id, description
-					 FROM department
-				 ORDER BY id|;
-#end
 
     my $sth = $dbh->prepare($query);
     $sth->execute || $self->dberror($query);
@@ -2437,6 +2467,8 @@ sub all_years {
 
     my ( $self, $myconfig ) = @_;
 
+    $self->{all_month}=();#tshvr4 init properly
+ 
     my $dbh = $self->{dbh};
     $self->{all_years} = [];
 
@@ -2530,6 +2562,8 @@ sub create_links {
     my $ref;
     my $key;
 
+    $self->{"${module}_links"}=();#tshvr4 init properly
+
     # now get the account numbers
     $query = qq|SELECT accno, description, link
 				  FROM chart
@@ -2579,7 +2613,8 @@ sub create_links {
 				a.amount AS oldinvtotal, a.paid AS oldtotalpaid,
 				a.person_id, e.name AS employee, 
 				c.language_code, a.ponumber, a.reverse,
-                                a.approved, ctf.default_reportable
+                                a.approved, ctf.default_reportable, 
+                                a.on_hold, a.crdate
 			FROM $arap a
 			JOIN entity_credit_account c 
 				ON (a.entity_credit_account = c.id)
@@ -2704,7 +2739,7 @@ sub create_links {
             $self->lastname_used( $myconfig, $dbh, $vc, $module );
         }
     }
-    for (qw(separate_duties current_date curr closedto revtrans)) {
+    for (qw(separate_duties current_date curr closedto revtrans lock_description)) {
         if ($_ eq 'closedto'){
             $query = qq|
 				SELECT value::date FROM defaults
@@ -3243,7 +3278,7 @@ $dbh2 is not used.
 
 sub save_recurring {
 
-    my ( $self, $dbh2, $myconfig ) = @_;
+    my ( $self, $dbh2, $myconfig, $is_oe) = @_;
 
     my $dbh = $self->{dbh};
 
@@ -3343,11 +3378,11 @@ sub save_recurring {
 			INSERT INTO recurring 
 				(id, reference, startdate, enddate, nextdate, 
 				repeat, unit, howmany, payment)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)|;
+			VALUES (?, null, ?, ?, ?, ?, ?, ?, ?)|;
 
         $sth = $dbh->prepare($query);
         $sth->execute(
-            $self->{id}, $s{reference}, $s{startdate},
+            $self->{id}, $s{startdate},
             $enddate,    $nextdate,     $s{repeat},
             $s{unit},    $s{howmany},   $s{payment}
         );
@@ -3463,11 +3498,7 @@ sub update_defaults {
 
     my ( $self, $myconfig, $fld,$dbh_parm,$nocommit) = @_;
 
-    if ( !$self->{dbh} && $self ) {
-        $self->db_init($myconfig);
-    }
-
-    #my $dbh = $self->{dbh};
+    my $dbh = $LedgerSMB::App_State::DBH;
 
     #if ( !$self ) { #if !$self, previous statement would already have failed!
     #    $dbh = $_[3];
@@ -3572,22 +3603,17 @@ sub update_defaults {
             }
 
             if ( $param =~ /<\?lsmb (yy|mm|dd)/i ) {
-                my $test_param = $1;
 		# SC: XXX Does this even work anymore?
                 my $p = $param;
-                $p =~ s/(<|>|%)//g;
-                my $spc = $p;
-                $spc =~ s/\w//g;
-                $spc = substr( $spc, 0, 1 );
+                $p =~ s/lsmb//;
+                $p =~ s/[^YyMmDd]//g;
                 my %d = ( yy => 1, mm => 2, dd => 3 );
-                my @p = ();
+                my $str = $p;
 
                 my @a = $self->split_date( $myconfig->{dateformat},
                     $self->{transdate} );
-                for my $k( sort keys %d ) { push @p, $a[ $d{$k} ] 
-                                 if ( $param =~ /$k/i ) }
-                $str = join $spc, @p;
-                $var =~ s/<\?lsmb $test_param \?>/$str/i;
+                for my $k( keys %d ) { $str =~ s/$k/$a[ $d{$k} ]/i}
+                $var =~ s/\Q$param\E/$str/i;
             }
 
             if ( $param =~ /<\?lsmb curr/i ) {
@@ -3607,7 +3633,7 @@ sub update_defaults {
 
     $self->{dbh}->commit if !defined $nocommit;
 
-    $var;
+    return $var;
 }
 
 =item $form->db_prepare_vars(var1, var2, ..., varI<n>)
@@ -3656,6 +3682,7 @@ sub split_date {
         $mm = substr( "0$mm", -2 );
         $dd = substr( "0$dd", -2 );
     }
+    $dateformat = 'yyyy-mm-dd' if $date =~ /\d{4}\D\d{2}\D\d{2}/;
 
     if ( $dateformat =~ /^yy/ ) {
 

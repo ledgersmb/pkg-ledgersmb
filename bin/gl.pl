@@ -190,7 +190,7 @@ sub display_form
     if (@{$form->{all_project}}){
        unshift @{ $form->{all_project} }, {};
     }
-    $title = $form->{title};
+    $title = $locale->text("$form->{title}");
     if ( $form->{transfer} ) {
         $form->{title} = $locale->text("[_1] Cash Transfer Transaction", $title);
     }
@@ -311,7 +311,7 @@ sub display_form
 			value => $locale->text('Post as Saved') };
 		$a{approve} = 1;
 		$a{edit_and_approve} = 1;
-		if (grep /^lsmb_$form->{company}__draft_modify$/, @{$form->{_roles}}){
+		if (grep /__draft_edit$/, @{$form->{_roles}}){
 		    $button{edit_and_approve} = { 
 			ndx   => 4, 
 			key   => 'O', 
@@ -410,7 +410,6 @@ sub display_row
 			      if ( $i < $form->{rowcount} )
 			      {					      
 						    $temphash1->{accno}=$form->{"accno_$i"};
-						    $temhash1->{fx_transaction}=$form->{"fx_transaction_$i"};
 
 						    if ( $form->{projectset} and $form->{"projectnumber_$i"} ) {
 							$temphash1->{projectnumber}=$form->{"projectnumber_$i"}; 
@@ -420,7 +419,7 @@ sub display_row
 						    
 						    if ( $form->{transfer} and $form->{"fx_transaction_$i"})
 						    {
-							  $hiddens{"fx_transaction_$i"}=1; 
+							$temphash1->{fx_transactionset}=1; 
 						    }
 						    else 
 						    {
@@ -508,12 +507,12 @@ sub generate_report {
     GL->all_transactions( \%myconfig, \%$form );
 
     $href =
-"$form->{script}?action=generate_report&direction=$form->{direction}&oldsort=$form->{oldsort}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}";
+"$form->{script}?action=generate_report&account=$form->{account}&direction=$form->{direction}&oldsort=$form->{oldsort}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}";
 
     $form->sort_order();
 
     $callback =
-"$form->{script}?action=generate_report&direction=$form->{direction}&oldsort=$form->{oldsort}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}";
+"$form->{script}?action=generate_report&account=$form->{account}&direction=$form->{direction}&oldsort=$form->{oldsort}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}";
 
     my %hiddens = (
         'action' => 'generate_report',
@@ -808,6 +807,7 @@ sub generate_report {
     for (@column_index) { $column_data{$_} = " " }
     $column_data{debit} = $form->format_amount( \%myconfig, $totaldebit, 2, " " );
     $column_data{credit} = $form->format_amount( \%myconfig, $totalcredit, 2, " " );
+    $form->{balance} ||= 0;
     $column_data{balance} = $form->format_amount( \%myconfig, $form->{balance} * $ml * $cml, 2, 0 );
 
     $i = 1;
@@ -940,7 +940,7 @@ sub edit {
     $form->{title} = "Edit";
     if($form->{department_id})
     {
-         $form->{department}=$form->{departmentdesc}."--".$form->{department_id};
+         $form->{department}=$form->{department}."--".$form->{department_id};
     }
     $i = 0;
     foreach $ref ( @{ $form->{GL} } ) {
@@ -1061,6 +1061,8 @@ sub update {
     @flds  = qw(accno debit credit projectnumber fx_transaction source memo);
 
     for $i ( 0 .. $form->{rowcount} ) {
+        $form->{"debit_$i"} =~ s/\s+//g; 
+        $form->{"credit_$i"} =~ s/\s+//g; 
         unless ( ( $form->{"debit_$i"} eq "" )
             && ( $form->{"credit_$i"} eq "" ) )
         {
@@ -1110,46 +1112,17 @@ sub update {
 
 
 sub delete {
-
-    my %hiddens;
-    delete $form->{action};
-    foreach (keys %$form) {
-        $hiddens{$_} = $form->{$_} unless ref $form->{$_};
-    }
-
-    $form->{title} = $locale->text('Confirm!');
-    my $query = $locale->text(
-        'Are you sure you want to delete Transaction [_1]',
-        $form->{reference} );
-
-    my @buttons = ({
-        name => 'action',
-        value => 'delete_transaction',
-        text => $locale->text('Yes'),
-        });
-    my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
-        locale => $locale, 
-        template => 'form-confirmation',
-        );
-    $template->render({
-        form => $form,
-        query => $query,
-        hiddens => \%hiddens,
-        buttons => \@buttons,
-    });
+    $form->error($locale->text('Cannot delete posted transaction')) 
+       if ($form->{approved});
+    my $lsmb = LedgerSMB->new();
+    $lsmb->merge($form);
+    my $draft = LedgerSMB::DBObject::Draft->new({base => $lsmb});
+    $draft->delete();
+    delete $form->{id};
+    delete $form->{reference};
+    add();
 }
 
-sub delete_transaction {
-
-    if ( GL->delete_transaction( \%myconfig, \%$form ) ) {
-        $form->redirect( $locale->text('Transaction deleted!') );
-    }
-    else {
-        $form->error( $locale->text('Cannot delete transaction!') );
-    }
-
-}
 
 sub post {
     if (!$form->close_form){
@@ -1174,6 +1147,10 @@ sub post {
     }
 
     if ( GL->post_transaction( \%myconfig, \%$form, $locale) ) {
+        for (0 .. $form->{rowcount}){
+            delete $form->{"credit_$_"};
+            delete $form->{"debit_$_"};
+        }
         edit();
     }
     else {
@@ -1186,6 +1163,8 @@ sub check_balanced {
     my ($form) = @_;
     # add up debits and credits
     for $i ( 0 .. $form->{rowcount} ) {
+        $form->{"debit_$i"} =~ s/\s+//g; 
+        $form->{"credit_$i"} =~ s/\s+//g; 
         $dr = $form->parse_amount( \%myconfig, $form->{"debit_$i"} );
         $cr = $form->parse_amount( \%myconfig, $form->{"credit_$i"} );
 

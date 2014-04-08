@@ -179,6 +179,8 @@ Required data:
 
 =item iban
 
+=item remark
+
 =back
 
 =cut
@@ -293,7 +295,7 @@ sub search_results {
     $request->{title} = $locale->text('Search Results');
     for my $col (qw(l_position l_id l_employeenumber l_salutation 
                     l_first_name l_middle_name l_last_name l_dob 
-                    l_startdate l_enddate l_role l_ssn l_sales l_manager_id
+                    l_start_date l_end_date l_role l_ssn l_sales l_manager_id
                     l_manager_first_name l_manager_last_name)){
         if ($request->{$col}){
            my $pcol = $col;
@@ -309,8 +311,8 @@ employeenumber=> $locale->text('Employee Number'),
   middle_name => $locale->text('Middle Name'),
     last_name => $locale->text('Last Name'),
           dob => $locale->text('DOB'),
-    startdate => $locale->text('Start Date'),
-      enddate => $locale->text('End Date'),
+   start_date => $locale->text('Start Date'),
+     end_date => $locale->text('End Date'),
          role => $locale->text('Role'),
           ssn => $locale->text('SSN'),
         sales => $locale->text('Sales'),
@@ -395,7 +397,7 @@ sub save_contact {
 
 =item save_bank_account
 
-Saves bank account information (bic, iban, id required) and returns to the 
+Saves bank account information (bic, iban, remark, id required) and returns to the 
 edit employee screen
 
 =cut

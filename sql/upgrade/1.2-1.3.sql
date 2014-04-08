@@ -52,10 +52,11 @@ UPDATE lsmb12.customer SET entity_id = coalesce((SELECT min(id) FROM entity WHER
 
 INSERT INTO entity_credit_account
 (entity_id, meta_number, business_id, creditlimit, ar_ap_account_id, 
-	cash_account_id, startdate, enddate, threshold, entity_class)
+	cash_account_id, startdate, enddate, threshold, entity_class,
+        taxincluded)
 SELECT entity_id, vendornumber, business_id, creditlimit, 
        (select id from account where accno = :ap), 
-	NULL, startdate, enddate, 0, 1
+	NULL, startdate, enddate, 0, 1, taxincluded
 FROM lsmb12.vendor WHERE entity_id IS NOT NULL;
 
 UPDATE lsmb12.vendor SET credit_id = 
@@ -66,10 +67,11 @@ UPDATE lsmb12.vendor SET credit_id =
 
 INSERT INTO entity_credit_account
 (entity_id, meta_number, business_id, creditlimit, ar_ap_account_id, 
-	cash_account_id, startdate, enddate, threshold, entity_class)
+	cash_account_id, startdate, enddate, threshold, entity_class, 
+        taxincluded)
 SELECT entity_id, customernumber, business_id, creditlimit,
        (select id from account where accno = :ar),
-	NULL, startdate, enddate, 0, 2
+	NULL, startdate, enddate, 0, 2, taxincluded
 FROM lsmb12.customer WHERE entity_id IS NOT NULL;
 
 UPDATE lsmb12.customer SET credit_id = 
@@ -361,16 +363,28 @@ UPDATE lsmb12.employee set entity_id =
 INSERT INTO person (first_name, last_name, entity_id) 
 select name, name, entity_id FROM lsmb12.employee;
 
-INSERT INTO users (entity_id, username)
-     SELECT entity_id, login FROM lsmb12.employee em
-      WHERE login IS NOT NULL;
-
 INSERT 
   INTO entity_employee(entity_id, startdate, enddate, role, ssn, sales,
        employeenumber, dob, manager_id)
 SELECT entity_id, startdate, enddate, role, ssn, sales, employeenumber, dob,
        (select entity_id from lsmb12.employee where id = em.managerid)
-  FROM lsmb12.employee em;
+  FROM lsmb12.employee em
+ WHERE id IN (select min(id) from lsmb12.employee group by entity_id);
+
+
+-- I would prefer stronger passwords here but the exposure is very short, since 
+-- the passwords time out after 24 hours anyway.  These are not assumed to be
+-- usable passwords. --CT
+
+SELECT admin__save_user(null, max(entity_id), login, random()::text, true)
+  FROM lsmb12.employee
+ WHERE login IN (select rolname FROM pg_roles)
+ GROUP BY login;
+
+SELECT 	admin__save_user(null, max(entity_id), login, random()::text, false)
+  FROM lsmb12.employee
+ WHERE login NOT IN (select rolname FROM pg_roles)
+ GROUP BY login;
 
 
 
@@ -447,7 +461,7 @@ INSERT INTO acc_trans(trans_id, chart_id, amount, transdate, source, cleared,
             fx_transaction, project_id, memo, invoice_id, entry_id
        FROM lsmb12.acc_trans
        JOIN lsmb12.chart ON acc_trans.chart_id = chart.id
-       JOIN account a ON chart.accno = a.accno; 
+       JOIN account a ON chart.accno = a.accno;
 
 INSERT INTO invoice (id, trans_id, parts_id, description, qty, allocated,
             sellprice, fxsellprice, discount, assemblyitem, unit, project_id,
@@ -518,7 +532,7 @@ INSERT INTO project (id, projectnumber, description, startdate, enddate,
      SELECT p.id, projectnumber, description, p.startdate, p.enddate,
             parts_id, production, completed, c.credit_id
        FROM lsmb12.project p
-       JOIN lsmb12.customer c ON p.customer_id = c.id;
+  LEFT JOIN lsmb12.customer c ON p.customer_id = c.id;
 
 INSERT INTO partsgroup SELECT * FROM lsmb12.partsgroup;
 
@@ -565,9 +579,6 @@ INSERT INTO audittrail(trans_id, tablename, reference, formname, action,
        JOIN lsmb12.employee e ON a.employee_id = e.id
        JOIN person p on e.entity_id = p.entity_id;
 
-INSERT INTO user_preference(id)
-     SELECT id from users;
-
 INSERT INTO recurring SELECT * FROM lsmb12.recurring;
 
 INSERT INTO recurringemail SELECT * FROM lsmb12.recurringemail;
@@ -576,10 +587,10 @@ INSERT INTO recurringprint SELECT * FROM lsmb12.recurringprint;
 
 INSERT INTO jcitems(id, project_id, parts_id, description, qty, allocated,
             sellprice, fxsellprice, serialnumber, checkedin, checkedout,
-            person_id, notes)
+            person_id, notes, total)
      SELECT j.id,  project_id, parts_id, description, qty, allocated,
             sellprice, fxsellprice, serialnumber, checkedin, checkedout,
-            p.id, j.notes
+            p.id, j.notes, coalesce(qty, 0)
        FROM lsmb12.jcitems j
        JOIN lsmb12.employee e ON j.employee_id = e.id
        JOIN person p ON e.entity_id = p.entity_id;

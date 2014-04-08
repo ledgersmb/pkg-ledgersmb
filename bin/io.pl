@@ -84,15 +84,19 @@ if ( -f "bin/custom/$form->{login}_io.pl" ) {
 # $locale->text('Oct')
 # $locale->text('Nov')
 # $locale->text('Dec')
+#
 
 sub _calc_taxes {
     $form->{subtotal} = $form->{invsubtotal};
     for $i (1 .. $form->{rowcount}){
-        my $linetotal = 
-             $form->parse_amount(\%myconfig, $form->{"sellprice_$i"}) 
-             * $form->parse_amount(\%myconfig, $form->{"qty_$i"}) 
-             * (1 - $form->parse_amount(\%myconfig, $form->{"discount_$i"})
-                    / 100);
+        my $discount_amount = $form->round_amount( $form->{"sellprice_$i"} 
+        		       			   * ($form->{"discount_$i"} / 100), 
+		  	       			   $decimalplaces);
+        my $linetotal = $form->round_amount( $form->{"sellprice_$i"}
+                         		     - $discount_amount,
+                         		     $decimalplaces);
+        $linetotal = $form->round_amount( $linetotal * $form->{"qty_$i"}, 
+                                          $moneyplaces);
         @taxaccounts = Tax::init_taxes(
             $form, $form->{"taxaccounts_$i"},
             $form->{'taxaccounts'}
@@ -126,20 +130,21 @@ sub _calc_taxes {
 
 sub display_row {
     my $numrows = shift;
-
+    my $desc_disabled = "";
+    $desc_disabled = 'DISABLED="DISABLED"' if $form->{lock_description};
     @column_index = qw(runningnumber partnumber description qty);
 
     if ( $form->{type} eq "sales_order" ) {
         push @column_index, "ship";
         $column_data{ship} =
-            qq|<th class=listheading align=center width="auto">|
+            qq|<th class="listheading ship" align=center width="auto">|
           . $locale->text('Ship')
           . qq|</th>|;
     }
     if ( $form->{type} eq "purchase_order" ) {
         push @column_index, "ship";
         $column_data{ship} =
-            qq|<th class=listheading align=center width="auto">|
+            qq|<th class="listheading ship" align=center width="auto">|
           . $locale->text('Recd')
           . qq|</th>|;
     }
@@ -183,28 +188,28 @@ qq|<option value="$ref->{partsgroup}--$ref->{id}">$ref->{partsgroup}\n|;
     for ( split / /, $form->{taxaccounts} ) { $form->{"${_}_base"} = 0 }
 
     $column_data{runningnumber} =
-      qq|<th class=listheading nowrap>| . $locale->text('Item') . qq|</th>|;
+      qq|<th class="listheading runningnumber" nowrap>| . $locale->text('Item') . qq|</th>|;
     $column_data{partnumber} =
-      qq|<th class=listheading nowrap>| . $locale->text('Number') . qq|</th>|;
+      qq|<th class="listheading partnumber" nowrap>| . $locale->text('Number') . qq|</th>|;
     $column_data{description} =
-        qq|<th class=listheading nowrap>|
+        qq|<th class="listheading description" nowrap class="description">|
       . $locale->text('Description')
       . qq|</th>|;
     $column_data{qty} =
-      qq|<th class=listheading nowrap>| . $locale->text('Qty') . qq|</th>|;
+      qq|<th class="listheading qty" nowrap>| . $locale->text('Qty') . qq|</th>|;
     $column_data{unit} =
-      qq|<th class=listheading nowrap>| . $locale->text('Unit') . qq|</th>|;
+      qq|<th class="listheading unit" nowrap>| . $locale->text('Unit') . qq|</th>|;
     $column_data{sellprice} =
-      qq|<th class=listheading nowrap>| . $locale->text('Price') . qq|</th>|;
-    $column_data{discount} = qq|<th class=listheading>%</th>|;
+      qq|<th class="listheading sellprice" nowrap>| . $locale->text('Price') . qq|</th>|;
+    $column_data{discount} = qq|<th class="listheading discount">%</th>|;
     $column_data{linetotal} =
-      qq|<th class=listheading nowrap>| . $locale->text('Extended') . qq|</th>|;
+      qq|<th class="listheading linetotal" nowrap>| . $locale->text('Extended') . qq|</th>|;
     $column_data{bin} =
-      qq|<th class=listheading nowrap>| . $locale->text('Bin') . qq|</th>|;
+      qq|<th class="listheading bin" nowrap>| . $locale->text('Bin') . qq|</th>|;
     $column_data{onhand} =
-      qq|<th class=listheading nowrap>| . $locale->text('OH') . qq|</th>|;
+      qq|<th class="listheading onhand" nowrap>| . $locale->text('OH') . qq|</th>|;
     $column_data{taxformcheck} =
-      qq|<th class=listheading nowrap>| . $locale->text('TaxForm') . qq|</th>|;
+      qq|<th class="listheading taxform" nowrap>| . $locale->text('TaxForm') . qq|</th>|;
     print qq|
   <tr>
     <td>
@@ -235,6 +240,7 @@ qq|<option value="$ref->{partsgroup}--$ref->{id}">$ref->{partsgroup}\n|;
 
     $spc = substr( $myconfig{numberformat}, -3, 1 );
     for $i ( 1 .. $numrows ) {
+        $desc_disabled = '' if $i == $numrows;
         if ( $spc eq '.' ) {
             ( $null, $dec ) = split /\./, $form->{"sellprice_$i"};
         }
@@ -276,26 +282,32 @@ qq|<option value="$ref->{partsgroup}--$ref->{id}">$ref->{partsgroup}\n|;
             }
         }
 
+	my $discount_amount = $form->round_amount( $form->{"sellprice_$i"} 
+			   			   * ($form->{"discount_$i"} / 100), 
+						   $decimalplaces);
         $linetotal = $form->round_amount( $form->{"sellprice_$i"}
-                                          * (1 - ($form->{"discount_$i"} / 100)),
+                                          - $discount_amount,
                                           $decimalplaces);
         $linetotal = $form->round_amount( $linetotal * $form->{"qty_$i"}, 
                                          $moneyplaces);
 
-        if (
-            ( $rows = $form->numtextrows( $form->{"description_$i"}, 46, 6 ) ) >
-            1 )
-        {
-            $form->{"description_$i"} =
-              $form->quote( $form->{"description_$i"} );
-            $column_data{description} =
+        $form->{"description_$i"} = $form->quote( $form->{"description_$i"} );
+        if ($desc_disabled){
+            $column_data{description} = qq|<td>$form->{"description_$i"} |
+             . qq|<input type="hidden" name="description_$i"
+                        value="$form->{"description_$i"}" /></td>|
+        } else {
+            if (
+                ( $rows = $form->numtextrows( $form->{"description_$i"}, 46, 6 ) ) >
+                1 )
+            {
+                    $column_data{description} =
 qq|<td><textarea name="description_$i" rows=$rows cols=46 wrap=soft>$form->{"description_$i"}</textarea></td>|;
-        }
-        else {
-            $form->{"description_$i"} =
-              $form->quote( $form->{"description_$i"} );
-            $column_data{description} =
-qq|<td><input name="description_$i" size=48 value="$form->{"description_$i"}"></td>|;
+            }
+            else {
+                 $column_data{description} =
+qq|<td><input name="description_$i" $desc_disabled size=48 value="$form->{"description_$i"}"></td>|;
+            }
         }
 
         for (qw(partnumber sku unit)) {
@@ -330,7 +342,7 @@ qq|<td><input name="description_$i" size=48 value="$form->{"description_$i"}"></
 
         
         $taxchecked="";
-	if($form->{"taxformcheck_$i"})
+	if($form->{"taxformcheck_$i"} or ($i == $form->{rowcount} and $form->{default_reportable}))
 	{
 		$taxchecked="checked";
 
@@ -338,35 +350,44 @@ qq|<td><input name="description_$i" size=48 value="$form->{"description_$i"}"></
 
 
 $column_data{runningnumber} =
-          qq|<td><input name="runningnumber_$i" size=3 value=$i></td>|;
-        $column_data{partnumber} =
-qq|<td><input name="partnumber_$i" size=15 value="$form->{"partnumber_$i"}" accesskey="$i" title="[Alt-$i]">$skunumber</td>|;
+          qq|<td class="runningnumber"><input name="runningnumber_$i" size=3 value=$i></td>|;
+        if ($form->{"partnumber_$i"}){
+           $column_data{partnumber} =
+           qq|<td> $form->{"partnumber_$i"} 
+                 <button type="submit" class="submit" value="$i" 
+                         name="delete_line">X</button>
+                 <input type="hidden" name="partnumber_$i"
+                       value="$form->{"partnumber_$i"}" /></td>|;
+        } else {
+            $column_data{partnumber} =
+qq|<td class="partnumber"><input name="partnumber_$i" size=15 value="$form->{"partnumber_$i"}" accesskey="$i" title="[Alt-$i]">$skunumber</td>|;
+        }
         $column_data{qty} =
-qq|<td align=right><input name="qty_$i" title="$form->{"onhand_$i"}" size="5" value="|
+qq|<td align=right class="qty"><input name="qty_$i" title="$form->{"onhand_$i"}" size="5" value="|
           . $form->format_amount( \%myconfig, $form->{"qty_$i"} )
           . qq|"></td>|;
         $column_data{ship} =
-            qq|<td align=right><input name="ship_$i" size="5" value="|
+            qq|<td align=right class="ship"><input name="ship_$i" size="5" value="|
           . $form->format_amount( \%myconfig, $form->{"ship_$i"} )
           . qq|"></td>|;
         $column_data{unit} =
-          qq|<td><input name="unit_$i" size=5 value="$form->{"unit_$i"}"></td>|;
+          qq|<td class="unit"><input name="unit_$i" size=5 value="$form->{"unit_$i"}"></td>|;
         $column_data{sellprice} =
-          qq|<td align=right><input name="sellprice_$i" size="9" value="|
+          qq|<td align=right class="sellprice"><input name="sellprice_$i" size="9" value="|
           . $form->format_amount( \%myconfig, $form->{"sellprice_$i"},
             $form->{"precision_$i"} )
           . qq|"></td>|;
         $column_data{discount} =
-            qq|<td align=right><input name="discount_$i" size="3" value="|
+            qq|<td align=right class="discount"><input name="discount_$i" size="3" value="|
           . $form->format_amount( \%myconfig, $form->{"discount_$i"} )
           . qq|"></td>|;
         $column_data{linetotal} =
-            qq|<td align=right>|
+            qq|<td align=right class="linetotal">|
           . $form->format_amount( \%myconfig, $linetotal, 2 )
           . qq|</td>|;
-        $column_data{bin}    = qq|<td>$form->{"bin_$i"}</td>|;
-        $column_data{onhand} = qq|<td>$form->{"onhand_$i"}</td>|;
-        $column_data{taxformcheck} = qq|<td><input type="checkbox" name="taxformcheck_$i" value="1" $taxchecked></td>|;
+        $column_data{bin}    = qq|<td class="bin">$form->{"bin_$i"}</td>|;
+        $column_data{onhand} = qq|<td class="onhand">$form->{"onhand_$i"}</td>|;
+        $column_data{taxformcheck} = qq|<td class="taxform"><input type="checkbox" name="taxformcheck_$i" value="1" $taxchecked></td>|;
         print qq|
         <tr valign=top>|;
 
@@ -420,20 +441,16 @@ qq|<td><input name="notes_$i" size=38 value="$form->{"notes_$i"}"></td>|;
 |;
             }
 
-            $serial   = "";
-            $project  = "";
-            $delivery = "";
-            $notes    = "";
         }
 
         # print second and third row
         print qq|
-        <tr valign=top>
+        <tr valign=top class="ext2">
 	  $delivery
 	  $notes
 	  $serial
 	</tr>
-        <tr valign=top>
+        <tr valign=top class="ext3">
 	  <td colspan=$colspan>
 	  $project
 	  $partsgroup
@@ -485,19 +502,19 @@ sub select_item {
           qw(ndx partnumber description partsgroup onhand sellprice);
     }
 
-    $column_data{ndx} = qq|<th>&nbsp;</th>|;
+    $column_data{ndx} = qq|<th class="listheading runningnumber">&nbsp;</th>|;
     $column_data{partnumber} =
-      qq|<th class=listheading>| . $locale->text('Number') . qq|</th>|;
+      qq|<th class="listheading partnumber">| . $locale->text('Number') . qq|</th>|;
     $column_data{sku} =
-      qq|<th class=listheading>| . $locale->text('SKU') . qq|</th>|;
+      qq|<th class="listheading sku">| . $locale->text('SKU') . qq|</th>|;
     $column_data{description} =
-      qq|<th class=listheading>| . $locale->text('Description') . qq|</th>|;
+      qq|<th class="listheading description">| . $locale->text('Description') . qq|</th>|;
     $column_data{partsgroup} =
-      qq|<th class=listheading>| . $locale->text('Group') . qq|</th>|;
+      qq|<th class="listheading partsgroup">| . $locale->text('Group') . qq|</th>|;
     $column_data{sellprice} =
-      qq|<th class=listheading>| . $locale->text('Price') . qq|</th>|;
+      qq|<th class="listheading sellprice">| . $locale->text('Price') . qq|</th>|;
     $column_data{onhand} =
-      qq|<th class=listheading>| . $locale->text('Qty') . qq|</th>|;
+      qq|<th class="listheading onhand">| . $locale->text('Qty') . qq|</th>|;
 
     $exchangerate = ( $form->{exchangerate} ) ? $form->{exchangerate} : 1;
 
@@ -821,6 +838,8 @@ sub new_item {
 </html>
 |;
 
+    $form->finalize_request();
+
 }
 
 sub display_form {
@@ -876,6 +895,7 @@ sub display_form {
     $form->hide_form(qw|locationid|);
 
     &form_footer;
+    $form->finalize_request;
 
 }
 
@@ -884,7 +904,7 @@ sub display_form {
 
 
 sub check_form {
-
+    my $nodisplay = shift;
     my @a     = ();
     my $count = 0;
     my $i;
@@ -1036,9 +1056,9 @@ sub check_form {
 
         }
     }
-
+    return if $form->{action} =~ /(save|post)/ or $nodisplay;
     &display_form;
-
+    $form->finalize_request;
 }
 
 sub calc_markup {
@@ -1221,6 +1241,7 @@ sub e_mail {
     if ( $form->{formname} =~ /(pick|packing|bin)_list/ ) {
         $form->{email} = $form->{shiptoemail} if $form->{shiptoemail};
     }
+    $form->{oldlanguage_code} = $form->{language_code};
 
     $form->{oldmedia} = $form->{media};
     $form->{media}    = "email";
@@ -1590,7 +1611,7 @@ sub print_form {
         }
         my @files = $file->get_for_template(
                 {ref_key => $form->{id}, file_class => $fc}
-        );
+        ) if $form->{id};
         my @main_files;
         my %parts_files;
         for my $f (@files){
@@ -1604,8 +1625,8 @@ sub print_form {
         $form->{parts_files} = \%parts_files;
         $form->{file_path} = $file->file_path;
     }
-
-    &validate_items;
+    check_form(1);
+    ++$form->{rowcount};
 
     $form->{"${inv}date"} = $form->{transdate};
 
@@ -1636,6 +1657,8 @@ sub print_form {
     &{"$form->{vc}_details"};
 
     my @vars = ();
+
+    $form->{parts_id} = [];
     foreach $i ( 1 .. $form->{rowcount} ) {
         push @vars,
           (
@@ -1645,6 +1668,7 @@ sub print_form {
             "unit_$i",          "notes_$i", 
             "image_$i",         "id_$i"
           );
+          push @{$form->{parts_id}}, $form->{"id_$i"};
     }
     for ( split / /, $form->{taxaccounts} ) { push @vars, "${_}_description" }
 
@@ -1693,8 +1717,8 @@ sub print_form {
       qw(name address1 address2 city state zipcode country contact phone fax email);
 
     $shipto = 1;
-
     # if there is no shipto fill it in from billto
+    $form->get_shipto($form->{locationid}) if $form->{locationid};
     foreach $item (@vars) {
         if ( $form->{"shipto$item"} ) {
             $shipto = 0;
@@ -2066,7 +2090,7 @@ sub ship_to {
 					</table>
 
 				</td>
-				<td background="new_images/line.gif"><IMG SRC="new_images/line.gif" WIDTH="2px"/> </td>
+				<td>&nbsp;</td>
 				<td valign="top" >
 				      <table width=30%>	
 					         <tr class=listheading>
@@ -2157,7 +2181,7 @@ sub ship_to {
 					  <td><input name=shiptozipcode_new size=8 maxlength=10 value="$form->{shiptozipcode_new}" ></td>
 					  <td><select name="shiptocountry_new">$country</select></td>
 
-					  <td background="new_images/line.gif"><IMG SRC="new_images/line.gif" WIDTH="0px"/></td>
+					  <td>&nbsp;</td>
 					  <td><input type=radio name=shiptoradiocontact value="1" ondblclick="uncheckRadiocontact(this);" ></td>
 					  <td><select name="shiptotype_new">$contacttype</select></td>
 					  <td><input name=shiptocontact_new size=10 maxlength=100 value="$form->{shiptocontact_new}" ></td>
@@ -2181,13 +2205,16 @@ sub ship_to {
 print qq|
 
 <button class="submit" type="submit" name="action" value="continuenew">|
-. $locale->text('Continue')
+. $locale->text('Use Shipto')
 . qq|
 </button>
 <button class="submit" type="submit" name="action" value="updatenew">|
-. $locale->text('Update')
+. $locale->text('Add To List')
 . qq|
 </button>
+<button class="submit" type="submit" name="action" value="update">|.
+$locale->text('Cancel')
+.qq|</button>
 
 </form>
 
@@ -2298,10 +2325,10 @@ sub createlocations
 sub validatelocation
 {
 
-   	my @Newlocation=("shiptoaddress1_new","shiptoaddress2_new","shiptoaddress3_new","shiptocity_new","shiptostate_new","shiptozipcode_new","shiptocountry_new");
+   	my @Newlocation=("shiptoaddress1_new","shiptocity_new","shiptostate_new","shiptocountry_new");
         foreach(@Newlocation)
 	{
-		$form->error( " Don not keep field empty $_") unless($form->{"$_"});
+		$form->error( $locale->text("Do not keep field empty [_1]", $_)) unless($form->{"$_"});
 	}
 
 
