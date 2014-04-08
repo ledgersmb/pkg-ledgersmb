@@ -332,7 +332,7 @@ sub prepare_order {
 
 sub form_header {
 
-
+    $form->{nextsub} = 'update';
    
     $checkedopen   = ( $form->{closed} ) ? ""        : "checked";
     $checkedclosed = ( $form->{closed} ) ? "checked" : "";
@@ -364,7 +364,7 @@ sub form_header {
     $form->{exchangerate} =
       $form->format_amount( \%myconfig, $form->{exchangerate} );
 
-    $exchangerate = qq|<tr>|;
+    $exchangerate = qq|<tr id="exchangerate-row">|;
     $exchangerate .= qq|
                 <th align=right nowrap>| . $locale->text('Currency') . qq|</th>
 		<td><select name=currency>$form->{selectcurrency}</select></td> |
@@ -401,7 +401,7 @@ sub form_header {
     $vclabel = $locale->text($vclabel);
 
     $terms = qq|
-                    <tr>
+                    <tr id="terms-row">
 		      <th align=right nowrap>| . $locale->text('Terms') . qq|</th>
 		      <td nowrap><input name=terms size="3" maxlength="3" value=$form->{terms}> |
       . $locale->text('days')
@@ -411,7 +411,7 @@ sub form_header {
 
     if ( $form->{business} ) {
         $business = qq|
-	      <tr>
+	      <tr class="business-row">
 		<th align=right nowrap>| . $locale->text('Business') . qq|</th>
 		<td colspan=3>$form->{business}
 		&nbsp;&nbsp;&nbsp;|;
@@ -426,20 +426,20 @@ sub form_header {
 
     if ( $form->{type} !~ /_quotation$/ ) {
         $ordnumber = qq|
-	      <tr>
+	      <tr class="ordnumber-row">
 		<th width=70% align=right nowrap>| . $locale->text('Order Number') . qq|</th>
                 <td><input name=ordnumber size=20 value="$form->{ordnumber}"></td>
 		<input type=hidden name=quonumber value="$form->{quonumber}">
 	      </tr>
-	      <tr>
+	      <tr class="transdate-row">
 		<th align=right nowrap>| . $locale->text('Order Date') . qq|</th>
 		<td><input class="date" name=transdate size=11 title="$myconfig{dateformat}" value=$form->{transdate}></td>
 	      </tr>
-	      <tr>
+	      <tr class="reqdate-row">
 		<th align=right nowrap=true>| . $locale->text('Required by') . qq|</th>
 		<td><input class="date" name=reqdate size=11 title="$myconfig{dateformat}" value=$form->{reqdate}></td>
 	      </tr>
-	      <tr>
+	      <tr class="ponumber-row">
 		<th align=right nowrap>| . $locale->text('PO Number') . qq|</th>
 		<td><input name=ponumber size=20 value="$form->{ponumber}"></td>
 	      </tr>
@@ -451,7 +451,7 @@ sub form_header {
 	      <tr>
 		<td></td>
 		<td colspan=3>
-		  <table>
+		  <table class="creditlimit">
 		    <tr>
 		      <th align=right nowrap>| . $locale->text('Credit Limit') . qq|</th>
 		      <td>|
@@ -465,7 +465,7 @@ sub form_header {
 		    </tr>|;
 		if ($form->{entity_control_code}){
 			$creditremaining .= qq|
-	        <tr>
+	        <tr class="control-code-field">
 		<th align="right" nowrap>| . 
 			$locale->text('Entity Code') . qq|</th>
 		<td colspan="2">$form->{entity_control_code}</td>
@@ -473,6 +473,11 @@ sub form_header {
 			$locale->text('Account') . qq|</th>
 		<td colspan=3>$form->{meta_number}</td>
 	      </tr>
+              <tr class="address_row">
+                <th align="right" nowrap>| .
+                        $locale->text('Address'). qq|</th>
+                <td colspan=3>$form->{address}, $form->{city}</td>
+              </tr>
 		|;
 	       }
 	$creditremaining .= qq|
@@ -488,7 +493,7 @@ sub form_header {
           : $locale->text('Required by');
         if ( $form->{type} eq 'sales_quotation' ) {
             $ordnumber = qq|
-	      <tr>
+	      <tr class="quonumber-row">
 		<th width=70% align=right nowrap>|
               . $locale->text('Quotation Number')
               . qq|</th>
@@ -499,7 +504,7 @@ sub form_header {
         }
         else {
             $ordnumber = qq|
-	      <tr>
+	      <tr class="rfqnumber-row">
 		<th width=70% align=right nowrap>| . $locale->text('RFQ Number') . qq|</th>
 		<td><input name=quonumber size=20 value="$form->{quonumber}"></td>
 		<input type=hidden name=ordnumber value="$form->{ordnumber}">
@@ -510,7 +515,7 @@ sub form_header {
         }
 
         $ordnumber .= qq|
-	      <tr>
+	      <tr class="transdate-row">
 		<th align=right nowrap>| . $locale->text('Quotation Date') . qq|</th>
 		<td><input class="date" name=transdate size=11 title="$myconfig{dateformat}" value=$form->{transdate}></td>
 	      </tr>
@@ -537,7 +542,7 @@ sub form_header {
     }
 
     $department = qq|
-              <tr>
+              <tr class="department-row">
 	        <th align="right" nowrap>| . $locale->text('Department') . qq|</th>
 		<td colspan=3><select name=department>$form->{selectdepartment}</select>
 		<input type=hidden name=selectdepartment value="|
@@ -553,7 +558,7 @@ sub form_header {
     if ( $form->{type} eq 'sales_order' ) {
         if ( $form->{selectemployee} ) {
             $employee = qq|
- 	      <tr>
+ 	      <tr class="employee-row">
 	        <th align=right nowrap>| . $locale->text('Salesperson') . qq|</th>
 		<td><select name=employee>$form->{selectemployee}</select></td>
 		<input type=hidden name=selectemployee value="|
@@ -565,7 +570,7 @@ sub form_header {
     else {
         if ( $form->{selectemployee} ) {
             $employee = qq|
- 	      <tr>
+ 	      <tr class="employee-row">
 	        <th align=right nowrap>| . $locale->text('Employee') . qq|</th>
 		<td><select name=employee>$form->{selectemployee}</select></td>
 		<input type=hidden name=selectemployee value="|
@@ -583,16 +588,30 @@ sub form_header {
     print qq|
 <body onLoad="document.forms[0].${focus}.focus()" />
 | . $form->open_status_div . qq|
+<script> 
+function on_return_submit(event){
+  var kc;
+  if (window.event){
+    kc = window.event.keyCode;
+  } else {
+    kc = event.which;
+  }
+  if (kc == '13' && document.activeElement.tagName != 'TEXTAREA'){
+        document.forms[0].submit();
+  }
+}
+</script>
+<form method=post action="$form->{script}" onkeypress="on_return_submit(event)">
 
-<form method=post action="$form->{script}">
 |;
 
     if ($form->{notice}){
          print qq|$form->{notice}<br/>|;
     }
-    $form->hide_form(qw(entity_control_code meta_number));
+    $form->hide_form(qw(entity_control_code meta_number address city));
     $form->hide_form(
-        qw(id type formname media format printed emailed queued vc title discount creditlimit creditremaining tradediscount business recurring form_id)
+        qw(id type formname media format printed emailed queued vc title discount creditlimit creditremaining tradediscount business recurring form_id nextsub
+   lock_description)
     );
 
     print qq|
@@ -617,11 +636,11 @@ sub form_header {
 	      $business
 	      $department
 	      $exchangerate
-	      <tr>
+	      <tr class="shippingpoint-row">
 		<th align=right>| . $locale->text('Shipping Point') . qq|</th>
 		<td colspan=3><input name=shippingpoint size=35 value="$form->{shippingpoint}"></td>
 	      </tr>
-	      <tr>
+	      <tr class="shipvia-row">
 		<th align=right>| . $locale->text('Ship via') . qq|</th>
 		<td colspan=3><input name=shipvia size=35 value="$form->{shipvia}"></td>
 	      </tr>
@@ -762,6 +781,7 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
     print_select($form, $printops->{formname});
     print_select($form, $printops->{format});
     print_select($form, $printops->{media});
+    print_select($form, $printops->{lang});
     print qq|
     </td>
   </tr>
@@ -772,7 +792,6 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
 
     # type=submit $locale->text('Update')
     # type=submit $locale->text('Print')
-    # type=submit $locale->text('Schedule')
     # type=submit $locale->text('Save')
     # type=submit $locale->text('Print and Save')
     # type=submit $locale->text('Ship to')
@@ -827,8 +846,6 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
                 value => $locale->text('Purchase Order')
             },
             'rfq' => { ndx => 14, key => 'Q', value => $locale->text('RFQ') },
-            'schedule' =>
-              { ndx => 15, key => 'H', value => $locale->text('Schedule') },
             'delete' =>
               { ndx => 16, key => 'D', value => $locale->text('Delete') },
         );
@@ -966,7 +983,9 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
 }
 
 sub update {
+    $form->{nextsub} = 'update';
 
+    delete $form->{"partnumber_$form->{delete_line}"} if $form->{delete_line};
     if ( $form->{type} eq 'generate_purchase_order' ) {
 
         for ( 1 .. $form->{rowcount} ) {
@@ -1008,7 +1027,6 @@ sub update {
             $form->{terms} * 1 )
           : $form->{reqdate};
         $form->{oldtransdate} = $form->{transdate};
-        &rebuild_vc( $form->{vc}, $ARAP, $form->{transdate}, 1 ) if !$newname;
 
         if ( $form->{currency} ne $form->{defaultcurrency} ) {
             delete $form->{exchangerate};
@@ -1204,7 +1222,7 @@ sub update {
             }
         }
     }
-
+    display_form();
 }
 
 sub search {
@@ -2217,6 +2235,7 @@ sub subtotal {
 }
 
 sub save {
+    delete $form->{display_form};
     if (!$form->close_form()){
        $form->{notice} = $locale->text(
                 'Could not save the data.  Please try again'
@@ -2224,7 +2243,6 @@ sub save {
        &update;
        $form->finalize_request();
     }
-
      
     if ( $form->{type} =~ /_order$/ ) {
         $msg = $locale->text('Order Date missing!');
@@ -2245,8 +2263,8 @@ sub save {
 
     $form->isblank( "exchangerate", $locale->text('Exchange rate missing!') )
       if ( $form->{currency} ne $form->{defaultcurrency} );
-
-    &validate_items;
+    check_form(1);
+    ++$form->{rowcount};
 
 
     # if the name changed get new values
@@ -2388,7 +2406,6 @@ sub vendor_invoice { &invoice }
 sub sales_invoice  { &invoice }
 
 sub invoice {
-
     if ( $form->{type} =~ /_order$/ ) {
         $form->isblank( "ordnumber", $locale->text('Order Number missing!') );
         $form->isblank( "transdate", $locale->text('Order Date missing!') );
@@ -2464,10 +2481,6 @@ sub invoice {
     for (qw(id subject message printed emailed queued)) { delete $form->{$_} }
     $form->{ $form->{vc} } =~ s/--.*//g;
     $form->{type} = "invoice";
-
-    # locale messages
-    $locale = LedgerSMB::Locale->get_handle( $myconfig{countrycode} )
-      or $form->error("Locale not loaded: $!\n");
 
     #$form->{charset} = $locale->encoding;
     $form->{charset} = 'UTF-8';

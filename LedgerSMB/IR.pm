@@ -52,6 +52,8 @@ provisional, and will change for 1.4 as the GL transaction functionality is
                   {ref_key => $self->{id}, file_class => 1}
 rewritten
 
+=back
+
 =cut
 
 sub get_files {
@@ -68,6 +70,7 @@ sub get_files {
 
 sub post_invoice {
     my ( $self, $myconfig, $form ) = @_;
+    $form->{crdate} ||= 'now';
 
     if ($form->{id}){
         delete_invoice($self, $myconfig, $form);
@@ -425,8 +428,8 @@ sub post_invoice {
                 # update parts table
                 $form->update_balance( $dbh, "parts", "onhand",
                     qq|id = $form->{"id_$i"}|,
-                    $form->{"qty_$i"} )
-                  unless $form->{shipped};
+                    $form->{"qty_$i"} );
+                 # unless $form->{shipped};
 
                 # check if we sold the item
                 $query = qq|
@@ -848,7 +851,8 @@ sub post_invoice {
 		       curr = ?,
 		       department_id = ?,
 		       language_code = ?,
-		       ponumber = ?
+		       ponumber = ?,
+		       crdate = ?
 		 WHERE id = ?|;
 
     $sth = $dbh->prepare($query);
@@ -859,7 +863,8 @@ sub post_invoice {
         $form->{duedate},       $form->{shippingpoint}, $form->{shipvia},
         $form->{taxincluded},   $form->{notes},         $form->{intnotes},
         $form->{currency},      $form->{department_id}, 
-        $form->{language_code}, $form->{ponumber},      $form->{id}
+        $form->{language_code}, $form->{ponumber},      
+	$form->{crdate},	$form->{id}
     ) || $form->dberror($query);
 
     # add shipto
@@ -1224,7 +1229,7 @@ sub retrieve_invoice {
 			SELECT a.invnumber, a.transdate, a.duedate,
 			       a.ordnumber, a.quonumber, a.paid, a.taxincluded,
 			       a.notes, a.intnotes, a.curr AS currency, 
-			       a.entity_credit_account as vendor_id, a.language_code, a.ponumber,
+			       a.entity_credit_account as vendor_id, a.language_code, a.ponumber, a.crdate,
 			       a.on_hold, a.reverse
 			  FROM ap a
 			 WHERE id = ?|;
@@ -1514,7 +1519,7 @@ sub vendor_details {
 		       mail_code as zipcode, c.name as country, 
                        pay_to_name as contact, 
                        phone as vendorphone, fax as vendorfax, 
-		       tax_id AS vendortaxnumber, sic_code AS sic, iban, bic,
+		       tax_id AS vendortaxnumber, sic_code AS sic, iban, bic, remark,
 		       -- gifi_accno AS gifi, 
                        startdate, enddate
 		  FROM entity_credit_account eca
@@ -1584,21 +1589,8 @@ sub toggle_on_hold {
     if ($form->{id}) { # it's an existing (.. probably) invoice.
         
         my $dbh = $form->{dbh};
-        my $sth = $dbh->prepare("SELECT on_hold from ar where ar.id = ?");
-        $sth->execute($form->{id});
-        my $state = $sth->fetchrow_array;
-        my $n_s; # new state
-        if ($state[0] == 't') {
-            
-            # Turn it off
-            $n_s = 'f';
-            
-        } else {
-            $n_s = 't';
-        }
-        
-        $sth = $dbh->prepare("update ar set on_hold = ?::boolean where ar.id = ?");
-        my $code = $dbh->execute($ns, $form->{id});
+        $sth = $dbh->prepare("update ap set on_hold = not on_hold where ap.id = ?");
+        my $code = $sth->execute($form->{id});#tshvr4
         
         return 1;
         

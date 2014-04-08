@@ -1547,6 +1547,7 @@ sub load_template {
     $form->{file} ||= lc "$myconfig->{templates}/$form->{template}.$form->{format}";
     $self->check_template_name( \%$myconfig, \%$form );
     open( TEMPLATE, '<', "$form->{file}" ) || ($testval = 1);
+    binmode TEMPLATE, ':utf8';
     if ($testval == 1 && ($! eq 'No such file or directory')){
       my $file = $form->{file};
       $file =~ s|$form->{code}/|| if $form->{code};
@@ -1579,6 +1580,7 @@ sub save_template {
     $self->check_template_name( \%$myconfig, \%$form );
     open( TEMPLATE, '>', "$form->{file}" )
       or $form->error("$form->{file} : $!");
+    binmode TEMPLATE, ':utf8';
 
     # strip
     $form->{body} =~ s/\r//g;
@@ -1710,12 +1712,13 @@ sub save_defaults {
     );
              
     if (!@{$defaults}){
-       $defaults = qw(inventory_accno_id income_accno_id expense_accno_id
+       @$defaults = qw(inventory_accno_id income_accno_id expense_accno_id
                       fxgain_accno_id fxloss_accno_id glnumber sinumber vinumber
                       sonumber ponumber sqnumber rfqnumber partnumber 
                       employeenumber customernumber vendornumber projectnumber 
                       yearend curr weightunit businessnumber default_country 
-                      check_prefix password_duration templates vclimit template_images)
+                      check_prefix password_duration templates vclimit 
+                      template_images disable_back)
     }
     for (@$defaults)
     {

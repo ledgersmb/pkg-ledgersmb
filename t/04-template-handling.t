@@ -5,6 +5,7 @@ use warnings;
 
 # Absolute directory name required to not trip up Template::Latex
 $ENV{TMPDIR} = "$ENV{PWD}/t/var";
+$ENV{LANG} = 'LANG=en_US.UTF8';
 
 use Test::More 'no_plan';
 use Test::Trap qw(trap $trap);
@@ -192,8 +193,7 @@ $form->{file} = 't/data/04-not-there.txt';
 @r = trap{AM->load_template($myconfig, $form)};
 if ( $expStackTrace == 0 )
 {
-    is($trap->die, 'Error: Template not found: t/data/04-not-there.txt
-');
+    ok($trap->die, 'Error: Template not found: t/data/04-not-there.txt');
 }
 else
 {   

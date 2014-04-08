@@ -581,6 +581,7 @@ END ?>
 			class = "numeric"
                } ?>
           <td> <?lsmb IF pricegroups.size > 0 ?>
+               <div id="pricegroup-div">
                <?lsmb pricegroups.unshift({});
                 INCLUDE select element_data = {
                      default_values = [pricegroup_id],
@@ -589,7 +590,7 @@ END ?>
                               label = text('Pricegroup')
                          value_attr = 'id'
                           text_attr = 'pricegroup'
-                } ?>
+                } ?></div>
                <?lsmb END ?></td>
 	</tr>
 
@@ -632,16 +633,16 @@ END ?>
         </table>
         <div class="input_container" id="tax-credit-div">
         <div class="listtop"><?lsmb text('Taxes') ?></div>
+	<div id="credittax_div">
         <?lsmb FOR tx = all_taxes ?> 
         <div class="inputrow" id="taxrow-<?lsmb tx.chart_id ?>">
-        <span class="lable" id="txlabel-<?lsmb tx.chart_id ?>">
-            <?lsmb tx.accno ?>--<?lsmb tx.description ?></span>
         <span class="input" id="txinput-<?lsmb tx.id ?>">
             <?lsmb checked = "";  
-                   IF eca_tax.grep(tx.id).size == 1;
+                   IF eca_tax.grep("^${tx.id}$").size == 1;
                        checked = "CHECKED";
                    END;
                    INCLUDE input element_data = {
+                           label = tx.accno _ '--' _  tx.description
                            type = "checkbox"
                            checked = checked
                            name = "taxact_$tx.id"
@@ -649,6 +650,27 @@ END ?>
                    } ?><span></div>
         <?lsmb END # FOR tx ?>
          </div>
+         </div>
+	<div id="credittax_div">
+        <div class="inputrow" id="taxincludedrow">
+            <?lsmb 
+
+               checked = '';
+               IF taxincluded;
+                   checked='CHECKED';
+               END;
+               INCLUDE input
+                           element_data = {
+                                 label =  text('Tax Included') #'
+                                  type = "checkbox"
+                               checked = checked
+                                  name = "taxincluded"
+                                 value = '1'
+                            } 
+            ?> 
+         </div>
+         </div>
+
 		<?lsmb IF credit_id;
 		INCLUDE button element_data = {
 			text = text('Save Changes'),
@@ -667,7 +689,8 @@ END ?>
 			name="action" 
 			value="save_credit_new"  
 			title="Save Credit Account as New" #'
-		} ?>
+		};
+                IF credit_id ?>
 		<?lsmb INCLUDE button element_data = {
                         class="submit" 
                         type="submit" 
@@ -712,7 +735,7 @@ END ?>
                         accesskey="P" 
                         title="Pricelist [Alt-P]"
 			text = text('Pricelist') 
-		} ?>
+		} ; END ?>
 	
     </form>
 </div>
@@ -757,23 +780,30 @@ END ?>
     <table width="100%">
     <tr class="listheading">
         <th class="type"><?lsmb text('Type') ?></th>
-        <th class="line_one"><?lsmb text('Address1') ?></th>
+        <th class="address"><?lsmb text('Address') ?></th>
         <th class="city"><?lsmb text('City') ?></th>
         <th class="state"><?lsmb text('State/Province') ?></th>
         <th class="mail_code"><?lsmb text('ZIP/Post Code') ?></th>
         <th class="country"><?lsmb text('Country') ?></th>
 	<th class="actions"><?lsmb text('Actions') ?></th>
     </tr>
-	<?lsmb FOREACH loc = locations ?>
-    <?lsmb IF location_id == loc.id;
+	<?lsmb FOREACH loc = locations;
+           IF location_id == loc.id;
                  FOREACH key = loc.keys();
                       $key = loc.$key;
                  END;
            END;
+         loc.address = loc.line_one;
+         IF loc.line_two;
+            loc.address = loc.address _ '<br />' _ loc.line_two;
+         END;
+         IF loc.line_three;
+            loc.address = loc.address _ '<br />' _ loc.line_three;
+         END;
     ?>
     <tr <?lsmb IF location_id == loc.id ?> class="active" <?lsmb END ?>>
 	<td class="type"><?lsmb loc.class ?></td>
-	<td class="line_one"><?lsmb loc.line_one ?></td>
+	<td class="line_one"><?lsmb loc.address ?></td>
 	<td class="city"><?lsmb loc.city ?></td>
 	<td class="state"><?lsmb loc.state ?></td>
 	<td class="mail_code"><?lsmb loc.mail_code ?></td>
@@ -814,7 +844,7 @@ END ?>
 			name = "line_one",
 			value = line_one,
 			type = "text",
-			size = "20"
+			size = "30"
 		} ?>
 	</div>
 	<div> 
@@ -824,7 +854,7 @@ END ?>
 			class = "addl-address"
 			value = line_two
 			type = "text"
-			size = "20"
+			size = "30"
 		} ?>
 	</div>
 	<div> 
@@ -834,7 +864,7 @@ END ?>
 			class = "addl-address"
 			value = line_three
 			type = "text"
-			size = "20"
+			size = "30"
 		} ?>
 	</div>
 	<div> 
@@ -843,7 +873,7 @@ END ?>
 			name = "city",
 			value = city,
 			type = "text",
-			size = "20"
+			size = "30"
 		} ?>
 	</div>
 	<div> 
@@ -852,7 +882,7 @@ END ?>
 			name = "state",
 			value = state,
 			type = "text",
-			size = "20"
+			size = "30"
 		} ?>
 	</div>
 	<div> 
@@ -861,7 +891,7 @@ END ?>
 			name = "mail_code",
 			value = mail_code,
 			type = "text",
-			size = "20"
+			size = "30"
 		} #' ?>
 	</div>
 	<div> 
@@ -912,7 +942,7 @@ END ?>
 				?>?entity_id=<?lsmb tt_url(entity_id)
 				?>&contact=<?lsmb tt_url(ct.contact)
 				?>&contact_class=<?lsmb tt_url(ct.class_id)
-				?>&description=<?lsmb tt_url(ct.description)
+				?>&contact_description=<?lsmb tt_url(ct.description)
 				?>&action=edit&credit_id=<?lsmb 
 				tt_url(credit_id) 
                                 ?>&person_id=<?lsmb tt_url(person_id)
@@ -982,9 +1012,9 @@ END ?>
 		<?lsmb PROCESS input element_data = {
 			label = text('Description'),
 			name = "description"
-			value = description
+			value = contact_description
 			type = "text"
-			size = "20"
+			size = "30"
 		} #' ?>
 	</div>
 	<div>
@@ -993,7 +1023,7 @@ END ?>
 			name = "contact"
 			value = contact
 			type = "text"
-			size = "20"
+			size = "30"
 		} #' ?>
 	</div>
 	<div><?lsmb PROCESS button element_data = {
@@ -1020,12 +1050,14 @@ END ?>
 <tr class="listheading">
 	<th class="bic"><?lsmb text('BIC/SWIFT Code') ?></th>
 	<th class="iban"><?lsmb text('Account Number') ?></th>
+	<th class="remark"><?lsmb text('Remark') ?></th>
 	<th class="actions"><?lsmb text('Actions') ?></th>
 </tr>
 <?lsmb FOREACH ba = bank_account ?>
 <tr>
 	<td class="bic"><?lsmb ba.bic ?></td>
 	<td class="iban"><?lsmb ba.iban ?></td>
+	<td class="remark"><?lsmb ba.remark ?></td>
 	<td class="actions">
 		<a href="<?lsmb script ?>?action=delete_bank_acct&entity_id=<?lsmb
 			entity_id ?>&bank_account_id=<?lsmb ba.id 
@@ -1068,7 +1100,7 @@ END ?>
 		label = text('BIC/SWIFT Code')
 		name="bic" 
 		value=bic
-		size=20
+		size=30
 	} #' ?>
 	</div>
 	<div>
@@ -1077,7 +1109,16 @@ END ?>
 		label = text('Bank Account')
 		name="iban" 
 		value=iban
-		size=20
+		size=30
+	} #' ?>
+	</div>
+	<div>
+	<?lsmb PROCESS input element_data = {
+		type="text" 
+		label = text('Remark')
+		name="remark" 
+		value=remark
+		size=30
 	} #' ?>
 	</div>
 	<div><?lsmb PROCESS button element_data = {
@@ -1119,7 +1160,7 @@ END ?>
       name = "subject"
       value = subject
       type = "text"
-      size = "20"
+      size = "40"
 	} ?>
 </div>
 <div class="input"><?lsmb PROCESS select element_data = {

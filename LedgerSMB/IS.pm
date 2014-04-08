@@ -3,6 +3,7 @@
 LedgerSMB::IS - Inventory Invoicing
 
 =cut
+
 #====================================================================
 # LedgerSMB
 # Small Medium Business Accounting software
@@ -86,6 +87,8 @@ Returns a list of files associated with the existing transaction.  This is
 provisional, and will change for 1.4 as the GL transaction functionality is 
                   {ref_key => $self->{id}, file_class => 1}
 rewritten
+
+=back
 
 =cut
 
@@ -334,6 +337,7 @@ sub invoice_details {
             $form->{discount} = [] if ref $form->{discount} ne 'ARRAY';
             $form->{totalqty}  += $form->{"qty_$i"};
             $form->{totalship} += $form->{"qty_$i"};
+            $form->{"weight_$i"} ||= 0;
             $form->{totalweight} +=
               ( $form->{"qty_$i"} * $form->{"weight_$i"} );
 
@@ -467,6 +471,10 @@ sub invoice_details {
 
             foreach my $item (@taxaccounts) {
                 push @taxrates, 100 * $item->rate;
+                if (defined $form->{"mt_amount_" . $item->account}){
+                    $taxaccounts{ $item->account } += $form->{"mt_amount_" . $item->account};
+                    next;
+                }
                 $taxaccounts{ $item->account } += $item->value;
                 if ( $form->{taxincluded} ) {
                     $taxbase{ $item->account } += $taxbase;
@@ -884,7 +892,7 @@ sub customer_details {
 		       l.state as state, l.mail_code AS zipcode, 
 		       country.name as country,
 		       '' as contact, '' as customerphone, '' as customerfax,
-		       '' AS customertaxnumber, sic_code AS sic, iban, 
+		       '' AS customertaxnumber, sic_code AS sic, iban, remark,
  		       bic,eca.startdate,eca.enddate
 		  FROM company cm
 		  JOIN entity e ON (cm.entity_id = e.id)
@@ -913,7 +921,7 @@ sub post_invoice {
     my ( $self, $myconfig, $form ) = @_;
     $form->{invnumber} = $form->update_defaults( $myconfig, "sinumber", $dbh )
       unless $form->{invnumber};
-
+ 
     my $dbh = $form->{dbh};
 
     my $query;
@@ -1182,7 +1190,7 @@ sub post_invoice {
                             $dbh, "parts", "onhand",
                             qq|id = | . qq|$form->{"id_$i"}|,
                             $form->{"qty_$i"} * -1
-                        ) unless $form->{shipped};
+                        ); # unless $form->{shipped};
                     }
 
                     &process_assembly( $dbh, $form, $form->{"id_$i"},
@@ -1193,7 +1201,7 @@ sub post_invoice {
                         $dbh, "parts", "onhand",
                         qq|id = $form->{"id_$i"}|,
                         $form->{"qty_$i"} * -1
-                    ) unless $form->{shipped};
+                    ); # unless $form->{shipped};
 
                     $allocated = cogs(
                         $dbh,              $form,      
@@ -1597,7 +1605,8 @@ sub post_invoice {
 		       person_id = ?,
 		       till = ?,
 		       language_code = ?,
-		       ponumber = ?
+		       ponumber = ?,
+		       crdate = ?
 		 WHERE id = ?
              |;
     $sth = $dbh->prepare($query);
@@ -1613,7 +1622,7 @@ sub post_invoice {
         $form->{currency},      $form->{department_id},
         $form->{employee_id},   $form->{till},
         $form->{language_code}, $form->{ponumber},
-        $form->{id}
+        $form->{crdate},	$form->{id}
     ) || $form->dberror($query);
 
     # add shipto
@@ -1885,7 +1894,7 @@ sub cogs {
         # this error, they will require more work to address and will not work
         # safely with the current system.  -- CT
         if ($totalqty < 0){
-            $form->error("Too many reversed items on an invoice");
+            # $form->error("Too many reversed items on an invoice");
         }
         elsif ($totalqty > 0){
             $form->error("Unexpected and invalid quantity allocated.".
@@ -2091,7 +2100,7 @@ sub retrieve_invoice {
 			          a.duedate, a.taxincluded, a.curr AS currency,
 			          a.person_id, e.name AS employee, a.till, 
 			          a.reverse,
-			          a.language_code, a.ponumber,
+			          a.language_code, a.ponumber, a.crdate,
 			          a.on_hold
 			     FROM ar a
 			LEFT JOIN entity_employee em ON (em.entity_id = a.person_id)
@@ -2130,6 +2139,8 @@ sub retrieve_invoice {
         $sth->execute( $form->{id} ) || $form->dberror($query);
 
         $ref = $sth->fetchrow_hashref(NAME_lc);
+        $ref->{locationid} = $ref->{id};
+        delete $ref->{id};
         for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
         $sth->finish;
 
@@ -2408,21 +2419,9 @@ sub toggle_on_hold {
     if ($form->{id}) { # it's an existing (.. probably) invoice.
         
         my $dbh = $form->{dbh};
-        my $sth = $dbh->prepare("SELECT on_hold from ar where ar.id = ?");
-        $sth->execute($form->{id});
-        my ($state) = $sth->fetchrow_array;
-        my $n_s; # new state
-        if ($state) {
-            
-            # Turn it off
-            $n_s = 'f';
-            
-        } else {
-            $n_s = 't';
-        }
         
-        $sth = $dbh->prepare("update ar set on_hold = ?::boolean where ar.id = ?");
-        my $code = $sth->execute($n_s, $form->{id});
+        $sth = $dbh->prepare("update ar set on_hold = not on_hold where ar.id = ?");
+        my $code = $sth->execute($form->{id});
         
         return 1;
         
@@ -2448,7 +2447,7 @@ sub list_locations_contacts
     my $query = qq|
 			select  id as locationid,line_one as shiptoaddress1,line_two as shiptoaddress2,line_three as shiptoaddress3,city as shiptocity,
 				state as shiptostate,mail_code as shiptozipcode,country as shiptocountry 
-			from eca__list_locations(?);
+			from eca__list_locations(?) WHERE class_id = 3;
 		  |;
 
 
@@ -2604,7 +2603,7 @@ sub createlocation
 
   my $dbh=$form->{dbh};
 
-  my $query="select * from eca__location_save(?,?,?,?,?,?,?,?,?,?);";
+  my $query="select * from eca__location_save(?,?,?,?,?,?,?,?,?,?, null);";
 
   my $sth=$dbh->prepare("$query");
 
@@ -2703,8 +2702,6 @@ sub update_invoice_tax_form
           my $sth = $dbh->prepare($query);
           $sth->execute($invoice_id,$report) || $form->dberror("$query");
    }
-
-   $dbh->commit();
 
 }
 

@@ -130,14 +130,6 @@ Firefox, Opera, and Internet Explorer are all supported.  Not sure about Chrome
 
 sub logout {
     my ($request) = @_;    
-    @{$request->{scripts}} = 
-                  qw(UI/logout/iexplore.js 
-                     UI/logout/firefox.js
-                     UI/logout/opera.js
-                     UI/logout/safari.js
-                     UI/logout/konqueror.js
-                     UI/logout/epiphany.js
-                   );
     $request->{callback}   = "";
     $request->{endsession} = 1;
     if($request->{dbh}){LedgerSMB::Auth::session_destroy($request);}#if logout on already logged out session
@@ -150,6 +142,23 @@ sub logout {
     );
     $template->render($request);
 }
+
+=head2 logout_js
+
+This is a stup for a js logout feature.  It allows javascript to log out by 
+requiring only bogus credentials (logout:logout).
+
+=cut
+
+sub logout_js {
+    my $request = shift @_;
+    my $creds = LedgerSMB::Auth::get_credentials();
+    LedgerSMB::Auth::credential_prompt 
+        unless ($creds->{password} eq 'logout') 
+               and ($creds->{login} eq 'logout');
+    logout($request);
+}
+    
 
 eval { do "scripts/custom/login.pl"};
 

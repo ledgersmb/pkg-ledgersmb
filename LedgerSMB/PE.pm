@@ -1,4 +1,5 @@
 
+
 =head1 NAME
 
 LedgerSMB::PE - Support functions for projects, partsgroups, and parts
@@ -1036,7 +1037,7 @@ sub delete_partsgroup {
     $sth   = $dbh->prepare($query);
     $sth->execute( $form->{id} ) || $form->dberror($query);
 
-    $query = qq|DELETE FROM translation WHERE trans_id = ?|;
+    $query = qq|DELETE FROM translation_partsgroup WHERE trans_id = ?|;
     $sth   = $dbh->prepare($query);
     $sth->execute( $form->{id} ) || $form->dberror($query);
 
@@ -1433,7 +1434,7 @@ sub description_translations {
     my $query = qq|
 		  SELECT l.description AS language, 
 		         t.description AS translation, l.code
-		    FROM translation t
+		    FROM parts_translation t
 		    JOIN language l ON (l.code = t.language_code)
 		   WHERE trans_id = ?
 		ORDER BY 1|;
@@ -1505,7 +1506,7 @@ sub partsgroup_translations {
     my $query = qq|
 		  SELECT l.description AS language, 
 		         t.description AS translation, l.code
-		    FROM translation t
+		    FROM partsgroup_translation t
 		    JOIN language l ON (l.code = t.language_code)
 		   WHERE trans_id = ?
 		ORDER BY 1|;
@@ -1561,6 +1562,7 @@ $form->{all_language} is populated by get_language.
 $myconfig is unused.  $form->{trans_id} is set to the last encountered id.
 
 =cut
+
 sub project_translations {
     my ( $self, $myconfig, $form ) = @_;
     my $dbh = $form->{dbh};
@@ -1586,7 +1588,7 @@ sub project_translations {
     my $query = qq|
 		  SELECT l.description AS language, 
 		         t.description AS translation, l.code
-		    FROM translation t
+		    FROM project_translation t
 		    JOIN language l ON (l.code = t.language_code)
 		   WHERE trans_id = ?
 		ORDER BY 1|;
@@ -1665,12 +1667,20 @@ sub save_translation {
 
     my $dbh = $form->{dbh};
 
-    my $query = qq|DELETE FROM translation WHERE trans_id = ?|;
+    my %tables = (
+        partsgroup => 'partsgroup_translation',
+        description => 'parts_translation'
+    );
+
+    my $table = $tables{$form->{translation}};
+
+    # table is whitelisted below, so safe.
+    my $query = qq|DELETE FROM $table WHERE trans_id = ?|;
     $sth = $dbh->prepare($query);
     $sth->execute( $form->{id} ) || $form->dberror($query);
 
     $query = qq|
-		INSERT INTO translation (trans_id, language_code, description)
+		INSERT INTO $table (trans_id, language_code, description)
 		     VALUES (?, ?, ?)|;
     my $sth = $dbh->prepare($query) || $form->dberror($query);
 
@@ -1701,7 +1711,15 @@ sub delete_translation {
 
     my $dbh = $form->{dbh};
 
-    my $query = qq|DELETE FROM translation WHERE trans_id = ?|;
+    my %tables = (
+        partsgroup => 'partsgroup_translation',
+        description => 'parts_translation'
+    );
+
+    my $table = $tables{$form->{translation}};
+
+    # table is whitelisted below, so safe.
+    my $query = qq|DELETE FROM $table WHERE trans_id = ?|;
     $sth = $dbh->prepare($query);
     $sth->execute( $form->{id} ) || $form->dberror($query);
 

@@ -58,6 +58,7 @@ sub calculate_tax {
 sub apply_tax {
     my ( $self, $form, $subtotal ) = @_;
     my $tax = $self->calculate_tax( $form, $subtotal, 0 );
+    $tax = Math::BigFloat->bzero unless $tax;
     $self->value($tax);
     return $tax;
 }

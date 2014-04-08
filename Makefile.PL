@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 use inc::Module::Install 0.65;
+use File::Copy;
+
+copy ('ledgersmb.conf.default', 'ledgersmb.conf') unless -f 'ledgersmb.conf';
+copy ('pos.conf.pl.template', 'pos.conf.pl') unless -f 'pos.conf.pl';
 
 name 'LedgerSMB';
 version_from 'LedgerSMB.pm';
@@ -33,7 +37,7 @@ requires 'Error';
 requires 'CGI::Simple';
 requires 'File::MimeInfo';
 
-recommends 'perl-Math-BigInt-GMP';
+recommends 'Math::BigInt::GMP';
 
 test_requires 'Test::More';
 test_requires 'Test::Trap';

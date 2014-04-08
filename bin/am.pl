@@ -81,7 +81,7 @@ my @default_textboxes = (
 my @default_others = qw(businessnumber weightunit separate_duties default_language
                         inventory_accno_id income_accno_id expense_accno_id 
                         fxgain_accno_id fxloss_accno_id default_country 
-                        templates curr template_images);
+                        templates curr template_images disable_back);
 
 sub save_as_new {
 
@@ -458,8 +458,9 @@ sub edit_gifi {
 
 sub gifi_header {
     my $hiddens = shift;
+    my $title_msg="$form->{title} GIFI";
 
-    $form->{title} = $locale->text("[_1] GIFI", $form->{title});
+    $form->{title} = $locale->text($title_msg);
 
     # $locale->text('Add GIFI')
     # $locale->text('Edit GIFI')
@@ -686,8 +687,9 @@ sub list_department {
 
 sub department_header {
     my $hiddens = shift;
+    my $title_msg="$form->{title} Department";
 
-    $form->{title} = $locale->text("[_1] Department", $form->{title});
+    $form->{title} = $locale->text($title_msg);
 
     # $locale->text('Add Department')
     # $locale->text('Edit Department')
@@ -841,8 +843,9 @@ sub list_business {
 
 sub business_header {
     my $hiddens = shift;
+    my $title_msg="$form->{title} Business";
 
-    $form->{title} = $locale->text("[_1] Business", $form->{title});
+    $form->{title} = $locale->text($title_msg);
 
     # $locale->text('Add Business')
     # $locale->text('Edit Business')
@@ -1008,8 +1011,9 @@ sub list_sic {
 
 sub sic_header {
     my $hiddens = shift;
+    my $title_msg="$form->{title} SIC";
 
-    $form->{title} = $locale->text("[_1] SIC", $form->{title});
+    $form->{title} = $locale->text($title_msg);
 
     # $locale->text('Add SIC')
     # $locale->text('Edit SIC')
@@ -1171,8 +1175,9 @@ sub list_language {
 
 sub language_header {
     my $hiddens = shift;
+    my $title_msg="$form->{title} Language";
 
-    $form->{title} = $locale->text("[_1] Language", $form->{title});
+    $form->{title} = $locale->text($title_msg);
 
     # $locale->text('Add Language')
     # $locale->text('Edit Language')
@@ -2019,8 +2024,9 @@ sub list_warehouse {
 
 sub warehouse_header {
     my $hiddens = shift;
+    my $title_msg="$form->{title} Warehouse";
 
-    $form->{title} = $locale->text("[_1] Warehouse", $form->{title});
+    $form->{title} = $locale->text($title_msg);
 
     # $locale->text('Add Warehouse')
     # $locale->text('Edit Warehouse')
@@ -2038,14 +2044,13 @@ sub save_warehouse {
 
     $form->isblank( "description", $locale->text('Description missing!') );
     AM->save_warehouse( \%myconfig, \%$form );
-    $form->redirect( $locale->text('Warehouse saved!') );
-
+    list_warehouse();
 }
 
 sub delete_warehouse {
 
     AM->delete_warehouse( \%myconfig, \%$form );
-    $form->redirect( $locale->text('Warehouse deleted!') );
+    list_warehouse();
 
 }
 
@@ -2883,7 +2888,7 @@ sub formnames {
 
 sub add_taxform {
 
-    $form->{title} = "Add";
+    $form->{title} = $locale->text("Add");
 
     $form->{callback} =
 "$form->{script}?action=add_taxform&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}"

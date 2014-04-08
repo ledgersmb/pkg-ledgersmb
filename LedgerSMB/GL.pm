@@ -176,6 +176,15 @@ sub post_transaction {
            if (not defined $form->{batch_id}){
                $form->error($locale->text('Batch ID Missing'));
            }
+           my $vqh = $dbh->prepare(
+              'SELECT * FROM batch 
+               WHERE id = ? FOR UPDATE'
+           );
+           $vqh->execute($form->{batch_id});
+           my $bref = $vqh->fetchrow_hashref('NAME_lc');
+           # Change the below to die with localization in 1.4
+           $form->error('Approved Batch') if $bref->{approved_by};
+           $form->error('Locked Batch') if $bref->{locked_by};
            my $query = qq| 
 			INSERT INTO voucher (batch_id, trans_id, batch_class) 
 			VALUES (?, ?, (select id FROM batch_class 
@@ -421,7 +430,7 @@ sub all_transactions {
 
         if ( $form->{datefrom} ) {
             $query = qq|
-			SELECT account__obtain_balance(?, id) from chart
+			SELECT account__obtain_balance(?::date - 1, id) from chart
 			WHERE accno = ? |;
             my $sth = $dbh->prepare($query);
             $sth->execute($form->{datefrom}, $form->{chart_accno});

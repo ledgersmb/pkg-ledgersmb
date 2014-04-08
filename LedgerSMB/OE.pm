@@ -43,6 +43,7 @@ use LedgerSMB::Tax;
 use LedgerSMB::Sysconfig;
 
 my $logger = Log::Log4perl->get_logger('OE');
+
 =over
 
 =item get_files
@@ -51,6 +52,8 @@ Returns a list of files associated with the existing transaction.  This is
 provisional, and will change for 1.4 as the GL transaction functionality is 
                   {ref_key => $self->{id}, file_class => 2}
 rewritten
+
+=back
 
 =cut
 
@@ -66,9 +69,13 @@ sub get_files {
 
 }
 
-=get_type 
+=over
+
+=item get_type 
 
 Sets the type field for an existing order or quotation
+
+=back
 
 =cut
 
@@ -570,7 +577,6 @@ sub save {
                 $form->{"precision_$i"}
             );
             $sth->execute(@queryargs) || $form->dberror($query);
-	    $dbh->commit;
             $form->{"sellprice_$i"} = $fxsellprice;
         }
         $form->{"discount_$i"} *= 100;
@@ -675,7 +681,7 @@ sub save {
     $form->{name} = $form->{ $form->{vc} };
     $form->{name} =~ s/--$form->{"$form->{vc}_id"}//;
 
-    $form->add_shipto( $dbh, $form->{id});
+    $form->add_shipto( $dbh, $form->{id}, 1);
 
     # save printed, emailed, queued
 
@@ -710,8 +716,6 @@ sub save {
     );
 
    # $form->audittrail( $dbh, "", \%audittrail );
-
-    $form->save_recurring( $dbh, $myconfig );
 
     my $rc = $dbh->commit;
 
@@ -825,6 +829,12 @@ sub retrieve {
 		SELECT value, current_date FROM defaults
 		 WHERE setting_key = 'curr'|;
     ( $form->{currencies}, $form->{transdate} ) = $dbh->selectrow_array($query);
+    
+    $query = qq|
+		SELECT value FROM defaults
+		 WHERE setting_key = 'lock_description'|;
+    ( $form->{lock_description}) = $dbh->selectrow_array($query);
+    
 
     if ( $form->{id} ) {
 
@@ -1934,11 +1944,17 @@ sub save_inventory {
             $sth2->finish;
 
             # update onhand for parts
-            $form->update_balance(
-                $dbh, "parts", "onhand",
-                qq|id = $form->{"id_$i"}|,
-                $form->{"ship_$i"} * $ml
-            );
+            # REMOVING THIS
+            #
+            # This leads to corner cases regarding inventory not being adjusted
+            # correctly.  Going to look at how to provide a report which shows
+            # inventory shipping/recieving numbers  for adjusting inventory 
+            # instead. --CT
+            # $form->update_balance(
+            #    $dbh, "parts", "onhand",
+            #    qq|id = $form->{"id_$i"}|,
+            #    $form->{"ship_$i"} * $ml
+            # );
 
         }
     }

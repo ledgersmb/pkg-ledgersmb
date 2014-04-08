@@ -80,7 +80,7 @@ $$
             i.description, i.qty, i.unit::text, i.sellprice, i.discount, 
             i.deliverydate, pr.id as project_id, pr.projectnumber,
             i.serialnumber, 
-            case when $16 = 1 then xr.buy else xr.sell end as exchange_rate,
+            case when $16 = 1 THEN xr.buy else xr.sell end as exchange_rate,
             ee.id as salesperson_id, 
             ep.last_name || ', ' || ep.first_name as salesperson_name
      FROM (select * from entity_credit_account 
@@ -118,7 +118,7 @@ $$
            select quonumber, curr, transdate, entity_credit_account, id,
                   person_id
            from oe 
-           where($16= 1 and oe.oe_class_id = 4 and $13 = 'q'
+           where($16= 1 and oe.oe_class_id = 3 and $13 = 'q'
                 and quotation is true)
                   and (($17 and not closed) or ($18 and closed))
            union 
@@ -139,11 +139,10 @@ $$
              FROM orderitems where $13 <> 'i'
           ) i on i.trans_id = a.id
      JOIN parts p ON (p.id = i.parts_id)
-LEFT JOIN exchangerate ex ON (ex.transdate = a.transdate)
 LEFT JOIN project pr ON (pr.id = i.project_id)
 LEFT JOIN entity ee ON (a.person_id = ee.id)
 LEFT JOIN person ep ON (ep.entity_id = ee.id)
-     JOIN exchangerate xr ON a.transdate = xr.transdate
+LEFT JOIN exchangerate xr ON a.transdate = xr.transdate
     -- these filters don't perform as well on large databases
     WHERE (e.name ilike '%' || $1 || '%' or $1 is null)
           and ($3 is null or eca.id in 
@@ -169,7 +168,7 @@ LEFT JOIN person ep ON (ep.entity_id = ee.id)
           and (a.transdate <= $12 or $12 is null)
           and (eca.startdate >= $14 or $14 is null)
           and (eca.startdate <= $15 or $15 is null)
- ORDER BY eca.meta_number;
+ ORDER BY eca.meta_number, p.partnumber;
 $$ LANGUAGE SQL;
 
 COMMENT ON FUNCTION eca_history
@@ -232,44 +231,42 @@ BEGIN
 		LEFT JOIN entity_credit_account ec ON (ec.entity_id = e.id)
 		LEFT JOIN business b ON (ec.business_id = b.id)
 		WHERE coalesce(ec.entity_class,e.entity_class) = in_account_class
-			AND (c.id IN (select company_id FROM company_to_contact
-				WHERE contact ILIKE ALL(t_contact_info))
-				OR '' ILIKE ALL(t_contact_info)
-				OR t_contact_info IS NULL)
+			AND (e.id IN 
+                            (select entity_id 
+                               FROM entity_credit_account leca
+                               JOIN eca_to_contact le2c 
+                                 ON le2c.credit_id = leca.id
+			      WHERE contact ILIKE ALL(t_contact_info))
+			OR '' ILIKE ALL(t_contact_info)
+			OR t_contact_info IS NULL)
 			
 			AND (c.legal_name ilike '%' || in_legal_name || '%'
 				OR in_legal_name IS NULL)
 			AND ((in_address IS NULL AND in_city IS NULL 
 					AND in_state IS NULL 
+                                        AND in_mail_code IS NULL
 					AND in_country IS NULL)
-				OR (c.id IN 
-				(select company_id FROM company_to_location
-				WHERE location_id IN 
-					(SELECT id FROM location
-					WHERE line_one 
-						ilike '%' || 
-							coalesce(in_address, '')
-							|| '%'
-						AND city ILIKE 
-							'%' || 
-							coalesce(in_city, '') 
-							|| '%'
-						AND state ILIKE
-							'%' || 
-							coalesce(in_state, '') 
-							|| '%'
-						AND mail_code ILIKE
-							'%' || 
-							coalesce(in_mail_code,
-								'')
-							|| '%'
-						AND country_id IN 
-							(SELECT id FROM country
-							WHERE name ILIKE '%' ||
-								in_country ||'%'
-								OR short_name
-								ilike 
-								in_country)))))
+				OR (e.id IN 
+			(SELECT entity_id 
+                           FROM entity_credit_account leca 
+                           JOIN eca_to_location le2l 
+                             ON (leca.id = le2l.credit_id)
+                           JOIN location ll ON ll.id = le2l.location_id
+                          WHERE e.id = leca.entity_id 
+                                AND  line_one ilike 
+                                     '%' || coalesce(in_address, '') || '%'
+				AND city ILIKE 
+                                     '%' || coalesce(in_city, '') || '%'
+				AND state ILIKE
+		                     '%' || coalesce(in_state, '') || '%'
+				AND mail_code ILIKE
+                                     '%' || coalesce(in_mail_code, '') || '%'
+				AND country_id IN (SELECT id FROM country
+						    WHERE name ILIKE '%' ||
+					 		  in_country ||'%'
+							  OR short_name
+							  ilike 
+							  in_country))))
 			AND (ec.business_id = 
 				coalesce(in_business_id, ec.business_id)
 				OR (ec.business_id IS NULL 
@@ -281,6 +278,17 @@ BEGIN
 				OR (ec.enddate IS NULL))
 	 		AND (ec.meta_number = in_meta_number
 			     OR in_meta_number IS NULL)
+                        AND (in_contact IS NULL 
+                             OR c.id IN (select company_id 
+                                           FROM company_to_contact 
+                                          WHERE description 
+                                                @@ plainto_tsquery(in_contact))
+                             OR ec.id IN (SELECT credit_id
+                                            FROM eca_to_contact
+                                           WHERE description
+                                                 @@ plainto_tsquery(in_contact))
+                       )
+               ORDER BY legal_name
 	LOOP
 		RETURN NEXT out_row;
 	END LOOP;
@@ -312,32 +320,22 @@ $$ Returns a set of taxable account id's.$$; --'
 CREATE OR REPLACE FUNCTION eca__set_taxes(in_credit_id int, in_tax_ids int[])
 RETURNS bool AS
 $$
-DECLARE 
-    eca entity_credit_account;
-    iter int;
-BEGIN
-     SELECT * FROM entity_credit_account into eca WHERE id = in_credit_id;
+     DELETE FROM customertax WHERE customer_id = $1;
+     DELETE FROM vendortax WHERE vendor_id = $1;
 
-     IF eca.entity_class = 1 then
-        DELETE FROM vendortax WHERE vendor_id = in_credit_id;
-        FOR iter in array_lower(in_tax_ids, 1) .. array_upper(in_tax_ids, 1)
-        LOOP
-             INSERT INTO vendortax (vendor_id, chart_id)
-             values (in_credit_id, in_tax_ids[iter]);
-        END LOOP;
-     ELSIF eca.entity_class = 2 then
-        DELETE FROM customertax WHERE customer_id = in_credit_id;
-        FOR iter in array_lower(in_tax_ids, 1) .. array_upper(in_tax_ids, 1)
-        LOOP
-             INSERT INTO customertax (customer_id, chart_id)
-             values (in_credit_id, in_tax_ids[iter]);
-        END LOOP;
-     ELSE 
-        RAISE EXCEPTION 'Wrong entity class or credit account not found!';
-     END IF;
-     RETURN TRUE;
-end;
-$$ language plpgsql;
+     INSERT INTO customertax (customer_id, chart_id)
+     SELECT $1, tax_id
+       FROM unnest($2) tax_id
+      WHERE exists (select * from entity_credit_account 
+                     where entity_class = 2 AND id = $1);
+
+     INSERT INTO vendortax (vendor_id, chart_id)
+     SELECT $1, tax_id
+       FROM unnest($2) tax_id
+      WHERE exists (select * from entity_credit_account 
+                     where entity_class = 1 AND id = $1);
+     SELECT TRUE;
+$$ language sql;
 
 comment on function eca__set_taxes(in_credit_id int, in_tax_ids int[]) is
 $$Sets the tax values for the customer or vendor.
@@ -604,6 +602,7 @@ CREATE TYPE company_billing_info AS (
 legal_name text,
 meta_number text,
 control_code text,
+cash_account_id int,
 tax_id text,
 street1 text,
 street2 text,
@@ -621,7 +620,8 @@ DECLARE out_var company_billing_info;
 	t_id INT;
 BEGIN
 	select coalesce(eca.pay_to_name, c.legal_name), eca.meta_number, 
-		e.control_code, c.tax_id, a.line_one, a.line_two, a.line_three, 
+		e.control_code, eca.cash_account_id, c.tax_id, 
+                a.line_one, a.line_two, a.line_three, 
 		a.city, a.state, a.mail_code, cc.name
 	into out_var
 	FROM company c
@@ -662,6 +662,7 @@ BEGIN
 	UPDATE entity 
 	SET name = in_name, 
 		entity_class = in_entity_class,
+                country_id   = in_country_id,
 		control_code = in_control_code
 	WHERE id = in_entity_id;
 
@@ -677,7 +678,7 @@ BEGIN
 	SET legal_name = in_name,
 		tax_id = in_tax_id,
 		sic_code = in_sic_code
-	WHERE id = t_company_id;
+	WHERE entity_id = t_entity_id;
 
 
 	IF NOT FOUND THEN
@@ -928,7 +929,7 @@ COMMENT ON FUNCTION company__list_bank_account(in_entity_id int) IS
 $$ Lists all bank accounts for the entity.$$;
 
 CREATE OR REPLACE FUNCTION eca__save_bank_account
-(in_entity_id int, in_credit_id int, in_bic text, in_iban text,
+(in_entity_id int, in_credit_id int, in_bic text, in_iban text, in_remark text,
 in_bank_account_id int)
 RETURNS int AS
 $$
@@ -936,14 +937,15 @@ DECLARE out_id int;
 BEGIN
         UPDATE entity_bank_account
            SET bic = in_bic,
-               iban = in_iban
+               iban = in_iban,
+	       remark = in_remark
          WHERE id = in_bank_account_id;
 
         IF FOUND THEN
                 out_id = in_bank_account_id;
         ELSE
-	  	INSERT INTO entity_bank_account(entity_id, bic, iban)
-		VALUES(in_entity_id, in_bic, in_iban);
+	  	INSERT INTO entity_bank_account(entity_id, bic, iban, remark)
+		VALUES(in_entity_id, in_bic, in_iban, in_remark);
 	        SELECT CURRVAL('entity_bank_account_id_seq') INTO out_id ;
 	END IF;
 
@@ -957,26 +959,27 @@ END;
 $$ LANGUAGE PLPGSQL;
 
 COMMENT ON  FUNCTION eca__save_bank_account
-(in_entity_id int, in_credit_id int, in_bic text, in_iban text,
+(in_entity_id int, in_credit_id int, in_bic text, in_iban text, in_remark text,
 in_bank_account_id int) IS
 $$ Saves bank account to the credit account.$$;
 
 CREATE OR REPLACE FUNCTION entity__save_bank_account
-(in_entity_id int, in_bic text, in_iban text, in_bank_account_id int)
+(in_entity_id int, in_bic text, in_iban text, in_remark text, in_bank_account_id int)
 RETURNS int AS
 $$
 DECLARE out_id int;
 BEGIN
         UPDATE entity_bank_account
            SET bic = in_bic,
-               iban = in_iban
+               iban = in_iban,
+	       remark = in_remark
          WHERE id = in_bank_account_id;
 
         IF FOUND THEN
                 out_id = in_bank_account_id;
         ELSE
-	  	INSERT INTO entity_bank_account(entity_id, bic, iban)
-		VALUES(in_entity_id, in_bic, in_iban);
+	  	INSERT INTO entity_bank_account(entity_id, bic, iban, remark)
+		VALUES(in_entity_id, in_bic, in_iban, in_remark);
 	        SELECT CURRVAL('entity_bank_account_id_seq') INTO out_id ;
 	END IF;
 
@@ -985,7 +988,7 @@ END;
 $$ LANGUAGE PLPGSQL;
 
 COMMENT ON FUNCTION entity__save_bank_account
-(in_entity_id int, in_bic text, in_iban text, in_bank_account_id int) IS
+(in_entity_id int, in_bic text, in_iban text, in_remark text, in_bank_account_id int) IS
 $$Saves a bank account to the entity.$$;
 
 CREATE OR REPLACE FUNCTION company__delete_contact
@@ -1581,7 +1584,7 @@ IF t_entity_class = 1 THEN -- VENDOR
     IF NOT FOUND THEN
         INSERT INTO partsvendor
                (parts_id, credit_id, lastcost, leadtime, partnumber, curr)
-        VALUES (in_parts_id, in_credit_id, in_price, in_leadtime::int2, 
+        VALUES (in_parts_id, in_credit_id, in_price, in_lead_time::int2, 
                in_partnumber, in_curr);
     END IF;
 

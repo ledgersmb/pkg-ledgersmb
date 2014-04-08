@@ -383,6 +383,7 @@ sub post_transaction {
 			intnotes = ?,
 			department_id = ?,
 			ponumber = ?,
+			crdate = ?,
                         reverse = ?
 		WHERE id = ?
 	|;
@@ -395,8 +396,8 @@ sub post_transaction {
         $datepaid,              $invnetamount,
         $form->{currency},      $form->{notes},
         $form->{intnotes},      $form->{department_id},
-        $form->{ponumber},      $form->{reverse},
-        $form->{id}
+        $form->{ponumber},      $form->{crdate},
+	$form->{reverse},        $form->{id}
     );
 
     $dbh->prepare($query)->execute(@queryargs) || $form->dberror($query);
@@ -411,6 +412,15 @@ sub post_transaction {
            } else {
                $batch_class = 'ap';
            }
+           my $vqh = $dbh->prepare(
+              'SELECT * FROM batch 
+               WHERE id = ? FOR UPDATE'
+           );
+           $vqh->execute($form->{batch_id});
+           my $bref = $vqh->fetchrow_hashref('NAME_lc');
+           # Change the below to die with localization in 1.4
+           $form->error('Approved Batch') if $bref->{approved_by};
+           $form->error('Locked Batch') if $bref->{locked_by};
            $query = qq| 
 		INSERT INTO voucher (batch_id, trans_id, batch_class)
 		VALUES (?, ?, (select id from batch_class where class = ?))|;
@@ -897,52 +907,20 @@ sub transactions {
     my $query;
     if ($form->{outstanding}){
         # $form->{ARAP} is safe since it is set in calling scripts and not passed from the UA
+        #
+        # Refactoring code here entirely.  This is done because the outstanding
+        # summary report (as of 1.3.36) is not delivering correct answers.
+        # 
+        # I really don't like this code but it is going away in 1.4, and this
+        # seems like the best way to make this more maintainable now.
+        #
+        # The result is going to be a refactoring of the queries so that the
+        # detail report query can be inlined in the summary report query. -CT
         my $p = $LedgerSMB::Sysconfig::decimal_places;
-        if ($form->{transdateto} eq ''){
-            delete $form->{transdateto};
-        }
-        if ($form->{summary}){
-            $query = qq|
-		   SELECT count(a.id) as invnumber, min(a.transdate) as transdate,
-		          min(a.duedate) as duedate, 
-		          sum(a.netamount) as netamount, 
-		          sum(a.amount::numeric(20,$p)) as amount, 
-		          sum(a.amount::numeric(20,$p)) 
-                             - (sum(acs.amount::numeric(20,$p)) 
-                                * CASE WHEN '$table' = 'ar' THEN -1 ELSE 1 END)
-                          AS paid,
-		          vce.name, vc.meta_number,
-		          a.entity_credit_account, 
-		          d.description AS department
-		     FROM $table a
-		     JOIN entity_credit_account vc ON (a.entity_credit_account = vc.id)
-		     JOIN acc_trans acs ON (acs.trans_id = a.id)
-		     JOIN entity vce ON (vc.entity_id = vce.id)
-		     JOIN chart c ON (acs.chart_id = c.id 
-                                     AND charttype = 'A')
-		LEFT JOIN exchangerate ex ON (ex.curr = a.curr
-		          AND ex.transdate = a.transdate)
-		LEFT JOIN department d ON (a.department_id = d.id)
-		$acc_trans_join
-		    WHERE c.link = '$form->{ARAP}' AND 
-		          (|.$dbh->quote($form->{transdateto}) . qq| IS NULL OR 
-		           |.$dbh->quote($form->{transdateto}) . qq| >= acs.transdate)
-			AND a.approved IS TRUE AND acs.approved IS TRUE
-			AND a.force_closed IS NOT TRUE
-		 GROUP BY 
-		          vc.meta_number, a.entity_credit_account, vce.name, 
-                          d.description --,
-		          --a.ponumber, a.invoice 
-		   HAVING abs(sum(acs.amount::numeric(20,2))) > 0.000 |;
-        } else {
-            #HV typo error a.ponumber $acc_trans_fields -> a.ponumber $acc_trans_flds
-            $query = qq|
-		   SELECT a.id, a.invnumber, a.ordnumber, a.transdate,
+
+        my $cols = qq|a.id, a.invnumber, a.ordnumber, a.transdate, 
 		          a.duedate, a.netamount, a.amount::numeric(20,$p), 
-		          a.amount::numeric(20,$p)
-                             - (sum(acs.amount::numeric(20,$p)) 
-                                * CASE WHEN '$table' = 'ar' THEN -1 ELSE 1 END)
-                          AS paid,
+		          a.amount::numeric(20,$p) - (sum(acs.amount::numeric(20,$p)) * CASE WHEN '$table' = 'ar' THEN -1 ELSE 1 END) AS paid,
 		          a.invoice, a.datepaid, a.terms, a.notes,
 		          a.shipvia, a.shippingpoint, 
 		          vce.name, vc.meta_number,
@@ -951,9 +929,12 @@ sub transactions {
 		          d.description AS department, 
 		          as_array(p.projectnumber) as ac_projects,
 		          a.ponumber $acc_trans_flds
+        |;
+        delete $form->{transdateto} unless $form->{transdateto};
+        my $detail_query = qq| SELECT $cols 
 		     FROM $table a
 		     JOIN entity_credit_account vc ON (a.entity_credit_account = vc.id)
-		     JOIN acc_trans acs ON (acs.trans_id = a.id)
+		LEFT JOIN acc_trans acs ON (acs.trans_id = a.id)
 		     JOIN entity vce ON (vc.entity_id = vce.id)
 		     JOIN chart c ON (acs.chart_id = c.id
                                       AND charttype='A')
@@ -972,10 +953,38 @@ sub transactions {
 		          vc.meta_number, a.entity_credit_account, a.till, ex.$buysell, d.description, vce.name,
 		          a.ponumber, a.invoice, a.datepaid $acc_trans_flds
 		   HAVING abs(sum(acs.amount::numeric(20,$p))) > 0 |;
+        if ($form->{transdateto} eq ''){
+            delete $form->{transdateto};
+        }
+        if ($form->{summary}){
+            $cols =~ s/\w+\.invnumber/count(*) as invnumber/;
+            $cols =~ s/\w+\.transdate/min(transdate) as transdate/;
+            $cols =~ s/\w+\.duedate/min(duedate) as duedate/;
+            $cols =~ s/\w+\.netamount/sum(netamount) as netamount/;
+            $cols =~ s/\w+\.duedate/min(duedate) as duedate/;
+            $cols =~ s/.*paid,/sum(paid) as paid,/;
+            $cols =~ s/.*exchangerate,//;
+            $cols =~ s/.*ac_projects,//;
+            $cols =~ s/\w+\.amount::numeric\(20,$p\)/sum(amount::numeric(20,$p)) as amount/;
+            $cols =~ s/\w+\.(invoice|datepaid|terms|invoice|crdate|id),//g;
+            $cols =~ s/\w+\.(ordnumber|notes|shipvia|shippingpoint|till),//g;
+            $cols =~ s/a\.ponumber//;
+            $cols =~ s/d.description AS department,/department/ ;
+            $cols =~ s/(vc|vce|d|a)\.//g;
+
+            $query = qq|
+		   SELECT $cols
+                     FROM ($detail_query) d
+		 GROUP BY 
+		          meta_number, entity_credit_account, name, 
+                          department|;
+        } else {
+            #HV typo error a.ponumber $acc_trans_fields -> a.ponumber $acc_trans_flds
+            $query = $detail_query;
        } 
     } else {
         $query = qq|
-		   SELECT a.id, a.invnumber, a.ordnumber, a.transdate,
+		   SELECT a.id, a.invnumber, a.ordnumber, a.transdate, 
 		          a.duedate, a.netamount, a.amount, 
                           (a.amount - pd.due) AS paid,
 		          a.invoice, a.datepaid, a.terms, a.notes,
@@ -991,7 +1000,7 @@ sub transactions {
 		     JOIN entity_credit_account vc ON (a.entity_credit_account = vc.id)
                      JOIN acc_trans ac ON (a.id = ac.trans_id)
                      JOIN chart c ON (c.id = ac.chart_id)
-                     JOIN (SELECT acc_trans.trans_id,
+                LEFT JOIN (SELECT acc_trans.trans_id,
                                 sum(CASE WHEN '$table' = 'ap' THEN amount
                                          WHEN '$table' = 'ar'
                                          THEN amount * -1
@@ -1015,7 +1024,7 @@ sub transactions {
                 LEFT JOIN project ip ON (i.project_id = ip.id)
                 LEFT JOIN project p ON ac.project_id = p.id |;
         $group_by = qq| 
-                GROUP BY  a.id, a.invnumber, a.ordnumber, a.transdate,
+                GROUP BY  a.id, a.invnumber, a.ordnumber, a.transdate, 
                           a.duedate, a.netamount, a.amount,
                           a.invoice, a.datepaid, a.terms, a.notes,
                           a.shipvia, a.shippingpoint, ee.name , 
@@ -1030,7 +1039,8 @@ sub transactions {
         invnumber     => 2,
         ordnumber     => 3,
         transdate     => 4,
-        duedate       => 5,
+        crdate        => 5,
+        duedate       => 6,
         datepaid      => 10,
         shipvia       => 13,
         shippingpoint => 14,
@@ -1059,8 +1069,12 @@ sub transactions {
         $where .= " AND vc.meta_number = " . $dbh->quote($form->{meta_number});
     }
     if ( $form->{"$form->{vc}_id"} ) {
-        $form->{entity_id} = $form->{$form->{vc}."_id"};
-        $where .= qq| AND a.entity_id = $form->{entity_id}|;
+        # This was looking at entity_id (a.entity_id = $form->{entity_id}...)
+        # but on a 1.3.30 database, both ar.entity_id and ap.entity_id colums are NULL
+        # so it seems that entity_credit_account is what we actually want
+        # fix for bug 806
+        $form->{entity_credit_account} = $form->{$form->{vc}."_id"};
+        $where .= qq| AND a.entity_credit_account = $form->{entity_credit_account}|;
     }
     else {
         if ( $form->{ $form->{vc} } ) {
@@ -1069,7 +1083,7 @@ sub transactions {
         }
     }
 
-    for (qw(department_id entity_credit_account)) {
+    for (qw(department_id)) {
         if ( $form->{$_} ) {
             ( $null, $var ) = split /--/, $form->{$_};
             $var = $dbh->quote($var);
@@ -1127,8 +1141,8 @@ sub transactions {
 
     if ( $form->{open} || $form->{closed} ) {
         unless ( $form->{open} && $form->{closed} ) {
-            $where .= " AND pd.due <> 0" if ( $form->{open} );
-            $where .= " AND pd.due = 0"  if ( $form->{closed} );
+            $where .= " AND abs(pd.due) >= 0.01" if ( $form->{open} );
+            $where .= " AND abs(pd.due) < 0.01"  if ( $form->{closed} );
         }
     }
 
@@ -1191,7 +1205,7 @@ sub transactions {
             $query =~ s/GROUP BY / $where \n GROUP BY /;
         }
 	if ($form->{summary}){
-		$sortorder = "vc.meta_number";
+		$sortorder = "meta_number";
 	}
         $query .= "\n ORDER BY $sortorder";
     } else {
@@ -1288,7 +1302,7 @@ sub get_name {
     
 
     # get customer/vendor
-    my $query = qq|
+    my $query = qq/
 		   SELECT entity.name AS $form->{vc}, c.discount, 
 		          c.creditlimit, 
 		          c.terms, c.taxincluded,
@@ -1296,12 +1310,24 @@ sub get_name {
 		          c.language_code, $duedate AS duedate, 
 			  b.discount AS tradediscount, 
 		          b.description AS business, 
-			  entity.control_code as entity_control_code,
-			  c.meta_number
+			  entity.control_code AS entity_control_code,
+                          co.tax_id AS tax_id,
+			  c.meta_number, ecl.*, ctf.default_reportable,
+                          c.cash_account_id, ca.accno as cash_accno
 		     FROM entity_credit_account c
 		     JOIN entity ON (entity.id = c.entity_id)
+                LEFT JOIN account ca ON c.cash_account_id = ca.id
 		LEFT JOIN business b ON (b.id = c.business_id)
-		    WHERE c.id = ?|;
+                LEFT JOIN country_tax_form ctf ON ctf.id = c.taxform_id
+                LEFT JOIN company co ON co.entity_id = c.entity_id
+                LEFT JOIN (SELECT coalesce(line_one, '')
+                               || ' ' || coalesce(line_two, '') as address,
+                               l.city, etl.credit_id
+                          FROM eca_to_location etl
+                          JOIN location l ON etl.location_id = l.id
+                          WHERE etl.location_class = 1) ecl
+                        ON (c.id = ecl.credit_id)
+		    WHERE c.id = ?/;
     # TODO:  Add location join
 
     @queryargs = ( $form->{"$form->{vc}_id"} );
@@ -1350,10 +1376,17 @@ sub get_name {
     my $ARAP = uc $arap;
 
     $form->{creditremaining} = $form->{creditlimit};
+    # acc_trans.approved is only false in the case of batch payments which 
+    # have not yet been approved.  Unapproved transactions set approved on the
+    # ar or ap record level.  --CT
     $query = qq|
                 SELECT sum(used) FROM (
-		SELECT SUM(amount - paid) as used
-		  FROM $arap
+		SELECT SUM(ac.amount) 
+                       * CASE WHEN '$arap' = 'ar' THEN -1 ELSE 1 END as used
+		  FROM $arap a
+                  JOIN acc_trans ac ON a.id = ac.trans_id and ac.approved
+                  JOIN account_link al ON al.account_id = ac.chart_id
+                                       AND al.description IN ('AR', 'AP')
 		 WHERE entity_credit_account = ?
                  UNION 
                 SELECT sum(o.amount * coalesce(e.$buysell, 1)) as used
@@ -1423,7 +1456,7 @@ sub get_name {
 		   SELECT c.accno, c.description, t.rate, t.taxnumber
 		     FROM chart c
 		     JOIN tax t ON (c.id = t.chart_id)
-		    WHERE c.link LIKE '%${ARAP}_tax%'
+		    WHERE true
 		          $where
 		 ORDER BY accno, validto|;
 
@@ -1451,60 +1484,6 @@ sub get_name {
     $sth->finish;
     chop $form->{taxaccounts};
 
-    # setup last accounts used for this customer/vendor
-
-   if ( !$form->{id} && $form->{type} !~ /_(order|quotation)/ ) {
-
-         $query = qq|
-			   SELECT c.accno, c.description, c.link, 
-                                  c.category,
-			          ac.project_id,
-			          a.department_id
-			     FROM chart c
-			     JOIN acc_trans ac ON (ac.chart_id = c.id)
-			     JOIN $arap a ON (a.id = ac.trans_id)
-			    WHERE c.charttype = 'A' AND a.entity_credit_account = ?
-			          AND a.id = (SELECT max(id) 
-			                         FROM $arap
-			                        WHERE entity_credit_account = 
-			                              ?)
-			|;
-
-        $sth = $dbh->prepare($query);
-        $sth->execute( $form->{"$form->{vc}_id"}, $form->{"$form->{vc}_id"} )
-          || $form->dberror($query);
-
-        my $i = 0;
-
-	
-        while ( $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-            $form->{department_id} = $ref->{department_id};
-            if ( $ref->{link} =~ /_amount/ ) {
-                $i++;
-                $form->{"$form->{ARAP}_amount_$i"} =
-                  "$ref->{accno}--$ref->{description}"
-                  if $ref->{accno};
-                $form->{"projectnumber_$i"} =
-                  "$ref->{projectnumber}--" . "$ref->{project_id}"
-                  if $ref->{project_id};
-            }
-
-            if ( $ref->{link} eq $form->{ARAP} ) {
-                $form->{ $form->{ARAP} } = $form->{"$form->{ARAP}_1"} =
-                  "$ref->{accno}--" . "$ref->{description}"
-                  if $ref->{accno};
-            }
-        }
-
-        $sth->finish;
-        $query = "select description from department where id = ?";
-        $sth = $dbh->prepare($query);
-        $sth->execute($form->{department_id});
-        ($form->{department}) = $sth->fetchrow_array;
-        $form->{rowcount} = $i if ( $i && !$form->{type} );
-    }
-
-    $dbh->commit;
 }
 
 =item taxform_exist($form, $cv_id)
@@ -1633,7 +1612,6 @@ sub save_intnotes {
     my $sth = $form->{dbh}->prepare("UPDATE $table SET intnotes = ? " .
                                       "where id = ?");
     $sth->execute($form->{intnotes}, $form->{id});
-    $form->{dbh}->commit;
 }
 
 =back

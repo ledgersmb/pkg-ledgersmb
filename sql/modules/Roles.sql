@@ -712,7 +712,7 @@ TO "lsmb_<?lsmb dbname ?>__contact_edit", "lsmb_<?lsmb dbname ?>__part_edit";
 GRANT SELECT ON assembly, orderitems, jcitems, invoice 
 TO "lsmb_<?lsmb dbname ?>__part_edit";
 
-GRANT DELETE ON assembly TO "lsmb_<?lsmb dbname ?>__part_edit";
+GRANT DELETE ON assembly, parts TO "lsmb_<?lsmb dbname ?>__part_edit";
 GRANT UPDATE ON parts, partsgroup, assembly TO "lsmb_<?lsmb dbname ?>__part_edit";
 GRANT ALL ON makemodel TO "lsmb_<?lsmb dbname ?>__part_edit";
 --###oldcode: Should have been UPDATE
@@ -825,6 +825,11 @@ CREATE ROLE "lsmb_<?lsmb dbname ?>__warehouse_edit"
 WITH INHERIT NOLOGIN;
 
 GRANT UPDATE ON warehouse TO "lsmb_<?lsmb dbname ?>__warehouse_edit";
+
+CREATE ROLE "lsmb_<?lsmb dbname ?>__warehouse_delete"
+WITH INHERIT NOLOGIN;
+
+GRANT DELETE ON warehouse TO "lsmb_<?lsmb dbname ?>__warehouse_delete";
 
 INSERT INTO menu_acl (node_id, acl_type, role_name)
 values (143, 'allow', 'lsmb_<?lsmb dbname ?>__warehouse_edit');
@@ -989,8 +994,6 @@ WITH INHERIT NOLOGIN
 IN ROLE "lsmb_<?lsmb dbname ?>__orders_generate";
 
 INSERT INTO menu_acl (node_id, acl_type, role_name)
-values (60, 'allow', 'lsmb_<?lsmb dbname ?>__orders_purchase_consolidate');
-INSERT INTO menu_acl (node_id, acl_type, role_name)
 values (62, 'allow', 'lsmb_<?lsmb dbname ?>__orders_purchase_consolidate');
 
 
@@ -998,8 +1001,6 @@ CREATE ROLE "lsmb_<?lsmb dbname ?>__orders_sales_consolidate"
 WITH INHERIT NOLOGIN
 IN ROLE "lsmb_<?lsmb dbname ?>__orders_generate";
 
-INSERT INTO menu_acl (node_id, acl_type, role_name)
-values (60, 'allow', 'lsmb_<?lsmb dbname ?>__orders_sales_consolidate');
 INSERT INTO menu_acl (node_id, acl_type, role_name)
 values (61, 'allow', 'lsmb_<?lsmb dbname ?>__orders_sales_consolidate');
 
@@ -1131,7 +1132,7 @@ values (137, 'allow', 'lsmb_<?lsmb dbname ?>__account_create');
 CREATE ROLE "lsmb_<?lsmb dbname ?>__account_edit"
 WITH INHERIT NOLOGIN;
 
-GRANT ALL ON account, account_heading, account_link, cr_coa_to_account 
+GRANT ALL ON account, account_heading, account_link, cr_coa_to_account, tax
 TO "lsmb_<?lsmb dbname ?>__account_edit";
 
 INSERT INTO menu_acl (node_id, acl_type, role_name)

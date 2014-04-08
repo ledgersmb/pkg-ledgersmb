@@ -495,6 +495,7 @@ DECLARE
         t_currs text[];
         t_exchangerate numeric;
         t_cash_sign int;
+        t_batch batch;
 BEGIN
 
         SELECT * INTO t_exchangerate FROM currency_get_exchangerate(
@@ -504,6 +505,12 @@ BEGIN
                 -- t_voucher_id := NULL;
                 RAISE EXCEPTION 'Bulk Post Must be from Batch!';
         ELSE
+                SELECT * INTO t_batch FROM batch WHERE in_batch_id = id;
+                IF t_batch.approved_by IS NOT NULL THEN
+                    RAISE EXCEPTION 'Approved Batch';
+                ELSIF t_batch.locked_by IS NOT NULL THEN
+                    RAISE EXCEPTION 'Locked Batch';
+                END IF;
                 INSERT INTO voucher (batch_id, batch_class, trans_id)
                 values (in_batch_id,
                 (SELECT batch_class_id FROM batch WHERE id = in_batch_id),
@@ -1421,7 +1428,9 @@ DROP VIEW IF EXISTS overpayments CASCADE;
 CREATE VIEW overpayments AS
 SELECT p.id as payment_id, p.reference as payment_reference, p.payment_class, p.closed as payment_closed,
        p.payment_date, ac.chart_id, c.accno, c.description as chart_description,
-       p.department_id, abs(sum(ac.amount)) as available, cmp.legal_name, 
+       p.department_id,
+       sum(ac.amount) * CASE WHEN eca.entity_class = 1 THEN -1 ELSE 1 END 
+          as available, cmp.legal_name, 
        eca.id as entity_credit_id, eca.entity_id, eca.discount, eca.meta_number
 FROM payment p
 JOIN payment_links pl ON (pl.payment_id=p.id)
@@ -1434,7 +1443,7 @@ WHERE p.gl_id IS NOT NULL
       AND c.link LIKE '%overpayment%'
 GROUP BY p.id, c.accno, p.reference, p.payment_class, p.closed, p.payment_date,
       ac.chart_id, chart_description, p.department_id,  legal_name, eca.id,
-      eca.entity_id, eca.discount, eca.meta_number;
+      eca.entity_id, eca.discount, eca.meta_number, eca.entity_class;
 
 CREATE OR REPLACE FUNCTION payment_get_open_overpayment_entities(in_account_class int)
  returns SETOF payment_vc_info AS
@@ -1513,12 +1522,11 @@ $$
 DECLARE out_overpayment payment_overpayments_available_amount;
 BEGIN
       FOR out_overpayment IN
-              SELECT chart_id, accno,   chart_description, abs(sum(available))
+              SELECT chart_id, accno,   chart_description, available
               FROM overpayments
               WHERE payment_class  = in_account_class 
               AND entity_credit_id = in_entity_credit_id 
               AND available <> 0
-              GROUP BY chart_id, accno, chart_description
       LOOP
            RETURN NEXT out_overpayment;
       END LOOP;

@@ -71,8 +71,7 @@ sub inventory_activity {
     $where =~ s/^\s?AND/WHERE/;
 
     my $query = qq|
-		   SELECT min(p.description) AS description, 
-		          min(p.partnumber) AS partnumber, sum(
+		   SELECT p.description, p.partnumber, sum(
 		          CASE WHEN i.qty > 0 THEN i.qty ELSE 0 END) AS sold, 
 		          sum (CASE WHEN i.qty > 0 
 		                    THEN i.sellprice * i.qty 
@@ -87,14 +86,14 @@ sub inventory_activity {
 		LEFT JOIN ar ON (ar.id = i.trans_id)
 		LEFT JOIN ap ON (ap.id = i.trans_id)
 		   $where
-		 GROUP BY i.parts_id
+		 GROUP BY i.parts_id, p.partnumber, p.description
 		 ORDER BY $form->{sort_col}|;
     my $sth = $dbh->prepare($query) || $form->dberror($query);
     $sth->execute() || $form->dberror($query);
-    @cols = qw(description sold revenue partnumber received expense);
+    @cols = qw(description sold revenue partnumber received expenses);
     while ( $ref = $sth->fetchrow_hashref(NAME_lc) ) {
         $form->db_parse_numeric(sth=>$sth, hashref=>$ref);
-        $ref->{net_income} = $ref->{revenue} - $ref->{expense};
+        $ref->{net_income} = $ref->{revenue} - $ref->{expenses};
         map { $ref->{$_} =~ s/^\s*// } @cols;
         map { $ref->{$_} =~ s/\s*$// } @cols;
         push @{ $form->{TB} }, $ref;
@@ -1968,6 +1967,21 @@ sub tax_report {
     use strict;
     my ( $self, $myconfig, $form ) = @_;
 
+    my %orderings = (
+      transdate => 'gl.transdate',
+      invnumber => 'gl.invnumber',
+      name      => 'e.name',
+      id        => 'gl.id'
+    );
+
+    my $order = $form->{"sort"};
+    my $order_by;
+    if (defined $orderings{$order}) {
+       $order_by = "ORDER BY $orderings{$order}";
+    } else {
+       $order_by = "";
+    }
+
     my $dbh = $form->{dbh};
 
     my ( $null, $department_id ) = split /--/, $form->{department};
@@ -1987,9 +2001,11 @@ sub tax_report {
 
    SELECT gl.transdate, gl.id, gl.invnumber, e.name, e.id as entity_id, 
           eca.id as credit_id, eca.meta_number, gl.netamount, 
-          sum(CASE WHEN a.id IS NOT NULL then ac.amount ELSE 0 END) as tax, 
-          gl.invoice, gl.netamount 
-          + sum(CASE WHEN a.id IS NOT NULL then ac.amount ELSE 0 END) as total
+          sum(CASE WHEN a.id IS NOT NULL then ac.amount ELSE 0 END) *
+          CASE WHEN $account_class = 1 THEN -1 ELSE 1 END as tax, 
+          gl.invoice, (gl.netamount 
+          + sum(CASE WHEN a.id IS NOT NULL then ac.amount ELSE 0 END)) 
+          * CASE WHEN $account_class = 1 THEN -1 ELSE 1 END as total
      FROM (select id, transdate, amount, netamount, entity_credit_account,
                   invnumber, invoice
              from ar where ? = 2
@@ -2009,11 +2025,14 @@ LEFT JOIN dpt_trans dpt ON (gl.id = dpt.trans_id)
           AND (gl.transdate >= ? or ? is null)
           AND (gl.transdate <= ? or ? is null)
  GROUP BY gl.transdate, gl.id, gl.invnumber, e.name, e.id, eca.id,
-           eca.meta_number, gl.amount, gl.netamount, gl.invoice
+           eca.meta_number, gl.amount, gl.netamount, gl.invoice, 
+           eca.entity_class
    HAVING (sum(CASE WHEN a.id is not null then ac.amount else 0 end) 
            <> 0 AND ? IS NOT NULL) 
           OR (? IS NULL and sum(CASE WHEN a.id is not null then ac.amount
-                                ELSE 0 END) = 0)|;
+                                ELSE 0 END) = 0)
+ $order_by
+|;
 
     my $sth = $dbh->prepare($query);
     $sth->execute($account_class, $account_class, 

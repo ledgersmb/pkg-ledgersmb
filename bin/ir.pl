@@ -51,6 +51,10 @@ require "bin/arap.pl";
 sub copy_to_new{
     delete $form->{id};
     delete $form->{invnumber};
+    $form->{paidaccounts} = 1;
+    if ($form->{paid_1}){
+        delete $form->{paid_1};
+    }
     update();
 }
 
@@ -306,6 +310,7 @@ sub prepare_invoice {
 
 sub form_header {
 
+    $form->{nextsub} = 'update';
 
     # set option selected
     for (qw(AP currency)) {
@@ -408,22 +413,36 @@ sub form_header {
     print qq|
 <body onLoad="document.forms[0].${focus}.focus()" />
 | . $form->open_status_div . qq|
-
-<form method=post action="$form->{script}">
+<script> 
+function on_return_submit(event){
+  var kc;
+  if (window.event){
+    kc = window.event.keyCode;
+  } else {
+    kc = event.which;
+  }
+  if (kc == '13' && document.activeElement.tagName != 'TEXTAREA'){
+        document.forms[0].submit();
+  }
+}
+</script>
+<form method=post action="$form->{script}" onkeypress="on_return_submit(event)">
 |;
     if ($form->{notice}){
          print qq|$form->{notice}<br/>|;
     }
     $form->{vc} = "vendor";
+    $form->{nextsub} = 'update';
     $form->hide_form(
         qw(id title vc type terms creditlimit creditremaining closedto locked 
-           shipped oldtransdate recurring reverse batch_id subtype form_id)
+           shipped oldtransdate recurring reverse batch_id subtype form_id
+           nextsub default_reportable address city)
     );
 
     print qq|
 <table width=100%>
   <tr class=listtop>
-    <th>$form->{title}</th>
+    <th class=listtop>$form->{title}</th>
   </tr>
   <tr height="5"></tr>
   <tr>
@@ -441,9 +460,8 @@ sub form_header {
 
 	      </tr>
 	      <tr>
-	        <td></td>
-		<td colspan=3>
-		  <table>
+		<td colspan=4>
+		  <table class="creditlimit">
 		    <tr>
 		      <th nowrap>| . $locale->text('Credit Limit') . qq|</th>
 		      <td>|
@@ -461,11 +479,21 @@ sub form_header {
 	        <tr>
 		<th align="right" nowrap>| . 
 			$locale->text('Entity Code') . qq|</th>
-		<td colspan="2">$form->{entity_control_code}</td>
+		<td colspan="2" nowrap>$form->{entity_control_code}</td>
 		<th align="right" nowrap>| . 
 			$locale->text('Account') . qq|</th>
 		<td colspan=3>$form->{meta_number}</td>
 	      </tr>
+              <tr>
+                <th align="right" nowrap>| .
+                        $locale->text('Tax ID'). qq|</th>
+                <td colspan=3>$form->{tax_id}</td>
+              </tr>
+              <tr class="address_row">
+                <th align="right" nowrap>| .
+                        $locale->text('Address'). qq|</th>
+                <td colspan=3>$form->{address}, $form->{city}</td>
+              </tr>
 		|;
 	       }
 	print qq|
@@ -491,6 +519,10 @@ sub form_header {
 		<td><input name=ordnumber size=20 value="$form->{ordnumber}"></td>
 <input type=hidden name=quonumber value="$form->{quonumber}">
 	      </tr>
+              <tr>
+                <th align=right nowrap>| . $locale->text('Invoice Created') . qq|</th>
+                <td><input class="date" name=crdate size=11 title="$myconfig{dateformat}" value=$form->{crdate}></td>
+              </tr>
 	      <tr>
 		<th align=right nowrap>| . $locale->text('Invoice Date') . qq|</th>
 		<td><input class="date" name=transdate size=11 title="$myconfig{dateformat}" value=$form->{transdate}></td>
@@ -738,7 +770,7 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
   </tr>
   <tr>
     <td>
-      <table width=100%>
+      <table width=100% id="invoice-payments-table">
         <tr>
 	  <th colspan=6 class=listheading>| . $locale->text('Payments') . qq|</th>
 	</tr>
@@ -767,6 +799,8 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
 |;
 
     $form->{paidaccounts}++ if ( $form->{"paid_$form->{paidaccounts}"} );
+    $form->{"selectAP_paid"} =~ /($form->{cash_accno}--[^<]*)/;
+    $form->{"AP_paid_$form->{paidaccounts}"} = $1;
     for $i ( 1 .. $form->{paidaccounts} ) {
 
         $form->hide_form("cleared_$i");
@@ -875,9 +909,7 @@ qq|<td align=center><input name="memo_$i" size=11 value="$form->{"memo_$i"}"></t
 
         if ( $form->{id} ) {
 
-            if ( $form->{locked} ) {
-                for ( "post", "delete", 'on_hold' ) { delete $button{$_} }
-            }
+            for ( "post", "delete") { delete $button{$_} }
             for ( 'post_as_new', 'print_and_post_as_new', "update") {
                 delete $button{$_};
             }
@@ -1055,6 +1087,7 @@ sub update {
     if ( $form->{import_text} ) {
         &import_text;
     }
+    delete $form->{"partnumber_$form->{delete_line}"} if $form->{delete_line};
     $form->{exchangerate} =
       $form->parse_amount( \%myconfig, $form->{exchangerate} );
 
@@ -1264,6 +1297,7 @@ sub update {
             }
         }
     }
+    display_form();
 }
 
 sub post {
@@ -1286,8 +1320,7 @@ sub post {
         &update;
         $form->finalize_request();
     }
-
-    &validate_items;
+    check_form(1);
 
     $closedto  = $form->datetonum( \%myconfig, $form->{closedto} );
     $transdate = $form->datetonum( \%myconfig, $form->{transdate} );
@@ -1380,8 +1413,8 @@ sub yes {
 sub on_hold {
     
     if ($form->{id}) {
-        
-        my $toggled = IS->toggle_on_old($form);
+	#my $toggled = IS->toggle_on_hold($form);#tshvr4
+	my $toggled = IR->toggle_on_hold($form);#tshvr4
     
         #&invoice_links(); # is that it?
         &edit(); # it was already IN edit for this to be reached.
@@ -1428,7 +1461,7 @@ sub save_info {
 			. qq|here</a>.</body></html>|;
 
 	    } else {
-		$form->info($locale->text('Draft Posted'));
+		edit();
 	    }
 
 }

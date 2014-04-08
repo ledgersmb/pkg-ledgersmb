@@ -247,6 +247,9 @@ sub add_location {
 
     
     $company->get_metadata();
+    # Assumption alert!  Assuming additional addresses share a city, state
+    # and country more often than not -- CT
+    delete $company->{"$_"} for (qw(line_one line_two line_three mail_code));
 
     _render_main_screen($company);
 	
@@ -429,7 +432,6 @@ sub get_results {
         {href => $sort_href, columns => \@sort_columns}
     );
             
-    $logger->debug("\$company = " . Data::Dumper::Dumper($company));
     $template->render({
 	form    => $company,
 	columns => \@columns,
@@ -531,7 +533,8 @@ sub display_history {
     );
     my $company = LedgerSMB::DBObject::Company->new(base => $request);
     $company->get_history();
-    my @columns = qw(invnumber);
+    my @columns = ();
+    push @columns, 'invnumber' if $request->{report_type} eq 'detail';
     for my $col (qw(l_curr l_partnumber l_description l_unit l_qty l_sellprice 
                   l_discount l_serialnumber l_deliverydate l_projectnumber)){
         if ($request->{$col}){
@@ -816,6 +819,8 @@ sub save_contact {
         $company->save_contact();
     }
     $company->get;
+    delete $company->{description};
+    delete $company->{contact};
     _render_main_screen( $company );
 }
 
@@ -914,6 +919,7 @@ Required data:
 bank_account_id
 bic
 iban
+remark
 
 =back
 
@@ -1102,6 +1108,22 @@ sub save_pricelist {
 
     $request->{search_redirect} = 'pricelist_search_handle';
     $psearch->render($request);
+}
+
+=item delete_pricematrix
+
+Delets an item from the pricelist, based on entry_id and credit_id, both of
+which must be provided
+
+=cut
+
+sub delete_pricematrix {
+    my ($request) = @_;
+    my $pricelist = LedgerSMB::DBObject::Pricelist->new({base => $request});
+    $pricelist->delete;
+    $request->{dbh}->commit;
+    $request->{search_redirect} = 'pricelist_search_handle';
+    pricelist($request);
 }
 
 

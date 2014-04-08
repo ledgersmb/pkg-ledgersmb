@@ -89,9 +89,10 @@ sub check_name {
         # check name, combine name and id
         #HV $form->{$name} , form->vendor or form->customer , should be at least ' ' for comparison 'ne' to work.('' ne undef) returns undef.(' ' ne undef) returns 1
         if(! $form->{$name}){$form->{$name}=' ';}
-        if ( $form->{"old$name"} ne qq|$form->{$name}--$form->{"${name}_id"}| )
+        if ( $form->{"old$name"} ne qq|$form->{$name}--$form->{"${name}_id"}| 
+             or !$form->{"${name}_id"}
+        )
         {
-
             # this is needed for is, ir and oe
             for ( split / /, $form->{taxaccounts} ) {
                 delete $form->{"${_}_rate"};
@@ -156,7 +157,7 @@ sub check_name {
 sub select_name {
     my ($table) = @_;
 
-    @column_index = qw(ndx name control_code meta_number address city);
+    @column_index = qw(ndx name control_code meta_number description address city);
 
     $label = ucfirst $table;
     %column_data = (ndx => qq|<th>&nbsp;</th>|,
@@ -166,6 +167,8 @@ sub select_name {
                                $locale->text('Control Code') . qq|</th>|,
             meta_number => qq|<th class=listheading>| .
                                $locale->text('[_1] Number', $label) . qq|</th>|,
+            description => qq|<th class=listheading>| .
+                               $locale->text('Description') . '</th>',
             address => qq|<th class=listheading>| .
                                $locale->text('Address') . '</th>',
             city => qq|<th class=listheading>| .
@@ -215,6 +218,7 @@ qq|<td><input name="new_name_$i" type=hidden value="$ref->{name}">$ref->{name}</
 qq|<td><input name="new_control_code_$i" type=hidden value="$ref->{control_code}">$ref->{control_code}</td>|;
         $column_data{meta_number} =
 qq|<td><input name="new_meta_number_$i" type=hidden value="$ref->{meta_number}">$ref->{meta_number}</td>|;
+        $column_data{description} = qq|<td>$ref->{description}</td>|;
         $column_data{address} = qq|<td>$ref->{address}</td>|;
         for (qw(city state zipcode country)) {
             $column_data{$_} = qq|<td>$ref->{$_}&nbsp;</td>|;
@@ -311,7 +315,6 @@ sub rebuild_vc {
         $form->{"select$vc"} .=
           qq|<option value="$_->{name}--$_->{id}">$_->{name}\n|;
     }
-
     $form->{selectprojectnumber} = "";
     if ( @{ $form->{all_project} } ) {
         $form->{selectprojectnumber} = "<option>\n";

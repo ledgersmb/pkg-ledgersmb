@@ -642,7 +642,7 @@ CREATE TABLE location (
   city text check (city ~ '[[:alnum:]_]') NOT NULL,
   state text check(state ~ '[[:alnum:]_]'),
   country_id integer not null REFERENCES country(id),
-  mail_code text not null check (mail_code ~ '[[:alnum:]_]'),
+  mail_code text check (mail_code ~ '[[:alnum:]_]'),
   created date not null default now(),
   inactive_date timestamp default null,
   active boolean not null default TRUE
@@ -819,6 +819,7 @@ CREATE TABLE entity_bank_account (
     entity_id int not null references entity(id) ON DELETE CASCADE,
     bic varchar,
     iban varchar,
+    remark varchar,
     UNIQUE (id),
     PRIMARY KEY (entity_id, bic, iban)
 );
@@ -832,6 +833,12 @@ $$ Banking Institution Code, such as routing number of SWIFT code.$$;
 COMMENT ON COLUMN entity_bank_account.iban IS
 $$ International Bank Account Number.  used to store the actual account number
 for the banking institution.$$;
+
+COMMENT ON COLUMN entity_bank_account.remark IS
+$$ This field contains the notes for an account, like: This is USD account, this one is HUF account, this one is the default account, this account for paying specific taxes. If a $
+$$;
+
+
 
 CREATE TABLE entity_credit_account (
     id serial not null unique,
@@ -1020,7 +1027,7 @@ sinumber|1
 sonumber|1
 yearend|1
 businessnumber|1
-version|1.3.25
+version|1.3.39
 closedto|\N
 revtrans|1
 ponumber|1
@@ -1075,7 +1082,7 @@ CREATE TABLE batch (
   approved_on date default null,
   approved_by int references entity_employee(entity_id),
   created_by int references entity_employee(entity_id),
-  locked_by int references session(session_id),
+  locked_by int references session(session_id) ON DELETE CASCADE,
   created_on date default now(),
   CHECK (length(control_code) > 0)
 );
@@ -1132,6 +1139,10 @@ $$Document Source identifier for individual line items, usually used
 for payments.$$;
 
 CREATE INDEX acc_trans_voucher_id_idx ON acc_trans(voucher_id);
+
+-- preventing closed transactions
+
+
 --
 CREATE TABLE parts (
   id serial PRIMARY KEY,
@@ -1292,7 +1303,8 @@ CREATE TABLE ar (
   entity_credit_account int references entity_credit_account(id) not null,
   force_closed bool,
   description text,
-  unique(invnumber) -- probably a good idea as per Erik's request --CT
+  unique(invnumber), -- probably a good idea as per Erik's request --CT
+  crdate date
 );
 
 COMMENT ON TABLE ar IS
@@ -1345,6 +1357,14 @@ COMMENT ON COLUMN ar.force_closed IS
 $$ Not exposed to the UI, but can be set to prevent an invoice from showing up
 for payment or in outstanding reports.$$;
 
+COMMENT ON COLUMN ar.crdate IS
+$$ This is for recording the AR/AP creation date, which is always that date, when the invoice created. This is different, than transdate or duedate.
+This kind of date does not effect on ledger/financial data, but for administrative purposes in Hungary, probably in other countries, too.
+Use case: 
+if somebody pay in cash, crdate=transdate=duedate
+if somebody will receive goods T+5 days and have 15 days term, the dates are the following:  crdate: now,  transdate=crdate+5,  duedate=transdate+15.
+There are rules in Hungary, how to fill out a correct invoice, where the crdate and transdate should be important.$$;
+
 --
 CREATE TABLE ap (
   id int DEFAULT nextval ( 'id' ) PRIMARY KEY REFERENCES transactions(id),
@@ -1377,7 +1397,8 @@ CREATE TABLE ap (
   terms int2 DEFAULT 0,
   description text,
   force_closed bool,
-  entity_credit_account int references entity_credit_account(id) NOT NULL
+  entity_credit_account int references entity_credit_account(id) NOT NULL,
+  crdate date
 );
 
 COMMENT ON TABLE ap IS
@@ -1429,6 +1450,14 @@ $$ reference for the vendor account used.$$;
 COMMENT ON COLUMN ap.force_closed IS
 $$ Not exposed to the UI, but can be set to prevent an invoice from showing up
 for payment or in outstanding reports.$$;
+
+COMMENT ON COLUMN ap.crdate IS
+$$ This is for recording the AR/AP creation date, which is always that date, when the invoice created. This is different, than transdate or duedate.
+This kind of date does not effect on ledger/financial data, but for administrative purposes in Hungary, probably in other countries, too.
+Use case: 
+if somebody pay in cash, crdate=transdate=duedate
+if somebody will receive goods T+5 days and have 15 days term, the dates are the following:  crdate: now,  transdate=crdate+5,  duedate=transdate+15.
+There are rules in Hungary, how to fill out a correct invoice, where the crdate and transdate should be important.$$;
 
 --
 CREATE TABLE taxmodule (
@@ -1951,7 +1980,32 @@ COMMENT ON FUNCTION gl_audit_trail_append() IS
 $$ This provides centralized support for insertions into audittrail.
 $$;
 
-CREATE TRIGGER gl_audit_trail AFTER insert or update or delete ON gl
+CREATE FUNCTION prevent_closed_transactions() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE t_end_date date;
+BEGIN
+SELECT max(end_date) into t_end_date FROM account_checkpoint;
+IF new.transdate <= t_end_date THEN
+    RAISE EXCEPTION 'Transaction entered into closed period.  Transdate: %',
+                   new.transdate;
+END IF;
+RETURN new;
+END;
+$$;
+
+CREATE TRIGGER acc_trans_prevent_closed BEFORE INSERT ON acc_trans 
+FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
+CREATE TRIGGER ap_prevent_closed BEFORE INSERT ON ap 
+FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
+CREATE TRIGGER ar_prevent_closed BEFORE INSERT ON ar 
+FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
+CREATE TRIGGER gl_prevent_closed BEFORE INSERT ON gl 
+FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
+
+
+
+CREATE TRIGGER gl_audit_trail AFTER INSERT OR UPDATE OR DELETE ON gl
 FOR EACH ROW EXECUTE PROCEDURE gl_audit_trail_append();
 
 CREATE TRIGGER ar_audit_trail AFTER insert or update or delete ON ar
@@ -2672,8 +2726,8 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 27	action	report	64
 28	module	rp.pl	66
 28	action	report	67
-28	report	tax_collected	68
-27	report	tax_paid	65
+28	report	tax_paid	68
+27	report	ap_aging	65
 29	module	rp.pl	69
 29	action	report	70
 29	report	nontaxable_purchases	71
@@ -3092,7 +3146,7 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 180	template	purchase_order	513
 181	template	bin_list	514
 182	template	statement	515
-185	template	quotation	518
+185	template	sales_quotation	518
 186	template	rfq	519
 187	template	timecard	520
 183	template	check	516

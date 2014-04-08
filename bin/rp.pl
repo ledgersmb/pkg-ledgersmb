@@ -402,6 +402,7 @@ qq|rp.pl?path=$form->{path}&action=continue&accounttype=$form->{accounttype}&log
             text => $ref->{partnumber},
             href => $pnumhref,
             };
+        $column_data{description} = $ref->{description};
         $column_data{sold} = {
             text => $ref->{sold},
             href => $soldhref,
@@ -1385,7 +1386,7 @@ sub e_mail {
 
     &print_options;
 
-    for (qw(subject message type sendmode format action nextsub)) {
+    for (qw(subject message type sendmode format action nextsub email)) {
         delete $form->{$_};
     }
 
@@ -1416,6 +1417,9 @@ sub send_email {
     $form->{subject} = $locale->text( 'Statement - [_1]', $form->{todate} )
       unless $form->{subject};
     $form->isblank( "email", $locale->text('E-mail address missing!') );
+    my $email = $form->{email};
+    my $cc = $form->{cc};
+    my $bcc = $form->{bcc};
 
     my $selected = 0;
     RP->aging( \%myconfig, $form );
@@ -1510,9 +1514,9 @@ sub send_email {
         method => 'email',
         locale => $locale,
         output_options => {
-            to => $form->{email},
-            cc => $form->{cc},
-            bcc => $form->{bcc},
+            to => $email,
+            cc => $cc,
+            bcc => $bcc,
             from => $form->{form},
             subject => $form->{subject},
             message => $form->{message},
@@ -1666,6 +1670,11 @@ sub print {
 
 
 sub generate_tax_report {
+    if ($form->{fromyear} and $form->{frommonth}){
+        ($form->{fromdate}, $form->{todate}) = $form->from_to(
+              $form->{fromyear}, $form->{frommonth}, $form->{interval}
+        );
+    }
     RP->tax_report( \%myconfig, $form );
 
     my %hiddens;
