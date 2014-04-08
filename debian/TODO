@@ -1,45 +1,38 @@
 debian/TODO for LedgerSMB v1.3
 
-- The dbconfig-common based database configuration that is being used during
-installations and upgrades needs to be reviewed and improved. It is capable
-of creating the 'ledgersmb' database administrative user but it is not getting
-created with the necessary permissions. It is also apparently automatically
-creating a database named ledgersmb with the current way that user is being
-created, which is not really needed for the application.
 
-- Most of the upstream locale/po/* files need to be reviewed and/or updated;
-several of the files have fatal errors in them which need to be resolved.
+====================================================================================================
 
-- Upstream uses pdflatex to create distribution LedgerSMB-manual.pdf from the
-source file doc/manual/LedgerSMB-manual.tex. Use the same source file to create
-an HTML version?
+- If an automatic configuration is attempted during the package install, the default database
+administrative user 'ledgersmb' is not being configured with the correct permissions. See also:
+https://bugs.launchpad.net/bugs/1078817
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=698298
+
+- http://i18n.debian.org/l10n-pkg-status/l/ledgersmb.html shows the following error:
+msgfmt: found 1 fatal error, "Duplicate message definition in locale/po/es_AR.po"
+https://sourceforge.net/p/ledger-smb/bugs/1096/
+
+- A debian/po debconf Japanese translation has been provided. Currently,
+there is no LSMB locale/po/ja.po file. Checked System|Lanaguage|List
+Languages in LSMB 1.3.25: "ja" is not in the default list. It's also not
+listed as an available language when editing templates, and presumably
+those lists come from the same source. It can be added manually using
+System|Language|Add Language.
+
+- Upstream uses pdflatex to create the distribution LedgerSMB-manual.pdf from
+the source file doc/manual/LedgerSMB-manual.tex. Use the same source file to
+create an HTML version?
 
 - Create an HTML and/or PDF file of templateing/templating-guide.tex? And
 then register it with doc-base?
 
 - Add registration of at least database/ledgersmb.html to doc-base?
 
-- The doc/release-notes file is getting installed with the package; should it
-be referenced in README.Debian?
+- Add an installation option for a versioned installation directory name?
+Or add a package build time option to create a versioned package name and
+installation? Or change to using at least binary package names that also
+include info about the version, like "ledgersmb13" or "ledgersmb1.4" or
+"ledgersmb-1.3"?
 
-- Add installation option for a versioned directory name? Or add a package
-build time option to create a versioned package name?
 
-- Review the tools/* shell and perl scripts to determine what changes may be
-necessary to make them usable on a Debian installation.
-
-- New 1.3 version of LedgerSMB contains an embedded javascript library. The
-embedded version appears to be 1.8.2.  The library is available in Debian as the
-package libjs-scriptaculous:  v1.8.1 in lenny, v1.8.3 in lenny-backports and
-squeeze, v1.9.0 in wheezy and sid. Provide a Lintian override with description
-of issue, until otherwise resolved.
-  From Chris Travers in the Ledger-smb-devel mailing list:
-  "I don't know of any testing we have done on other versions.  We don't use a
-   lot of advanced stuff so I would expect it would work.  If bugs are found,
-   though, we can correct them."
-Test usage of libjs-scriptaculous and change over to using that when it is found
-to be operational with it.
--> Instead of patching the files that use it directly, try using dh_linktree to
-create the set of links to the debian packages?
-
- -- Robert James Clay <jame@rocasa.us>  Sat, 18 Aug 2012 10:18:31 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue,  7 Apr 2014 09:54:12 -0400
