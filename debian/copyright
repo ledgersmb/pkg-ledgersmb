@@ -58,7 +58,7 @@ License:
  POSSIBILITY OF SUCH DAMAGE.
 
 Files: utils/notify_short/*.pl utils/notify_short/README
-Copyright:  200?-2014, Chris Travers <chris@metatrontech.com>
+Copyright:  2006-2011, Chris Travers <chris@metatrontech.com>
 License: GPL-2+
 
 Files: debian/*
