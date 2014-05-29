@@ -12,6 +12,8 @@ favicon.ico usr/share/ledgersmb
 images/*.gif usr/share/ledgersmb/images
 images/*.png usr/share/ledgersmb/images
 index.html usr/share/ledgersmb
+ledgersmb-httpd-2.0-2.2.conf.template usr/share/ledgersmb
+ledgersmb-httpd-2.4.conf.template usr/share/ledgersmb
 locale/* usr/share/ledgersmb/locale
 pos.conf.pl etc/ledgersmb
 scripts/* usr/share/ledgersmb/scripts
