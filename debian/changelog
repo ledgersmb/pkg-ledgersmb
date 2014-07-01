@@ -1,4 +1,4 @@
-ledgersmb (1.3.40-1) unstable; urgency=medium
+ledgersmb (1.3.41~rc1-1~1) unstable; urgency=medium
 
   * New upstream release.
     - 'Duplicate entry' error fixed in the locale/po/es_AR.po file.
@@ -8,7 +8,7 @@ ledgersmb (1.3.40-1) unstable; urgency=medium
   * Correct errors installing the httpd configuration files for Apache v2.2 and
     v2.4. (Closes: #749347)
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 21 Jun 2014 13:17:56 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue,  1 Jul 2014 13:50:17 -0400
 
 ledgersmb (1.3.39-1) unstable; urgency=low
 
