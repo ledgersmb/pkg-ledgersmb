@@ -1,6 +1,5 @@
 *.conf etc/ledgersmb
 pos.conf.pl etc/ledgersmb
-ledgersmb-httpd.conf etc/apache2/conf.d
 favicon.ico usr/share/ledgersmb
 index.html usr/share/ledgersmb
 VERSION usr/share/ledgersmb
@@ -19,4 +18,4 @@ tools/* /usr/share/ledgersmb/tools
 utils/* /usr/share/ledgersmb/utils
 UI/* usr/share/ledgersmb/UI
 templates/* /usr/share/ledgersmb/templates
-debian/sql/pgsql usr/share/dbconfig-common/data/ledgermsb/install-dbadmin
+debian/adm/sql/pgsql usr/share/dbconfig-common/data/ledgersmb/install-dbadmin

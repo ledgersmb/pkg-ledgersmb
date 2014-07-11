@@ -1,0 +1,27 @@
+Author: Robert James Clay <jame@rocasa.us>
+Description: Correct path for Bash in tools scripts.
+Last-Update: 2013-01-30
+--- a/tools/rebuild_pot.sh
++++ b/tools/rebuild_pot.sh
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/bin/bash
+ 
+ # EXTRACTING DB STRINGS
+ echo "select 'text(''' || label || ''')' FROM menu_node" | 
+--- a/tools/system/lsmbstart
++++ b/tools/system/lsmbstart
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/bin/bash
+ 
+ cd /usr/share/ledgersmb
+ plackup -s FCGI -D --listen /var/run/httpd/fastcgi/lsmb.sock
+--- a/tools/system/lsmbstop
++++ b/tools/system/lsmbstop
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/bin/bash
+ 
+ killall perl-fcgi-pm
+ 
