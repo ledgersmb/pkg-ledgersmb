@@ -1,5 +1,6 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
+Last-Update: 2014-03-11
 --- a/ledgersmb-httpd.conf.template
 +++ b/ledgersmb-httpd.conf.template
 @@ -1,8 +1,8 @@
@@ -61,3 +62,52 @@ Description: Changing paths in Apache config
 +  Deny from All
 +</Directory>
 +
+--- a/ledgersmb-httpd-2.4.conf.template
++++ b/ledgersmb-httpd-2.4.conf.template
+@@ -1,8 +1,8 @@
+ # This file must be edited to substitute the current path with WORKING_DIR
+ 
+-Alias /ledgersmb WORKING_DIR/
++Alias /ledgersmb /usr/share/ledgersmb/
+ 
+-<Directory WORKING_DIR>
++<Directory /usr/share/ledgersmb>
+ 
+   # Rewrite rule to allow HTTP Authorization information to the scripts only
+   # from this directory.
+@@ -35,22 +35,30 @@
+   </Files>
+ </Directory>
+ 
+-<Directory WORKING_DIR/bin>
++<Directory /usr/share/ledgersmb/bin>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/utils>
++<Directory /usr/share/ledgersmb/utils>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/spool>
++<Directory /usr/share/ledgersmb/spool>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/templates>
++<Directory /var/share/ledgersmb/templates>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/LedgerSMB>
++<Directory /usr/share/ledgersmb/LedgerSMB>
+   Require all denied
+ </Directory>
++
++Alias /lsmbcss /var/lib/ledgersmb/css/
++<Directory /var/lib/ledgersmb/css>
++  Order Deny,Allow
++  Allow from 127.0.0.1
++  Allow from localhost
++  Deny from All
++</Directory>
