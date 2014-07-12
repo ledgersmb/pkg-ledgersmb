@@ -1,3 +1,15 @@
+ledgersmb (1.3.40-1) unstable; urgency=medium
+
+  * New upstream release.
+    - 'Duplicate entry' error fixed in the locale/po/es_AR.po file.
+  * Rewrite the 'purge' stanza in the debian/ledgersmb.postrm script.
+  * Correct package version for the mv_conffile stanzas in maintainer scripts.
+  * Add debian/ledgersmb.doc-base.database to register database information.
+  * Correct errors installing the httpd configuration files for Apache v2.2 and
+    v2.4. (Closes: #749347)
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 21 Jun 2014 13:17:56 -0400
+
 ledgersmb (1.3.39-1) unstable; urgency=low
 
   * New upstream release. (Closes: #732997)
@@ -28,7 +40,11 @@ ledgersmb (1.3.39-1) unstable; urgency=low
   * Add empty directory 'UI/logout/' to ledgersmb.lintian-overrides file.
   * Update README.Debian, TODO.Debian, and NEWS.Debian files for new release.
 
+<<<<<<< HEAD
  -- Robert James Clay <jame@rocasa.us>  Tue, 08 Apr 2014 17:33:54 -0400
+=======
+ -- Robert James Clay <jame@rocasa.us>  Mon, 21 Apr 2014 17:56:33 -0400
+>>>>>>> 8ea2af24f6a73d14f642cb609e436fe5ed7b073b
 
 ledgersmb (1.3.25-1) unstable; urgency=low
 
