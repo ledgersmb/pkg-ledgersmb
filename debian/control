@@ -3,7 +3,7 @@ Section: web
 Priority: optional
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
-Build-Depends: debhelper (>= 8), po-debconf, libmodule-install-perl
+Build-Depends: debhelper (>= 8), libmodule-install-perl, po-debconf
 Standards-Version: 3.9.5
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://anonscm.debian.org/pkg-sql-ledger/ledger-smb/trunk
@@ -11,16 +11,39 @@ Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
 
 Package: ledgersmb
 Architecture: all
-Depends: ${perl:Depends}, ${misc:Depends}, perl (>= 5.8.1-1), libconfig-std-perl,
-  libconfig-any-perl, libmime-lite-perl, libdbi-perl, libdbd-pg-perl, liberror-perl,
-  liblocale-maketext-lexicon-perl (>= 0.62-1), libtemplate-perl (>=2.14-1),
-  libhtml-parser-perl, liblog-log4perl-perl, libdatetime-perl, apache2 | httpd-cgi,
-  libcgi-simple-perl, libfile-mimeinfo-perl, libio-stringy-perl,
-  postgresql-client, postgresql-contrib, dbconfig-common
-Recommends: default-mta | mail-transport-agent, texlive-latex-recommended, libopenoffice-oodoc-perl,
-  libmath-bigint-gmp-perl, libparse-recdescent-perl, libtemplate-plugin-latex-perl
-Suggests: postgresql, lpr, libnet-tclink-perl, latex-cjk-all, libplack-perl,
-  libimage-size-perl
+Depends: apache2 | httpd-cgi,
+         dbconfig-common,
+         libcgi-simple-perl,
+         libconfig-any-perl,
+         libconfig-std-perl,
+         libdatetime-perl,
+         libdbd-pg-perl,
+         libdbi-perl,
+         liberror-perl,
+         libfile-mimeinfo-perl,
+         libhtml-parser-perl,
+         libio-stringy-perl,
+         liblocale-maketext-lexicon-perl (>= 0.62-1),
+         liblog-log4perl-perl,
+         libmime-lite-perl,
+         libtemplate-perl (>=2.14-1),
+         perl (>= 5.8.1-1),
+         postgresql-client,
+         postgresql-contrib,
+         ${misc:Depends},
+         ${perl:Depends}
+Recommends: default-mta | mail-transport-agent,
+            libmath-bigint-gmp-perl,
+            libopenoffice-oodoc-perl,
+            libparse-recdescent-perl,
+            libtemplate-plugin-latex-perl,
+            texlive-latex-recommended
+Suggests: latex-cjk-all,
+          libimage-size-perl,
+          libnet-tclink-perl,
+          libplack-perl,
+          postgresql,
+          lpr
 Conflicts: ledger-smb
 Replaces: ledger-smb
 Description: financial accounting and ERP program
