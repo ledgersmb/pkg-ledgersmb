@@ -16,7 +16,7 @@ Copyright:  2006-2014, Chris Travers <chris@metatrontech.com>
             2007-2014, Pongracz Istvan <pongracz.istvan@gmail.com>
             2012-2013, Havard Sorli <havard@anix no>
             2011-2014, Erik Huelsmann <ehuels@gmail.com>
-            2011-2014, John Locke <john@freelock.com> 
+            2011-2014, John Locke <john@freelock.com>
             2013-2014, Herman Vierendeels <herman.vierendeels@gmail.com>
             2012-2013, Robert James Clay <jame@rocasa.us>
             2006-2011, Seneca Cunningham <tentra@gmail.com>
@@ -32,18 +32,18 @@ License: GPL-2+
 
 Files: tools/prepare-company-database.*
 Copyright: 2012, The LedgerSMB Core Team
-License:
- All rights reserved. 
+License: BSD-2-clause
+ All rights reserved.
  .
  Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met: 
+ modification, are permitted provided that the following conditions are met:
  .
  Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer. 
+ list of conditions and the following disclaimer.
  .
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
- other materials provided with the distribution. 
+ other materials provided with the distribution.
  .
  THIS SOFTWARE IS PROVIDED BY THE LEDGERSMB CORE TEAM AND CONTRIBUTORS "AS
  IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -63,7 +63,7 @@ License: GPL-2+
 
 Files: debian/*
 Comment: Copyright and License for debian directory files.
-Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org> 
+Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
            2008-2009, Elizabeth Krumbach <lyz@princessleia.com>
              2008,    Roberto C. Sanchez <robert@debian.org>
            2009-2014, Robert James Clay <jame@rocasa.us>
@@ -191,7 +191,7 @@ License: GPL-2+
 
 Files: locale/po/es_CO.po
 Comment: Spanish (Columbia) texts. Adoption to Colombian Accounting Terms.
-Copyright:  2005, Dirk Enrique Seiffert <info@caribenet.com> 
+Copyright:  2005, Dirk Enrique Seiffert <info@caribenet.com>
             2005, Lourdes Mejía Martinez <lourdes@caribenet.com>
             2005, Silfredo Godoy Chavez <silfredo@caribenet.com>
 License: GPL-2+
