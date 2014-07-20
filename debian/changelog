@@ -4,12 +4,14 @@ ledgersmb (1.3.41-1~2) UNRELEASED; urgency=medium
     - 'Duplicate entry' error fixed in the locale/po/es_AR.po file.
   * Correct a copyright email address in the debian/copyright file.
   * Rewrite the 'purge' stanza in the debian/ledgersmb.postrm script.
+  * Use dh-linktree for embedded libjs-prototype and libjs-libjs-scriptaculous
+    libraries.
   * Add debian/ledgersmb.doc-base.database to register database information.
   * Correct package version for the mv_conffile stanzas in maintainer scripts.
   * Correct errors installing the httpd configuration files for Apache v2.2 and
     v2.4. (Closes: #749347)
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 17 Jul 2014 02:57:50 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 20 Jul 2014 12:40:57 -0400
 
 ledgersmb (1.3.39-1) unstable; urgency=low
 
