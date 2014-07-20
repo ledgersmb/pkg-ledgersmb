@@ -1,30 +1,47 @@
-ledgersmb (1.3.38-1~2) UNRELEASED; urgency=low
+ledgersmb (1.3.41-1~2) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - 'Duplicate entry' error fixed in the locale/po/es_AR.po file.
+  * Correct a copyright email address in the debian/copyright file.
+  * Rewrite the 'purge' stanza in the debian/ledgersmb.postrm script.
+  * Add debian/ledgersmb.doc-base.database to register database information.
+  * Correct package version for the mv_conffile stanzas in maintainer scripts.
+  * Correct errors installing the httpd configuration files for Apache v2.2 and
+    v2.4. (Closes: #749347)
+
+ -- Robert James Clay <jame@rocasa.us>  Thu, 17 Jul 2014 02:57:50 -0400
+
+ledgersmb (1.3.39-1) unstable; urgency=low
 
   * New upstream release. (Closes: #732997)
   * Changes to debian/copyright:
-    - Update copyright end years as necessary to 2014.
+    - Update the LedgerSMB Core Team related information.
+    - Add a file stanza for the locale/po/es_AR.po file.
     - Add an entry for utils/notify_short/.*pl and it README file.
     - Add an entry for the tools/prepare-company-database.* scripts.
   * Changes to debian/control:
     - Update Standards-Version in debian/control.
-    - Add the libjs-scriptaculous package as a Depends.
-	 - Add the libplack-perl package as a Suggests.
+    - Add the libplack-perl package as a Suggests.
+    - Update the Vcs-Svn base URL from 'svn.debian.org' to 'anomscm.debian.org'.
   * Changes to debian/rules:
     - Add line to make tools/system/lsmb* scripts executables.
     - Remove the line used to copy the ledgersmb.conf.template file as it is
       no longer needed.
   * Changes to debian/patches/:
+    - Add usage of 'Last-Update' field in all *.patch files.
+    - Update default 'contrib-dir' to be for Postgresql 9.3 in 05_confdir.patch.
     - Add 20_BashPath.patch to resolve bash path issues in tools/ scripts.
-    - Add 21_lsmb_13-fcgi-conf.patch for setting directory its paths.
+    - Add 21_lsmb_13-fcgi-conf.patch for setting its directory paths.
   * Update packaging for installation of ledgersmb-httpd configuration for
     Apache v2.2 and v2.4. (Closes: #725758) 
   * Changes to debian/ledgersmb.docs:
-  	 - Add README.git to the installed documents list.
-  	 - Add README.plack to the installed documents list.
-  * Add debian/ledgersmb.linktrees file for Scriptaculous javascript library.
+   - Add README.git to the installed documents list.
+   - Add README.plack to the installed documents list.
   * Register the release notes using debian/ledgersmb.doc-base.notes.
+  * Add empty directory 'UI/logout/' to ledgersmb.lintian-overrides file.
+  * Update README.Debian, TODO.Debian, and NEWS.Debian files for new release.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 23 Mar 2014 07:59:30 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 21 Apr 2014 17:56:33 -0400
 
 ledgersmb (1.3.25-1) unstable; urgency=low
 
