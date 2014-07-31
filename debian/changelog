@@ -1,4 +1,4 @@
-ledgersmb (1.3.41-1~2) UNRELEASED; urgency=medium
+ledgersmb (1.3.41-1~3) UNRELEASED; urgency=medium
 
   * New upstream release.
     - 'Duplicate entry' error fixed in the locale/po/es_AR.po file.
@@ -6,6 +6,9 @@ ledgersmb (1.3.41-1~2) UNRELEASED; urgency=medium
   * Rewrite the 'purge' stanza in the debian/ledgersmb.postrm script.
   * Use dh-linktree for embedded libjs-prototype and libjs-libjs-scriptaculous
     libraries.
+  * Add libjs-prototype & libjs-scriptaculous to Build-Depends in debian/control.
+  * Add texlive-xetex as a 'Suggests' in debian/control.
+  * Add note regarding texlive-xetex to the debian/README.Debian file.
   * Only include the overrides for the 'custom' empty directories in the
     ledgersmb.lintian-overrides.  
   * Add debian/ledgersmb.doc-base.database to register database information.
@@ -13,7 +16,7 @@ ledgersmb (1.3.41-1~2) UNRELEASED; urgency=medium
   * Correct errors installing the httpd configuration files for Apache v2.2 and
     v2.4. (Closes: #749347)
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 27 Jul 2014 13:40:57 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 31 Jul 2014 11:37:40 -0400
 
 ledgersmb (1.3.39-1) unstable; urgency=low
 
