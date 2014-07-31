@@ -6,7 +6,7 @@ Uploaders: Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 8),
                po-debconf,
                libmodule-install-perl,
-               dh-linktree.
+               dh-linktree,
                libjs-prototype,
                libjs-scriptaculous
 Standards-Version: 3.9.5
