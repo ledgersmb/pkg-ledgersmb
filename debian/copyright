@@ -58,7 +58,7 @@ License: BSD-2-clause
  POSSIBILITY OF SUCH DAMAGE.
 
 Files: utils/notify_short/*.pl utils/notify_short/README
-Copyright:  2006-2007, Chris Travers <chris@metatrontech.com>
+Copyright:  2006-2011, Chris Travers <chris@metatrontech.com>
 License: GPL-2+
 
 Files: debian/*
