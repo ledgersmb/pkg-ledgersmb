@@ -1,4 +1,4 @@
-debian/TODO for LedgerSMB v1.3
+debian/TODO for LedgerSMB v1.4
 
 
 ====================================================================================================
@@ -46,8 +46,8 @@ then register it with doc-base?
 - Add an installation option for a versioned installation directory name?
 Or add a package build time option to create a versioned package name and
 installation? Or change to using at least binary package names that also
-include info about the version, like "ledgersmb13" or "ledgersmb1.4" or
-"ledgersmb-1.3"?
+include info about the version, like "ledgersmb14" or "ledgersmb1.4" or
+"ledgersmb-1.4"?
 
 - Review the tools/* shell and perl scripts to determine what patches may be
 necessary to make them usable on a Debian installation. 
@@ -58,4 +58,4 @@ the apache config need to be updated to allow that?)
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 19 Jun 2014 04:21 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 23 Aug 2014 11:33 -0400
