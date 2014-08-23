@@ -1,4 +1,4 @@
-Source: ledgersmb
+Source: ledgersmb-1.4
 Section: web
 Priority: optional
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
@@ -14,7 +14,7 @@ Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://anonscm.debian.org/pkg-sql-ledger/ledger-smb/trunk
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
 
-Package: ledgersmb
+Package: ledgersmb-1.4
 Architecture: all
 Depends: apache2 | httpd-cgi,
          dbconfig-common,
@@ -52,8 +52,7 @@ Suggests: texlive-xetex,
           libplack-perl,
           postgresql,
           lpr
-Conflicts: ledger-smb
-Replaces: ledger-smb
+Replaces: ledgersmb
 Description: financial accounting and ERP program
  LedgerSMB is a double-entry financial accounting and Enterprise Resource
  Planning system which offers "Accounts Receivable", "Accounts Payable" and
