@@ -29,8 +29,23 @@ CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'passwor
     Besides assuming that a database superuser is known, the setup.pl script
     also assumes that the contrib_dir directive is already set correctly in
     /etc/ledgersmb/ledgersmb.conf for the location of the PostgreSQL contrib
-    scripts. For v8.4 it would be /usr/share/postresql/8.4/contrib; or for
-    v9.1 that would be /usr/share/postgresql/9.1/extension.
+    scripts. For v9.1 it would be /usr/share/postresql/9.1/extension; or for
+    v9.3 that would be /usr/share/postgresql/9.3/extension.
+
+    Configuration files for Apache 2.2 or 2.4 are installed as necessary, with
+    an example Apache fastcgi configuration available at lsmb_13-fcgi.conf in 
+    the /usr/share/ledgersmb/tools directory. Also; some information for use 
+    with Plack is available in README.plack, and for use with nginx is in the
+    /usr/share/ledgersmb/contrib/nginx-fcgiwrap directory.
+
+    The application css directory is /var/lib/ledgersmb/css and defaults for the
+    files are installed there from the example files during an package install.
+    There is also a URL related configuration item in ledgersmb.conf, cssdir,
+    which will need to be updated manually when upgrading from a previous
+    version.
+
+    The PDF/Postscript support for the 'xedemo' LaTex templates is available as
+    the package texlive-xetex if it is not already installed.
 
 
 Optional Perl modules
@@ -41,6 +56,7 @@ Optional Perl modules
     Template::Plugin::Latex  [Support for Postscript and PDF output]
     Parse::RecDescent        [Support for the *experimental* scripting engine]
     Image::Size              [Support for image size detection in templates]
+    Plack                    [Support for using Plack to run LedgerSMB]
 
     The credit card processing support for TrustCommerce is available as
     the package libnet-tclink-perl if not already installed.
@@ -49,13 +65,16 @@ Optional Perl modules
     it is not already installed.
 
     The PDF/Postscript support is available as libtemplate-plugin-latex-perl
-    if it is not already installed. 
+    if it is not already installed.
 
     The scripting engine support is available as libparse-recdescent-perl
     if it is not already installed.
 
     The support for size detection for images for embedding in LaTex templates
     is available as libimage-size-perl if it is not already installed.
+
+    The support for running LedgerSMB using Plack is available as libplack-perl
+    if it is not already installed.
 
 
 Manual addition of a company database
@@ -77,4 +96,4 @@ Company database removal
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Mon,  4 May 2012 08:40:54 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat,  5 Apr 2014 13:28:40 -0400

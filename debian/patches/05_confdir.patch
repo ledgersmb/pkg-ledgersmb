@@ -1,5 +1,6 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Change default directories
+Last-Update: 2014-08-13
 --- a/LedgerSMB/Sysconfig.pm
 +++ b/LedgerSMB/Sysconfig.pm
 @@ -20,8 +20,8 @@

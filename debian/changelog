@@ -1,8 +1,61 @@
-ledgersmb (1.4.0~beta1-1~1) UNRELEASED; urgency=low
+ledgersmb (1.3.41-1~4) UNRELEASED; urgency=medium
 
-  * Start development of v1.4 beta packages.
+  * New upstream release.
+  * Correct a copyright email address in the debian/copyright file.
+  * Use dh-linktree for embedded libjs-prototype and libjs-libjs-scriptaculous
+    libraries.
+  * Add libjs-prototype & libjs-scriptaculous to Build-Depends in debian/control.
+  * Add texlive-xetex as a 'Suggests' in debian/control.
+  * The contrib_dir setting in 05_confdir.patch only needed for Pg v9.1,
+  * Add note regarding texlive-xetex to the debian/README.Debian file.
+  * Only include the overrides for the 'custom' empty directories in the
+    ledgersmb.lintian-overrides.  
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 15 Dec 2012 13:36:12 -0500
+ -- Robert James Clay <jame@rocasa.us>  Thu, 14 Aug 2014 08:18:37 -0400
+
+ledgersmb (1.3.40-1) unstable; urgency=medium
+
+  * New upstream release.
+    - 'Duplicate entry' error fixed in the locale/po/es_AR.po file.
+  * Rewrite the 'purge' stanza in the debian/ledgersmb.postrm script.
+  * Correct package version for the mv_conffile stanzas in maintainer scripts.
+  * Add debian/ledgersmb.doc-base.database to register database information.
+  * Correct errors installing the httpd configuration files for Apache v2.2 and
+    v2.4. (Closes: #749347)
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 21 Jun 2014 13:17:56 -0400
+
+ledgersmb (1.3.39-1) unstable; urgency=low
+
+  * New upstream release. (Closes: #732997)
+  * Changes to debian/copyright:
+    - Update the LedgerSMB Core Team related information.
+    - Add a file stanza for the locale/po/es_AR.po file.
+    - Add an entry for utils/notify_short/.*pl and it README file.
+    - Add an entry for the tools/prepare-company-database.* scripts.
+  * Changes to debian/control:
+    - Update Standards-Version in debian/control.
+    - Add the libplack-perl package as a Suggests.
+    - Update the Vcs-Svn base URL from 'svn.debian.org' to 'anomscm.debian.org'.
+  * Changes to debian/rules:
+    - Add line to make tools/system/lsmb* scripts executables.
+    - Remove the line used to copy the ledgersmb.conf.template file as it is
+      no longer needed.
+  * Changes to debian/patches/:
+    - Add usage of 'Last-Update' field in all *.patch files.
+    - Update default 'contrib-dir' to be for Postgresql 9.3 in 05_confdir.patch.
+    - Add 20_BashPath.patch to resolve bash path issues in tools/ scripts.
+    - Add 21_lsmb_13-fcgi-conf.patch for setting its directory paths.
+  * Update packaging for installation of ledgersmb-httpd configuration for
+    Apache v2.2 and v2.4. (Closes: #725758) 
+  * Changes to debian/ledgersmb.docs:
+   - Add README.git to the installed documents list.
+   - Add README.plack to the installed documents list.
+  * Register the release notes using debian/ledgersmb.doc-base.notes.
+  * Add empty directory 'UI/logout/' to ledgersmb.lintian-overrides file.
+  * Update README.Debian, TODO.Debian, and NEWS.Debian files for new release.
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 21 Apr 2014 17:56:33 -0400
 
 ledgersmb (1.3.25-1) unstable; urgency=low
 
