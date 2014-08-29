@@ -3,6 +3,7 @@ debian/TODO for LedgerSMB v1.3
 
 ====================================================================================================
 
+-----------------------------------------------------------------------------------
 
 - An Ubuntu bug was submitted about setup.pl not working after selecting
 an automatic config during the install and setting a password:
