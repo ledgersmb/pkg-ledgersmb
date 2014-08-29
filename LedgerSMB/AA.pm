@@ -1313,7 +1313,8 @@ sub get_name {
 			  entity.control_code AS entity_control_code,
                           co.tax_id AS tax_id,
 			  c.meta_number, ecl.*, ctf.default_reportable,
-                          c.cash_account_id, ca.accno as cash_accno
+                          c.cash_account_id, ca.accno as cash_accno,
+                          c.id as eca_id
 		     FROM entity_credit_account c
 		     JOIN entity ON (entity.id = c.entity_id)
                 LEFT JOIN account ca ON c.cash_account_id = ca.id
@@ -1346,7 +1347,41 @@ sub get_name {
     for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
     $sth->finish;
 
-    # TODO:  Retrieve contact records
+    # get customer e-mail accounts
+    $query = qq|SELECT * FROM eca__list_contacts(?)
+                      WHERE class_id BETWEEN 12 AND ?
+                      ORDER BY class_id DESC;|;
+    my %id_map = ( 12 => 'email',
+    	       13 => 'cc',
+    	       14 => 'bcc',
+    	       15 => 'email',
+    	       16 => 'cc',
+    	       17 => 'bcc' );
+    $sth = $dbh->prepare($query);
+    $sth->execute( $form->{eca_id}, 17) || $form->dberror( $query );
+    
+    my $ctype;
+    my $billing_email = 0;
+
+    # Set these variables to empty, otherwise in some cases it keeps earlier values and cause doubled
+    # values, ie. when emailing invoice
+    $form->{email} = '';
+    $form->{cc} = '';
+    $form->{bcc} = '';
+
+    while ( $ref = $sth->fetchrow_hashref('NAME_lc') ) {
+        $ctype = $ref->{class_id};
+        $ctype = $id_map{$ctype};
+        $billing_email = 1
+    	if $ref->{class_id} == 15;
+
+        # If there's an explicit billing email, don't use
+        # the standard email addresses; otherwise fall back to standard
+        $form->{$ctype} .= ($form->{$ctype} ? ", " : "") . $ref->{contact}
+    	if (($ref->{class_id} < 15 && ! $billing_email)
+    	    || $ref->{class_id} >= 15);
+    }
+    $sth->finish;
 
     my $buysell = ( $form->{vc} eq 'customer' ) ? "buy" : "sell";
 
@@ -1402,33 +1437,6 @@ sub get_name {
     ( $form->{creditremaining} ) -= Math::BigFloat->new($credit_rem);
 
     $sth->finish;
-
-    # get shipto if we did not converted an order or invoice
-    if ( !$form->{shipto} ) {
-
-        for (
-            qw(shiptoname shiptoaddress1 shiptoaddress2
-            shiptocity shiptostate shiptozipcode
-            shiptocountry shiptocontact shiptophone
-            shiptofax shiptoemail)
-          )
-        {
-            delete $form->{$_};
-        }
-
-        ## needs fixing (SELECT *)
-        $query = qq|
-			SELECT * 
-			  FROM new_shipto
-			 WHERE trans_id = $form->{"$form->{vc}_id"}|;
-
-        $sth = $dbh->prepare($query);
-        $sth->execute || $form->dberror($query);
-
-        $ref = $sth->fetchrow_hashref(NAME_lc);
-        for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
-        $sth->finish;
-    }
 
     # get taxes
     $query = qq|

@@ -60,7 +60,7 @@ msgid "Revenue"
 msgstr "Bevétel"
 
 msgid "Received"
-msgstr "Vásárolva"
+msgstr "Befolyt"
 
 msgid "Customer Search"
 msgstr "Vevő partner keresése"
@@ -2911,7 +2911,7 @@ msgstr "Teljesítés alapján"
 # Készpénz is lehet, majd meg kell nézni a kontextust.
 #: bin/ic.pl:1069 pos.conf.pl:42 tools/dbstrings:40
 msgid "Cash"
-msgstr "Pénztár"
+msgstr "Pénzmozgások"
 
 #: bin/ic.pl:1090 bin/ic.pl:1852 bin/arap.pl:164 UI/login.html:11
 #: UI/employee.html:36 UI/payments/search.html:47
@@ -3383,7 +3383,7 @@ msgstr "Áthelyezés ide"
 
 #: bin/oe.pl:3239 bin/oe.pl:3355 tools/dbstrings:65 tools/dbstrings:182
 msgid "Transfer"
-msgstr "Átvezetés"
+msgstr "Tranzakciók"
 
 #: bin/oe.pl:3245
 msgid "From Warehouse"
@@ -4169,7 +4169,7 @@ msgstr "Engedményadás"
 
 #: scripts/payment.pl:953
 msgid "To pay"
-msgstr "Fizetni"
+msgstr "Fizetendő"
 
 #: scripts/payment.pl:1129 tools/dbstrings:41 tools/dbstrings:163
 msgid "Receipt"
@@ -4839,17 +4839,17 @@ msgstr "A(z) %1 objektum nem menthető el."
 # 75%
 #: LedgerSMB/DBObject/Payment.pm:475
 msgid "cash"
-msgstr "készpénz"
+msgstr "bankkivonat"
 
 # 80%
 #: LedgerSMB/DBObject/Payment.pm:476
 msgid "check"
-msgstr "csekk"
+msgstr "pénztárbizonylat"
 
 # 85%
 #: LedgerSMB/DBObject/Payment.pm:477
 msgid "deposit"
-msgstr "jóváírás"
+msgstr "utalvány"
 
 #: LedgerSMB/DBObject/Payment.pm:478
 msgid "other"
@@ -6297,7 +6297,7 @@ msgstr "Nem támogatott szám"
 # 75%
 #: UI/payments/search.html:56 UI/payments/payment2.html:226
 msgid "Cash Account"
-msgstr "Készpénz számla"
+msgstr "Pénz számla"
 
 #: UI/payments/search.html:74
 msgid "From Date"
@@ -8069,131 +8069,7 @@ msgstr "Sorozatszám"
 #~ msgid "Budgets"
 #~ msgstr "Költségvetés"
 
-# 91%
-#, fuzzy
-#~ msgid "Cannot set multiple options for %1"
-#~ msgstr "Nem lehet beállítani a töbszörös opciót"
 
-# 78%
-#, fuzzy
-#~ msgid "%1 Department"
-#~ msgstr "Új osztály"
-
-# 75%
-#, fuzzy
-#~ msgid "%1 Business"
-#~ msgstr "Új üzletág"
-
-# 75%
-#, fuzzy
-#~ msgid "%1 Language"
-#~ msgstr "Új nyelv"
-
-# 95%
-#, fuzzy
-#~ msgid ""
-#~ "Deleting a language will also delete the templates for the language %1"
-#~ msgstr "A nyelv törlése törli a nyelvhez tartozó sablonokat is"
-
-# 86%
-#, fuzzy
-#~ msgid "Edit Preferences for %1"
-#~ msgstr "Felhasználói paraméterek módosítása:"
-
-# 86%
-#, fuzzy
-#~ msgid "No email address for %1"
-#~ msgstr "Nincs e-mail címe:"
-
-# 82%
-#, fuzzy
-#~ msgid "Backup sent to %1"
-#~ msgstr "Biztonsági másolat elküldve:"
-
-# 92%
-#, fuzzy
-#~ msgid "Transaction reversal enforced up to %1"
-#~ msgstr "E dátumig csak ellentétes előjelű tranzakcióval lehet stornózni:"
-
-# 83%
-#, fuzzy
-#~ msgid "%1 Warehouse"
-#~ msgstr "Raktárba"
-
-# 77%
-#, fuzzy
-#~ msgid "Invoice Number: %1"
-#~ msgstr "Számlaszám"
-
-# 75%
-#, fuzzy
-#~ msgid "Order Number: %1"
-#~ msgstr "Rendelés száma"
-
-# 80%
-#, fuzzy
-#~ msgid "Quotation Number: %1"
-#~ msgstr "Ajánlat száma"
-
-# 89%
-#, fuzzy
-#~ msgid "%1 Cash Transfer Transaction"
-#~ msgstr "Új számlák közötti pénzmozgás"
-
-# 90%
-#, fuzzy
-#~ msgid "%1 General Ledger Transaction"
-#~ msgstr "Új főkönyvi könyvelés"
-
-# 93%
-#, fuzzy
-#~ msgid "Are you sure you want to delete Transaction %1"
-#~ msgstr "Biztos benne, hogy törölni akarja? Tranzakció:"
-
-# 82%
-#, fuzzy
-#~ msgid "%1: Vendor not on file!"
-#~ msgstr "Szállító nincs az adatbázisban!"
-
-# 84%
-#, fuzzy
-#~ msgid "%1: Customer not on file!"
-#~ msgstr "A vevő hiányzik az adatbázisból!"
-
-# 94%
-#, fuzzy
-#~ msgid "Inventory quantity must be zero before you can set this %1 obsolete!"
-#~ msgstr ""
-#~ "Mielőtt ezt az anyagot/árut elévültnek nyilvánítja,a mennyiségnek nullának "
-#~ "kell lennie!!"
-
-# 92%
-#, fuzzy
-#~ msgid "Are you sure you want to delete Invoice Number %1?"
-#~ msgstr "Biztos benne, hogy törölni akarja? Számlaszám:"
-
-#~ msgid "Print and Post as new"
-#~ msgstr "Újként nyomtat és rögzít"
-
-# 83%
-#, fuzzy
-#~ msgid "Are you sure you want to delete time card for %1 %2 %3"
-#~ msgstr "Biztos benne, ki akarja törölni az időkártyát"
-
-# 77%
-#, fuzzy
-#~ msgid "Project Number: %1"
-#~ msgstr "Projektszám"
-
-# 85%
-#, fuzzy
-#~ msgid "Statement sent to %1"
-#~ msgstr "Kimutatás elküldve:"
-
-# 77%
-#, fuzzy
-#~ msgid "%1 Number"
-#~ msgstr "Beszerzési rendelésszám"
 
 #~ msgid "Above"
 #~ msgstr "Fent"
