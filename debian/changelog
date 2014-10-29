@@ -1,4 +1,4 @@
-ledgersmb (1.3.44-1~1) UNRELEASED; urgency=medium
+ledgersmb (1.3.45-1~1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Correct a copyright email address in the debian/copyright file.
@@ -11,7 +11,7 @@ ledgersmb (1.3.44-1~1) UNRELEASED; urgency=medium
   * Only include the overrides for the 'custom' empty directories in the
     ledgersmb.lintian-overrides.  
 
- -- Robert James Clay <jame@rocasa.us>  Thu,  9 Oct 2014 06:14:58 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 29 Oct 2014 08:15:58 -0400
 
 ledgersmb (1.3.40-1) unstable; urgency=medium
 
