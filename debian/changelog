@@ -1,17 +1,17 @@
-ledgersmb (1.3.46~rc2-1) UNRELEASED; urgency=medium
+ledgersmb (1.3.46~rc2-1) testing; urgency=medium
 
   * New upstream release.
+  * Add texlive-xetex as a 'Suggests' in debian/control.
+  * Add libjs-prototype & libjs-scriptaculous to Build-Depends.
   * Correct a copyright email address in the debian/copyright file.
+  * Add a note regarding texlive-xetex to the debian/README.Debian file.
+  * The contrib_dir setting in 05_confdir.patch is only needed for Pg v9.1.
   * Use dh-linktree for embedded libjs-prototype and libjs-libjs-scriptaculous
     libraries.
-  * Add libjs-prototype & libjs-scriptaculous to Build-Depends in debian/control.
-  * Add texlive-xetex as a 'Suggests' in debian/control.
-  * The contrib_dir setting in 05_confdir.patch only needed for Pg v9.1,
-  * Add note regarding texlive-xetex to the debian/README.Debian file.
   * Only include the overrides for the 'custom' empty directories in the
-    ledgersmb.lintian-overrides.  
+    ledgersmb.lintian-overrides.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 31 Oct 2014 13:51:15 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 01 Nov 2014 12:20:02 -0400
 
 ledgersmb (1.3.40-1) unstable; urgency=medium
 
