@@ -3,8 +3,7 @@ debian/TODO for LedgerSMB v1.3
 
 ====================================================================================================
 
-------------------------------------------------------------------------------------
-
+-----------------------------------------------------------------------------------
 
 - An Ubuntu bug was submitted about setup.pl not working after selecting
 an automatic config during the install and setting a password:
@@ -21,7 +20,7 @@ created, which is not really needed for the application.
 gets the necessary admin user and password; only need that in perhaps one
 liners that creates the user as neccessary and sets the password.
 
--As noted on http://i18n.debian.org/l10n-pkg-status/l/ledgersmb.html, there are
+- As noted on http://i18n.debian.org/l10n-pkg-status/l/ledgersmb.html, there are
 22 'duplicate message' errors present in locale/po/hu.po. 
 https://sourceforge.net/p/ledger-smb/bugs/1174/
 http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=752063
@@ -59,6 +58,4 @@ the apache config need to be updated to allow that?)
 
 
 
-
  -- Robert James Clay <jame@rocasa.us>  Thu, 19 Jun 2014 04:21 -0400
-
