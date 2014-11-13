@@ -1,6 +1,6 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Change default directories
-Last-Update: 2014-04-03
+Last-Update: 2014-08-13
 --- a/LedgerSMB/Sysconfig.pm
 +++ b/LedgerSMB/Sysconfig.pm
 @@ -20,8 +20,8 @@
@@ -92,7 +92,7 @@ Last-Update: 2014-04-03
  #contrib_dir PG_CONTRIB_DIR 
  #with postgresql-9.1 this stuff is in /usr/share/postgresql/9.1/extension and is injected in database with create extension pg_trgm,btree_gist...
 -contrib_dir = /usr/share/pgsql/contrib/
-+contrib_dir = /usr/share/postgresql/9.3/extension
++contrib_dir = /usr/share/postgresql/9.1/extension
  # sslmode can be require, allow, prefer, or disable.  Defaults to prefer.
  sslmode = prefer
  
