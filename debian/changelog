@@ -1,8 +1,8 @@
-ledgersmb-1.4 (1.4.7-1~1) UNRELEASED; urgency=medium
+ledgersmb-1.4 (1.4.9-1~1) UNRELEASED; urgency=medium
 
   TODO:
     - Adapt Debian packages to v1.4.x versions.
   * Initial separate source package for LedgerSMB v1.4.x versions. (Closes: #)
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 02 Dec 2014 09:22:08 -0500
+ -- Robert James Clay <jame@rocasa.us>  Wed, 10 Dec 2014 04:13:22 -0500
 
