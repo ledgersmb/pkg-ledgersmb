@@ -26,23 +26,22 @@ LedgerSMB Configuration
 
 CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'password';
 
+    You can use 'ALTER' instead of 'CREATE' if it was created incorrectly.
+
     Besides assuming that a database superuser is known, the setup.pl script
     also assumes that the contrib_dir directive is already set correctly in
     /etc/ledgersmb/ledgersmb.conf for the location of the PostgreSQL contrib
-    scripts. For v9.1 it would be /usr/share/postresql/9.1/extension; or for
-    v9.3 that would be /usr/share/postgresql/9.3/extension.
+    scripts. For v9.1 it would be /usr/share/postresql/9.1/extension.
 
     Configuration files for Apache 2.2 or 2.4 are installed as necessary, with
-    an example Apache fastcgi configuration available at lsmb_13-fcgi.conf in 
-    the /usr/share/ledgersmb/tools directory. Also; some information for use 
+    an example Apache fastcgi configuration available at lsmb_13-fcgi.conf in
+    the /usr/share/ledgersmb/tools directory. Also; some information for use
     with Plack is available in README.plack, and for use with nginx is in the
     /usr/share/ledgersmb/contrib/nginx-fcgiwrap directory.
 
     The application css directory is /var/lib/ledgersmb/css and defaults for the
     files are installed there from the example files during an package install.
-    There is also a URL related configuration item in ledgersmb.conf, cssdir,
-    which will need to be updated manually when upgrading from a previous
-    version.
+    There is also a URL related configuration item in ledgersmb.conf, cssdir.
 
     The PDF/Postscript support for the 'xedemo' LaTex templates is available as
     the package texlive-xetex if it is not already installed.
@@ -96,4 +95,4 @@ Company database removal
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Sat,  5 Apr 2014 13:28:40 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 11 Dec 2014 04:18:28 -0400
