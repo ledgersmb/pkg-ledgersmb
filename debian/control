@@ -3,8 +3,13 @@ Section: web
 Priority: optional
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
-Build-Depends: debhelper (>= 8), libmodule-install-perl, po-debconf
-Standards-Version: 3.9.5
+Build-Depends: debhelper (>= 8),
+               po-debconf,
+               libmodule-install-perl,
+               dh-linktree,
+               libjs-prototype,
+               libjs-scriptaculous
+Standards-Version: 3.9.6
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://anonscm.debian.org/pkg-sql-ledger/ledger-smb/trunk
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
@@ -23,6 +28,8 @@ Depends: apache2 | httpd-cgi,
          libfile-mimeinfo-perl,
          libhtml-parser-perl,
          libio-stringy-perl,
+         libjs-prototype,
+         libjs-scriptaculous,
          liblocale-maketext-lexicon-perl (>= 0.62-1),
          liblog-log4perl-perl,
          libmime-lite-perl,
@@ -38,7 +45,8 @@ Recommends: default-mta | mail-transport-agent,
             libparse-recdescent-perl,
             libtemplate-plugin-latex-perl,
             texlive-latex-recommended
-Suggests: latex-cjk-all,
+Suggests: texlive-xetex,
+          latex-cjk-all,
           libimage-size-perl,
           libnet-tclink-perl,
           libplack-perl,
