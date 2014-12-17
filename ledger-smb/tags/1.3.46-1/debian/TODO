@@ -1,0 +1,46 @@
+debian/TODO for LedgerSMB v1.3
+
+
+====================================================================================================
+
+-----------------------------------------------------------------------------------
+
+- An Ubuntu bug was submitted about setup.pl not working after selecting
+an automatic config during the install and setting a password:
+https://bugs.launchpad.net/bugs/1078817
+- Created a Debian bug for the same issue, # 698298, & pointed the ubuntu bug
+to that. Assigned the ubuntu bug to the Ubuntu LSMB team.
+- The dbconfig-common based database configuration that is being used during
+installations and upgrades needs to be reviewed and improved. It is capable
+of creating the 'ledgersmb' database administrative user but it is not getting
+created with the necessary permissions. It is also apparently automatically
+creating a database named ledgersmb with the current way that user is being
+created, which is not really needed for the application.
+- Investigate dropping the use of dbcommon-config altogether. Debconf already
+gets the necessary admin user and password; only need that in perhaps one
+liners that creates the user as neccessary and sets the password.
+
+- A debian/po debconf Japanese translation has been provided. Currently,
+there is no LSMB locale/po/ja.po file. Checked System|Lanaguage|List
+Languages in LSMB 1.3.40: "ja" is not in the default list. It's also not
+listed as an available language when editing templates, and presumably
+those lists come from the same source. It can be added manually using
+System|Language|Add Language.
+
+- Upstream uses pdflatex to create the distribution LedgerSMB-manual.pdf from
+the source file doc/manual/LedgerSMB-manual.tex. Use the same source file to
+create an HTML version?
+
+- Create an HTML and/or PDF file of templateing/templating-guide.tex? And
+then register it with doc-base?
+
+- Now that versions of v1.4 are available; create a new package ledgersmb-1.3,
+for any needed support for v1.3.x versions of LedgerSMB.
+
+- Instead of a sym link to point to the /etc/ledgersmb config file(s),
+patch config file to add '/etc/' to the config file setting. (Would
+the apache config need to be updated to allow that?)
+
+
+
+ -- Robert James Clay <jame@rocasa.us>  Thu, 11 Dec 2014 02:33 -0500
