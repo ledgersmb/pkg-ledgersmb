@@ -18,19 +18,6 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-#   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
-# is no longer being used in debian/postinst to set it
-drop_statoverride() {
-    for file in /etc/ledgersmb /etc/ledgersmb/images \
-        /etc/ledgersmb/images/demo /etc/ledgersmb/templates \
-        /etc/ledgersmb/templates/*;
-    do
-        if dpkg-statoverride --list $file >/dev/null; then
-            dpkg-statoverride --remove $file
-        fi
-    done
-}
-
 if [ -f /usr/share/debconf/confmodule ]; then
     . /usr/share/debconf/confmodule
 fi
@@ -42,14 +29,6 @@ if [ -f /usr/share/dbconfig-common/dpkg/postrm ]; then
 fi
 
 case "$1" in
-    upgrade)
-        #   Remove these settings for /etc/ledgersmb/*, as dpkg-statoverride
-        # is no longer being used in debian/postinst to set it.
-        if dpkg --compare-versions $2 lt 1.3.9-2; then
-            drop_statoverride;
-        fi
-    ;;
-
     purge)
         # When being purged; if /var/lib/ledgersmb/css exists, remove it.
         if [ -d "/var/lib/ledgersmb/css" ]; then
@@ -102,7 +81,7 @@ case "$1" in
        fi
     ;;
 
-    remove|failed-upgrade|disappear)
+    upgrade|remove|failed-upgrade|disappear)
     ;;
 
     *)
