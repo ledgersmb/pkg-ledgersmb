@@ -1,13 +1,34 @@
-Template: ledgersmb/access-note
-Type: note
-Description: LedgerSMB loaded
- LedgerSMB can be accessed at http://127.0.0.1/ledgersmb
+# These templates have been reviewed by the debian-l10n-english
+# team
+#
+# If modifications/additions/rewording are needed, please ask
+# debian-l10n-english@lists.debian.org for advice.
+#
+# Even minor modifications require translation updates and such
+# changes should be coordinated with translators and reviewers.
 
-Template: ledgersmb/upgrade-note
-Type: note
-Description: Upgrade warning
- If upgrading from LedgerSMB < 1.2.0-beta1 or from SQL-Ledger, read 
- /usr/share/doc/ledgersmb/UPGRADE. The config format, locale names, 
- database schema, and per-user configuration locations have been 
- sufficiently changed with 1.2.0-beta1 so as to require special attention 
- in upgrading.
+Template: ledgersmb/admin_login
+Type: string
+Default: ledgersmb
+_Description: Database administrative user login:
+ Please enter the login of the LedgerSMB database administrative user. This
+ login is needed for the administrative web user interface, typically at
+ http://localhost/ledgersmb/setup.pl.
+
+Template: ledgersmb/admin_password
+Type: password
+Default: LEDGERSMBINITIAL
+_Description: Database administrative user password:
+ Please enter the password of the LedgerSMB database administrative user. This
+ password is needed for the administrative web user interface, typically at
+ http://localhost/ledgersmb/setup.pl.
+
+Template: ledgersmb/debconf_install
+Type: boolean
+Default: false
+_Description: Configure LedgerSMB automatically?
+ The configuration program for the package can automatically configure
+ some aspects of LedgerSMB, such as the LedgerSMB database user.
+ .
+ More general information about the initial configuration of the application
+ can be found in /usr/share/doc/ledgersmb/README.Debian.
