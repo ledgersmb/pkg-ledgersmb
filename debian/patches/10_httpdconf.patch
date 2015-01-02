@@ -1,8 +1,8 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
-Last-Update: 2014-03-11
---- a/ledgersmb-httpd.conf.template
-+++ b/ledgersmb-httpd.conf.template
+Last-Update: 2014-12-02
+--- a/ledgersmb-httpd-2.0-2.2.conf.template
++++ b/ledgersmb-httpd-2.0-2.2.conf.template
 @@ -1,8 +1,8 @@
  # This file must be edited to substitute the current path with WORKING_DIR
  
@@ -14,12 +14,19 @@ Last-Update: 2014-03-11
  
    # Rewrite rule to allow HTTP Authorization information to the scripts only
    # from this directory.
-@@ -36,32 +36,41 @@
+@@ -37,44 +37,44 @@
    </Files>
  </Directory>
  
+-<Directory WORKING_DIR/rest>
++<Directory /usr/share/ledgersmb/rest>
+    RewriteEngine On
+    RewriteBase /ledgersmb/rest/
+    RewriteRule .* ../rest-handler.pl
+ </Directory>
+ 
 -<Directory WORKING_DIR/users>
-+<Directory /var/lib/ledgersmb/users>
++<Directory /usr/share/ledgersmb/users>
    Order Deny,Allow
    Deny from All
  </Directory>
@@ -37,7 +44,7 @@ Last-Update: 2014-03-11
  </Directory>
  
 -<Directory WORKING_DIR/spool>
-+<Directory /var/lib/ledgersmb/spool>
++<Directory  /var/lib/ledgersmb/spool>
    Order Deny,Allow
    Deny from All
  </Directory>
@@ -53,15 +60,13 @@ Last-Update: 2014-03-11
    Order Deny,Allow
    Deny from All
  </Directory>
-+
-+Alias /lsmbcss /var/lib/ledgersmb/css/
-+<Directory /var/lib/ledgersmb/css>
-+  Order Deny,Allow
-+  Allow from 127.0.0.1
-+  Allow from localhost
-+  Deny from All
-+</Directory>
-+
+ 
+ #to avoid 'Directory index forbidden by Options directive' , i had to code follwoing with trailing slash ,tshvr4
+-<Directory WORKING_DIR/css/>
++<Directory /var/lib/ledgersmb/css/>
+    Options Indexes FollowSymLinks
+    Order Deny,Allow
+    Allow from All
 --- a/ledgersmb-httpd-2.4.conf.template
 +++ b/ledgersmb-httpd-2.4.conf.template
 @@ -1,8 +1,8 @@
@@ -75,8 +80,13 @@ Last-Update: 2014-03-11
  
    # Rewrite rule to allow HTTP Authorization information to the scripts only
    # from this directory.
-@@ -35,22 +35,30 @@
+@@ -36,26 +36,34 @@
    </Files>
+ </Directory>
+ 
+-<Directory WORKING_DIR/users>
++<Directory /usr/share/ledgesmb/users>
+   Require all denied
  </Directory>
  
 -<Directory WORKING_DIR/bin>
