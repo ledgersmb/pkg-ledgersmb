@@ -1,16 +1,18 @@
-ledgersmb (1.3.46-1~4) UNRELEASED; urgency=medium
+ledgersmb (1.3.46-1~5) UNRELEASED; urgency=medium
 
   * New upstream release. (Closes: #771822)
     - Fixes 'Duplicate message' errors in locale/po/hu.po. (Closes: #752063)
   * Add new Dutch debconf translation. (Closes: #767242)
-  * Minor updates and corrections to debian/README.Debian.
+  * Changes to debian/README.Debian:
+    - Minor updates and corrections to the wording.
+    - Add a note regarding the texlive-xetex package.
   * Correct a copyright email address in the debian/copyright file.
   * Set permissions on ledgersmb/bin/gl.pl correctly in debian/rules.
-  * Add a note regarding texlive-xetex to the debian/README.Debian file.
+  * Update how dpkg-maintscript-helper is invoked in maintainer scripts.
   * The contrib_dir setting in 05_confdir.patch is only needed for Pg v9.1.
   * Remove the use of drop_statoverride function from the maintainer scripts.
   * Changes in debian/control:
-    - Add texlive-xetex package as a 'Suggests'.
+    - Add texlive-xetex package as a suggested package.
     - Add libjs-prototype & libjs-scriptaculous to Build-Depends.
     - Add dpkg equal to version 1.15.7.2 or above as a Pre-Depends.
     - Set Standards-Version to 3.9.6 in debian/control, no changes required.
@@ -19,7 +21,7 @@ ledgersmb (1.3.46-1~4) UNRELEASED; urgency=medium
   * Only include the overrides for the 'custom' empty directories in the
     ledgersmb.lintian-overrides.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 28 Jan 2015 02:25:08 -0500
+ -- Robert James Clay <jame@rocasa.us>  Wed, 28 Jan 2015 04:16:33 -0500
 
 ledgersmb (1.3.40-1) unstable; urgency=medium
 
