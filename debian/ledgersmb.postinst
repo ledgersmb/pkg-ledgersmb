@@ -65,7 +65,7 @@ case "$1" in
         else
             # If the old ledgersmb-httpd.conf is present, rename it.
             dpkg-maintscript-helper mv_conffile \
-            /etc/apache2/conf.d/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb.conf 1.3.18-2~ ledgersmb -- "$@"
+            /etc/apache2/conf.d/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb.conf 1.3.46-1~ ledgersmb -- "$@"
         fi
         # If enabled, do the debconf supported configuration
         db_get ledgersmb/debconf_install
