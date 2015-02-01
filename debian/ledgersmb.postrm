@@ -54,15 +54,6 @@ case "$1" in
         if [ -f "/etc/apache2/conf-available/ledgersmb.conf" ]; then
             rm -f /etc/apache2/conf-available/ledgersmb.conf
         fi
-        if [ -d "/etc/apache2/conf-available/ledgersmb.conf" ]; then
-            rm -rf /etc/apache2/conf-available/ledgersmb.conf
-        fi
-        if [ -h "/etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf" ]; then
-            rm -f /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
-        fi
-        if [ -h "/etc/ledgersmb/ledgersmb-httpd-2.4.conf" ]; then
-            rm -f /etc/ledgersmb/ledgersmb-httpd-2.4.conf
-        fi
     ;;
 
     abort-install|abort-upgrade)
