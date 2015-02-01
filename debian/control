@@ -13,7 +13,7 @@ Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://anonscm.debian.org/pkg-sql-ledger/ledger-smb/trunk
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
 
-Package: ledgersmb-1.4
+Package: ledgersmb
 Architecture: all
 Depends: apache2 | httpd-cgi,
          dbconfig-common,
