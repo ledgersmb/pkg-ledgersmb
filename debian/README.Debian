@@ -51,6 +51,7 @@ Optional Perl modules
 =====================
 
     Net::TCLink              [Support for TrustCommerce credit card processing]
+    X12::Parser              [Support for X12 EDI support]
     OpenOffice::OODoc        [Support for OpenOffice output]
     Template::Plugin::Latex  [Support for Postscript and PDF output]
     Parse::RecDescent        [Support for the *experimental* scripting engine]
@@ -59,6 +60,9 @@ Optional Perl modules
 
     The credit card processing support for TrustCommerce is available as
     the package libnet-tclink-perl if not already installed.
+
+    The X12 EDI support is available as the package libx12-parser-perl if it is
+    not already installed.
 
     The Open Office output support is available as libopenoffice-oodoc-perl if
     it is not already installed.
@@ -95,4 +99,4 @@ Company database removal
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 11 Dec 2014 04:18:28 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 26 Feb 2015 12:20:18 -0400
