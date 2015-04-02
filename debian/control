@@ -17,7 +17,6 @@ Package: ledgersmb
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.7.2)
 Depends: apache2 | httpd-cgi,
-         dbconfig-common,
          libcarp-always-perl,
          libcgi-simple-perl,
          libconfig-inifiles-perl
