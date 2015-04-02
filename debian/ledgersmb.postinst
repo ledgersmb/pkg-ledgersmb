@@ -17,10 +17,45 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+config-lsmb-db-user() {
+        # Source debconf
+        . /usr/share/debconf/confmodule
+
+        # If enabled, do the debconf supported configuration
+        db_get ledgersmb/debconf_install
+        if [ "$RET" = true ]; then 
+            # Get user name.
+            db_get ledgersmb/admin_login
+            LSMBDBUSER=$RET
+            # Get password
+            db_get ledgersmb/admin_password
+            LSMBDBPW=$RET
+
+            # Configure the ledgersmb db admin user as necessary
+            su - postgres -c psql <<"EOT"
+DO
+$$
+DECLARE num_users integer;
+BEGIN
+    SELECT count(*)
+        into num_users
+    FROM pg_user
+    WHERE usename = '$LSMBDBUSER';
+
+    IF num_users = 0 THEN
+        CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'altest';
+    ELSE
+        ALTER ROLE ledgersmb ENCRYPTED PASSWORD '$LSMBDBPW';
+    END IF;
+END
+$$
+;
+EOT
+        fi
+}
+
 #  Set old_version variable for use later in the script.
 old_version=$2
-
-. /usr/share/debconf/confmodule
 
 case "$1" in
     configure)
@@ -63,10 +98,7 @@ case "$1" in
             fi
         fi
         # If enabled, do the debconf supported configuration
-        db_get ledgersmb/debconf_install
-        if [ "$RET" = true ]; then 
-            
-        fi
+        config-lsmb-db-user()
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
