@@ -20,11 +20,7 @@ set -e
 #  Set old_version variable for use later in the script.
 old_version=$2
 
-dbc_first_version="1.3.14-2"
-dbc_dbtypes="pgsql"
-
 . /usr/share/debconf/confmodule
-. /usr/share/dbconfig-common/dpkg/postinst.pgsql
 
 case "$1" in
     configure)
@@ -69,7 +65,7 @@ case "$1" in
         # If enabled, do the debconf supported configuration
         db_get ledgersmb/debconf_install
         if [ "$RET" = true ]; then 
-            dbc_go ledgersmb $@
+            
         fi
     ;;
 
