@@ -43,6 +43,10 @@ CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'passwor
     files are installed there from the example files during an package install.
     There is also a URL related configuration item in ledgersmb.conf, cssdir.
 
+    Language specific HTML, LaTeX, and Text templates can be edited online but
+    the language specific directory (like /var/ledgersmb/templates/demo/en_US)
+    first needs to be manually created and the template file copied there.
+
     The PDF/Postscript support for the 'xedemo' LaTex templates is available as
     the package texlive-xetex if it is not already installed.
 
@@ -95,4 +99,4 @@ Company database removal
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 11 Dec 2014 04:18:28 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 12 Apr 2015 12:07:18 -0400
