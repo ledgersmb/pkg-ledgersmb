@@ -31,7 +31,8 @@ CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'passwor
     Besides assuming that a database superuser is known, the setup.pl script
     also assumes that the contrib_dir directive is already set correctly in
     /etc/ledgersmb/ledgersmb.conf for the location of the PostgreSQL contrib
-    scripts. For v9.1 it would be /usr/share/postresql/9.1/extension.
+    scripts. For v9.4 it would be /usr/share/postresql/9.4/extension and for
+    v9.1 it would be /usr/share/postresql/9.1/extension.
 
     Configuration files for Apache 2.2 or 2.4 are installed as necessary, with
     an example Apache fastcgi configuration available at lsmb_13-fcgi.conf in
