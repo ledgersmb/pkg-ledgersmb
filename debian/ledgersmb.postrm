@@ -18,16 +18,6 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-if [ -f /usr/share/debconf/confmodule ]; then
-    . /usr/share/debconf/confmodule
-fi
-
-if [ -f /usr/share/dbconfig-common/dpkg/postrm ]; then
-    . /usr/share/dbconfig-common/dpkg/postrm
-
-    dbc_go ledgersmb $@
-fi
-
 case "$1" in
     purge)
         # When being purged; if /var/lib/ledgersmb/css exists, remove it.
