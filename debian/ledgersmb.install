@@ -6,7 +6,7 @@ bin/*.pl usr/share/ledgersmb/bin
 blib/lib/* usr/share/ledgersmb
 contrib/* usr/share/ledgersmb/contrib
 css/* /usr/share/ledgersmb/css
-debian/adm/sql/pgsql usr/share/dbconfig-common/data/ledgersmb/install-dbadmin
+debian/adm/config-lsmb-db-user.sh usr/share/ledgersmb/tools
 drivers/* usr/share/ledgersmb/drivers
 favicon.ico usr/share/ledgersmb
 images/*.gif usr/share/ledgersmb/images
