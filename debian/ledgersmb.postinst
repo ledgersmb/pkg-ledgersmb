@@ -20,6 +20,11 @@ set -e
 #  Set old_version variable for use later in the script.
 old_version=$2
 
+# Source debconf
+if [ -f /usr/share/debconf/confmodule ]; then
+    . /usr/share/debconf/confmodule
+fi
+
 case "$1" in
     configure)
         # Only do these if this is the initial install.
@@ -61,8 +66,6 @@ case "$1" in
                 fi
             fi
         fi
-        # Source debconf
-        . /usr/share/debconf/confmodule
         # If enabled, do the debconf supported configuration
         config-lsmb-db-user()
         db_get ledgersmb/debconf_install
