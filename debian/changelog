@@ -1,4 +1,4 @@
-ledgersmb (1.3.46-1~8) UNRELEASED; urgency=medium
+ledgersmb (1.3.46-1~9) UNRELEASED; urgency=medium
 
   * New upstream release. (Closes: #771822)
     - Fixes 'Duplicate message' errors in locale/po/hu.po. (Closes: #752063)
@@ -9,6 +9,9 @@ ledgersmb (1.3.46-1~8) UNRELEASED; urgency=medium
     - Add a note about the usage of the template files.
   * Correct a copyright email address in the debian/copyright file.
   * Set permissions on ledgersmb/bin/gl.pl correctly in debian/rules.
+  * Change how the LedgerSMB Database adminitrative user relate processing is
+    being done, including dropping the use of dbconfig-common for the database
+    related processing. (Closes: #698298, #758140, LP#1078817)
   * Update how the Apache related processing is done in the maintainer scripts.
   * Set default for contrib_dir in 05_confdir.patch to be for PostgreSQL v9.4
     instead of PostgreSQL v9.1.
@@ -23,7 +26,7 @@ ledgersmb (1.3.46-1~8) UNRELEASED; urgency=medium
   * Only include the overrides for the 'custom' empty directories in the
     ledgersmb.lintian-overrides.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 12 Apr 2015 13:09:31 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 13 Apr 2015 21:42:09 -0400
 
 ledgersmb (1.3.40-1) unstable; urgency=medium
 
