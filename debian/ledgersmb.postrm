@@ -18,18 +18,13 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-if [ -f /usr/share/debconf/confmodule ]; then
-    . /usr/share/debconf/confmodule
-fi
-
-if [ -f /usr/share/dbconfig-common/dpkg/postrm ]; then
-    . /usr/share/dbconfig-common/dpkg/postrm
-
-    dbc_go ledgersmb $@
-fi
-
 case "$1" in
     purge)
+        # If Apache 2.4 in use, disable use of ledgersmb.conf.
+        if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
+            . /usr/share/apache2/apache2-maintscript-helper
+            apache2_invoke disconf ledgersmb.conf || exit $?
+        fi
         # When being purged; if /var/lib/ledgersmb/css exists, remove it.
         if [ -d "/var/lib/ledgersmb/css" ]; then
             rm -rf /var/lib/ledgersmb/css
@@ -56,13 +51,21 @@ case "$1" in
         fi
     ;;
 
+    remove)
+q        # If Apache 2.4 in use, disable use of ledgersmb.conf.
+        if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
+            . /usr/share/apache2/apache2-maintscript-helper
+            apache2_invoke disconf ledgersmb.conf || exit $?
+        fi
+    ;;
+
     abort-install|abort-upgrade)
         # If the old ledgersmb-httpd.conf was present, rename it back.
         dpkg-maintscript-helper mv_conffile \
         /etc/apache2/conf.d/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb.conf 1.3.46-1~ ledgersmb -- "$@"
     ;;
 
-    upgrade|remove|failed-upgrade|disappear)
+    upgrade|failed-upgrade|disappear)
     ;;
 
     *)
