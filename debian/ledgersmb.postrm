@@ -52,7 +52,7 @@ case "$1" in
     ;;
 
     remove)
-q        # If Apache 2.4 in use, disable use of ledgersmb.conf.
+        # If Apache 2.4 in use, disable use of ledgersmb.conf.
         if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
             . /usr/share/apache2/apache2-maintscript-helper
             apache2_invoke disconf ledgersmb.conf || exit $?
