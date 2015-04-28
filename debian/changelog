@@ -1,4 +1,4 @@
-ledgersmb (1.3.46-1~12) UNRELEASED; urgency=medium
+ledgersmb (1.3.46-1~13) UNRELEASED; urgency=medium
 
   * New upstream release. (Closes: #771822)
     - Fixes 'Duplicate message' errors in locale/po/hu.po. (Closes: #752063)
@@ -26,7 +26,7 @@ ledgersmb (1.3.46-1~12) UNRELEASED; urgency=medium
   * Only include the overrides for the 'custom' empty directories in the
     ledgersmb.lintian-overrides.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 27 Apr 2015 13:51:20 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 28 Apr 2015 12:04:51 -0400
 
 ledgersmb (1.3.40-1) unstable; urgency=medium
 
