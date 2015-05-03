@@ -1,2 +1,0 @@
-# Configure ledgersmb user permissions
-ALTER ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT;
