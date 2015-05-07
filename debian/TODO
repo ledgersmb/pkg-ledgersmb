@@ -3,23 +3,6 @@ debian/TODO for LedgerSMB v1.4
 
 ====================================================================================================
 
------------------------------------------------------------------------------------
-
-- An Ubuntu bug was submitted about setup.pl not working after selecting
-an automatic config during the install and setting a password:
-https://bugs.launchpad.net/bugs/1078817
-- Created a Debian bug for the same issue, # 698298, & pointed the ubuntu bug
-to that. Assigned the ubuntu bug to the Ubuntu LSMB team.
-- The dbconfig-common based database configuration that is being used during
-installations and upgrades needs to be reviewed and improved. It is capable
-of creating the 'ledgersmb' database administrative user but it is not getting
-created with the necessary permissions. It is also apparently automatically
-creating a database named ledgersmb with the current way that user is being
-created, which is not really needed for the application.
-- Investigate dropping the use of dbcommon-config altogether. Debconf already
-gets the necessary admin user and password; only need that in perhaps one
-liners that creates the user as neccessary and sets the password.
-
 - A debian/po debconf Japanese translation has been provided. Currently,
 there is no LSMB locale/po/ja.po file. Checked System|Lanaguage|List
 Languages in LSMB 1.3.40: "ja" is not in the default list. It's also not
@@ -34,12 +17,6 @@ create an HTML version?
 - Create an HTML and/or PDF file of templateing/templating-guide.tex? And
 then register it with doc-base?
 
-- Add an installation option for a versioned installation directory name?
-Or add a package build time option to create a versioned package name and
-installation? Or change to using at least binary package names that also
-include info about the version, like "ledgersmb14" or "ledgersmb1.4" or
-"ledgersmb-1.4"?
-
 - Review the tools/* shell and perl scripts to determine what patches may be
 necessary to make them usable on a Debian installation. 
 
@@ -48,5 +25,4 @@ patch config file to add '/etc/' to the config file setting. (Would
 the apache config need to be updated to allow that?)
 
 
-
- -- Robert James Clay <jame@rocasa.us>  Sat, 23 Aug 2014 11:33 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu,  7 May 2014 12:36 -0400
