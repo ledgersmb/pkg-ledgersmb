@@ -1,30 +1,39 @@
-ledgersmb (1.4.9-1~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.11-1~2) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Update package for v1.4.x versions. (Closes: #773363)
 
- -- Robert James Clay <jame@rocasa.us>  Fri,  2 Jan 2015 04:10:13 -0500
+ -- Robert James Clay <jame@rocasa.us>  Thu,  7 Apr 2015 12:38:57 -0500
 
 ledgersmb (1.3.46-1) unstable; urgency=medium
 
   * New upstream release. (Closes: #771822)
     - Fixes 'Duplicate message' errors in locale/po/hu.po. (Closes: #752063)
-  * Add texlive-xetex as a 'Suggests' in debian/control.
   * Add new Dutch debconf translation. (Closes: #767242)
-  * Minor updates and corrections to debian/README.Debian.
-  * Add libjs-prototype & libjs-scriptaculous to Build-Depends.
+  * Changes to debian/README.Debian:
+    - Add a note regarding the texlive-xetex package.
+    - Update note regarding the contrib_dir directive.
+    - Add a note about the usage of the template files.
   * Correct a copyright email address in the debian/copyright file.
   * Set permissions on ledgersmb/bin/gl.pl correctly in debian/rules.
-  * Add a note regarding texlive-xetex to the debian/README.Debian file.
-  * Set Standards-Version to 3.9.6 in debian/control, no changes required.
-  * The contrib_dir setting in 05_confdir.patch is only needed for Pg v9.1.
+  * Change how the LedgerSMB Database administrative user related processing is
+    being done, including dropping the use of dbconfig-common for the database
+    related processing. (Closes: #698298, #758140, LP#1078817)
+  * Update how the Apache related processing is done in the maintainer scripts.
+  * Set default for contrib_dir in 05_confdir.patch to be for PostgreSQL v9.4
+    instead of PostgreSQL v9.1.
   * Remove the use of drop_statoverride function from the maintainer scripts.
+  * Changes in debian/control:
+    - Add texlive-xetex package as a suggested package.
+    - Add libjs-prototype & libjs-scriptaculous to Build-Depends.
+    - Add dpkg equal to version 1.15.7.2 or above as a Pre-Depends.
+    - Set Standards-Version to 3.9.6 in debian/control, no changes required.
   * Use dh-linktree for embedded libjs-prototype and libjs-libjs-scriptaculous
     libraries.
   * Only include the overrides for the 'custom' empty directories in the
     ledgersmb.lintian-overrides.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 17 Dec 2014 05:08:48 -0500
+ -- Robert James Clay <jame@rocasa.us>  Wed, 29 Apr 2015 01:36:52 -0400
 
 ledgersmb (1.3.40-1) unstable; urgency=medium
 
