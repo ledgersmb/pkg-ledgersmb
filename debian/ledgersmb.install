@@ -1,7 +1,6 @@
 *.conf etc/ledgersmb
 LedgerSMB/* usr/share/ledgersmb/LedgerSMB
 UI/* usr/share/ledgersmb/UI
-VERSION usr/share/ledgersmb
 bin/*.pl usr/share/ledgersmb/bin
 blib/lib/* usr/share/ledgersmb
 contrib/* usr/share/ledgersmb/contrib
