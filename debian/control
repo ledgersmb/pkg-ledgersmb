@@ -1,4 +1,4 @@
-Source: ledgersmb-1.4
+Source: ledgersmb
 Section: web
 Priority: optional
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
