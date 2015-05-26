@@ -1,0 +1,33 @@
+debian/TODO for LedgerSMB v1.3
+
+- If an 'apache2_invoke enmod' for the rewrite module is added to the
+postinst section for apache 2.4; the restart of apache done for that
+just hangs.  An apache reload done for 'apache2_invoke enconf' of the
+2.4 apache configuration for ledgersmb.conf does seem to complete,
+though shouldn't just do one or the other, with the restart overriding
+the reload?
+
+- A debian/po debconf Japanese translation has been provided. Currently,
+there is no LSMB locale/po/ja.po file. Checked System|Lanaguage|List
+Languages in LSMB 1.3.40: "ja" is not in the default list. It's also not
+listed as an available language when editing templates, and presumably
+those lists come from the same source. It can be added manually using
+System|Language|Add Language.
+
+- Upstream uses pdflatex to create the distribution LedgerSMB-manual.pdf from
+the source file doc/manual/LedgerSMB-manual.tex. Use the same source file to
+create an HTML version?
+
+- Create an HTML and/or PDF file of templateing/templating-guide.tex? And
+then register it with doc-base?
+
+- Now that versions of v1.4 are available; create a new package ledgersmb-1.3,
+for any needed further support for v1.3.x versions of LedgerSMB.
+
+- Instead of a sym link to point to the /etc/ledgersmb config file(s),
+patch config file to add '/etc/' to the config file setting. (Would
+the apache config need to be updated to allow that?)
+
+
+
+ -- Robert James Clay <jame@rocasa.us>  Wed, 29 Apr 2015 01:00 -0400

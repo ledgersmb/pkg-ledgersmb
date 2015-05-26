@@ -1,0 +1,15 @@
+ledgersmb (1.3.46-1) unstable; urgency=medium
+
+  The default for the experimental dbconfig/debconf for configuring LedgerSMB
+  during the package installation is to not use it; instead, the LedgerSMB
+  database super-user can be manually created and that can then be used on the
+  setup page at http://localhost/ledgersmb/setup.pl to create the company
+  databases for use. See README.Debian for further information.
+
+  The default for the contrib_dir directive in /etc/ledgersmb/ledgersmb.conf is
+  now for PostgreSQL v9.4. The setting will need to be verified to be correct
+  for the actual installed version of PostgreSQL before using LedgerSMB.
+
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 12 Apr 2015 12:52:15 -0400
+
