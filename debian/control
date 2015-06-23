@@ -19,7 +19,7 @@ Pre-Depends: dpkg (>= 1.15.7.2)
 Depends: apache2 | httpd-cgi,
          libcarp-always-perl,
          libcgi-simple-perl,
-         libconfig-inifiles-perl
+         libconfig-inifiles-perl,
          libdatetime-perl,
          libdatetime-format-strptime-perl,
          libdbd-pg-perl,
