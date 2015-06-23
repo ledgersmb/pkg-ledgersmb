@@ -1,9 +1,9 @@
-ledgersmb (1.4.11-1~2) UNRELEASED; urgency=medium
+ledgersmb (1.4.12-1~1) UNRELEASED; urgency=medium
 
   * New upstream release.
-    - Update package for v1.4.x versions. (Closes: #773363)
+    - Updating package for v1.4.x versions. (Closes: #773363)
 
- -- Robert James Clay <jame@rocasa.us>  Thu,  7 Apr 2015 12:38:57 -0500
+ -- Robert James Clay <jame@rocasa.us>  Tue, 23 Jun 2015 13:39:57 -0400
 
 ledgersmb (1.3.46-1) unstable; urgency=medium
 
