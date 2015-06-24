@@ -4,6 +4,6 @@
 version=3
 
 # Exclude development snapshots
-opts="uversionmangle=s/^1\.4\.99\d*/0/" \
+opts="pgpsigurlmangle=s/$/.asc/,uversionmangle=s/^1\.4\.99\d*/0/" \
 http://sf.net/ledger-smb/ledgersmb-([\d\.\d\.]+)\.tar\.gz
 
