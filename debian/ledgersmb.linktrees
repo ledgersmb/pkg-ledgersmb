@@ -1,4 +1,4 @@
-embed usr/share/javascript/dojo usr/share/ledgersmb/UI/dojo/dojo
-embed usr/share/javascript/dijit usr/share/ledgersmb/UI/dojo/dijit
-embed usr/share/javascript/dojox usr/share/ledgersmb/UI/dojo/dojox
+embed usr/share/javascript/dojo usr/share/ledgersmb/UI/lib/dojo/dojo
+embed usr/share/javascript/dijit usr/share/ledgersmb/UI/lib/dojo/dijit
+embed usr/share/javascript/dojox usr/share/ledgersmb/UI/lib/dojo/dojox
 
