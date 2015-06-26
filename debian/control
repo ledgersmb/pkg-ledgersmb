@@ -6,7 +6,6 @@ Uploaders: Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 8),
                po-debconf,
                libmodule-install-perl,
-               dh-linktree,
                libjs-dojo-dojox
 Standards-Version: 3.9.6
 Homepage: http://www.ledgersmb.org/
