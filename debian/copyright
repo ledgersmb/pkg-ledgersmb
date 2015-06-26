@@ -104,16 +104,6 @@ License: GPL
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Files: UI/ajax/scriptaculous/lib/prototype.js
-Comment: Licensing and copyright of the embedded Prototype Javascript library.
-Copyright: 2005-2008 Sam Stephenson
-License: MIT
-
-Files: UI/ajax/scriptaculous/src/*
-Comment: Licensing and copyright of the embedded Scriptaculous Javascript library.
-Copyright: 2005-2008 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
-License: MIT
-
 Files: locale/po/ar_EG.po
 Comment: Egypt Arabic texts
 Copyright:  2003, Omar BaheyEldin <o@ab2.com>
