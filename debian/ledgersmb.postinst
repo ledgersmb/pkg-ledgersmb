@@ -73,7 +73,6 @@ case "$1" in
             fi
         fi
         # If enabled, do the debconf supported configuration
-        config-lsmb-db-user()
         db_get ledgersmb/debconf_install
         if [ "$RET" = true ]; then 
             # Get user name.
