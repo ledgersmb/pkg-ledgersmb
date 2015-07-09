@@ -5,9 +5,6 @@
 
 override_dh_auto_configure:
 	rm -f Build.PL
-    # Per upstream; remove these empty directories if present, as they are not
-    # needed for an installed LedgerSMB directory.
-	rm -rf LedgerSMB/Assets LedgerSMB/Entity
 	cp pos.conf.pl.template pos.conf.pl
 	dh_auto_configure
 
