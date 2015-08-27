@@ -1,9 +1,10 @@
-ledgersmb (1.4.14+ds-1~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.14+ds-1~2) UNRELEASED; urgency=medium
 
   * New upstream release.
-    - Updating package for v1.4.x versions. (Closes: #773363)
+    - Inital package update for v1.4.x versions. (Closes: #773363)
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
-  * Add 'pgpsigurlmangle' and 'dversionmangle' option to debian/watch.
+  * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
+  * Change where ledgersmb.conf is enabled for apache 2.4 in ledgersmb.postinst.
   * Changes in debian/control:
     - Added to Recommends: libtex-encode-perl
     - Added to Suggests: libcgi-emulate-psgi-perl, libx12-parser-perl.
@@ -15,7 +16,7 @@ ledgersmb (1.4.14+ds-1~1) UNRELEASED; urgency=medium
     - Add 'Files-Excluded' section for embedded 'dojo' javascripts libraries.
     - Remove references to libjs-prototype & libjs-scriptaculous.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 22 Aug 2015 12:50:12 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 27 Aug 2015 12:37:18 -0400
 
 ledgersmb (1.3.46-1) unstable; urgency=medium
 
