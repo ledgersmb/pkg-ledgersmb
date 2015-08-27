@@ -84,6 +84,7 @@ case "$1" in
             # Configure database administrative user
             /usr/share/ledgersmb/tools/config-lsmb-db-user.sh $LSMBDBUSER $LSMBDBPW
         fi
+        db_stop
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
