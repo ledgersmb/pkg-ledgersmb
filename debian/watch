@@ -4,6 +4,6 @@
 version=3
 
 # Check against upstream release key. Exclude development snapshots.
-opts="pgpsigurlmangle=s/$/.asc/,dversionmangle=s/\+ds*$//,uversionmangle=s/^1\.4\.99\d*/0/" \
+opts="pgpsigurlmangle=s/$/.asc/,dversionmangle=s/\+ds[\d]?//,repacksuffix=+ds,uversionmangle=s/^1\.4\.99\d*/0/" \
 http://sf.net/ledger-smb/ledgersmb-([\d\.\d\.]+)\.tar\.gz
 
