@@ -14,15 +14,15 @@ Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
  Erik Huelsmann, Havard Sorli, John Locke, Pongracz Istvan, Herman Vierendeels,
  and Robert James Clay. For a full list including contact information of
  contributors, maintainers, and copyright holders, see the CONTRIBUTORS file.
-Copyright:  2006-2014, The LedgerSMB Core Team
+Copyright:  2006-2015, The LedgerSMB Core Team
             1999-2006, DWS Systems Inc.
 
 Files: *
-Copyright:  2006-2014, Chris Travers <chris@metatrontech.com>
-            2007-2014, Pongracz Istvan <pongracz.istvan@gmail.com>
-            2012-2013, Havard Sorli <havard@anix.no>
-            2011-2014, Erik Huelsmann <ehuels@gmail.com>
-            2011-2014, John Locke <john@freelock.com>
+Copyright:  2006-2015, Chris Travers <chris@metatrontech.com>
+            2007-2015, Pongracz Istvan <pongracz.istvan@gmail.com>
+            2012-2014, Havard Sorli <havard@anix.no>
+            2011-2015, Erik Huelsmann <ehuels@gmail.com>
+            2011-2015, John Locke <john@freelock.com>
             2014-2015, Nick Prater <nick@npbroadcast.com>
             2013-2014, Herman Vierendeels <herman.vierendeels@gmail.com>
             2012-2013, Robert James Clay <jame@rocasa.us>
