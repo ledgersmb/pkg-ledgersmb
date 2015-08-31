@@ -18,10 +18,9 @@ This method creates a new base request instance. It also validates the
 session/user credentials, as appropriate for the run mode.  Finally, it sets up 
 the database connections for the user.
 
-=item date_to_number (user => $LedgerSMB::User, date => $string);
+=item unescape($var)
 
-This function takes the date in the format provided and returns a numeric 
-string in YYMMDD format.  This may be moved to User in the future.
+Unescapes the var, i.e. converts html entities back to their characters.
 
 =item open_form()
 
@@ -38,19 +37,6 @@ not.  Use this if the form may be re-used (back-button actions are valid).
 Identical with check_form() above, but also removes the form_id from the 
 session.  This should be used when back-button actions are not valid.
 
-=item debug (file => $path);
-
-This dumps the current object to the file if that is defined and otherwise to 
-standard output.
-
-=item escape (string => $string);
-
-This function returns the current string escaped using %hexhex notation.
-
-=item unescape (string => $string);
-
-This function returns the $string encoded using %hexhex using ordinary notation.
-
 =item format_amount (user => $LedgerSMB::User::hash, amount => $string, precision => $integer, neg_format => (-|DRCR));
 
 The function takes a monetary amount and formats it according to the user 
@@ -62,11 +48,6 @@ LedgerSMB::User at some point in the future.
 If $amount is a Bigfloat, it is returned as is.  If it is a string, it is 
 parsed according to the user preferences stored in the LedgerSMB::User object.
 
-=item is_blank (name => $string)
-
-This function returns true if $self->{$string} only consists of whitespace
-characters or is an empty string.
-
 =item is_run_mode ('(cli|cgi|mod_perl)')
 
 This function returns 1 if the run mode is what is specified.  Otherwise
@@ -77,11 +58,6 @@ returns 0.
 This function returns 1 if the user's roles include any of the roles in
 @role_names.  
 
-=item num_text_rows (string => $string, cols => $number, max => $number);
-
-This function determines the likely number of rows needed to hold text in a 
-textbox.  It returns either that number or max, which ever is lower.
-
 =item merge ($hashref, keys => @list, index => $number);
 
 This command merges the $hashref into the current object.  If keys are 
@@ -89,19 +65,6 @@ specified, only those keys are used.  Otherwise all keys are merged.
 
 If an index is specified, the merged keys are given a form of 
 "$key" . "_$index", otherwise the key is used on both sides.
-
-=item redirect (msg => $string)
-
-This function redirects to the script and argument set determined by 
-$self->{callback}, and if this is not set, goes to an info screen and prints
-$msg.
-
-=item redo_rows (fields => \@list, count => $integer, [index => $string);
-
-This function is undergoing serious redesign at the moment.  If index is 
-defined, that field is used for ordering the rows.  If not, runningnumber is 
-used.  Behavior is not defined when index points to a field containing 
-non-numbers.
 
 =item set (@attrs)
 
@@ -112,11 +75,6 @@ merging hashes into self.
 
 Removes all elements starting with a . because these elements conflict with the
 ability to hide the entire structure for things like CSV lookups.
-
-=item get_default_value_by_key($key)
-
-Retrieves a default value for the given key, it is just a wrapper on LedgerSMB::Setting;
-
 
 =item call_procedure( procname => $procname, args => $args )
 
@@ -162,12 +120,7 @@ Ensures that the $ENV{REQUEST_METHOD} is defined and either "HEAD", "GET", "POST
 
 =item finalize_request()
 
-This function throws a CancelFurtherProcessing exception to be caught
-by the outermost processing script.  This construct allows the outer
-script and intermediate levels to clean up, if required.
-
-This construct replaces 'exit;' calls randomly scattered
-around the code everywhere.
+This zeroes out the App_State.
 
 =cut
 
@@ -203,27 +156,30 @@ around the code everywhere.
 
 use CGI::Simple;
 $CGI::Simple::DISABLE_UPLOADS = 0;
-use Math::BigFloat;
+use LedgerSMB::PGNumber;
+use LedgerSMB::PGDate;
 use LedgerSMB::Sysconfig;
-use Data::Dumper;
-use Error;
+use LedgerSMB::App_State;
 use LedgerSMB::Auth;
-use LedgerSMB::CancelFurtherProcessing;
+use LedgerSMB::Session;
 use LedgerSMB::Template;
 use LedgerSMB::Locale;
 use LedgerSMB::User;
 use LedgerSMB::Setting;
-use LedgerSMB::App_State;
-use LedgerSMB::Log;
 use LedgerSMB::Company_Config;
+use LedgerSMB::DBH;
+use Carp;
 use strict;
 use utf8;
 
 $CGI::Simple::POST_MAX = -1;
 
 package LedgerSMB;
-use base 'LedgerSMB::Request';
-our $VERSION = '1.3.46';
+use Try::Tiny;
+use DBI;
+
+use base qw(LedgerSMB::Request);
+our $VERSION = '1.4.15';
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB');
 
@@ -244,6 +200,8 @@ sub new {
 
     $self->{version} = $VERSION;
     $self->{dbversion} = $VERSION;
+    my $creds =  LedgerSMB::Auth::get_credentials;
+    $self->{login} = $creds->{login};
     
     bless $self, $type;
 
@@ -261,6 +219,10 @@ sub new {
      # are not parameters of the CGI query.
      %params = $query->Vars;
      for my $p(keys %params){
+         if (($params{$p} eq undef) or ($params{$p} eq '')){
+             delete $params{$p};
+             next;
+         }
          utf8::decode($params{$p});
          utf8::upgrade($params{$p});
      }
@@ -290,8 +252,9 @@ sub new {
         }
     }
     #HV set _locale already to default here,so routines lower in stack can use it;e.g. login.pl
-    $self->{_locale}=LedgerSMB::Locale->get_handle(${LedgerSMB::Sysconfig::language})
-      or $self->error( __FILE__ . ':' . __LINE__ .": Locale not loaded: $!\n" );
+    #$self->{_locale}=LedgerSMB::Locale->get_handle('en');
+    $self->{_locale}=LedgerSMB::Locale->get_handle($LedgerSMB::Sysconfig::language);
+    $self->error( __FILE__ . ':' . __LINE__ .": Locale ($LedgerSMB::Sysconfig::language) not loaded: $!\n" ) unless $self->{_locale};
 
     $self->{action} = "" unless defined $self->{action};
     $self->{action} =~ s/\W/_/g;
@@ -361,10 +324,11 @@ sub new {
     LedgerSMB::Company_Config::initialize($self);
 
     #TODO move before _db_init to avoid _db_init with invalid session?
+    #  Can't do that:  Company_Config has to pull company data from the db --CT
     if ($self->is_run_mode('cgi', 'mod_perl') and !$ENV{LSMB_NOHEAD}) {
        #check for valid session unless this is an inital authentication
        #request -- CT
-       if (!LedgerSMB::Auth::session_check( $cookie{${LedgerSMB::Sysconfig::cookie_name}}, $self) ) {
+       if (!LedgerSMB::Session::check( $cookie{${LedgerSMB::Sysconfig::cookie_name}}, $self) ) {
             $logger->error("Session did not check");
             $self->_get_password("Session Expired");
             die;
@@ -372,18 +336,16 @@ sub new {
        $logger->debug("session_check completed OK \$self->{session_id}=$self->{session_id} caller=\$filename=$filename \$line=$line");
     }
     $self->get_user_info;
+
     my %date_setting = (
-        'mm/dd/yy' => "SQL, US",
-        'mm-dd-yy' => "POSTGRES, US",
-        'dd/mm/yy' => "SQL, EUROPEAN",
-        'dd-mm-yy' => "POSTGRES, EUROPEAN",
-        'dd.mm.yy' => "GERMAN",
+        'mm/dd/yy' => "ISO, MDY",
+        'mm-dd-yy' => "ISO, MDY",
+        'dd/mm/yy' => "ISO, DMY",
+        'dd-mm-yy' => "ISO, DMY",
+        'dd.mm.yy' => "ISO, DMY",
     );
 
     $self->{dbh}->do("set DateStyle to '".$date_setting{$self->{_user}->{dateformat}}."'");
-    #my $locale   = LedgerSMB::Locale->get_handle($self->{_user}->{language})
-    # or $self->error(__FILE__.':'.__LINE__.": Locale not loaded: $!\n");
-    #$self->{_locale} = $locale;
     $self->{_locale}=LedgerSMB::Locale->get_handle($self->{_user}->{language})
      or $self->error(__FILE__.':'.__LINE__.": Locale not loaded: $!\n");
 
@@ -393,6 +355,11 @@ sub new {
 
     return $self;
 
+}
+
+sub unescape {
+    my ($self, $var) = @_;
+    return $self->{_request}->unescapeHTML($var);
 }
 
 sub open_form {
@@ -435,68 +402,24 @@ sub close_form {
 
 sub get_user_info {
     my ($self) = @_;
-    $self->{_user} = LedgerSMB::User->fetch_config($self);
+    $LedgerSMB::App_State::User =
+        $self->{_user} =
+        LedgerSMB::User->fetch_config($self);
+    $self->{_user}->{language} ||= 'en';
 }
 #This function needs to be moved into the session handler.
 sub _get_password {
     my ($self) = shift @_;
     $self->{sessionexpired} = shift @_;
-    LedgerSMB::Auth::credential_prompt();
+    if ($self->{sessionexpired}){
+        my $q = new CGI::Simple;
+        print $q->redirect('login.pl?action=logout&reason=timeout');
+    } else {
+        LedgerSMB::Auth::credential_prompt();
+    }
     die;
 }
 
-sub debug {
-    my $self = shift @_;
-    my $args = shift @_;
-    my $file;
-    if (scalar keys %$args){
-        $file = $args->{'file'};
-    }
-    my $d    = Data::Dumper->new( [$self] );
-    $d->Sortkeys(1);
-
-    if ($file) {
-        open( FH, '>', "$file" ) or die $!;
-        print FH $d->Dump();
-        close(FH);
-    }
-    else {
-        print "\n";
-        print $d->Dump();
-    }
-
-}
-
-sub escape {
-    my $self = shift;
-    my %args = @_;
-    my $str  = $args{string};
-    $str = "" unless defined $str;
-
-    my $regex = qr/([^a-zA-Z0-9_.-])/;
-    $str =~ s/$regex/sprintf("%%%02x", ord($1))/ge;
-    return $str;
-}
-
-sub is_blank {
-    my $self = shift @_;
-    my %args = @_;
-    my $name = $args{name};
-    my $rc;
-
-    if (not defined $name){
-        $self->{_locale} = LedgerSMB::Locale->get_handle('en') unless defined $self->{_locale};
-        $self->error($self->{_locale}->text('Field \"Name\" Not Defined'));
-    }
-
-    if ( $self->{$name} =~ /^\s*$/ ) {
-        $rc = 1;
-    }
-    else {
-        $rc = 0;
-    }
-    $rc;
-}
 
 sub is_run_mode {
     my $self = shift @_;
@@ -517,53 +440,6 @@ sub is_run_mode {
     $rc;
 }
 
-sub num_text_rows {
-    my $self    = shift @_;
-    my %args    = @_;
-    my $string  = $args{string};
-    my $cols    = $args{cols};
-    my $maxrows = $args{max};
-
-    my $rows = 0;
-
-    for ( split /\n/, $string ) {
-        my $line = $_;
-        while ( length($line) > $cols ) {
-            my $fragment = substr( $line, 0, $cols + 1 );
-            $fragment =~ s/^(.*)\W.*$/$1/;
-            $line =~ s/$fragment//;
-            if ( $line eq $fragment ) {    # No word breaks!
-                $line = "";
-            }
-            ++$rows;
-        }
-        ++$rows;
-    }
-
-    if ( !defined $maxrows ) {
-        $maxrows = $rows;
-    }
-
-    return ( $rows > $maxrows ) ? $maxrows : $rows;
-
-}
-
-sub redirect {
-    my $self = shift @_;
-    my %args = @_;
-    my $msg  = $args{msg};
-
-    if ( $self->{callback} || !$msg ) {
-
-        main::redirect();
-	die;
-    }
-    else {
-
-        $self->info($msg);
-    }
-}
-
 # TODO:  Either we should have an amount class with formats and such attached
 # Or maybe we should move this into the user class...
 sub format_amount {
@@ -577,7 +453,10 @@ sub format_amount {
     my $dash     = $args{neg_format};
     my $format   = $args{format};
 
-    $dash = "" unless defined $dash;
+    if (defined $amount and ! UNIVERSAL::isa($amount, 'LedgerSMB::PGNumber' )) {
+        $amount = $self->parse_amount('user' => $myconfig, 'amount' => $amount);
+    }
+    $dash = undef unless defined $dash;
 
     if (!defined $format){
        $format = $myconfig->{numberformat}
@@ -586,164 +465,28 @@ sub format_amount {
         return undef;
     }
     if (!defined $args{precision} and defined $args{money}){
-       $places = $LedgerSMB::Sysconfig::decimal_places;
+       $places = LedgerSMB::Setting->get('decimal_places');
     }
 
-    my $negative;
-    if (defined $amount and ! UNIVERSAL::isa($amount, 'Math::BigFloat' )) {
-        #tshvr many numbers which should really be BigFloat, are not! 
-        # e.g. calculations in the template system are not BigFloat. 
-        # so string,but virtual bigfloat '270.94', comes out as '27.094' when going through parse_amount with numberformat 1.000,00
-        # so if we have a virtual BigFloat, we might consider not going through parse_amount
-        my $test_bf=new Math::BigFloat($amount);
-        if($test_bf->is_nan())
-        {
-         $amount = $self->parse_amount( 'user' => $myconfig, 'amount' => $amount );
-        }
-        else
-        {
-         $amount = $test_bf;
-        }
-    }
-    $negative = ( $amount < 0 );
-    $amount->babs();
-
-    $places = "" unless defined $places;
-    if ( $places =~ /\d+/ ) {
-
-        #$places = 4 if $places == 2;
-        $amount = $self->round_amount( $amount, $places );
-    }
-
-    # is the amount negative
-
-    # Parse $myconfig->{numberformat}
-
-    my ( $ts, $ds ) = ( $1, $2 );
-
-    if (defined $amount) {
-
-        if ( $format ) {
-
-            my ( $whole, $dec ) = split /\./, "$amount";
-            $dec = "" unless defined $dec;
-            $amount = join '', reverse split //, $whole;
-
-            if ($places) {
-                $dec .= "0" x $places;
-                $dec = substr( $dec, 0, $places );
-            }
-
-            if ( $format eq '1,000.00' ) {
-                $amount =~ s/\d{3,}?/$&,/g;
-                $amount =~ s/,$//;
-                $amount = join '', reverse split //, $amount;
-                $amount .= "\.$dec" if ( $dec ne "" );
-            } 
-	    elsif ( $format eq '1 000.00' ) {
-                $amount =~ s/\d{3,}?/$& /g;
-                $amount =~ s/\s$//;
-                $amount = join '', reverse split //, $amount;
-                $amount .= "\.$dec" if ( $dec ne "" );
-            } 
-	    elsif ( $format eq "1'000.00" ) {
-                $amount =~ s/\d{3,}?/$&'/g;
-                $amount =~ s/'$//;
-                $amount = join '', reverse split //, $amount;
-                $amount .= "\.$dec" if ( $dec ne "" );
-            } 
-	    elsif ( $format eq '1.000,00' ) {
-                $amount =~ s/\d{3,}?/$&./g;
-                $amount =~ s/\.$//;
-                $amount = join '', reverse split //, $amount;
-                $amount .= ",$dec" if ( $dec ne "" );
-            } 
-	    elsif ( $format eq '1000,00' ) {
-                $amount = "$whole";
-                $amount .= ",$dec" if ( $dec ne "" );
-            } 
-	    elsif ( $format eq '1000.00' ) {
-                $amount = "$whole";
-                $amount .= ".$dec" if ( $dec ne "" );
-            }
-
-            if ( $dash =~ /-/ ) {
-                $amount = ($negative) ? "($amount)" : "$amount";
-            }
-            elsif ( $dash =~ /DRCR/ ) {
-                $amount = ($negative) ? "$amount DR" : "$amount CR";
-            }
-            else {
-                $amount = ($negative) ? "-$amount" : "$amount";
-            }
-        }
-
-    }
-    else {
-
-        if ( $dash eq "0" && $places ) {
-
-            if ( $format =~ /0,00$/ ) {
-                $amount = "0" . "," . "0" x $places;
-            }
-            else {
-                $amount = "0" . "." . "0" x $places;
-            }
-
-        }
-        else {
-            $amount = ( $dash ne "" ) ? "$dash" : "";
-        }
-    }
-
-    $amount;
+    return $amount->to_output({format => $format, 
+                           neg_format => $args{neg_format}, 
+                               places => $places,
+                                money => $args{money},
+           });
 }
 
-# This should probably go to the User object too.
+# For backwards compatibility only
 sub parse_amount {
     my $self     = shift @_;
     my %args     = @_;
-    my $myconfig = $args{user} || $self->{_user};
     my $amount   = $args{amount};
-
-    if ( ! defined $amount or $amount eq '' ) {
-        return Math::BigFloat->bzero();
-    }
-
-    if ( UNIVERSAL::isa( $amount, 'Math::BigFloat' ) )
-    {   #Avoiding double-parse issues 
+    my $user     = ($args{user})? ($args{user}) : $self->{_user};
+    if (UNIVERSAL::isa($amount, 'LedgerSMB::PGNumber')){
         return $amount;
-    }
-    my $numberformat = $myconfig->{numberformat};
-    $numberformat = "" unless defined $numberformat;
-
-    if (   ( $numberformat eq '1.000,00' )
-        || ( $numberformat eq '1000,00' ) )
-    {
-
-        $amount =~ s/\.//g;
-        $amount =~ s/,/./;
-    }
-    elsif ( $numberformat eq '1 000.00' ) {
-        $amount =~ s/\s//g;
-    }
-    elsif ( $numberformat eq "1'000.00" ) {
-        $amount =~ s/'//g;
-    }
-
-    $amount =~ s/,//g;
-    if ( $amount =~ s/\((\d*\.?\d*)\)/$1/ ) {
-        $amount = $1 * -1;
-    }
-    elsif ( $amount =~ s/(\d*\.?\d*)\s?DR/$1/ ) {
-        $amount = $1 * -1;
-    }
-    $amount =~ s/\s?CR//;
-    $amount = new Math::BigFloat($amount);
-    if ($amount->is_nan){
-        $self->error("Invalid number detected during parsing");
-    }
-    return ( $amount * 1 );
+    } 
+    return LedgerSMB::PGNumber->from_input($amount, 
+                                     {format => $user->{numberformat}}
+    ); 
 }
 
 sub round_amount {
@@ -754,7 +497,7 @@ sub round_amount {
     # We will grab the default value, if it isnt defined
     #
     if (!defined $places){
-       $places = ${LedgerSMB::Sysconfig::decimal_places};
+       $places = LedgerSMB::Setting->get('decimal_places');
     }
     
     # These rounding rules follow from the previous implementation.
@@ -781,17 +524,16 @@ sub call_procedure {
     my $self     = shift @_;
     my %args     = @_;
     my $procname = $args{procname};
+    $procname ||= $args{funcname};
     my $schema   = $args{schema};
     my @call_args;
-    my $dbh = $LedgerSMB::App_State::DBH;
-    if (!$dbh){
-        $dbh = $self->{dbh};
-    }	
     @call_args = @{ $args{args} } if defined $args{args};
     my $order_by = $args{order_by};
     my $query_rc;
     my $argstr   = "";
     my @results;
+    my $dbh = $LedgerSMB::App_State::DBH;
+    die "Database handle not found! procname=$procname" if !$dbh;
 
     if (!defined $procname){
         $self->error('Undefined function in call_procedure.');
@@ -804,7 +546,10 @@ sub call_procedure {
     
     $schema = $dbh->quote_identifier($schema);
     
-    for ( 1 .. scalar @call_args ) {
+    for my $arg ( @call_args ) {
+        if (eval { $arg->can('to_db') }){
+           $arg = $arg->to_db;
+        }
         $argstr .= "?, ";
     }
     $argstr =~ s/\, $//;
@@ -827,6 +572,13 @@ sub call_procedure {
             $sth->bind_param($place, $carg->{value}, 
                        { pg_type => $carg->{type} });
         } else {
+            if (ref($carg) eq 'ARRAY'){
+               if (eval{$carg->[0]->can('to_db')}){
+                  for my $ref(@$carg){
+                       $ref = $ref->to_db;
+                  }
+               }
+            }
             $sth->bind_param($place, $carg);
         }
         ++$place;
@@ -848,8 +600,13 @@ sub call_procedure {
             #   numeric            float4/real
             if ($types[$_] == 3 or $types[$_] == 2) {
                 $ref->{$names[$_]} ||=0;
-                $ref->{$names[$_]} = Math::BigFloat->new($ref->{$names[$_]});
+                $ref->{$names[$_]} = LedgerSMB::PGNumber->from_db($ref->{$names[$_]}, 'datetime') if defined $ref->{$names[$_]};
             }
+            #    DATE                TIMESTAMP
+            if ($types[$_] == 91 or $types[$_] == 11){
+                $ref->{$names[$_]} = LedgerSMB::PGDate->from_db($ref->{$names[$_]}, 'date') if defined $ref->{$names[$_]};
+            }
+            delete $ref->{$names[$_]} unless defined $ref->{$names[$_]};
         }
         push @results, $ref;
     }
@@ -870,77 +627,26 @@ sub is_allowed_role {
     return 0; 
 }
 
-# This should probably be moved to User too...
-sub date_to_number {
-
-    #based on SQL-Ledger's Form::datetonum
-    my $self     = shift @_;
-    my %args     = @_;
-    my $myconfig = $args{user};
-    my $date     = $args{date};
-
-    $date = "" unless defined $date;
-
-    my ( $yy, $mm, $dd );
-    if ( $date ne "" && $date && $date =~ /\D/ ) {
-
-        if ( $date =~ /^\d{4}-\d\d-\d\d$/ ) {
-            ( $yy, $mm, $dd ) = split /\D/, $date;
-        } elsif ( $myconfig->{dateformat} =~ /^yy/ ) {
-            ( $yy, $mm, $dd ) = split /\D/, $date;
-        } elsif ( $myconfig->{dateformat} =~ /^mm/ ) {
-            ( $mm, $dd, $yy ) = split /\D/, $date;
-        } elsif ( $myconfig->{dateformat} =~ /^dd/ ) {
-            ( $dd, $mm, $yy ) = split /\D/, $date;
-        }
-
-        $dd *= 1;
-        $mm *= 1;
-        $yy += 2000 if length $yy == 2;
-
-        $dd = substr( "0$dd", -2 );
-        $mm = substr( "0$mm", -2 );
-
-        $date = "$yy$mm$dd";
-    }
-
-    $date;
-}
-
-sub sanitize_for_display {
-    my $self = shift;
-    my $var = shift;
-    $self->error('Untested API');
-    if (!$var){ 
-	$var = $self;
-    }
-    for my $k (keys %$var){
-	my $type = ref($var);
-	if (UNIVERSAL::isa($var->{$k}, 'Math::BigFloat')){
-              $var->{$k} = 
-                  $self->format_amount({amount => $var->{$k}});
-	}
-	elsif ($type == 'HASH'){
-               $self->sanitize_for_display($var->{$k});
-        }
-    }
-    
-}
-
 sub finalize_request {
-    $logger->debug("throwing CancelFurtherProcessing()");#if trying to follow flow of request
-    throw CancelFurtherProcessing();
+    LedgerSMB::App_State->cleanup();
+    die "exit";
 }
 
 # To be replaced with a generic interface to an Error class
 sub error {
+    my ($self, $msg) = @_;
+    Carp::croak $msg;
+}
+
+sub _error {
 
     my ( $self, $msg ) = @_;
-
     if ( $ENV{GATEWAY_INTERFACE} ) {
 
         $self->{msg}    = $msg;
         $self->{format} = "html";
+        $logger->error($msg);
+        $logger->error("dbversion: $self->{dbversion}, company: $self->{company}");
 
         delete $self->{pre};
 
@@ -949,87 +655,49 @@ sub error {
         print "<head><link rel='stylesheet' href='css/$self->{_user}->{stylesheet}' type='text/css'></head>";
         $self->{msg} =~ s/\n/<br \/>\n/;
         print
-          qq|<body><h2 class="error">Error!</h2> <p><b>$self->{msg}</b></body>|;
+          qq|<body><h2 class="error">Error!</h2> <p><b>$self->{msg}</b></p>
+             <p>dbversion: $self->{dbversion}, company: $self->{company}</p>
+             </body>|;
 
-        die;
-
+        die "exit";
     }
     else {
 
         if ( $ENV{error_function} ) {
             &{ $ENV{error_function} }($msg);
         }
-        die "Error: $msg\n";
     }
 }
+
 # Database routines used throughout
 
 sub _db_init {
     my $self     = shift @_;
     my %args     = @_;
     (my $package,my $filename,my $line)=caller;
-    if($self->{dbh})
-    {
-     $logger->error("dbh already set \$self->{dbh}=$self->{dbh},called from $filename");
-    }
-
-    my $creds = LedgerSMB::Auth::get_credentials();
-    return unless $creds->{login};
-  
-    $self->{login} = $creds->{login};
     if (!$self->{company}){ 
         $self->{company} = $LedgerSMB::Sysconfig::default_db;
     }
-    my $dbname = $self->{company};
-
-    # Note that we have to request the login/password again if the db
-    # connection fails since this probably means bad credentials are entered.
-    # Just in case, however, I think it is a good idea to include the DBI
-    # error string.  CT
-    $self->{dbh} = DBI->connect(
-        qq|dbi:Pg:dbname="$dbname"|, "$creds->{login}", "$creds->{password}",
-        { AutoCommit => 0, pg_server_prepare => 0, pg_enable_utf8 => 1 }
-    ); 
-    $LedgerSMB::App_State::DBH = $self->{dbh};
-    $LedgerSMB::App_State::DBName = $dbname;
-    $logger->debug("DBI->connect dbh=$self->{dbh}");
-    my $dbi_trace=$LedgerSMB::Sysconfig::DBI_TRACE;
-    if($dbi_trace)
-    {
-     $logger->debug("\$dbi_trace=$dbi_trace");
-     $self->{dbh}->trace(split /=/,$dbi_trace,2);#http://search.cpan.org/~timb/DBI-1.616/DBI.pm#TRACING
+    if (!($self->{dbh} = LedgerSMB::App_State::DBH)){
+        $self->{dbh} = LedgerSMB::DBH->connect($self->{company})
+            || LedgerSMB::Auth::credential_prompt;
     }
+    LedgerSMB::App_State::set_DBH($self->{dbh});
+    LedgerSMB::App_State::set_DBName($self->{company});
 
-
-    if (($self->{script} eq 'login.pl') && ($self->{action} eq 
-        'authenticate')){
-        if (!$self->{dbh}){
-            $self->{_auth_error} = $DBI::errstr;
-        }
-        return;
-    }
-    elsif (!$self->{dbh}){
-        $self->_get_password;
-    }
-
-    # This is the general version check
+    try {
+        LedgerSMB::DBH->require_version($VERSION);
+    } catch {
+        $self->_error($_);
+    };
+    
     my $sth = $self->{dbh}->prepare("
-            SELECT value FROM defaults 
-             WHERE setting_key = 'version'");
-    $sth->execute;
-    my ($dbversion) = $sth->fetchrow_array;
-    $sth = $self->{dbh}->prepare("
             SELECT value FROM defaults 
              WHERE setting_key = 'role_prefix'");
     $sth->execute;
 
 
     ($self->{_role_prefix}) = $sth->fetchrow_array;
-    
-    my $ignore_version = LedgerSMB::Setting->get('ignore_version');
-    if (($dbversion ne $self->{dbversion}) and !$ignore_version){
-        $self->error("Database is not the expected version.  Was $dbversion, expected $self->{dbversion}.  Please re-run setup.pl against this database to correct.<a href='setup.pl'>setup.pl</a>");
-    }
 
     $sth = $self->{dbh}->prepare('SELECT check_expiration()');
     $sth->execute;
@@ -1065,6 +733,7 @@ sub _db_init {
     while (my @roles = $sth->fetchrow_array){
         push @{$self->{_roles}}, $roles[0];
     }
+
     $LedgerSMB::App_State::Roles = @{$self->{_roles}};
     $LedgerSMB::App_State::Role_Prefix = $self->{_role_prefix};
     # @{$self->{_roles}} will eventually go away. --CT
@@ -1084,9 +753,9 @@ sub dberror{
    my $self = shift @_;
    my $state_error = {};
    my $locale = $LedgerSMB::App_State::Locale;
+   if(! $locale){$locale=$self->{_locale};}#tshvr4
    my $dbh = $LedgerSMB::App_State::DBH;
-   if ($locale){
-       $state_error = {
+   $state_error = {
             '42883' => $locale->text('Internal Database Error'),
             '42501' => $locale->text('Access Denied'),
             '42401' => $locale->text('Access Denied'),
@@ -1097,44 +766,17 @@ sub dberror{
             '23505' => $locale->text('Conflict with Existing Data.  Perhaps you already entered this?'),
             'P0001' => $locale->text('Error from Function:') . "\n" .
                     $dbh->errstr,
-       };
-   }
+   };
    $logger->error("Logging SQL State ".$dbh->state.", error ".
            $dbh->err . ", string " .$dbh->errstr);
    if (defined $state_error->{$dbh->state}){
-       $self->error($state_error->{$dbh->state}
+       die $state_error->{$dbh->state}
            . "\n" . 
-          $locale->text('More information has been reported in the error logs'));
+          $locale->text('More information has been reported in the error logs');
        $dbh->rollback;
        die;
    }
-   $self->error($dbh->state . ":" . $dbh->errstr);
-}
-
-sub redo_rows {
-
-    my $self  = shift @_;
-    my %args  = @_;
-    my @flds  = @{ $args{fields} };
-    my $count = $args{count};
-    my $index = ( $args{index} ) ? $args{index} : 'runningnumber';
-
-    my @rows;
-    my $i;    # increment counter use only
-    for $i ( 1 .. $count ) {
-        my $temphash = { _inc => $i };
-        for my $fld (@flds) {
-            $temphash->{$fld} = $self->{ "$fld" . "_$i" };
-        }
-        push @rows, $temphash;
-    }
-    $i = 1;
-    for my $row ( sort { $a->{$index} <=> $b->{$index} } @rows ) {
-        for my $fld (@flds) {
-            $self->{ "$fld" . "_$i" } = $row->{$fld};
-        }
-        ++$i;
-    }
+   die $dbh->state . ":" . $dbh->errstr;
 }
 
 sub merge {
@@ -1231,16 +873,6 @@ sub take_top_level {
    return $return_hash;
 }
 
-
-
-sub get_default_value_by_key 
-{
-    my ($self, $key) = @_;
-    my $Settings = LedgerSMB::Setting->new({base => $self, copy => 'base'});
-    $Settings->{key} = $key;
-    $Settings->get;    
-    $Settings->{value};    
-}
 1;
 
 

@@ -1,0 +1,75 @@
+<?lsmb
+
+PROCESS "ui-header.html"
+   stylesheet = USER.stylesheet;
+
+PROCESS "elements.html";
+
+PROCESS "dynatable.html";
+
+FORMATS = LIST_FORMATS();
+LINK = request.script _ '?' _ ENVARS.QUERY_STRING _ '&amp;company=' _ DBNAME;
+LINK = LINK.replace('\&amp;\&amp;', '&amp;');
+
+?>
+<body class="<?lsmb dojo_theme ?>">
+<div class="report_header"><label><?lsmb text('Report Name') ?>:</label>
+<span class="report_header"><?lsmb name ?></span>
+</div>
+<body class="<?lsmb dojo_theme ?>">
+<div class="report_header"><label><?lsmb text('Company') ?>:</label>
+<span class="report_header"><?lsmb request.company ?></span>
+</div>
+<?lsmb FOREACH LINE IN hlines ?>
+<div class="report_header"><label><?lsmb LINE.text ?>:</label>
+<span class="report_header">
+<?lsmb 
+IF request.${LINE.name}; 
+    request.${LINE.name};
+ELSE;
+    report.${LINE.name};
+END;
+            ?></span>
+</div>
+<?lsmb END ?>
+<form data-dojo-type="lsmb/lib/Form"
+      method="post"
+      action="<?lsmb request.script ?>">
+<?lsmb PROCESS input element_data = {
+     name = 'form_id'
+    value = request.form_id
+     type = 'hidden'
+} ?>
+<?lsmb FOREACH K IN request.hiddens.keys;
+    PROCESS input element_data = {
+         name = K
+         type = 'hidden'
+        value = request.hiddens.$K
+    };
+    END; ?>
+<?lsmb PROCESS dynatable tbody = {rows = rows } 
+               attributes = {class = 'report', order_url = order_url } ?>
+<div id="options">
+<?lsmb
+FOREACH OPTION IN options;
+  PROCESS select element_data = OPTION;
+END; ?>
+</div>
+<?lsmb
+FOREACH BUTTON IN buttons;
+  PROCESS button element_data = BUTTON;
+END; ?><br /> 
+<a href="<?lsmb LINK ?>">[<?lsmb text('permalink') ?>]</a>&nbsp;
+<?lsmb IF FORMATS.grep('PDF').size()
+?> 
+<a href="<?lsmb LINK _ '&format=PDF' ?>">[<?lsmb text('PDF') ?>]</a>&nbsp;
+<?lsmb END;
+IF FORMATS.grep('TXT').size();
+?>
+<a href="<?lsmb LINK _ '&format=CSV' ?>">[<?lsmb text('CSV') ?>]</a>&nbsp;
+<?lsmb END;
+IF FORMATS.grep('ODS').size() ?>
+<a href="<?lsmb LINK _ '&format=ODS' ?>">[<?lsmb text('ODS') ?>]</a>&nbsp;
+<?lsmb END; ?>
+</body>
+<?lsmb PROCESS end_html ?>

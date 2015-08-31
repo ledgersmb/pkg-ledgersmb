@@ -45,10 +45,14 @@
 #
 #======================================================================
 
+package lsmb_legacy;
 use LedgerSMB::GL;
 use LedgerSMB::PE;
 use LedgerSMB::Template;
+use LedgerSMB::Setting::Sequence;
+use LedgerSMB::Company_Config;
 
+require 'bin/bridge.pl'; # needed for voucher dispatches
 require "bin/arap.pl";
 
 $form->{login} = 'test';
@@ -94,7 +98,7 @@ sub pos_adjust {
     $form->{accno_3} = $pos_config{'coa_prefix'};
 }
 
-sub edit_and_approve {
+sub edit_and_save {
     use LedgerSMB::DBObject::Draft;
     use LedgerSMB;
     check_balanced($form);
@@ -103,7 +107,7 @@ sub edit_and_approve {
     my $draft = LedgerSMB::DBObject::Draft->new({base => $lsmb});
     $draft->delete();
     GL->post_transaction( \%myconfig, \%$form, $locale);
-    approve();
+    edit();
 }
 
 sub approve {
@@ -113,12 +117,11 @@ sub approve {
     $lsmb->merge($form);
 
     my $draft = LedgerSMB::DBObject::Draft->new({base => $lsmb});
-
     $draft->approve();
     if ($form->{callback}){
         print "Location: $form->{callback}\n";
         print "Status: 302 Found\n\n";
-        print "<html><body>";
+        print qq|<html><body class="$form->{dojo_theme}">|;
         my $url = $form->{callback};
         print qq|If you are not redirected automatically, click <a href="$url">|
                 . qq|here</a>.</body></html>|;
@@ -141,7 +144,7 @@ sub add_pos_adjust {
 }
 
 sub new {
-     for my $row (1 .. $form->{rowcount}){
+     for my $row (0 .. $form->{rowcount}){
          for my $fld(qw(accno projectnumber acc debit credit source memo)){
             delete $form->{"${fld}_${row}"};
          }
@@ -161,8 +164,6 @@ sub add {
 "$form->{script}?action=add&transfer=$form->{transfer}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}"
       unless $form->{callback};
 
-    &create_links;
-    $form->{reference} = $form->update_defaults(\%myconfig, 'glnumber');
     if (!$form->{rowcount}){
         $form->{rowcount} = ( $form->{transfer} ) ? 3 : 9;
     }
@@ -178,10 +179,14 @@ sub add {
 
 sub display_form
 {
+    $form->{separate_duties}
+        = $LedgerSMB::Company_Config::settings->{separate_duties};
     #Add General Ledger Transaction
+    $form->all_business_units($form->{transdate}, undef, 'GL');
+    @{$form->{sequences}} = LedgerSMB::Setting::Sequence->list('glnumber')
+         unless $form->{id};
     $form->close_form;
     $form->open_form; 
-    $form->{dbh}->commit;
     my ($init) = @_; 
     # Form header part begins -------------------------------------------
     if (@{$form->{all_department}}){
@@ -266,12 +271,16 @@ sub display_form
 		  'update' =>
 		    { ndx => 1, key => 'U', value => $locale->text('Update') },
 		  'post' => { ndx => 3, key => 'O', value => $locale->text('Post') },
-		  'post_as_new' =>
-		    { ndx => 6, key => 'N', value => $locale->text('Post as new') },
+                  'edit_and_save' => {ndx => 4, key => 'V', 
+                          value => $locale->text('Save Draft') },
+                  'save_temp' =>
+                    { ndx   => 9, 
+                      key   => 'T', 
+                      value => $locale->text('Save Template') },
+		  'save_as_new' =>
+		    { ndx => 6, key => 'N', value => $locale->text('Save as new') },
 		  'schedule' =>
 		    { ndx => 7, key => 'H', value => $locale->text('Schedule') },
-		  'delete' =>
-		    { ndx => 8, key => 'D', value => $locale->text('Delete') },
                   'new' => 
                     { ndx => 9, key => 'N', value => $locale->text('New') },
 	      );
@@ -281,24 +290,17 @@ sub display_form
 		  $button{post}->{value} = $locale->text('Save'); 
 	      }
 	      %a = ();
-              if ($form->{id}){
-                 $a{'new'} = 1;
-                 
-              } else {
-                 $a{'update'} = 1;
-              }
-	      if ( $form->{id} && ($form->{approved} || !$form->{batch_id})) {
+              $a{'save_temp'} = 1;
 
-		  for ( 'post_as_new', 'schedule' ) { $a{$_} = 1 }
+	      if ( $form->{id}) {
+                  $a{'new'} = 1;
 
-		  if ( !$form->{locked} ) {
-		      if ( $transdate ge $closedto) {
-			  for ( 'post', 'delete' ) { $a{$_} = 1 }
-		      }
-		  }
+		  for ( 'save_as_new', 'schedule' ) { $a{$_} = 1 }
 
+		  for ( 'post', 'delete' ) { $a{$_} = 1 }
 	      }
 	      elsif (!$form->{id}){
+                 $a{'update'} = 1;
 		  if ( $transdate > $closedto ) {
 		      for ( "post", "schedule" ) { $a{$_} = 1 }
 		  }
@@ -308,17 +310,20 @@ sub display_form
 		$button{approve} = { 
 			ndx   => 3, 
 			key   => 'S', 
-			value => $locale->text('Post as Saved') };
+			value => $locale->text('Post') };
 		$a{approve} = 1;
-		$a{edit_and_approve} = 1;
+		$a{edit_and_save} = 1;
+		$a{update} = 1;
 		if (grep /__draft_edit$/, @{$form->{_roles}}){
-		    $button{edit_and_approve} = { 
+		    $button{edit_and_save} = { 
 			ndx   => 4, 
 			key   => 'O', 
-			value => $locale->text('Post as Shown') };
+			value => $locale->text('Save Draft') };
 		}
-		delete $button{post_as_new};
 		delete $button{post};
+	      }
+	      if ($form->{id} && ($form->{approved} || $form->{batch_id})) {
+		  delete $button{post};
 	      }
 
 	      for ( keys %button ) { delete $button{$_} if !$a{$_} }      
@@ -367,6 +372,36 @@ sub display_form
 }
  
 
+sub save_temp {
+    use LedgerSMB;
+    use LedgerSMB::DBObject::TransTemplate;
+    my $lsmb = LedgerSMB->new();
+    my ($department_name, $department_id) = split/--/, $form->{department};
+    $lsmb->{department_id} = $department_id;
+    $lsmb->{source} = $form->{reference};
+    $lsmb->{description} = $form->{description};
+    $lsmb->{department_id} = $department_id;
+    $lsmb->{transaction_date} = $form->{transdate};
+    $lsmb->{type} = 'gl';
+    $lsmb->{journal_lines} = [];
+    for my $iter (0 .. $form->{rowcount}){
+        if ($form->{"accno_$iter"} and 
+                  (($form->{"credit_$iter"} != 0) or ($form->{"debit_$iter"} != 0))){
+             my ($acc_id, $acc_name) = split /--/, $form->{"accno_$iter"};
+             my $amount = $form->{"credit_$iter"} || ( $form->{"debit_$iter"} 
+                                                     * -1 );
+             push @{$lsmb->{journal_lines}}, 
+                  {accno => $acc_id,
+                   amount => $amount, 
+                   cleared => false,
+                  };
+        }
+    }
+    $template = LedgerSMB::DBObject::TransTemplate->new(base => $lsmb);
+    $template->save;
+    $form->redirect( $locale->text('Template Saved!') );
+}
+
 
 sub display_row
 {
@@ -385,7 +420,7 @@ sub display_row
 	$temphash1->{accnoset}=1;
         $temphash1->{projectset}=1;
         $temphash1->{fx_transactionset}=1;
-	if ($init)
+	if (!defined $form->{"accno_$i"})
 	{
 			      $temphash1->{accnoset}=0;   #use  @{ $form->{all_accno} }
 			      $temphash1->{projectset}=0; #use  @{ $form->{all_project} }
@@ -393,7 +428,9 @@ sub display_row
 			      
         }
         else
-	{	    
+	{
+                              $form->{"debit_$i"} = LedgerSMB::PGNumber->from_input($form->{"debit_$i"});
+                              $form->{"credit_$i"}= LedgerSMB::PGNumber->from_input($form->{"credit_$i"}); 	    
 			      $form->{totaldebit}  += $form->{"debit_$i"};
 			      $form->{totalcredit} += $form->{"credit_$i"};			      
 			      for (qw(debit credit)) {
@@ -405,7 +442,10 @@ sub display_row
 
 			      $temphash1->{debit}=$form->{"debit_$i"};
 			      $temphash1->{credit}=$form->{"credit_$i"};
-
+                              for my $cls(@{$form->{bu_class}}){
+                                  $temphash1->{"b_unit_$cls->{id}"} =
+                                         $form->{"b_unit_$cls->{id}_$i"};
+                              } 
 
 			      if ( $i < $form->{rowcount} )
 			      {					      
@@ -439,7 +479,7 @@ sub display_row
 			      }
 
          }
-  
+ 
          push @displayrows,$temphash1;
 
  } 
@@ -449,483 +489,11 @@ $hiddens{pos_adjust}=$form->{pos_adjust};
 
 }
 
-
-
-
-sub search {
-
-    $form->{title} = $locale->text('General Ledger Reports');
-
-    $colspan = 5;
-
-    $form->all_departments( \%myconfig );
-
-    # departments
-    if ( @{ $form->{all_department} } ) {
-        unshift @{ $form->{all_department} }, {id => "", description => ""};
-    }
-
-    @{$form->{all_accounts}} = $form->all_accounts;
-    unshift @{$form->{all_accounts}}, {id => "", accno => ""};
-
-    if ( @{ $form->{all_years} } ) {
-        # accounting years
-        for ( @{ $form->{all_years} } ) {
-             $_ = {year => $_};
-        }
-        unshift @{ $form->{all_years} }, {};
-        $form->{accountingmonths} = [];
-        for ( sort keys %{ $form->{all_month} } ) {
-            push @{$form->{accountingmonths}}, 
-                {id     => $_,
-                 month  => $locale->text( $form->{all_month}{$_} )};
-        }
-
-    }
-    
-    my $template = LedgerSMB::Template->new(
-        user => \%myconfig,
-        locale => $locale,
-        path => 'UI/journal',
-        template => 'search',
-        format => 'HTML',
-        );
-    $template->render($form);
-    
-}
-
-sub generate_report {
-    my $output_options = shift;
-    if ($form->{account}){
-        ($form->{accno}) = split /--/, $form->{account};
-    }
-    $form->{sort} = "transdate" unless $form->{sort};
-    $form->{amountfrom} = $form->parse_amount(\%myconfig, $form->{amountfrom});
-    $form->{amountto} = $form->parse_amount(\%myconfig, $form->{amountto});
-    my ($totaldebit, $totalcredit)=(new Math::BigFloat(0),new Math::BigFloat(0));
-
-    GL->all_transactions( \%myconfig, \%$form );
-
-    $href =
-"$form->{script}?action=generate_report&account=$form->{account}&direction=$form->{direction}&oldsort=$form->{oldsort}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}";
-
-    $form->sort_order();
-
-    $callback =
-"$form->{script}?action=generate_report&account=$form->{account}&direction=$form->{direction}&oldsort=$form->{oldsort}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}";
-
-    my %hiddens = (
-        'action' => 'generate_report',
-        'direction' => $form->{direction},
-        'oldsort' => $form->{oldsort},
-        'path' => $form->{path},
-        'login' => $form->{login},
-        'sessionid' => $form->{sessionid},
-        );
-    %acctype = (
-        'A' => $locale->text('Asset'),
-        'L' => $locale->text('Liability'),
-        'Q' => $locale->text('Equity'),
-        'I' => $locale->text('Income'),
-        'E' => $locale->text('Expense'),
-    );
-    my @options;
-    if ($form->{chart_accno}){
-        $form->{title} = $locale->text('General Ledger: [_1] [_2]', $form->{chart_accno}, $form->{chart_description});
-    } else {
-        $form->{title} = $locale->text('General Ledger');
-    }
-    $ml=new Math::BigFloat(($form->{category} =~ /(A|E)/)?-1:1);
-
-    if (defined $form->{category} and $form->{category} ne 'X' ) {
-        $form->{title} .=
-          " : " . $locale->text( $acctype{ $form->{category} } );
-    }
-    if ( $form->{accno} ) {
-        $href .= "&accno=" . $form->escape( $form->{accno} );
-        $callback .= "&accno=" . $form->escape( $form->{accno}, 1 );
-        $hiddens{accno} = $form->{accno};
-        push @options, $locale->text('Account')
-          . " : $form->{accno} $form->{account_description}";
-    }
-    if ( $form->{gifi_accno} ) {
-        $href     .= "&gifi_accno=" . $form->escape( $form->{gifi_accno} );
-        $callback .= "&gifi_accno=" . $form->escape( $form->{gifi_accno}, 1 );
-        $hiddens{gifi_accno} = $form->{gifi_accno};
-        push @options, $locale->text('GIFI')
-          . " : $form->{gifi_accno} $form->{gifi_account_description}";
-    }
-    if ( $form->{source} ) {
-        $href     .= "&source=" . $form->escape( $form->{source} );
-        $callback .= "&source=" . $form->escape( $form->{source}, 1 );
-        $hiddens{source} = $form->{source};
-        push @options, $locale->text('Source') . " : $form->{source}";
-    }
-    if ( $form->{memo} ) {
-        $href     .= "&memo=" . $form->escape( $form->{memo} );
-        $callback .= "&memo=" . $form->escape( $form->{memo}, 1 );
-        $hiddens{memo} = $form->{memo};
-        push @options, $locale->text('Memo') . " : $form->{memo}";
-    }
-    if ( $form->{reference} ) {
-        $href     .= "&reference=" . $form->escape( $form->{reference} );
-        $callback .= "&reference=" . $form->escape( $form->{reference}, 1 );
-        $hiddens{reference} = $form->{reference};
-        push @options, $locale->text('Reference') . " : $form->{reference}";
-    }
-    if ( $form->{department} ) {
-        $href .= "&department=" . $form->escape( $form->{department} );
-        $callback .= "&department=" . $form->escape( $form->{department}, 1 );
-        $hiddens{department} = $form->{department};
-        ($department) = split /--/, $form->{department};
-        push @options, $locale->text('Department') . " : $department";
-    }
-
-    if ( $form->{description} ) {
-        $href     .= "&description=" . $form->escape( $form->{description} );
-        $callback .= "&description=" . $form->escape( $form->{description}, 1 );
-        $hiddens{description} = $form->{description};
-        push @options, $locale->text('Description') . " : $form->{description}";
-    }
-    if ( $form->{notes} ) {
-        $href     .= "&notes=" . $form->escape( $form->{notes} );
-        $callback .= "&notes=" . $form->escape( $form->{notes}, 1 );
-        $hiddens{notes} = $form->{notes};
-        push @options, $locale->text('Notes') . " : $form->{notes}";
-    }
-
-    if ( $form->{datefrom} ) {
-        $href     .= "&datefrom=$form->{datefrom}";
-        $callback .= "&datefrom=$form->{datefrom}";
-        $hiddens{datefrom} = $form->{datefrom};
-        push @options, $locale->text('From') . " "
-          . $locale->date( \%myconfig, $form->{datefrom}, 1 );
-    }
-    if ( $form->{dateto} ) {
-        $href     .= "&dateto=$form->{dateto}";
-        $callback .= "&dateto=$form->{dateto}";
-        $hiddens{dateto} = $form->{dateto};
-        my $option = $locale->text('To') . " "
-          . $locale->date( \%myconfig, $form->{dateto}, 1 );
-        if ( $form->{datefrom} ) {
-            $options[$#options] .= " $option";
-        }
-        else {
-            push @options, $option;
-        }
-    }
-
-    if ( $form->{amountfrom} ) {
-        $href     .= "&amountfrom=$form->{amountfrom}";
-        $callback .= "&amountfrom=$form->{amountfrom}";
-        $hiddens{amountfrom} = $form->{amountfrom};
-        push @options, $locale->text('Amount') . " >= "
-          . $form->format_amount( \%myconfig, $form->{amountfrom}, 2 );
-    }
-    if ( $form->{amountto} ) {
-        $href     .= "&amountto=$form->{amountto}";
-        $callback .= "&amountto=$form->{amountto}";
-        $hiddens{amountto} = $form->{amountto};
-        my $option .= $form->format_amount( \%myconfig, $form->{amountto}, 2 );
-        if ( $form->{amountfrom} ) {
-            $options[$#options] .= " <= $option";
-        }
-        else {
-            push @options, $locale->text('Amount') . " <= $option";
-        }
-    }
-    @columns =
-      $form->sort_columns(
-        qw(transdate id reference description notes source memo debit credit accno gifi_accno department)
-      );
-    if ($form->{bank_register_mode}){
-        @columns = $form->sort_columns(
-            qw(transdate id reference description notes source memo credit debit accno
-               gifi_accno department)
-        );
-    }
-    pop @columns if $form->{department};
-
-    if ( $form->{link} =~ /_paid/ ) {
-        @columns =
-          $form->sort_columns(
-            qw(transdate id reference description notes source memo cleared debit credit accno gifi_accno)
-          );
-        if ($form->{bank_register_mode}){
-            @columns = $form->sort_columns(
-                qw(transdate id reference description notes source memo cleared credit
-                   debit accno gifi_accno)
-            );
-        }
-        $form->{l_cleared} = "Y";
-    }
-
-    if ( $form->{chart_id} || $form->{gifi_accno} ) {
-        @columns = grep !/(accno|gifi_accno)/, @columns;
-        push @columns, "balance";
-        $form->{l_balance} = "Y";
-    }
-
-    foreach $item (@columns) {
-        if ( $form->{"l_$item"} eq "Y" ) {
-            push @column_index, $item;
-
-            # add column to href and callback
-            $callback .= "&l_$item=Y";
-            $href     .= "&l_$item=Y";
-            $hiddens{"l_$item"} = 'Y';
-        }
-    }
-
-    if ( $form->{l_subtotal} eq 'Y' ) {
-        $callback .= "&l_subtotal=Y";
-        $href     .= "&l_subtotal=Y";
-        $hiddens{l_subtotal} = 'Y';
-    }
-
-    $callback .= "&category=$form->{category}";
-    $href     .= "&category=$form->{category}";
-    $hiddens{category} = $form->{category};
-
-    my $column_names = {
-        id => 'ID',
-        transdate => 'Date',
-        reference => 'Reference',
-        source => 'Source',
-        memo => 'Memo',
-        description => 'Description',
-        department => 'Department',
-        notes => 'Notes',
-        debit => 'Debit',
-        credit => 'Credit',
-        accno => 'Account',
-        gifi_accno => 'GIFI',
-        balance => 'Balance',
-        cleared => 'R'
-    };
-    if ($form->{bank_register_mode}){
-        $column_names->{credit} = 'Debit';
-        $column_names->{debit} = 'Credit';
-    }
-    my $sort_href = "$href&sort";
-    my @sort_columns = qw(id transdate reference source memo description department accno gifi_accno);
-
-    # add sort to callback
-    $form->{callback} = "$callback&sort=$form->{sort}";
-    $callback = $form->escape( $form->{callback} );
-    $hiddens{sort} = $form->{sort};
-    $hiddens{callback} = $form->{callback};
-
-    $cml=new Math::BigFloat(1);
-
-    # initial item for subtotals
-    if ( @{ $form->{GL} } ) {
-        $sameitem = $form->{GL}->[0]->{ $form->{sort} };
-        $cml=new Math::BigFloat(-1) if $form->{contra};
-    }
-
-    my @rows;
-    if ( ( $form->{accno} || $form->{gifi_accno} ) && $form->{balance} ) {
-        my %column_data;
-
-        for (@column_index) { $column_data{$_} = " " }
-        $column_data{balance} = 
-            $form->format_amount( \%myconfig, $form->{balance} * $ml * $cml,
-            2, 0 );
-
-	$column_data{i} = 1;
-        push @rows, \%column_data;
-    }
-
-    # reverse href
-    # XXX: should we use the reversed href as the sort_href url above ?
-    $direction = ( $form->{direction} eq 'ASC' ) ? "ASC" : "DESC";
-    $form->sort_order();
-    $href =~ s/direction=$form->{direction}/direction=$direction/;
-
-    my $i = 0;
-    foreach $ref ( @{ $form->{GL} } ) {
-        my %column_data;
-
-        # if item ne sort print subtotal
-        if ( $form->{l_subtotal} eq 'Y' ) {
-            if ( $sameitem ne $ref->{ $form->{sort} } ) {
-                push @rows, &gl_subtotal_tt();
-            }
-        }
-
-        $form->{balance} += $ref->{amount};
-
-        $subtotaldebit  += $ref->{debit};
-        $subtotalcredit += $ref->{credit};
-
-        $totaldebit  += $ref->{debit};
-        $totalcredit += $ref->{credit};
-
-        $ref->{debit} =
-          $form->format_amount( \%myconfig, $ref->{debit}, 2);
-        $ref->{credit} =
-          $form->format_amount( \%myconfig, $ref->{credit}, 2);
-
-        for (qw(id transdate)) { $column_data{$_} = "$ref->{$_}" }
-
-        $column_data{reference} =
-            {href => "$ref->{module}.pl?action=edit&id=$ref->{id}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}&callback=$callback",
-            text => $ref->{reference}};
-
-        #$ref->{notes} =~ s/\r?\n/<br>/g;
-        for (qw(description source memo notes department)) {
-            $column_data{$_} = "$ref->{$_} ";
-        }
-
-        $column_data{debit}  = "$ref->{debit}";
-        $column_data{credit} = "$ref->{credit}";
-
-        $column_data{accno} =
-            {href => "$href&accno=$ref->{accno}&callback=$callback",
-            text => "$ref->{accno} $ref->{accname}"};
-        $column_data{gifi_accno} =
-            {href => "$href&gifi_accno=$ref->{gifi_accno}&callback=$callback",
-            text => $ref->{gifi_accno}};
-        $column_data{balance} = $form->format_amount( \%myconfig, $form->{balance} * $ml * $cml,
-            2, 0 );
-        $column_data{cleared} =
-          ( $ref->{cleared} ) ? "*" : " ";
-
-        if ( $ref->{id} != $sameid ) {
-            $i++;
-            $i %= 2;
-        }
-	$column_data{'i'} = $i;
-        push @rows, \%column_data;
-
-        $sameid = $ref->{id};
-    }
-
-    push @rows, &gl_subtotal_tt() if ( $form->{l_subtotal} eq 'Y' );
-
-    for (@column_index) { $column_data{$_} = " " }
-    $column_data{debit} = $form->format_amount( \%myconfig, $totaldebit, 2, " " );
-    $column_data{credit} = $form->format_amount( \%myconfig, $totalcredit, 2, " " );
-    $form->{balance} ||= 0;
-    $column_data{balance} = $form->format_amount( \%myconfig, $form->{balance} * $ml * $cml, 2, 0 );
-
-    $i = 1;
-    my %button;
-    if ( $myconfig{acs} !~ /General Ledger--General Ledger/ ) {
-        $button{'General Ledger--Add Transaction'} = {
-            name => 'action',
-            value => 'gl_transaction',
-            text => $locale->text('GL Transaction'),
-            type => 'submit',
-            class => 'submit',
-            order => $i++};
-    }
-    if ( $myconfig{acs} !~ /AR--AR/ ) {
-        $button{'AR--Add Transaction'} = {
-            name => 'action',
-            value => 'ar_transaction',
-            text => $locale->text('AR Transaction'),
-            type => 'submit',
-            class => 'submit',
-            order => $i++};
-        $button{'AR--Sales Invoice'} = {
-            name => 'action',
-            value => 'sales_invoice_',
-            text => $locale->text('Sales Invoice'),
-            type => 'submit',
-            class => 'submit',
-            order => $i++};
-    }
-    if ( $myconfig{acs} !~ /AP--AP/ ) {
-        $button{'AP--Add Transaction'} = {
-            name => 'action',
-            value => 'ap_transaction',
-            text => $locale->text('AP Transaction'),
-            type => 'submit',
-            class => 'submit',
-            order => $i++};
-        $button{'AP--Vendor Invoice'} = {
-            name => 'action',
-            value => 'vendor_invoice_',
-            text => $locale->text('Vendor Invoice'),
-            type => 'submit',
-            class => 'submit',
-            order => $i++};
-    }
-
-    foreach $item ( split /;/, $myconfig{acs} ) {
-        delete $button{$item};
-    }
-
-    my @buttons;
-    foreach my $item ( sort { $a->{order} <=> $b->{order} } %button ) {
-        push @buttons, $item if ref $item;
-    }
-    push @buttons, {
-        name => 'action',
-        value => 'csv_gl_report',
-        text => $locale->text('CSV Report'),
-        type => 'submit',
-        class => 'submit',
-    };
-    push @buttons, {
-        name => 'action',
-        value => 'csv_email_gl_report',
-        text => $locale->text('Email CSV Report'),
-        type => 'submit',
-        class => 'submit',
-    };
-
-##SC: Taking this out for now...
-##    if ( $form->{lynx} ) {
-##        require "bin/menu.pl";
-##        &menubar;
-##    }
-
-    my %row_alignment = (
-        'balance' => 'right',
-        'debit' => 'right',
-        'credit' => 'right'
-        );
-    my $template;
-    my $format = uc substr($form->{action}, 0, 3);
-    my $template = LedgerSMB::Template->new(
-        user => \%myconfig,
-        locale => $locale,
-        path => 'UI',
-        template => 'form-dynatable',
-        format => ($format ne 'CSV')? 'HTML': 'CSV',
-        output_options => $output_options,
-        );
-    $template->{method} = 'email' if $output_options;
- 
-    my $column_heading = $template->column_heading($column_names,
-        {href => $sort_href, columns => \@sort_columns}
-    );
-
-   $template->render({
-        form => \%$form,
-        buttons => \@buttons,
-        hiddens => \%hiddens,
-        options => \@options,
-        columns => \@column_index,
-        heading => $column_heading,
-        rows => \@rows,
-        row_alignment => \%row_alignment,
-        totals => \%column_data,
-    });
-
-
-    $form->info($locale->text('GL report sent to [_1]', $form->{login}));
-
-}
-
-
-
 sub edit {
 
     &create_links;
+
+    $form->all_business_units($form->{transdate}, undef, 'GL');
 
     $form->{locked} =
       ( $form->{revtrans} )
@@ -940,7 +508,7 @@ sub edit {
     $form->{title} = "Edit";
     if($form->{department_id})
     {
-         $form->{department}=$form->{department}."--".$form->{department_id};
+         $form->{department}=$form->{departmentdesc}."--".$form->{department_id};
     }
     $i = 0;
 
@@ -959,6 +527,9 @@ sub edit {
             $form->{totalcredit} += $ref->{amount};
             $form->{"credit_$i"} =  $ref->{amount} * $plusOne;
         }
+        for my $cls (@{$form->{bu_class}}){
+            $form->{"b_unit_$cls->{id}_$i"} = $ref->{"b_unit_$cls->{id}"};
+        }
 
         $i++;
     }
@@ -976,35 +547,6 @@ sub create_links {
 
     GL->transaction( \%myconfig, \%$form );
 
-
-    # departments
-    if ( @{ $form->{all_department} } ) {
-        $form->{departmentset} = 1;
-        for ( @{ $form->{all_department} } ) {
-            $_->{departmentstyle}=$_->{description}."--".$_->{id};
-        }
-    }
-
-    # projects
-    if ( @{ $form->{all_project} } ) {
-       $form->{projectset}=1; 
-       for ( @{ $form->{all_project} } ) {
-	  $_->{projectstyle}=$_->{projectnumber}."--".$_->{id};
-       }
-    }
-
-  
-
-}
-
-sub csv_gl_report { &generate_report }
-sub csv_email_gl_report {
-    ##SC: XXX hardcoded test values
-    &generate_report({
-        to => 'seneca@localhost',
-        from => 'seneca@localhost',
-        subject => 'CSV GL report',
-    });
 }
 
 sub gl_subtotal_tt {
@@ -1030,7 +572,6 @@ sub gl_subtotal_tt {
 }
 
 sub gl_subtotal {
-
     $subtotaldebit =
       $form->format_amount( \%myconfig, $subtotaldebit, 2, "&nbsp;" );
     $subtotalcredit =
@@ -1055,15 +596,24 @@ sub gl_subtotal {
 }
 
 sub update {
+     my $min_lines = $LedgerSMB::Company_Config::settings->{min_empty};
 
+     $form->{transdate} = LedgerSMB::PGDate->from_input($form->{transdate})->to_output();
      if ( $form->{transdate} ne $form->{oldtransdate} ) {
          $form->{oldtransdate} = $form->{transdate};
-     }
+     } 
 
+    $form->all_business_units($form->{transdate}, undef, 'GL');
     GL->get_all_acc_dep_pro( \%myconfig, \%$form );
+
     @a     = ();
     $count = 0;
     @flds  = qw(accno debit credit projectnumber fx_transaction source memo);
+    for my $cls (@{$form->{bu_class}}){
+        if (scalar @{$form->{b_units}->{$cls->{id}}}){
+           push @flds, "b_unit_$cls->{id}";
+        }
+    }
 
     for $i ( 0 .. $form->{rowcount} ) {
         $form->{"debit_$i"} =~ s/\s+//g; 
@@ -1096,7 +646,7 @@ sub update {
             $count++;
         }
     }
-
+    
     for $i ( 1 .. $count ) {
         $j = $i - 1;
         for (@flds) { $form->{"${_}_$j"} = $a[$j]->{$_} }
@@ -1106,7 +656,7 @@ sub update {
         for (@flds) { delete $form->{"${_}_$i"} }
     }
 
-    $form->{rowcount} = $count;
+    $form->{rowcount} = $count + $min_lines;
  
     
     
@@ -1116,20 +666,10 @@ sub update {
 
 
 
-sub delete {
-    $form->error($locale->text('Cannot delete posted transaction')) 
-       if ($form->{approved});
-    my $lsmb = LedgerSMB->new();
-    $lsmb->merge($form);
-    my $draft = LedgerSMB::DBObject::Draft->new({base => $lsmb});
-    $draft->delete();
-    delete $form->{id};
-    delete $form->{reference};
-    add();
-}
-
-
 sub post {
+    if ($form->{id}){
+       $form->error($locale->text('Cannot Repost Transaction'));
+    }
     if (!$form->close_form){
         &update;
         $form->finalize_request();
@@ -1151,18 +691,23 @@ sub post {
         }
     }
 
-    if ( GL->post_transaction( \%myconfig, \%$form, $locale) ) {
-        for (0 .. $form->{rowcount}){
-            delete $form->{"credit_$_"};
-            delete $form->{"debit_$_"};
-        }
-        edit();
-    }
-    else {
-        $form->error( $locale->text('Cannot post transaction!') );
-    }
+    GL->post_transaction( \%myconfig, \%$form, $locale);
+    edit();
 
 }
+
+sub delete {
+    $form->error($locale->text('Cannot delete posted transaction')) 
+       if ($form->{approved});
+    my $lsmb = LedgerSMB->new();
+    $lsmb->merge($form);
+    my $draft = LedgerSMB::DBObject::Draft->new({base => $lsmb});
+    $draft->delete();
+    delete $form->{id};
+    delete $form->{reference};
+    add();
+}
+
 
 sub check_balanced {
     my ($form) = @_;
@@ -1190,3 +735,8 @@ sub check_balanced {
     }
 }
 
+sub save_as_new {
+    for (qw(id printed emailed queued)) { delete $form->{$_} }
+    $form->{approved} = 0;
+    &post;
+}

@@ -10,10 +10,19 @@ Error:  Attribute 'myattribute2' is not provided.
 
    $request->requires_series(1, 12, 'myattribute1', 'myattribute2');
 
+Error:  Attribute 'myattribute2_10' is not provided.
+
+   $request->numbers('debits', 'credits');
+   $request->numbers_series(1, 10, 'amount');
+   $request->dates('date_from', 'date_to');
+   $request->dates_series(1, $end, 'shipdate');
+
 =cut
 
 package LedgerSMB::Request;
 use LedgerSMB::App_State;
+use LedgerSMB::PGNumber;
+use LedgerSMB::PGDate;
 use Carp;
 
 =head1 DESCRIPTION
@@ -57,6 +66,82 @@ sub requires_series {
     my $end  = shift @_;
     for my $att (@_){
         $self->requires("${att}_$_") for ($start .. $stop);
+    }
+}
+
+=head2 requires_from($moose_class_name)
+
+Assumes one is goin to instantiate a Moose class with the object and checks for
+required attributes on the Moose class.
+
+=cut
+
+sub requires_from {
+    no strict 'refs';
+    my ($self, $class) = @_;
+    my $meta;
+    eval { $meta = $class->meta } 
+         or Carp::croak 
+            "Could not get meta object.  Is $class a valid Moose class?";
+    for my $att($meta->get_attibute_list){
+        $self->require($att) if $meta->get_attribute($_)->is_required;
+    }
+}
+
+=head2 numbers(@attnames)
+
+Transforms every $self->{$attname} into a LedgerSMB::PGNumber instance based on
+from_input.  This is mostly of interest for old pre-1.3 code in place of
+parse_amount, or for add-ons written with Moo instead of Moose.
+
+=cut
+
+sub numbers {
+    my $self = shift @_;
+    $self->{$_} = LedgerSMB::PGNumber->from_input($self->{$_}) for @_;
+}
+
+=head2 numbers_series($start, $stop, @attnames)
+
+Like numbers() above, except uses start and stop to generate attribute lists.
+This can be useful for larger series of numbers where line items are not 
+directly handled by Moose (yet) or where old code is concerned.
+
+=cut
+
+sub numbers_series {
+    my $self = shift @_;
+    my $start = shift @_;
+    my $end  = shift @_;
+    for my $att (@_){
+        $self->numbers("${att}_$_") for ($start .. $stop);
+    }
+}
+
+=head2 dates (@attnames)
+
+Like numbers() above, but converts to LedgerSMB::PGDate objects instead,.
+
+=cut
+
+
+sub dates {
+    my $self = shift @_;
+    $self->{$_} = LedgerSMB::PGDate->from_input($self->{$_}) for @_;
+}
+
+=head2 dates_series ($start, $stop, @attnames)
+
+Like numbers_series above but with PGDate objects instead.
+
+=cut
+
+sub dates_series {
+    my $self = shift @_;
+    my $start = shift @_;
+    my $end  = shift @_;
+    for my $att (@_){
+        $self->dates(map { "${att}_$_" }  ($start .. $end));
     }
 }
 

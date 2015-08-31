@@ -1,4 +1,5 @@
 BEGIN;
+
 CREATE OR REPLACE FUNCTION form_check(in_session_id int, in_form_id int)
 RETURNS BOOL AS
 $$
@@ -99,14 +100,12 @@ DECLARE out_row session%ROWTYPE;
 BEGIN
 	DELETE FROM session
 	 WHERE last_used < now() - coalesce((SELECT value FROM defaults
-                                    WHERE setting_key = 'timeout')::interval,
+                                    WHERE setting_key = 'session_timeout')::interval,
 	                            '90 minutes'::interval);
         UPDATE session 
            SET last_used = now()
          WHERE session_id = in_session_id
                AND token = in_token
-               AND last_used > now() - (SELECT value FROM defaults
-				WHERE setting_key = 'timeout')::interval
 	       AND users_id = (select id from users 
 			where username = SESSION_USER);
 	IF FOUND THEN
@@ -118,28 +117,31 @@ BEGIN
 		-- the above query also releases all discretionary locks by the
                 -- session
 
-		IF NOT FOUND THEN
-			PERFORM id FROM users WHERE username = SESSION_USER;
-			IF NOT FOUND THEN
-				RAISE EXCEPTION 'User Not Known';
-			END IF;
-			
-		END IF;
-		INSERT INTO session(users_id, token, last_used)
-		SELECT id, md5(random()::text), now()
-		  FROM users WHERE username = SESSION_USER;
+               PERFORM * 
+                  FROM defaults
+                 WHERE setting_key = 'never_logout' and value = '0';
 
-		SELECT * INTO out_row FROM session 
-		 WHERE session_id = currval('session_session_id_seq');
+                IF NOT FOUND THEN
+                    RAISE NOTICE 'auto logout';
+                    RETURN NULL;
+                ELSE
+                    INSERT INTO session (users_id, token)
+                    SELECT id, md5(random()::text)
+                      FROM users 
+                     WHERE username = SESSION_USER;
+
+                    SELECT * INTO out_row FROM SESSION 
+                     WHERE users_id = (select id from users
+                                             where username = SESSION_USER);
+                    RETURN out_row;
+               END IF;
 	END IF;
 	RETURN out_row;
 END;
 $$ LANGUAGE PLPGSQL;
 
 COMMENT ON FUNCTION session_check(int, text) IS 
-$$ Returns a session row.  If no session exists, creates one.
-The row returned is the current, active session.
- $$;
+$$ Returns a session row.  If no session exists, it returns null$$;
 
 CREATE OR REPLACE FUNCTION unlock_all() RETURNS BOOL AS
 $$
@@ -176,4 +178,7 @@ them or not.
 
 Returns true if the transaction was unlocked by this routine, false 
 otherwise.$$;
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
+
 COMMIT;

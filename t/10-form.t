@@ -30,10 +30,6 @@
 ##sub dbconnect_noauto {
 ##sub dbquote {
 ##sub update_balance {
-##sub update_exchangerate {
-##sub save_exchangerate {
-##sub get_exchangerate {
-##sub check_exchangerate {
 ##sub add_shipto {
 ##sub get_employee {
 ##sub get_name {
@@ -91,7 +87,9 @@ ok(defined $form);
 isa_ok($form, 'Form');
 
 my $expStackTrace = 0;
-if ( $ENV{PERL5OPT}=~/.*?Devel::SimpleTrace.*/ || $ENV{PERL5OPT}=~/.*?Carp::Always.*/ )
+if ( defined $ENV{PERL5OPT} &&
+     ($ENV{PERL5OPT}=~/.*?Devel::SimpleTrace.*/ ||
+      $ENV{PERL5OPT}=~/.*?Carp::Always.*/ ))
 {
    $expStackTrace = 1;
 }
@@ -155,30 +153,8 @@ cmp_ok($form->numtextrows("hello world\n12345678901234567890\n", 20, 1), '==', 1
 cmp_ok($form->numtextrows("hello world\n12345678901234567890\n", 20, 3), '==', 2,
 	'numtextrows: 2 rows (3 max)');
 
-## $form->debug checks
-$form = new Form;
-@r = trap{$form->debug};
-like($trap->stdout, qr/\naction = \ndbversion = \d+\.\d+\.\d+\nlogin = \nnextsub = \npath = bin\/mozilla\nversion = $form->{version}\n/, 'debug: STDOUT');
-SKIP: {
-	skip 'Environment for file test not clean' if -f "t/lsmb-10.$$";
-	$form->debug("t/lsmb-10.$$");
-	ok(-f "t/lsmb-10.$$", "debug: output file t/lsmb-10.$$ created");
-	open(my $FH, '<', "t/lsmb-10.$$");
-	my @str = <$FH>;
-	close($FH);
-	chomp(@str);
-	like(join("\n", @str), qr/action = \ndbversion = \d+\.\d+\.\d+\nlogin = \nnextsub = \npath = bin\/mozilla\nversion = $form->{version}/, "debug: t/lsmb-10.$$ contents");
-	is(unlink("t/lsmb-10.$$"), 1, "debug: removing t/lsmb-10.$$");
-	ok(!-e "t/lsmb-10.$$", "debug: t/lsmb-10.$$ removed");
-};
-
 ## $form->hide_form checks
 $form = new Form;
-$form->{header} = 1;
-@r = trap{$form->hide_form};
-like($trap->stdout, qr/<input type="hidden" name="action" value="" \/>\n<input type="hidden" name="dbversion" value="\d+\.\d+\.\d+" \/>\n<input type="hidden" name="login" value="" \/>\n<input type="hidden" name="nextsub" value="" \/>\n<input type="hidden" name="path" value="bin\/mozilla" \/>\n<input type="hidden" name="version" value="$form->{version}" \/>/, 
-	'hide_form: base');
-ok(!$form->{header}, 'hide_form: header flag cleared');
 
 $form->{header} = 1;
 @r = trap{$form->hide_form('path')};
@@ -193,7 +169,7 @@ $form->{pre} = 'Blah';
 $form->{header} = 'Blah';
 
 @r = trap{$form->info('hello world')};
-is($trap->stdout, '<b>hello world</b>',
+like($trap->stdout, qr|<b>hello world</b>|,
 	'info: CGI, pre-set header content');
 ok(!$form->{pre}, 'info: CGI, removed $self->{pre}');
 
@@ -218,68 +194,6 @@ SKIP: {
 };
 delete $ENV{info_function};
 
-## $form->error checks
-$form = new Form;
-$ENV{GATEWAY_INTERFACE} = 'yes';
-$form->{pre} = 'Blah';
-$form->{header} = 'Blah';
-@r = trap{$form->error('hello world')};
-is($trap->exit, undef, 
-	'error: CGI, normal termination');
-is($trap->stdout, '<body><h2 class="error">Error!</h2> <p><b>hello world</b></body>',
-	'error: CGI, pre-set header content');
-ok(!$form->{pre}, 'error: CGI, removed $self->{pre}');
-$ENV{LSMB_NOHEAD} = 0;
-delete $form->{header};
-@r = trap{$form->error('hello world')};
-is($trap->exit, undef, 
-	'error: CGI, normal termination');
-
-delete $ENV{GATEWAY_INTERFACE};
-delete $ENV{error_function};
-$form->{pre} = 'Blah';
-$form->{header} = 'Blah';
-@r = trap{$form->error('hello world')};
-if ( $expStackTrace == 0 )
-{
-    is($trap->die, "Error: hello world\n",
-	    'error: CLI, content, terminated');
-}
-else
-{   
-    my $trapmsg="";
-    if ($trap->die =~/(Error: hello world\n).*/)
-    {
-        $trapmsg = $1;
-    }
-    is($trapmsg, "Error: hello world\n",
-	    'error: CLI, content, terminated');
-}
-ok($form->{pre}, 'error: CLI, ignored $self->{pre}');
-
-$ENV{error_function} = 'main::form_error_func';
-SKIP: {
-	skip 'Environment variable error_function could not be set' unless
-		$ENV{error_function} eq 'main::form_error_func';
-	@r = trap{$form->error('hello world')};
-	is($trap->stdout, 'hello world', 
-		'error: CLI, function call called');
-if ( $expStackTrace == 0 )
-{
-	is($trap->die, "Error: hello world\n",
-		'error: CLI, function call termination');
-}
-else
-{ 
-    my $trapmsg="";
-    if ($trap->die =~/(Error: hello world\n).*/)
-    {
-        $trapmsg = $1;
-    }  
-	is($trapmsg, "Error: hello world\n",
-		'error: CLI, function call termination');
-}
-};
 
 ## $form->isblank checks
 $form = new Form;
@@ -287,9 +201,6 @@ $ENV{GATEWAY_INTERFACE} = 'yes';
 $form->{header} = 'yes';
 $form->{blank} = '    ';
 ok(!$form->isblank('version'), 'isblank: Not blank');
-@r = trap{$form->isblank('blank', 'hello world')};
-is($trap->stdout, '<body><h2 class="error">Error!</h2> <p><b>hello world</b></body>',
-	'isblank: Blank');
 is($trap->exit, undef, 
 	'isblank: Blank, termination');
 
@@ -306,37 +217,9 @@ delete $form->{titlebar};
 delete $form->{title};
 delete $form->{pre};
 $ENV{LSMB_NOHEAD} = 0;
-
-delete $form->{header};
-$ENV{LSMB_NOHEAD} = 0;
-
-delete $form->{header};
-$ENV{LSMB_NOHEAD} = 0;
-
-delete $form->{header};
-$form->{titlebar} = 'hello';
-$ENV{LSMB_NOHEAD} = 0;
-
-delete $form->{header};
-$ENV{LSMB_NOHEAD} = 0;
-$form->{title} = 'world';
-delete $form->{title};
-delete $form->{titlebar};
-
-delete $form->{header};
-$form->{charset} = 'UTF-8';
-$ENV{LSMB_NOHEAD} = 0;
-
-delete $form->{header};
-$form->{stylesheet} = "not a real file.$$";
-$ENV{LSMB_NOHEAD} = 0;
-
 delete $ENV{GATEWAY_INTERFACE};
 delete $form->{header};
 $ENV{LSMB_NOHEAD} = 0;
-is($form->header, 1, 'header: non-CGI');
-$ENV{LSMB_NOHEAD} = 0;
-is($form->{header}, 1, 'header: non-CGI header flag set');
 
 ## $form->sort_column checks
 ## Note that sort_column merely sorts the value of $form->{sort} to being the
@@ -419,12 +302,12 @@ is($form->like('hello world'), '%hello world%', 'like');
 $form = new Form;
 ok(!defined $form->{callback}, 'redirect: No callback set');
 @r = trap{$form->redirect};
-is($trap->stdout, "redirected\n", 'redirect: No message or callback redirect');
+is($trap->stdout, "", 'redirect: No message or callback redirect');
 @r = trap{$form->redirect('hello world')};
 is($trap->stdout, "hello world\n", 
 	'redirect: message, no callback redirect');
 $form->{callback} = 1;
 @r = trap{$form->redirect};
-is($trap->stdout, "redirected\n", 'redirect: callback, no message redirect');
+is($trap->stdout, "", 'redirect: callback, no message redirect');
 @r = trap{$form->redirect("hello world\n")};
-is($trap->stdout, "redirected\n", 'redirect: callback and message redirect');
+is($trap->stdout, "", 'redirect: callback and message redirect');

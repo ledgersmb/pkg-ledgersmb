@@ -12,7 +12,7 @@ checking a price deal for a customer.
 
 -->
 <?lsmb account_class = entity_class ?>
-<body>
+<body class="<?lsmb dojo_theme ?>">
 <div class="listtop"><?lsmb text('Pricelist') ?> <?lsmb pricematrix.length ?></div>
 <?lsmb 
     columns = [ 
@@ -58,15 +58,14 @@ checking a price deal for a customer.
                   {col_id = 'delete',
                      name = '&nbsp;',
                      type = 'href',
-                href_base = script _ '?action=delete_pricematrix&credit_id=' 
-                            _ credit_id _ '&entity_class=' _ entity_class 
-                            _ '&entity_id=' _ entity_id _ '&entry_id=' }
+                href_base = script _ '?action=delete_pricelist&credit_id=' 
+                            _ id _ '&entry_id=' }
      );
      FOREACH pm IN pricematrix;
          pm.delete = '[' _ text('Delete') _ ']';
          pm.row_id = pm.entry_id;
      END ?>
-<form name="pricematrix" action="<?lsmb script ?>" method="post">
+<form data-dojo-type="lsmb/lib/Form" name="pricematrix" action="<?lsmb script ?>" method="post">
  <input type="hidden" name="entity_class"  value="<?lsmb account_class ?>" />
  <input type="hidden" name="credit_id" value="<?lsmb credit_id ?>" />
  <input type="hidden" name="entity_id" value="<?lsmb entity_id ?>" /><?lsmb
@@ -86,16 +85,17 @@ checking a price deal for a customer.
 
 FORMATS = LIST_FORMATS();
 
-IF FORMATS.grep('PDF').size() ?> <a href="customer.pl?action=pricelist&format=PDF&credit_id=<?lsmb 
+IF FORMATS.grep('PDF').size() ?> <a href="<?lsmb script ?>?action=get_pricelist&format=PDF&credit_id=<?lsmb 
              credit_id ?>&entity_id=<?lsmb entity_id 
      ?>">[<?lsmb text('PDF') ?>]</a>
 <?lsmb END;
+
 IF FORMATS.grep('ODS').size() 
-?> <a href="customer.pl?action=pricelist&format=ODS&credit_id=<?lsmb 
+?> <a href="<?lsmb script ?>?action=get_pricelist&format=ODS&credit_id=<?lsmb 
              credit_id ?>&entity_id=<?lsmb entity_id 
      ?>">[<?lsmb text('ODS') ?>]</a>
 <?lsmb END ?>
- <a href="customer.pl?action=pricelist&format=CSV&credit_id=<?lsmb 
+ <a href="<?lsmb script ?>?action=get_pricelist&format=CSV&credit_id=<?lsmb 
              credit_id ?>&entity_id=<?lsmb entity_id 
      ?>">[<?lsmb text('CSV') ?>]</a>
 <?lsmb IF pricematrix_pricegroup;

@@ -18,20 +18,6 @@ Each plugin library must provide the following methods.
 
 =over
 
-=item session_check
-
-Check whether a session exists and handle failure appropriately.
-
-Modules are free to define how failure should be addressed.
-
-=item session_create
-
-Create a session
-
-=item session_destroy
-
-Destroy a session.
-
 =item get_credentials
 
 Get credentials and return them to the application.
@@ -70,10 +56,11 @@ if ( !${LedgerSMB::Sysconfig::auth} ) {
     ${LedgerSMB::Sysconfig::auth} = 'DB';
 }
 
-require "LedgerSMB/Auth/" . ${LedgerSMB::Sysconfig::auth} . ".pm";
+require "LedgerSMB/Auth/" . ${LedgerSMB::Sysconfig::auth} . ".pm" || die $!;
 
 sub http_error {
-    my ($errcode, $msg_plus) = @_;
+    #my ($errcode, $msg_plus) = @_;
+    my ($unknown,$errcode, $msg_plus) = @_;#tshvr4 called as LedgerSMB::Auth->http_error('401');
     $msg_plus = '' if not defined $msg_plus;
     my $cgi = CGI::Simple->new();
 
@@ -94,7 +81,15 @@ sub http_error {
         '454' => {status  => '454 Database Does Not Exist',
                   message => 'Database Does Not Exist' },
     };
+    # Ordinarily I would use $cgi->header to generate the headers
+    # but this doesn't seem to be working.  Although it is generally desirable
+    # to create the headers using the package, I think we should print them
+    # manually.  -CT
     if ($errcode eq '401'){
+        if ($msg_plus eq 'setup'){
+           $err->{'401'}->{others}->{'WWW-Authenticate'}
+                = "Basic realm=\"LedgerSMB-$msg_plus\"";
+        }
         print $cgi->header(
            -type               => 'text/text',
            -status             => $err->{'401'}->{status},
@@ -107,7 +102,7 @@ sub http_error {
         );
     }
     print $err->{$errcode}->{message};
-    return;
+    die;
 }
 
 =head1 COPYRIGHT

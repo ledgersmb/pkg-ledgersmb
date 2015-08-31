@@ -19,6 +19,10 @@ Returns $vars.
 
 Processes the template for text.
 
+=item escape ($var)
+
+Escapes the variable for CSV inclusion
+
 =item postprocess ($parent)
 
 Returns the output filename.
@@ -41,9 +45,9 @@ package LedgerSMB::Template::CSV;
 use warnings;
 use strict;
 
-use Error qw(:try);
 use Template;
 use LedgerSMB::Template::TTI18N;
+use LedgerSMB::Template::DB;
 
 my $binmode = ':utf8';
 binmode STDOUT, $binmode;
@@ -57,6 +61,9 @@ sub get_template {
 sub preprocess {
 	my $rawvars = shift;
 	my $vars;
+        if (eval {$rawvars->can('to_output')}){
+           $rawvars = $rawvars->to_output;
+        }
 	my $type = ref $rawvars;
 
 	#XXX fix escaping function
@@ -75,8 +82,6 @@ sub preprocess {
 			$vars = $rawvars;
 		}
 		$vars =~ s/(^ +| +$)//g;
-		$vars =~ s/"/""/g;
-		$vars = qq|"$vars"| if $vars =~ /[^0-9.+-]/;
 	} elsif ( $type eq 'CODE' ) { # a code reference makes no sense
 		return undef;
 	} else { # hashes and objects
@@ -90,21 +95,25 @@ sub preprocess {
 sub process {
 	my $parent = shift;
 	my $cleanvars = shift;
-        for my $col (@{$cleanvars->{columns}}){
-            $col =~ s/""/"/g;
-            $col =~ s/(^"|"$)//g;
-        }
 	my $template;
 	my $source;
 	my $output;
         $parent->{binmode} = $binmode;
 
 	if ($parent->{outputfile}) {
+            if (ref $parent->{outputfile}){
+                $output = $parent->{outputfile};
+            } else {
 		$output = "$parent->{outputfile}.csv";
+            }
 	} else {
 		$output = \$parent->{output};
 	}
-	if (ref $parent->{template} eq 'SCALAR') {
+        if ($parent->{include_path} eq 'DB'){
+                $source = LedgerSMB::Template::DB->get_template(
+                       $parent->{template}, undef, 'csv'
+                );
+	} elsif (ref $parent->{template} eq 'SCALAR') {
 		$source = $parent->{template};
 	} elsif (ref $parent->{template} eq 'ARRAY') {
 		$source = join "\n", @{$parent->{template}};
@@ -118,14 +127,14 @@ sub process {
 		DELIMITER => ';',
 		DEBUG => ($parent->{debug})? 'dirs': undef,
 		DEBUG_FORMAT => '',
-		}) || throw Error::Simple Template->error(); 
+		}) || die Template->error(); 
 
 	if (not $template->process(
 		$source, 
 		{%$cleanvars, %$LedgerSMB::Template::TTI18N::ttfuncs,
 			'escape' => \&preprocess},
 		$output, binmode => ':utf8')) {
-		throw Error::Simple $template->error();
+		die $template->error();
 	}
 	$parent->{mimetype} = 'text/csv';
 }
@@ -137,6 +146,9 @@ sub postprocess {
             return "$parent->{template}.csv";
         }
 	return $parent->{rendered};
+}
+
+sub escape {
 }
 
 1;

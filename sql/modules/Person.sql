@@ -20,6 +20,46 @@ $$ SELECT * FROM language ORDER BY code ASC $$ language sql;
 COMMENT ON FUNCTION person__list_languages() IS
 $$ Returns a list of languages ordered by code$$;
 
+DROP TYPE IF EXISTS person_entity CASCADE;
+
+CREATE TYPE person_entity AS (
+    entity_id int,
+    control_code text,
+    name text,
+    country_id int,
+    country_name text,
+    first_name text,
+    middle_name text,
+    last_name text,
+    entity_class int,
+    birthdate date,
+    personal_id text
+);
+
+CREATE FUNCTION person__get(in_entity_id int)
+RETURNS person_entity AS
+$$
+SELECT e.id, e.control_code, e.name, e.country_id, c.name, 
+       p.first_name, p.middle_name, p.last_name, e.entity_class,
+       p.birthdate, p.personal_id
+  FROM entity e
+  JOIN country c ON c.id = e.country_id
+  JOIN person p ON p.entity_id = e.id
+ WHERE e.id = $1;
+$$ LANGUAGE SQL;
+
+CREATE FUNCTION person__get_by_cc(in_control_code text)
+RETURNS person_entity AS
+$$
+SELECT e.id, e.control_code, e.name, e.country_id, c.name, 
+       p.first_name, p.middle_name, p.last_name, e.entity_class,
+       p.birthdate, p.personal_id
+  FROM entity e
+  JOIN country c ON c.id = e.country_id
+  JOIN person p ON p.entity_id = e.id
+ WHERE e.control_code = $1;
+$$ LANGUAGE SQL;
+
 CREATE OR REPLACE FUNCTION person__list_salutations() 
 RETURNS SETOF salutation AS
 $$ SELECT * FROM salutation ORDER BY id ASC $$ language sql;
@@ -27,10 +67,11 @@ $$ SELECT * FROM salutation ORDER BY id ASC $$ language sql;
 COMMENT ON FUNCTION person__list_salutations() IS
 $$ Returns a list of salutations ordered by id.$$; 
 
+DROP FUNCTION IF EXISTS person__save (int, int, text, text, text, int);
 CREATE OR REPLACE FUNCTION person__save
 (in_entity_id integer, in_salutation_id int, 
 in_first_name text, in_middle_name text, in_last_name text,
-in_country_id integer
+in_country_id integer, in_birthdate date, in_personal_id text
 )
 RETURNS INT AS $$
 
@@ -62,7 +103,9 @@ RETURNS INT AS $$
             salutation_id = in_salutation_id,
             first_name = in_first_name,
             last_name = in_last_name,
-            middle_name = in_middle_name
+            middle_name = in_middle_name,
+            birthdate = in_birthdate,
+            personal_id = in_personal_id
     WHERE
             entity_id = in_entity_id;
     IF FOUND THEN
@@ -70,8 +113,10 @@ RETURNS INT AS $$
     ELSE 
         -- Do an insert
         
-        INSERT INTO person (salutation_id, first_name, last_name, entity_id)
-	VALUES (in_salutation_id, in_first_name, in_last_name, e_id);
+        INSERT INTO person (salutation_id, first_name, last_name, entity_id,
+                           birthdate, personal_id)
+	VALUES (in_salutation_id, in_first_name, in_last_name, e_id,
+                in_birthdate, in_personal_id);
 
         RETURN e_id;
     
@@ -82,7 +127,7 @@ $$ language plpgsql;
 COMMENT ON FUNCTION person__save
 (in_entity_id integer, in_salutation_id int, 
 in_first_name text, in_middle_name text, in_last_name text,
-in_country_id integer
+in_country_id integer, in_birthdate date, in_personal_id text
 ) IS
 $$ Saves the person with the information specified.  Returns the entity_id
 of the record saved.$$;
@@ -96,8 +141,8 @@ BEGIN
 		SELECT l.id, l.line_one, l.line_two, l.line_three, l.city, 
 			l.state, l.mail_code, c.id, c.name, lc.id, lc.class
 		FROM location l
-		JOIN person_to_location ctl ON (ctl.location_id = l.id)
-		JOIN person p ON (ctl.person_id = p.id)
+		JOIN entity_to_location ctl ON (ctl.location_id = l.id)
+		JOIN person p ON (ctl.entity_id = p.entity_id)
 		JOIN location_class lc ON (ctl.location_class = lc.id)
 		JOIN country c ON (c.id = l.country_id)
 		WHERE p.entity_id = in_entity_id
@@ -118,9 +163,9 @@ DECLARE out_row RECORD;
 BEGIN
 	FOR out_row IN 
 		SELECT cc.class, cc.id, c.description, c.contact
-		FROM person_to_contact c
+		FROM entity_to_contact c
 		JOIN contact_class cc ON (c.contact_class_id = cc.id)
-		JOIN person p ON (c.person_id = p.id)
+		JOIN person p ON (c.entity_id = p.entity_id)
 		WHERE p.entity_id = in_entity_id
 	LOOP
 		RETURN NEXT out_row;
@@ -137,8 +182,9 @@ CREATE OR REPLACE FUNCTION person__delete_contact
 returns bool as $$
 BEGIN
 
-DELETE FROM person_to_contact
- WHERE person_id = in_person_id and contact_class_id = in_contact_class_id
+DELETE FROM entity_to_contact
+ WHERE person_id = (SELECT entity_id FROM person WHERE id = in_person_id) 
+       and contact_class_id = in_contact_class_id
        and contact= in_contact;
 RETURN FOUND;
 
@@ -160,33 +206,30 @@ RETURNS INT AS
 $$
 DECLARE 
     out_id int;
-    v_orig person_to_contact;
+    v_orig entity_to_contact;
 BEGIN
     
     SELECT cc.* into v_orig 
-    FROM person_to_contact cc, person p
-    WHERE p.entity_id = in_entity_id 
+      FROM entity_to_contact cc
+      JOIN person p ON (p.entity_id = cc.entity_id)
+     WHERE p.entity_id = in_entity_id 
     and cc.contact_class_id = in_old_contact_class
-    AND cc.contact = in_old_contact
-    AND cc.person_id = p.id;
+    AND cc.contact = in_old_contact;
     
     IF NOT FOUND THEN
     
         -- create
-        INSERT INTO person_to_contact(person_id, contact_class_id, contact, description)
-        VALUES (
-            (SELECT id FROM person WHERE entity_id = in_entity_id),
-            in_contact_class,
-            in_contact_new,
-            in_description
-        );
+        INSERT INTO entity_to_contact
+               (entity_id, contact_class_id, contact, description)
+        VALUES (in_entity_id, in_contact_class, in_contact_new, in_description);
+
         return 1;
     ELSE
         -- edit.
-        UPDATE person_to_contact
+        UPDATE entity_to_contact
            SET contact = in_contact_new, description = in_description
          WHERE contact = in_old_contact
-               AND person_id = v_orig.person_id
+               AND entity_id = in_entity_id
                AND contact_class_id = in_old_contact_class;
         return 0;
     END IF;
@@ -240,8 +283,9 @@ RETURNS BOOL AS
 $$
 BEGIN
 
-DELETE FROM person_to_location
- WHERE person_id = in_person_id AND location_id = in_location_id 
+DELETE FROM entity_to_location
+ WHERE person_id = (select entity_id from person where id = in_person_id) 
+       AND location_id = in_location_id 
        AND location_class = in_location_class;
 
 RETURN FOUND;
@@ -276,9 +320,9 @@ CREATE OR REPLACE FUNCTION person__save_location(
 	SELECT id INTO t_person_id
 	FROM person WHERE entity_id = in_entity_id;
 
-    UPDATE person_to_location
+    UPDATE entity_to_location
        SET location_class = in_location_class
-     WHERE person_id = t_person_id 
+     WHERE entity_id = in_entity_id
            AND location_class = in_old_location_class
            AND location_id = in_location_id;
     
@@ -295,9 +339,9 @@ CREATE OR REPLACE FUNCTION person__save_location(
     		in_mail_code, 
     		in_country_code);
     	
-        INSERT INTO person_to_location 
-    		(person_id, location_id, location_class)
-    	VALUES  (t_person_id, l_id, in_location_class);
+        INSERT INTO entity_to_location 
+    		(entity_id, location_id, location_class)
+    	VALUES  (in_entity_id, l_id, in_location_class);
     ELSE
         l_id := location_save(
             in_location_id, 
@@ -329,4 +373,8 @@ COMMENT ON FUNCTION person__save_location(
 ) IS
 $$ Saves a location mapped to the person with the specified information.
 Returns the location id saved.$$;
+
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
+
 COMMIT;

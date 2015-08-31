@@ -1,0 +1,62 @@
+<?lsmb INCLUDE "ui-header.html";
+ PROCESS "elements.html";
+BLOCK HIDDENS;
+PROCESS input element_data = {
+    type = 'hidden'
+    name = 'template_name'
+   value = template_name
+};
+PROCESS input element_data = {
+    type = 'hidden'
+    name = "format"
+   value = format
+};
+END
+ ?>
+<body class="<?lsmb dojo_theme ?>">
+<form data-dojo-type="lsmb/lib/Form" action="template.pl" method="post" enctype="multipart/form-data">
+<?lsmb
+PROCESS HIDDENS;
+PROCESS input element_data = {
+    type = "file"
+    name = "template_file"
+   class = "upload"
+} ?> <br /><?lsmb
+PROCESS button element_data = {
+   type = "submit"
+   name = "action"
+   text = text("Upload")
+  class = "submit"
+  value = "upload"
+};
+?>
+</form>
+<div class="listtop"><?lsmb template_name ?>.<?lsmb format ?><?lsmb
+ IF language_code; "($language_code)"; ELSE; "(" _ text("No language") _ ")";
+ END; ?></div>
+<div class="template_body"><pre><?lsmb content ?></pre></div>
+<form data-dojo-type="lsmb/lib/Form" action="template.pl" method="get">
+<?lsmb 
+PROCESS HIDDENS;
+PROCESS select element_data = {
+           name = 'language_code'
+        options = languages
+  default_blank = 1
+ default_values = [language_code]
+      text_attr = 'description'
+     value_attr = 'code'
+};
+PROCESS button element_data = {
+    type = 'submit'
+    name = 'action'
+   value = 'display'
+    text = text('Display')
+};
+PROCESS button element_data = {
+    type = 'submit'
+    name = 'action'
+   value = 'edit'
+    text = text('Edit')
+}; ?>
+</body>
+</html>

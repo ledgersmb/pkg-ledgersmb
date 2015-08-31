@@ -113,7 +113,6 @@ sub save {
           }
        }
     }
-    $self->{dbh}->commit;
 }
 
 =item get
@@ -141,17 +140,6 @@ sub get {
        );
     }
     return;
-}
-
-=item get_nbv
-
-Returns line items for the Net Book Value report.
-
-=cut
-
-sub get_nbv {
-    my ($self) = @_;
-    return $self->exec_method(funcname => 'asset_nbv_report');
 }
 
 =item generate
@@ -193,7 +181,6 @@ approved.
 sub approve {
     my ($self) = @_;
     $self->exec_method(funcname => 'asset_report__approve');
-    $self->{dbh}->commit;
 }
 
 =item search

@@ -4,18 +4,17 @@
 -- Public License v 2 or at your option any later version.
 
 -- Docstrings already added to this file.
-
 BEGIN;
 
-
 DROP FUNCTION IF EXISTS employee__save
-(in_entity_id int, in_start_date date, in_end_date date, in_dob date, 
-	in_role text, in_ssn text, in_sales bool, in_manager_id int, 
-        in_employee_number text);
+(in_entity_id int, in_start_date date, in_end_date date, in_dob date,
+        in_role text, in_ssn text, in_sales bool, in_manager_id int,
+        in_employeenumber text);
+
 CREATE OR REPLACE FUNCTION employee__save 
 (in_entity_id int, in_start_date date, in_end_date date, in_dob date, 
 	in_role text, in_ssn text, in_sales bool, in_manager_id int, 
-        in_employee_number text, in_is_manager bool)
+        in_employeenumber text, in_is_manager bool)
 RETURNS int AS $$
 DECLARE out_id INT;
 BEGIN
@@ -26,7 +25,7 @@ BEGIN
 		role = in_role,
 		ssn = in_ssn,
 		manager_id = in_manager_id,
-		employeenumber = in_employee_number,
+		employeenumber = in_employeenumber,
                 is_manager = coalesce(in_is_manager, false)
 	WHERE entity_id = in_entity_id;
 
@@ -39,7 +38,7 @@ BEGIN
 		VALUES
 			(coalesce(in_start_date, now()::date), in_end_date, 
                                 in_dob, in_role, in_ssn,
-				in_manager_id, in_employee_number, 
+				in_manager_id, in_employeenumber, 
                                 in_entity_id, in_is_manager);
 		RETURN in_entity_id;
 	END IF;
@@ -60,7 +59,8 @@ $$SELECT * FROM users WHERE entity_id = $1;$$ language sql;
 COMMENT ON FUNCTION employee__get_user(in_entity_id int) IS
 $$ Returns username, user_id, etc. information if the employee is a user.$$;
 
-create or replace view employees as
+drop view if exists employees cascade;
+create view employees as
     select 
         s.salutation,
         p.first_name,
@@ -76,8 +76,10 @@ DROP TYPE IF EXISTS employee_result CASCADE;
 
 CREATE TYPE employee_result AS (
     entity_id int,
+    control_code text,
     person_id int,
     salutation text,
+    salutation_id int,
     first_name text,
     middle_name text,
     last_name text,
@@ -98,7 +100,7 @@ CREATE TYPE employee_result AS (
 CREATE OR REPLACE FUNCTION employee__all_managers()
 RETURNS setof employee_result AS
 $$
-   SELECT p.entity_id, p.id, s.salutation,
+   SELECT p.entity_id, e.control_code, p.id, s.salutation, s.id,
           p.first_name, p.middle_name, p.last_name, ee.is_manager,
           ee.startdate, ee.enddate, ee.role, ee.ssn, ee.sales, ee.manager_id,
           mp.first_name, mp.last_name, ee.employeenumber, ee.dob, e.country_id
@@ -115,7 +117,7 @@ CREATE OR REPLACE FUNCTION employee__get
 (in_entity_id integer)
 returns employee_result as
 $$
-   SELECT p.entity_id, p.id, s.salutation, 
+   SELECT p.entity_id, e.control_code, p.id, s.salutation, s.id,
           p.first_name, p.middle_name, p.last_name, ee.is_manager,
           ee.startdate, ee.enddate, ee.role, ee.ssn, ee.sales, ee.manager_id,
           mp.first_name, mp.last_name, ee.employeenumber, ee.dob, e.country_id
@@ -134,10 +136,10 @@ $$;
 CREATE OR REPLACE FUNCTION employee__search
 (in_employeenumber text, in_startdate_from date, in_startdate_to date,
 in_first_name text, in_middle_name text, in_last_name text,
-in_notes text)
+in_notes text, in_is_user bool)
 RETURNS SETOF employee_result as
 $$
-SELECT p.entity_id, p.id, s.salutation,
+SELECT p.entity_id, e.control_code, p.id, s.salutation, s.id, 
           p.first_name, p.middle_name, p.last_name, ee.is_manager,
           ee.startdate, ee.enddate, ee.role, ee.ssn, ee.sales, ee.manager_id,
           mp.first_name, mp.last_name, ee.employeenumber, ee.dob, e.country_id
@@ -145,7 +147,7 @@ SELECT p.entity_id, p.id, s.salutation,
      JOIN entity e ON p.entity_id = e.id
      JOIN entity_employee ee on (ee.entity_id = p.entity_id)
 LEFT JOIN salutation s on (p.salutation_id = s.id)
-LEFT JOIN person mp ON ee.manager_id = mp.entity_id
+LEFT JOIN person mp ON ee.manager_id = p.entity_id
     WHERE ($7 is null or p.entity_id in (select ref_key from entity_note
                                           WHERE note ilike '%' || $7 || '%'))
           and ($1 is null or $1 = ee.employeenumber)
@@ -153,13 +155,15 @@ LEFT JOIN person mp ON ee.manager_id = mp.entity_id
           and ($3 is null or $3 >= ee.startdate)
           and ($4 is null or p.first_name ilike '%' || $4 || '%')
           and ($5 is null or p.middle_name ilike '%' || $5 || '%')
-          and ($6 is null or p.last_name ilike '%' || $6 || '%');
+          and ($6 is null or p.last_name ilike '%' || $6 || '%')
+          and ($8 is null 
+               or $8 = (exists (select 1 from users where entity_id = e.id)));
 $$ language sql;
 
 COMMENT ON FUNCTION employee__search
 (in_employeenumber text, in_startdate_from date, in_startdate_to date,
 in_first_name text, in_middle_name text, in_last_name text,
-in_notes text) IS
+in_notes text, in_users bool) IS
 $$ Returns a list of employee_result records matching the search criteria.
 
 employeenumber is an exact match.  
@@ -196,21 +200,15 @@ COMMENT ON FUNCTION employee__list_managers
 (in_id integer) IS
 $$ Returns a list of managers, that is employees with the 'manager' role set.$$;
 
--- as long as we need the datatype, might as well get some other use out of it!
---
--- % type is pg_trgm comparison.
-
---Testing this more before replacing employee__search with it.
--- Consequently not to be publically documented yet, --CT
-
 DROP VIEW IF EXISTS employee_search CASCADE;
 CREATE OR REPLACE VIEW employee_search AS
 SELECT e.*, em.name AS manager, emn.note, en.name as name
-FROM entity_employee e 
+FROM entity_employee e
 LEFT JOIN entity en on (e.entity_id = en.id)
 LEFT JOIN entity_employee m ON (e.manager_id = m.entity_id)
 LEFT JOIN entity em on (em.id = m.entity_id)
 LEFT JOIN entity_note emn on (emn.ref_key = em.id);
+
 
 CREATE OR REPLACE FUNCTION employee_search
 (in_startdatefrom date, in_startdateto date, in_name varchar, in_notes text,
@@ -241,17 +239,22 @@ BEGIN
 END;
 $$ language plpgsql;
 
+CREATE OR REPLACE FUNCTION employee__all_salespeople()
+RETURNS setof employee_result LANGUAGE SQL AS
+$$
+   SELECT p.entity_id, e.control_code, p.id, s.salutation, s.id,
+          p.first_name, p.middle_name, p.last_name, ee.is_manager,
+          ee.startdate, ee.enddate, ee.role, ee.ssn, ee.sales, ee.manager_id,
+          mp.first_name, mp.last_name, ee.employeenumber, ee.dob, e.country_id
+     FROM person p
+     JOIN entity_employee ee on (ee.entity_id = p.entity_id)
+     JOIN entity e ON (p.entity_id = e.id)
+LEFT JOIN salutation s on (p.salutation_id = s.id)
+LEFT JOIN person mp ON ee.manager_id = p.entity_id
+    WHERE ee.sales
+ ORDER BY ee.employeenumber;
+$$;
 
--- I don't like this.  Wondering if we should unify this to another function.
--- person__location_save should be cleaner.  Not documenting yet, but not 
--- removing because user management code uses it.  --CT
-create or replace function employee_set_location 
-    (in_employee int, in_location int) 
-returns void as $$
-
-    INSERT INTO person_to_location (person_id,location_id) 
-        VALUES ($1, $2);
-    
-$$ language 'sql';
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
 
 COMMIT;

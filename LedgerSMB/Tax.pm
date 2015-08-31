@@ -67,6 +67,7 @@ sub init_taxes {
         if ( defined $taxaccounts2 ) {
             next if $taxaccounts2 !~ /\b$taxaccount\b/;
         }
+        $form->{transdate} = undef unless $form->{transdate};
         $sth->execute($taxaccount, $form->{transdate}) || $form->dberror($query);
         my $ref = $sth->fetchrow_hashref;
         next unless $ref;
@@ -74,7 +75,7 @@ sub init_taxes {
         my $module = $ref->{'taxmodulename'};
         require "LedgerSMB/Taxes/${module}.pm";
         $module =~ s/\//::/g;
-        my $tax = ( eval 'Taxes::' . $module )->new();
+        my $tax = ( eval 'LedgerSMB::Taxes::' . $module )->new();
 
         $tax->pass( $ref->{'pass'} );
         $tax->account($taxaccount);
@@ -87,8 +88,9 @@ sub init_taxes {
         $tax->maxvalue(Math::BigFloat->new($ref->{'maxvalue'} || 0));
 
         push @taxes, $tax;
-        $sth->finish;#should this not be out of foreach loop?, to examine
     }
+    # http://search.cpan.org/dist/DBI/DBI.pm#finish
+    # documents we should NOT call $sth->finish here.
     return @taxes;
 }
 

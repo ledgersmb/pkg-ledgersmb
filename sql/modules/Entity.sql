@@ -7,7 +7,6 @@
 
 BEGIN;
 
-
 CREATE OR REPLACE FUNCTION entity_save(
     in_entity_id int, in_name text, in_entity_class INT
 ) RETURNS INT AS $$
@@ -57,7 +56,13 @@ DECLARE out_row entity_class;
 BEGIN
 	FOR out_row IN 
 		SELECT * FROM entity_class
-		WHERE active
+             LEFT JOIN defaults ON setting_key = 'roll_prefix'
+		WHERE active and pg_has_role(SESSION_USER, 
+                                     coalesce(defaults.value, 
+                                     lsmb__role_prefix() ||
+                                     'contact_class_' ||
+                                     lower(regexp_replace(class, ' ', '_'))), 
+                                     'USAGE')
 		ORDER BY id
 	LOOP
 		RETURN NEXT out_row;
@@ -68,7 +73,7 @@ $$ LANGUAGE PLPGSQL;
 COMMENT ON FUNCTION entity__list_classes () IS
 $$ Returns a list of entity classes, ordered by assigned ids$$;
 
-CREATE OR REPLACE FUNCTION entity__get_entity (
+CREATE OR REPLACE FUNCTION entity__get (
     in_entity_id int
 ) RETURNS setof entity AS $$
 
@@ -86,7 +91,7 @@ END;
 
 $$ language plpgsql;
 
-COMMENT ON FUNCTION entity__get_entity (
+COMMENT ON FUNCTION entity__get (
     in_entity_id int
 ) IS
 $$ Returns a set of (only one) entity record with the entity id.$$;
@@ -115,6 +120,12 @@ COMMENT ON FUNCTION eca__get_entity (
 $$ Returns a set of (only one) entity to which the entity credit account is
 attached.$$; 
 
+CREATE OR REPLACE FUNCTION entity__get_bank_account(in_id int)
+RETURNS entity_bank_account
+LANGUAGE SQL AS $$
+SELECT * FROM  entity_bank_account WHERE id = $1;
+$$;
+
 CREATE OR REPLACE FUNCTION entity__delete_bank_account
 (in_entity_id int, in_id int)
 RETURNS bool AS
@@ -135,5 +146,7 @@ $$ LANGUAGE plpgsql;
 COMMENT ON FUNCTION entity__delete_bank_account(in_entity_id int, in_id int) IS
 $$ Deletes the bank account identitied by in_id if it is attached to the entity
 identified by entity_id.  Returns true if a record is deleted, false if not.$$;
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
 
 COMMIT;

@@ -19,7 +19,7 @@ my $run_tests = 1;
 for my $log (qw(dblog dblog_stderr dblog_stdout)){
     unlink "$LedgerSMB::Sysconfig::tempdir/$log";
 }
-for my $evar (qw(LSMB_NEW_DB LSMB_TEST_DB PG_CONTRIB_DIR)){
+for my $evar (qw(LSMB_NEW_DB LSMB_TEST_DB)){
   if (!defined $ENV{$evar}){
       $run_tests = 0;
       plan skip_all => "$evar not set";
@@ -27,7 +27,7 @@ for my $evar (qw(LSMB_NEW_DB LSMB_TEST_DB PG_CONTRIB_DIR)){
 }
 
 if ($run_tests){
-	plan tests => 11;
+	plan tests => 10;
 	$ENV{PGDATABASE} = $ENV{LSMB_NEW_DB};
 }
 
@@ -38,7 +38,6 @@ my $db = LedgerSMB::Database->new({
          company_name => $ENV{LSMB_NEW_DB},
          username     => $ENV{PGUSER},
          password     => $ENV{PGPASSWORD},
-         contrib_dir  => $ENV{PG_CONTRIB_DIR},
          source_dir   => $ENV{LSMB_SOURCE_DIR}
 });
 
@@ -53,8 +52,6 @@ if (!$ENV{LSMB_INSTALL_DB}){
     print DBLOCK $ENV{LSMB_NEW_DB};
     close (DBLOCK);
 }
-
-is($db->process_roles('Roles.sql'), 2, 'Roles processed');
 
 #Changed the COA and GIFI loading to use this, and move admin user to 
 #Database.pm --CT

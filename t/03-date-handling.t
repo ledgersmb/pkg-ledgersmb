@@ -12,6 +12,11 @@ use LedgerSMB::Sysconfig;
 use LedgerSMB;
 use LedgerSMB::Form;
 use LedgerSMB::Locale;
+use LedgerSMB::App_State;
+use Log::Log4perl;
+Log::Log4perl::init(\$LedgerSMB::Sysconfig::log4perl_config);
+
+
 
 my $form = new Form;
 my $locale_en = LedgerSMB::Locale->get_handle('en_CA');
@@ -101,17 +106,10 @@ foreach my $format (0 .. $#formats) {
 	my $yearcount = $formats[$format][2];
 	cmp_ok($form->datetonum(\%myconfig, $formats[$format][3]), 'eq',
 		'20000229', "form: datetonum, $fmt");
-	cmp_ok($lsmb->date_to_number('user' => \%myconfig, 
-		'date' => $formats[$format][3]), 'eq',
-		'20000229', "lsmb: date_to_number, $fmt");
 }
 cmp_ok($form->datetonum(\%myconfig), 'eq', '', "form: datetonum, empty string");
 cmp_ok($form->datetonum(\%myconfig, '1234'), 'eq', '1234', 
 	"form: datetonum, 1234");
-cmp_ok($lsmb->date_to_number('user' => \%myconfig), 'eq', '', 
-	"lsmb: date_to_number, empty date");
-cmp_ok($lsmb->date_to_number('user' => \%myconfig, 'date' => '1234'), 
-	'eq', '1234', "lsmb: date_to_number, 1234");
 
 # $form->split_date checks
 # Note that $form->split_date assumes the year range 2000-2099

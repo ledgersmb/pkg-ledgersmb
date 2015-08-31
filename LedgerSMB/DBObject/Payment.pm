@@ -19,8 +19,7 @@ included COPYRIGHT and LICENSE files for more information.
 =cut
 
 package LedgerSMB::DBObject::Payment;
-use LedgerSMB::Num2text;
-use base qw(LedgerSMB::DBObject);
+use base qw(LedgerSMB::DBObject LedgerSMB::Num2text);
 use strict;
 use Math::BigFloat lib => 'GMP';
 use Data::Dumper;
@@ -75,7 +74,6 @@ numeric value passed.
 =cut
 
 sub text_amount {
-    use LedgerSMB::Num2text;
     my ($self, $value) = @_;
     $self->{locale} = $self->{_locale};
     $self->init();
@@ -95,8 +93,6 @@ payment options.
 
 sub get_metadata {
     my ($self) = @_;
-    $self->list_open_projects();
-    @{$self->{departments}} = $self->exec_method(funcname => 'department_list');
     $self->get_open_currencies();
     $self->{currencies} = [];
     for my $c (@{$self->{openCurrencies}}){
@@ -232,7 +228,6 @@ sub get_all_accounts {
         $self->exec_method(funcname => 'payment_get_all_accounts');
     return @{$self->{accounts}};
 }
-
 =over
 
 =item $payment->reverse()
@@ -249,7 +244,6 @@ $payment->{account_class}).  This reverses the entries with that source.
 sub reverse {
     my ($self) = @_;
     $self->exec_method(funcname => 'payment__reverse');
-    return $self->{dbh}->commit;
 }  
 
 =over
@@ -262,8 +256,11 @@ properties.  Account classes follow the conventions above.  This list is hence
 specific to a customer or vendor and currency as well.
 
 The returned list of hashrefs is stored in the $payment->{open_invoices} 
-property. Each hashref has the following keys:  id (entity id), name, and 
-entity_class.
+property. Each hashref has the following keys:  invoice_id int, invnumber text,
+invoice bool, invoice_date date, amount numeric, amount_fx numeric, 
+discount numeric, discount_fx numeric, due numeric, due_fx numeric,
+ exchangerate numeric
+
 
 =back
 
@@ -415,7 +412,7 @@ The list is attached to $self->{departments} and returned.
 =cut
 
 =over
-
+                      
 =item get_open_currencies
 
 This method gets a list of the open currencies inside the database, it requires that  
@@ -433,14 +430,13 @@ sub get_open_currencies {
   return @{$self->{openCurrencies}};
 }
 
+
 =over
 
 =item list_accounting
 
 This method lists all accounts that match the role specified in account_class property and
 are available to store the payment or receipts. 
-
-=back
 
 =cut
 
@@ -450,14 +446,10 @@ sub list_accounting {
  return @{$self->{pay_accounts}}; 
 }
 
-=over
-
 =item list_overpayment_accounting
 
 This method lists all accounts that match the role specified in account_class property and
 are available to store an overpayment / advanced payment / pre-payment. 
-
-=back
 
 =cut
 
@@ -467,14 +459,11 @@ sub list_overpayment_accounting {
  return @{$self->{overpayment_accounts}}; 
 }
 
-=over
 
 =item get_sources
 
 This method builds all the possible sources of money,
 in the future it will look inside the DB. 
-
-=back
 
 =cut
 
@@ -487,13 +476,9 @@ sub get_sources {
  return @{$self->{cash_sources}}; 
 }
 
-=over
-
 =item get_exchange_rate(currency, date)
 
 This method gets the exchange rate for the specified currency and date
-
-=back
 
 =cut 
 
@@ -505,13 +490,9 @@ sub get_exchange_rate {
  
 }
 
-=over
-
 =item get_default_currency
 
 This method gets the default currency 
-
-=back
 
 =cut
 
@@ -521,13 +502,9 @@ sub get_default_currency {
  return $self->{default_currency}->{defaults_get_defaultcurrency};
 }
 
-=over
-
 =item get_current_date
 
 This method returns the system's current date
-
-=back
 
 =cut
 
@@ -536,14 +513,10 @@ sub get_current_date {
  return $self->{current_date}; 
 }
 
-=over
-
 =item get_vc_info
 
 This method returns the contact informatino for a customer or vendor according to
 $self->{account_class}
-
-=back
 
 =cut
 
@@ -556,13 +529,9 @@ sub get_vc_info {
  return ${$self->{vendor_customer_info}}[0];
 }
 
-=over
-
 =item get_payment_detail_data
 
 This method sets appropriate project, department, etc. fields.
-
-=back
 
 =cut
 
@@ -570,8 +539,7 @@ sub get_payment_detail_data {
     my ($self) = @_;
     $self->get_metadata();
     if ( $self->{account_class} != 2 && !defined $self->{source_start} ){
-        $self->error('No source start defined!');
-        $self->finalize_request();
+        die 'No source start defined!';
     }
     #$self->error('No source start defined!') unless defined $self->{source_start}; 
 
@@ -622,10 +590,7 @@ sub get_payment_detail_data {
         }
     }
  
-    $self->{dbh}->commit; # Commit locks
 }    
-
-=over
 
 =item post_bulk
 
@@ -649,8 +614,6 @@ for (1 .. contact_count), contact_$_ is the entity credit account's id
 associated with the current contact.  We will call this $contact_id below.
 
 For each contact id, we have the following, suffixed with _$contact_id:
-
-=back
 
 =over
 
@@ -721,7 +684,7 @@ sub post_bulk {
             $pay_amount = $self->format_amount({amount => $pay_amount, format => '1000.00'});
             my $invoice_subarray = "{$invoice_id,$pay_amount}";
             if ($invoice_subarray !~ /^\{\d+\,\-?\d*\.?\d+\}$/){
-                $self->error("Invalid subarray: $invoice_subarray");
+                die "Invalid subarray: $invoice_subarray";
             }
             $invoice_subarray =~ s/[^0123456789{},.-]//; 
 	    if ($invoice_array eq '{}'){ # Omit comma
@@ -742,16 +705,11 @@ sub post_bulk {
         }
     }
     $self->{queue_payments} = $queue_payments;
-    return $self->{dbh}->commit;
 }
-
-=over
 
 =item check_job
 
 To be moved into payment_queue addon.
-
-=back
 
 =cut
 
@@ -760,13 +718,9 @@ sub check_job {
     ($self->{job}) = $self->exec_method(funcname => 'job__status');
 }
 
-=over
-
 =item post_payment
 
 This method uses payment_post to store a payment (not a bulk payment) on the database.
-
-=back
 
 =cut
 
@@ -774,7 +728,6 @@ sub post_payment {
  my ($self) = @_;
  # We have to check if it was a fx_payment
  $self->{currency} = $self->{curr};
- $_ = "$_" for $self->_parse_array($self->{amount});
 
 
  if ("$self->{currency}" ne $self->get_default_currency()) {
@@ -794,24 +747,20 @@ sub post_payment {
    $self->error($self->{_locale}->text("Exchange rate inconsistency with database.  Got [_1], expected [_2]", $self->{exrate}, $db_exchangerate));
    }
  }
- for ($self->_parse_array($self->{amount})){
+ for (@{$self->{amount}}){
     $_ = $_->bstr if ref $_;
  }
- $self->{amount} = [map {ref $_ ? $_->bstr() : $_ } @{$self->{amount}}];
+ $self->{amount} = [map {ref $_ ? $_->bstr() : $_ } @{$self->{amount}}] 
+      if ref $self->{amount};
  my @TMParray = $self->exec_method(funcname => 'payment_post');
- $self->{dbh}->commit();
  $self->{payment_id} = $TMParray[0]->{payment_post};
  return $self->{payment_id};
 }
-
-=over
 
 =item gather_printable_info 
 
 This method retrieves all the payment related info needed to build a
 document and print it. IT IS NECESSARY TO ALREADY HAVE payment_id on $self
-
-=back
 
 =cut
 
@@ -825,14 +774,10 @@ for my $row(@{$self->{line_info}}){
 }
 }
 
-=over
-
 =item get_open_overpayment_entities 
 
 This method retrieves all the entities with the specified
 account_class which have unused overpayments
-
-=back
 
 =cut
 
@@ -842,13 +787,9 @@ my ($self) = @_;
 return @{$self->{open_overpayment_entities}}; 
 }
 
-=over
-
 =item get_unused_overpayments
 
 This is a simple wrapper around payment_get_unused_overpayments sql function.
-
-=back
 
 =cut
 
@@ -858,13 +799,9 @@ my ($self) = @_;
 return @{$self->{unused_overpayment}}; 
 }
 
-=over
-
 =item get_available_overpayment_amount
 
 Simple wrapper around payment_get_available_overpayment_amount sql function.
-
-=back
 
 =cut
 
@@ -874,7 +811,20 @@ my ($self) = @_;
 return @{$self->{available_overpayment_amount}};
 }
 
-=over
+=item overpayment_reverse($payment_id, $batch_id);
+
+=cut
+
+sub overpayment_reverse {
+    my ($self, $args) = @_;
+    __PACKAGE__->call_procedure(procname => 'overpayment__reverse',
+                                     args => [$args->{id},
+                                              $args->{post_date},
+                                              $args->{batch_id},
+                                              $args->{account_class},
+                                              $args->{exchangerate},
+                                              $args->{curr}] );
+}
 
 =item init
 
@@ -885,7 +835,6 @@ Initializes the num2text system
 Translates numbers into words.
 
 =back
-
 
 =cut
 

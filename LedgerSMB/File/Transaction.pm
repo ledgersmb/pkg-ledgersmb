@@ -20,8 +20,8 @@ methods only
 =cut
 
 package LedgerSMB::File::Transaction;
-use strict;
-use base qw(LedgerSMB::File);
+use Moose;
+extends 'LedgerSMB::File';
 
 =back
 
@@ -29,7 +29,7 @@ use base qw(LedgerSMB::File);
 
 =over
 
-=item attach([{no_commit => bool}])
+=item attach()
 
 Attaches or links a specific file to the given transaction.
 
@@ -38,7 +38,6 @@ Attaches or links a specific file to the given transaction.
 sub attach {
     my ($self, $args) = @_;
     $self->exec_method({funcname => 'file__attach_to_tx'});
-    $self->commit unless $args->{no_commit};
 }
 
 =item attach_all_from_order({id = int})
@@ -54,16 +53,15 @@ sub attach_all_from_order {
         my $new_link = LedgerSMB::File::Transaction->new();
         $new_link->merge($attach);
         $new_link->dbobject($self->dbobject);
-        $new_link->attach({no_commit => 1});
+        $new_link->attach;
     }
     for my $link ($self->list_links({ref_key => $args->{int}, file_class => 2})){
         next if $link->{src_class} != 2;
         my $new_link = LedgerSMB::File::Transaction->new();
         $new_link->merge($link);
         $new_link->dbobject($self->dbobject);
-        $new_link->attach({no_commit => 1});
+        $new_link->attach;
     }
-    $self->commit;
 }
 
 =back

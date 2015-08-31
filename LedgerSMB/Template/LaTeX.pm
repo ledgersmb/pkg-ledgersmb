@@ -54,9 +54,11 @@ package LedgerSMB::Template::LaTeX;
 use warnings;
 use strict;
 
-use Error qw(:try);
 use Template::Latex;
 use LedgerSMB::Template::TTI18N;
+use Log::Log4perl;
+use LedgerSMB::Template::DB;
+use TeX::Encode;
 
 #my $binmode = ':utf8';
 my $binmode = ':raw';
@@ -73,6 +75,9 @@ sub get_template {
 sub preprocess {
 	my $rawvars = shift;
 	my $vars;
+        if (eval {$rawvars->can('to_output')}){
+           $rawvars = $rawvars->to_output;
+        }
 	my $type = ref $rawvars;
 
 	return $rawvars if $type =~ /^LedgerSMB::Locale/;
@@ -99,52 +104,28 @@ sub preprocess {
 	return $vars;
 }
 
-my %escapes = (
-   '&' => '\\&',
-   '$' => '\\$',
-   '\\' => '{\\textbackslash}',
-   '_' => '\\_',
-   '<' => '\\<',
-   '>' => '\\\\>',
-   '~' => '\\~',
-   '^' => '\\^',
-   '#' => '\\#',
-   '%' => '\\%',
-   '{' => '\\{',
-   '}' => '\\}',
-   '–' => '--',
-  );
-
 # Breaking this off to be used separately.
 sub escape {
     my ($vars) = shift @_;
+    return '' unless defined $vars;
 
-    if (defined $vars){
-            $vars =~ s/([&\$\\_<>~^#\%\{\}–])/$escapes{$1}/g;
-            $vars =~ s/[—―]/---/g;
-            $vars =~ s/\xa0/ /g;
-            $vars =~ s/\x91/'/g;
-            $vars =~ s/\x92/'/g;
-            $vars =~ s/\x93/"/g;
-            $vars =~ s/\x94/"/g;
-            $vars =~ s/\x97/-/g;
-            $vars =~ s/\xab/"/g;
-            $vars =~ s/\xa9//g;
-            $vars =~ s/\xae//g;
-            $vars =~ s/\x{2018}/'/g;
-            $vars =~ s/\x{2019}/'/g;
-            $vars =~ s/\x{201C}/"/g;
-            $vars =~ s/\x{201D}/"/g;
-            $vars =~ s/\x{2022}//g;
-            $vars =~ s/\x{2013}/-/g;
-            $vars =~ s/\x{2014}/-/g;
-            $vars =~ s/\x{2122}//g; 
-            $vars =~ s/–/--/g;
-            $vars =~ s/"(.*)"/``$1''/gs;
+    $vars =~ s/-/......hyphen....../g;
+    $vars =~ s/\+/......plus....../g; 
+    $vars =~ s/@/......amp....../g; 
+    $vars =~ s/!/......exclaim....../g; 
+
+    # For some reason this doesnt handle hyphens or +'s, so handling those
+    # above and below -CT
+    $vars = TeX::Encode::encode('latex', $vars);
+    if (defined $vars){ # Newline handling
             $vars =~ s/\n/\\\\/gm;
             $vars =~ s/(\\)*$//g;
             $vars =~ s/(\\\\){2,}/\n\n/g;
     }
+    $vars =~ s/\.\.\.\.\.\.hyphen\.\.\.\.\.\./-/g;
+    $vars =~ s/\.\.\.\.\.\.plus\.\.\.\.\.\./+/g; 
+    $vars =~ s/\.\.\.\.\.\.amp\.\.\.\.\.\./@/g; 
+    $vars =~ s/\.\.\.\.\.\.exclaim\.\.\.\.\.\./!/g; 
     return $vars;
 }
 
@@ -157,7 +138,11 @@ sub process {
 		"${LedgerSMB::Sysconfig::tempdir}/$parent->{template}-output-$$";
 
         $parent->{binmode} = $binmode;
-	if (ref $parent->{template} eq 'SCALAR') {
+        if ($parent->{include_path} eq 'DB'){
+                $source = LedgerSMB::Template::DB->get_template(
+                       $parent->{template}, undef, 'tex'
+                );
+	} elsif (ref $parent->{template} eq 'SCALAR') {
 		$source = $parent->{template};
 	} elsif (ref $parent->{template} eq 'ARRAY') {
 		$source = join "\n", @{$parent->{template}};
@@ -180,13 +165,15 @@ sub process {
                 ENCODING => 'utf8',
 		DEBUG => ($parent->{debug})? 'dirs': undef,
 		DEBUG_FORMAT => '',
-		}) || throw Error::Simple Template::Latex->error(); 
+		}) || die Template::Latex->error(); 
+        my $out = "$parent->{outputfile}.$format" unless ref $parent->{outputfile};
+        $out ||= $parent->{outputfile};
 	if (not $template->process(
 		$source, 
 		{%$cleanvars, %$LedgerSMB::Template::TTI18N::ttfuncs,
 			'escape' => \&preprocess},
-		"$parent->{outputfile}.$format", {binmode => 1})) {
-		throw Error::Simple $template->error();
+		$out, {binmode => 1})) {
+		die $template->error();
 	}
 	if (lc $format eq 'dvi') {
 		$parent->{mimetype} = 'application/x-dvi';

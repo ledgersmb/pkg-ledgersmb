@@ -1,0 +1,94 @@
+<?lsmb INCLUDE 'ui-header.html' ?>
+<?lsmb PROCESS elements.html;
+       PROCESS 'report_base.html'; ?>
+<body class="<?lsmb dojo_theme ?>">
+<form data-dojo-type="lsmb/lib/Form" method="get" action="pnl.pl">
+<?lsmb PROCESS input element_data = {
+     name = 'pnl_type',
+     type = 'hidden',
+    value = pnl_type
+} ?>
+<table width="100%">
+  <tr><th class="listtop"><?lsmb text('Income Statement') ?></th></tr>
+  <tr><td> </td></tr>
+<tr>
+  <td>
+    <table>
+      <tr>
+        <th align="right"><?lsmb text('Method') ?></th>
+        <td>
+<?lsmb PROCESS input element_data={
+  name = 'basis',
+  type = 'radio',
+  value = 'accrual',
+  label = text('Accrual'),
+  checked = 'checked',
+  } -?>
+<?lsmb PROCESS input element_data={
+  name = 'basis',
+  type = 'radio',
+  value = 'cash',
+  label = text('Cash'),
+  } -?>
+        </td>
+      </tr>
+                <tr>
+                  <th align="right"><?lsmb text('Ignore Year-ends'); ?></th>
+                  <td><?lsmb PROCESS select element_data = {
+                             options = [
+                                 {
+                                     label="All",
+                                     id="all",
+                                 },
+                                 {
+                                     label="Last Only",
+                                     id="last"
+                                 },
+                                 {
+                                     label="None",
+                                     id="none",
+                                 }
+                             ],
+                             default_values = [report.ignore_yearend],
+                             name = 'ignore_yearend',
+                             text_attr = 'label',
+                             value_attr = 'id',
+                             } ?>
+                    </td>
+                </tr>
+                <tr><td><?lsmb PROCESS input element_data = {
+                               type = 'checkbox',
+                              value = 1,
+                              label = 'gifi',
+                               name = 'gifi',
+                          } ?></td></tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <table>
+       <?lsmb PROCESS business_classes;
+       PROCESS date_row; # TODO add comparisons ?>
+       <tr>
+       <th colspan="7"><?lsmb text('Enter up to 3 date ranges for comparison') ?></th>
+       </tr>
+       <?lsmb FOREACH c IN [1, 2, 3];
+              PROCESS date_row SUFFIX='_' _ c; 
+              END ?>
+    </table>
+  </td>
+</tr>
+  <tr><td><hr size="3" noshade="noshade" /></td></tr>
+</table>
+<?lsmb PROCESS button element_data = {
+    name = 'action'
+   class = 'submit'
+    type = 'submit'
+    text = text('Continue'),
+   value = 'generate_income_statement'
+} ?>
+<br />
+</form>
+</body>
+</html>

@@ -1,8 +1,8 @@
 <?lsmb INCLUDE "ui-header.html" 
     include_script = [ 'UI/payments/javascript/maximize_minimize.js' ] ?>
-<body id="payment_2_body"
-onLoad="maximize_minimize_on_load('div_topay_state', 'UI/payments/img/down.gif','UI/payments/img/up.gif') ">
- <form name="pay_single_dues" method="post" action="payment.pl">
+<body id="payment_2_body" class="<?lsmb dojo_theme ?>"
+onLoad="maximize_minimize_on_load(event, 'div_topay_state', 'UI/payments/img/down.gif','UI/payments/img/up.gif') ">
+ <form data-dojo-type="lsmb/lib/Form" name="pay_single_dues" method="post" action="payment.pl">
 
  <?lsmb PROCESS elements.html  # Include form elements helper. ?>
  <?lsmb accountclass.type = 'hidden';
@@ -91,6 +91,7 @@ onLoad="maximize_minimize_on_load('div_topay_state', 'UI/payments/img/down.gif',
      </tr>
      <tr id="date_row"><?lsmb # here goes an input where the date can be written, we can also use a java calendar :). We can use an ajax script to call the Exchange rate of the input date wich can be called with the onChange Method	  ?>
       <th align="right" nowrap id="date_label_column"><?lsmb text('Date') ?></th>
+      <?lsmb- datepaid.class = 'date' ?>
       <td colspan="2" id="date_column"> <?lsmb INCLUDE input element_data=datepaid ?><?lsmb datepaid.id='olddatepaid'; datepaid.name='olddatepaid'; datepaid.type='hidden'; INCLUDE input element_data=datepaid ?> </td>
      </tr>
      <tr id="source_row">
@@ -119,7 +120,7 @@ onLoad="maximize_minimize_on_load('div_topay_state', 'UI/payments/img/down.gif',
      <?lsmb # here goes the exchange rate of the selected currency, it can be done by the ajax script or the update button ?>
      <?lsmb  IF defaultcurrency.text != curr.text # Only process element if one exists. ?>
       <tr id="exrate_row">
-       <th valig="top" align="right" id="exrate_label_column"><?lsmb text('Exchange Rate') ?>:</th>
+       <th valign="top" align="right" id="exrate_label_column"><?lsmb text('Exchange Rate') ?>:</th>
        <td id="exrate_column">
         <?lsmb  IF exrate.value -?>        
         <?lsmb  exrate.text -?>
@@ -146,13 +147,18 @@ onLoad="maximize_minimize_on_load('div_topay_state', 'UI/payments/img/down.gif',
   <?lsmb i = '0'; topay_subtotal = 0  -?>
   <?lsmb FOREACH row IN rows ?>
   <?lsmb i = i + 1; j = i % 2; alterning_style = "listrow$j" ?>
-  <tr class="<?lsmb alterning_style ?>"=>
+  <tr class="<?lsmb alterning_style ?>">
     <td><a href="<?lsmb row.invoice.href ?>" target="_new"><?lsmb row.invoice.number ?></a>
         <input type="hidden" value="<?lsmb row.invoice.id ?>" />                 </td>
     <?lsmb # we can use an href to link this invoice number to the invoice ?>
-    <td><?lsmb row.invoice_date ?></td>
-    <input type="hidden" name="<?lsmb "invoice_date_$row.invoice.id" ?>" 
-          value="<?lsmb row.invoice_date ?>" />
+    <td>
+        <?lsmb row.invoice_date ?>
+        <input
+          type="hidden"
+          name="<?lsmb "invoice_date_$row.invoice.id" ?>" 
+          value="<?lsmb row.invoice_date ?>"
+        />
+    </td>
     <td><?lsmb row.amount ?></td>
     <td><?lsmb row.paid ?></td>
     <td><?lsmb row.discount ?></td>
@@ -173,7 +179,7 @@ onLoad="maximize_minimize_on_load('div_topay_state', 'UI/payments/img/down.gif',
     <?lsmb # A DEGRADABLE JAVASCRIPT IS USED, BECAUSE OF THE VISUAL IMPACT
     	   # THAT CAUSES THE SIZE OF THIS DIV -?>
     <img src="UI/payments/img/up.gif" id="button_topay_<?lsmb row.invoice.id ?>" name="<?lsmb "button_topay_$i" ?>"
-     onClick="maximize_minimize('div_topay_<?lsmb row.invoice.id ?>',
+     onClick="maximize_minimize(event, 'div_topay_<?lsmb row.invoice.id ?>',
     'topaystate_<?lsmb row.invoice.id ?>' ,this,
     'UI/payments/img/down.gif', 'UI/payments/img/up.gif')">
      <div id="div_topay_<?lsmb row.invoice.id ?>">

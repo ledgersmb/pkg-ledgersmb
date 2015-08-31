@@ -1,0 +1,77 @@
+<div id="notes_div" class="lsmbtab" title="<?lsmb text('Notes') ?>">
+<div class="listtop"><?lsmb text('Notes') ?></div>
+<form data-dojo-type="lsmb/lib/Form" action="<?lsmb script ?>" method="post">
+<?lsmb PROCESS input element_data = {
+		type = "hidden"
+		name = "target_div"
+		value = 'notes_div'
+	} ?>
+<?lsmb PROCESS input element_data = {
+		type = "hidden"
+		name = "form_id"
+		value = form_id
+	} ?>
+	<?lsmb PROCESS input element_data = {
+		type="hidden" 
+		name="entity_id" 
+		value=entity_id
+	} ?>
+	<?lsmb PROCESS input element_data = {
+		type="hidden" 
+		name="credit_id" 
+		value=credit_act.id
+	} ?>
+<div class="tabular col-1">
+<div class="input">
+   <?lsmb PROCESS input element_data = {
+      label = text('Subject'),
+      name = "subject"
+      value = subject
+      type = "text"
+      size = "20"
+	} ?>
+</div>
+<div class="input">
+<?lsmb 
+IF credit_act.id;
+    PROCESS select element_data = {
+			name = "note_class"
+			default_values = [note_class]
+			options = attach_level_options
+			label = text("Note Class") #"
+			value_attr = "value"
+	};
+ELSE;
+    PROCESS input element_data = {
+          type = "hidden"
+          name = "note_class"
+         value = "1"
+} ?>
+<label><?lsmb text('Note Class') ?></label><?lsmb text('Entity');
+END; ?>
+</div>
+<div class="input"><?lsmb PROCESS textarea element_data = {
+	label = text('Notes')
+	name = 'note'
+         required = 'true'
+          id = 'note_entry_note'
+} ?></div></div>
+<div class="input">
+<?lsmb PROCESS button element_data = {
+	text = text('Save')
+	class = 'submit'
+	name = 'action'
+	value = 'save_notes'
+} ?>
+
+</form>
+<?lsmb FOREACH n = notes ?>
+<div class="note<?lsmb IF n.note_class == 3; ' eca_note'; END ?>">
+    <div class="note_subject"><?lsmb text('Subject: [_1]', n.subject)?></div>
+    <div class="timestamp"><?lsmb text('Entered at: [_1]', n.created) ?></div>
+    <div class="author"><?lsmb text("Author: [_1]", n.created_by) ?></div>
+    <div class="note_contents"><?lsmb n.note ?></div>
+</div>
+<?lsmb END ?>
+</div>
+</div>

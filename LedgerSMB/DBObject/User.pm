@@ -7,8 +7,12 @@ LedgerSMB::DBObject::User - LedgerSMB User DB Objects
 package LedgerSMB::DBObject::User;
 
 use base qw/LedgerSMB::DBObject/;
-use Data::Dumper;
 use strict;
+
+=head2 NOTES
+
+This badly needs to be rewritten and moved to later frameworks.  Planned for 
+1.5.
 
 =over
 
@@ -49,7 +53,6 @@ sub country_codes {
 sub save_preferences {
     my ($self) = @_;
     $self->exec_method(funcname => 'user__save_preferences');
-    $self->{dbh}->commit;
     $self->get_user_info;
 }
 
@@ -68,8 +71,7 @@ sub change_my_password {
     # Just in case, however, I think it is a good idea to include the DBI
     # error string.  CT
     $self->{dbh} = DBI->connect(
-        qq|dbi:Pg:dbname="$dbname"|, "$self->{login}", "$self->{old_password}",
-        { AutoCommit => 0, pg_enable_utf8 => 1 }
+        qq|dbi:Pg:dbname="$dbname"|, "$self->{login}", "$self->{old_password}", { AutoCommit => 0 }
     ); 
     if (!$self->{dbh}){
         $self->error($self->{_locale}->text('Incorrect Password'));
@@ -80,7 +82,7 @@ sub change_my_password {
     }
     $self->{password} = $self->{new_password};
     $self->exec_method(funcname => 'user__change_password');
-    $self->{dbh}->commit;
+    $self->{dbh}->commit; # This is needed since it is not the normal DBH!
     $self->{dbh}->disconnect;
     $self->{dbh} = $old_dbh;
 }
@@ -90,12 +92,14 @@ sub get_option_data {
     my $self = shift @_;
     $self->{dateformats} = [];
     $self->{numberformats} = [];
-    for my $opt (qw(mm-dd-yy mm/dd/yy dd-mm-yy dd/mm/yy dd.mm.yy yyyy-mm-dd)){
+    for my $opt (qw(mm-dd-yyyy mm/dd/yyyy dd-mm-yyyy dd/mm/yyyy dd.mm.yyyy yyyy-mm-dd)){
         push @{$self->{dateformats}}, {format => $opt};
     }
+    no warnings 'qw';
     for my $opt (qw(1,000.00 1000.00 1.000,00 1000,00 1'000.00)){
         push @{$self->{numberformats}}, {format => $opt};
     }
+    use warnings;
 
     my %country_codes = country_codes();
 
@@ -188,7 +192,7 @@ sub get {
         );
     $self->{employee} = $emp;
     my ($ent) = $self->exec_method( 
-        funcname=>'entity__get_entity',
+        funcname=>'entity__get',
         args=>[ $self->{user}->{entity_id} ] 
         );
     $self->{entity} = $ent;
@@ -275,9 +279,7 @@ sub save_contact {
     my $contact = shift @_;
     my @ret;
     
-    print STDERR Dumper($self->{entity}->{id});
     if ($id) {
-        print STDERR "Found ID..";
         @ret = $self->exec_method(funcname=>"person__save_contact", 
             args=>[
                 $self->{entity}->{id},
@@ -288,10 +290,6 @@ sub save_contact {
         );
     } 
     else{
-        print STDERR "Did not find an ID, attempting to save a new contact..\n";
-        print STDERR ($class."\n");
-        print STDERR ($contact."\n");
-        print STDERR ($self->{entity_id}."\n");
         @ret = $self->exec_method(funcname=>"person__save_contact",
             args=>[
                 $self->{entity_id},
@@ -301,12 +299,8 @@ sub save_contact {
             ]
         );
     }
-    print STDERR Dumper(\@ret);
-    if ($ret[0]->{person__save_contact} == 1){
-        $self->{dbh}->commit();
-    }
-    else{
-        $self->error("Couldn't save contact...");
+    if ($ret[0]->{person__save_contact} != 1){
+        die "Couldn't save contact...";
     }
     return 1;
 }

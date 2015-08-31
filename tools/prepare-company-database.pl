@@ -36,7 +36,8 @@ use Cwd;
 # Needed for creating a user
 
 use LedgerSMB;
-use LedgerSMB::DBObject::Admin;
+use LedgerSMB::Entity::User;
+use LedgerSMB::Entity::Person::Employee;
 use DBI;
 
 # always use strict!
@@ -62,7 +63,6 @@ my $dstdir=getcwd;
 my $cc = 'us';
 my $coa="$srcdir/sql/coa/us/chart/General.sql";
 my $gifi=undef;
-my $pgsql_contrib_dir=undef;
 my $progress=0;
 my $help=0;
 
@@ -96,8 +96,6 @@ Available options:
 		from the webserver [$dstdir]
  --host		The PostgreSQL host to connect to (see 'man psql') [$host]
  --port		The PostgreSQL port to connect to (see 'man psql') [$port]
- --pgsql-contrib The directory where the tsearch2.sql, pg_trgm.sql and
-                tablefunc.sql PostgeSQL are located [$pgsql_contrib_dir] [*]
  --company	The name of the database to be created for the company [*]
  --owner	The name of the superuser which is to become owner of the
 		company's database [$owner]
@@ -117,7 +115,6 @@ GetOptions(
    'dstdir=s'        => \$dstdir,
    'port=s'          => \$port,
    'host=s'          => \$host,
-   'pgsql-contrib=s' => \$pgsql_contrib_dir,
    'company=s'       => \$company,
    'owner=s'         => \$owner,
    'password=s'      => \$pass,
@@ -131,12 +128,11 @@ GetOptions(
 
 # Setting up the environment here in case at some point we want to expand to
 # call libpq programs directly.  It also makes the script more future proof in
-# other ways.  Note that PG_CONTRIB_DIR is not really needed in Pg 9.1 and later
+# other ways.
 # and is a LedgerSMB-ism.
 #
-$ENV{PG_CONTRIB_DIR} = $pgsql_contrib_dir if $pgsql_contrib_dir;
 $ENV{PGUSER} = $owner if $owner;
-$ENV{PGPASSWORD} = $pass if $pass;
+$ENV{PGPASS} = $pass if $pass;
 $ENV{PGDATABASE} = $company if $company;
 $ENV{PGHOST} = $host if $host;
 $ENV{PGPORT} = $port if $port;
@@ -150,38 +146,7 @@ my $database = LedgerSMB::Database->new(
        password => $pass}
 );
 
-my $dbh  = DBI->connect("dbi:Pg:dbname=template1",
-			    $database->{username},
-			    $database->{password}, { AutoCommit => 0 });
-my $sth = $dbh->prepare("SELECT version()");
-$sth->execute();
-my ($pg_dbversion) = $sth->fetchrow_array();
-$sth->finish();
-
-if ($pg_dbversion =~ m/^PostgreSQL (8\.4|9\.0)/) {
-    die "Your database version requires the --pgsql-contrib option"
-	if ! defined $pgsql_contrib_dir;
-} else { # assume 9.1+ (this could however be 8.3-)
-    $sth = $dbh->prepare(
-	"select count(*)=3 from pg_available_extensions()" .
-	" where name in ('btree_gist', 'pg_trgm', 'tablefunc')");
-    $sth->execute();
-    my ($have_required_extensions) = $sth->fetchrow_array();
-    $sth->finish();
-
-    die "You don't have all the required contribs installed (btree_gist," .
-	" pg_trgm, tablefunc)"
-	if ! $have_required_extensions;
-}
-$dbh->disconnect();
-
-# Creating the actual database and loading it.  Note that process_roles is 
-# currently a separate call.  If you don't do that then permissions are never 
-# set up and therefore creating a user and assigning roles become futile 
-# endeavors
-
 $database->create_and_load();
-$database->process_roles();
 
 
 # CREATING THE USER
@@ -192,29 +157,39 @@ $database->process_roles();
 
 my $lsmb = LedgerSMB->new() || die 'could not create new LedgerSMB object';
 $lsmb->{dbh} = DBI->connect("dbi:Pg:dbname=$ENV{PGDATABASE}",
-			    $database->{username},
-			    $database->{password}, { AutoCommit => 0 });
-$sth = $lsmb->{dbh}->prepare(
+                                       undef, undef, { AutoCommit => 0 });
+
+# We also have to retrieve the country ID which requires a database query
+
+my $sth = $lsmb->{dbh}->prepare(
             'SELECT id FROM country WHERE short_name ILIKE ?'
 );
 
 $sth->execute($cc);
 my ($country_id) = $sth->fetchrow_array;
 
-# In 1.3 it is not possible really to directly invoke a new object like a new
-# user.  This is changing for some things in 1.4 so keep in mind this may change
-# to be easier to use.    However for now, this is the way it will need to be 
-# done.
+# This section is still untested and may be for some time.  Unlike in 1.3, we 
+# don't have to do $lsmb->merge() and then create new copies of the LedgerSMB 
+# archetype.  This leads to more direct, readable code, but there may still be
+# some bugs to work out --CT
 
-$lsmb->merge({
-     username    => $ADMIN_USERNAME,
-     password    => $ADMIN_PASSWORD,
+my $employee = LedgerSMB::Entity::Employee->new(
      first_name  => $ADMIN_FIRSTNAME,
      last_name   => $ADMIN_LASTNAME,
      middle_name => $ADMIN_MIDDLENAME,
      country_id  => $country_id,
+);
+
+$employee->save;
+
+my $user = LedgerSMB::Entity::User->new(
+     username    => $ADMIN_USERNAME,
+     password    => $ADMIN_PASSWORD,
      import      => 't',
-});
+     entity_id   => $employee->entity_id,
+);
+
+$user->save;
 
 my $user = LedgerSMB::DBObject::Admin->new({base => $lsmb});
 

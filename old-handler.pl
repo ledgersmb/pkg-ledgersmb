@@ -46,8 +46,29 @@
 #
 #######################################################################
 
-use LedgerSMB::Sysconfig;
+our $logger=Log::Log4perl->get_logger('old-handler-chain');#make logger available to other old programs
+Log::Log4perl::init(\$LedgerSMB::Sysconfig::log4perl_config);
+
+# Clearing all namespaces for persistant code use
+for my $nsp (qw(lsmb_legacy Form GL AA IS IR OE RP JC PE IC AM BP CP PE User)) {    
+   for my $k (keys %{"${nsp}::"}){
+        next if $k =~ /[A-Z]+/;
+        next if $k eq 'try' or $k eq 'catch';
+        next if *{"${nsp}::{$k}"}{CODE};
+        if (*{"${nsp}::{$k}"}{ARRAY}) {
+            @{"${nsp}::{$k}"} = () unless /^(?:INC|ISA|EXPORT|EXPORT_OK|ARGV|_|\W)$/;
+        }
+        if (*{"${nsp}::{$k}"}{HASH}) {
+            %{"${nsp}::{$k}"} = ();
+        }
+        if (*{"${nsp}::{$k}"}{SCALAR}){
+           ${"${nsp}::{$k}"} = undef;
+        }
+    }   
+}
+package lsmb_legacy;
 use Digest::MD5;
+use Try::Tiny;
 use LedgerSMB::App_State;
 
 $| = 1;
@@ -58,19 +79,55 @@ use LedgerSMB::User;
 use LedgerSMB::Form;
 use LedgerSMB::Locale;
 use LedgerSMB::Auth;
-use LedgerSMB::CancelFurtherProcessing;
+use LedgerSMB::Session;
 use LedgerSMB::App_State;
-use Error qw(:try);
 use Data::Dumper;
 
-our $logger=Log::Log4perl->get_logger('old-handler-chain');#make logger available to other old programs
 
+sub _error {
+
+    my ( $self, $msg ) = @_;
+
+    if ( $ENV{GATEWAY_INTERFACE} ) {
+
+        $self->{msg}    = $msg;
+        $self->{format} = "html";
+        $self->format_string('msg');
+
+        delete $self->{pre};
+
+        if ( !$self->{header} ) {
+            $self->header;
+        }
+        $logger->error($msg);
+        $logger->error("dbversion: $self->{dbversion}, company: $self->{company}");
+
+        print
+          qq|<body><h2 class="error">Error!</h2> <p><b>$self->{msg}</b>
+             <p>dbversion: $self->{dbversion}, company: $self->{company}</p>
+             </body>|;
+
+    }
+    else {
+
+        if ( $ENV{error_function} ) {
+            __PACKAGE__->can($ENV{error_function})->($msg);
+        }
+    }
+}
+
+
+
+use Data::Dumper;
 require "common.pl";
 
 # for custom preprocessing logic
 eval { require "custom.pl"; };
 
 $form = new Form;
+use Data::Dumper;
+use LedgerSMB::Sysconfig;
+
 # name of this script
 my $script;
 if ($ENV{GATEWAY_INTERFACE} =~ /^CGI/){
@@ -134,36 +191,39 @@ if ($@) {
         "$msg1 <p><a href=\"login.pl\" target=\"_top\">$msg2</a></p>");
 }
 
+try {
 $form->db_init( \%myconfig );
 &check_password;
 
 # we get rid of myconfig and use User as a real object
 %myconfig = %{ LedgerSMB::User->fetch_config( $form ) };
+$LedgerSMB::App_State::User = \%myconfig;
 map { $form->{$_} = $myconfig{$_} } qw(stylesheet timeout)
   unless ( $form->{type} eq 'preferences' );
 
 if ($myconfig{language}){
     $locale   = LedgerSMB::Locale->get_handle( $myconfig{language} )
-      or $form->error( __FILE__ . ':' . __LINE__ . ": Locale not loaded: $!\n" );
+      or &_error( $form, __FILE__ . ':' . __LINE__ . ": Locale not loaded: $!\n" );
 }
 
 $LedgerSMB::App_State::Locale = $locale;
 # pull in the main code
-$logger->trace("trying script=bin/$form->{script} action=$form->{action}");#trace flow
-try {
+#eval {
+  $logger->trace("requiring bin/$form->{script}");
   require "bin/$form->{script}";
 
-# customized scripts
-if ( -f "bin/custom/$form->{script}" ) {
+  # customized scripts
+  if ( -f "bin/custom/$form->{script}" ) {
     eval { require "bin/custom/$form->{script}"; };
-}
+  }
 
-# customized scripts for login
-if ( -f "bin/custom/$form->{login}_$form->{script}" ) {
+  # customized scripts for login
+  if ( -f "bin/custom/$form->{login}_$form->{script}" ) {
     eval { require "bin/custom/$form->{login}_$form->{script}"; };
-}
+  }
 
-if ( $form->{action} ) {
+  if ( $form->{action} ) {
+    $logger->trace("action $form->{action}");
 
     binmode STDOUT, ':utf8';
     binmode STDERR, ':utf8';
@@ -175,20 +235,30 @@ if ( $form->{action} ) {
 
     &{ $form->{action} };
     LedgerSMB::App_State::cleanup();
-}
-else {
+
+  }
+  else {
     $form->error( __FILE__ . ':' . __LINE__ . ': '
           . $locale->text('action not defined!'));
-}
-
-}
-catch CancelFurtherProcessing with {
-  my $ex = shift;
-};
+  }
+#  1;
+#} ||
+ }catch  {
+  # We have an exception here because otherwise we always get an exception
+  # when output terminates.  A mere 'die' will no longer trigger an automatic
+  # error, but die 'foo' will map to $form->error('foo')
+  # -- CT
+  $form->{_error} = 1;
+  $LedgerSMB::App_State::DBH = undef;
+  &_error($form, "'$_'") unless $_ =~ /^Died/i or $_ =~ /^exit at Ledger/; 
+} 
+;
 
 $logger->trace("leaving after script=bin/$form->{script} action=$form->{action}");#trace flow
 
 1;
+
+$form->{dbh}->commit if defined $form->{dbh};
 
 $form->{dbh}->disconnect()
     if defined $form->{dbh};
@@ -207,7 +277,7 @@ sub check_password {
         }
 
         #check for valid session
-        if ( !LedgerSMB::Auth::session_check( $cookie{${LedgerSMB::Sysconfig::cookie_name}}, $form ) ) {
+        if ( !LedgerSMB::Session::check( $cookie{${LedgerSMB::Sysconfig::cookie_name}}, $form ) ) {
             &getpassword(1);
             return;
         }

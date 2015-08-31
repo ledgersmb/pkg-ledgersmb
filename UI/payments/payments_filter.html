@@ -7,7 +7,7 @@
 		titlebar = text('Selection')
 ?>
 <?lsmb PROCESS 'elements.html'  # Include form elements helper. ?>
-<body id="payments-filter-body">
+<body id="payments-filter-body" class="<?lsmb dojo_theme ?>">
 <div class="listtop">
 	<!-- CT:  Strings for locales:
 	<?lsmb text('Filtering Receipts') ?>
@@ -17,7 +17,7 @@
 	?><?lsmb END ?>
 	<?lsmb text("Filtering $t") ?>
 </div>
-<form name="search" method="post" action="payment.pl">
+<form data-dojo-type="lsmb/lib/Form" name="search" method="post" action="payment.pl">
 	
 
 <?lsmb INCLUDE input element_data={
@@ -37,7 +37,7 @@
 } ?>
 <div id = "payments-filter-categories" class="inputgroup">
 <?lsmb IF projects ?>
-<div id = "payments-filter-projects" class="input">
+<div id = "payments-filter-projects" class="inputgroup">
   <label for="project"><?lsmb text('Project') ?></label>
   <select name="project_id" id="project">
   <?lsmb FOREACH p = projects ?>
@@ -48,7 +48,7 @@
 <?lsmb END ?>
 
 <?lsmb IF departments ?>
-<div id = "payments-filter-departments" class="input">
+<div id = "payments-filter-departments" class="inputgroup">
   <label for="department"><?lsmb text('Department') ?></label>
   <select name="department_id" id="department">
 		<option value=""></option>
@@ -74,7 +74,7 @@
 } ?>
 
 <?lsmb IF businesses ?>
-<div id = "payments-filter-businesses" class="input">
+<div id = "payments-filter-businesses" class="inputgroup">
   <label for="businesses"><?lsmb text('Business Class') ?></label>
   <select name="business_id" id="businesses">
 		<option value=""></option>
@@ -85,16 +85,22 @@
 </div>
 <?lsmb END ?>
 </div>
-<div class="input" id="account_input">
-	<label for="account"><?lsmb text('Account') ?>
-	<select name="ar_ap_accno">
-	<?lsmb FOREACH a = debt_accounts ?>
-	<option value="<?lsmb a.accno ?>" <?lsmb 
-		IF a.id == account ?> SELECTED <?lsmb END ?>>
-			<?lsmb a.accno ?>--<?lsmb a.description ?></option>
-	<?lsmb END ?>
-	</select>
+<div class="inputgroup" id="account_input">
+    <?lsmb
+     FOREACH a = debt_accounts;
+       a.text = a.accno _ '--' _ a.description;
+     END;
+     PROCESS select element_data = {
+          label = text('Account')
+           name = "ar_ap_accno"
+        options = debt_accounts
+     value_attr = 'accno'
+      text_attr = 'text'
+ default_values = [account]
+    } ?>
+</div>
 <div id = "payments-filter-daterow" class = "inputgroup">
+<div class="input">
 <?lsmb PROCESS input element_data = {
 	label = text('Date From:')
 	type = "text"
@@ -102,7 +108,7 @@
 	value = date_from
 	name = "date_from"
 	size = 12
-} # ' ?>
+} # ' ?></div><div class="input">
 <?lsmb PROCESS input element_data = {
 	label = text('Date To:')
 	type = "text"
@@ -110,7 +116,7 @@
 	value = date_to
 	name = "date_to"
 	size = 12
-} # ' ?>
+} # ' ?></div>
 </div>
 <div id = "payments-filter-currency-row" class="inputgroup" ?>
 <label for="currency"><?lsmb text('Currency')?></label>
@@ -146,7 +152,7 @@
 		options = payment_types
 		value_attr = "id"
 		text_attr = "label"
-		label = text('Payment Type:') 
+		label = text('Payment Type:') #'
 	} ?> 
 
 
@@ -158,7 +164,7 @@
 
 
 
-<div class = "input">
+<div class = "inputgroup">
 <?lsmb INCLUDE input element_data = {
 	type = "text"
 	size = "20"
@@ -166,13 +172,14 @@
 	label = text('Start Source Numbering At:')
 } # '?>
 </div>
+<div>
 <?lsmb INCLUDE button element_data = {
 	type = "submit"
 	name = "action"
 	text = text('Continue')
 	class = "submit"
 	value = "display_payments"
-} ?>
+} ?></div>
 </form>
 </body>
 </html>

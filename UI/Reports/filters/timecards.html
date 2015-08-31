@@ -1,0 +1,53 @@
+<?lsmb INCLUDE 'ui-header.html';
+       PROCESS 'elements.html';
+       PROCESS 'report_base.html'; ?>
+<body class="<?lsmb dojo_theme ?>">
+<form data-dojo-type="lsmb/lib/Form" action="timecard.pl" method="get">
+<div class="listtop"><?lsmb text('Time and Material Cards') ?></div>
+<table>
+<?lsmb PROCESS business_classes ?>
+<tr>
+   <th><?lsmb text('Partnumber') ?></th>
+   <td><?lsmb PROCESS input element_data = {
+           name = 'partnumber' 
+          value = partnumber
+          class = 'control-code'
+           type = 'input'
+           size = '32'
+       } ?></td>
+</tr>
+<?lsmb PROCESS employee_row ?>
+<?lsmb PROCESS date_row ?>
+<tr>
+   <th>&nbsp;</th>
+   <td><div class="input">
+        <?lsmb PROCESS input element_data = {
+                  type = 'checkbox' 
+                  name = 'open'
+                 value = '1'
+               checked = 'CHECKED'
+                 label = text('Open')
+         } ?></div><div class="input">
+         <?lsmb PROCESS input element_data = {
+                  type = 'checkbox' 
+                  name = 'closed'
+                 value = '1'
+               checked = 'CHECKED'
+                 label = text('Closed')
+         } ?></div>
+   </td>
+</tr>
+<tr id="buttonrow">
+ <td><?lsmb PROCESS button element_data = {
+                 text = text('Search')
+                value = 'timecard_report'
+                 type = 'submit'
+                 name = 'action'
+                class = 'submit'
+            } ?>
+ </td>
+</tr>
+</table>
+</form>
+</body>
+</html>

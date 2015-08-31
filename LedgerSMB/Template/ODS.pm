@@ -47,7 +47,6 @@ package LedgerSMB::Template::ODS;
 use strict;
 use warnings;
 
-use Error qw(:try);
 use Data::Dumper;
 use CGI::Simple::Standard qw(:html);
 use Template;
@@ -56,6 +55,7 @@ use OpenOffice::OODoc;
 use OpenOffice::OODoc::Styles;
 use LedgerSMB::Template::TTI18N;
 use LedgerSMB::Sysconfig;
+use LedgerSMB::Template::DB;
 
 $OpenOffice::OODoc::File::WORKING_DIRECTORY = $LedgerSMB::Sysconfig::tempdir;
 
@@ -812,6 +812,9 @@ sub get_template {
 sub preprocess {
     my $rawvars = shift;
     my $vars;
+    if (eval {$rawvars->can('to_output')}){
+       $rawvars = $rawvars->to_output;
+    }
     my $type = ref $rawvars;
 
     #XXX fix escaping function
@@ -844,7 +847,11 @@ sub process {
         $parent->{binmode} = $binmode;
 	$parent->{outputfile} ||= "$tempdir/$parent->{template}-output-$$";
 
-	if (ref $parent->{template} eq 'SCALAR') {
+        if ($parent->{include_path} eq 'DB'){
+                $source = LedgerSMB::Template::DB->get_template(
+                       $parent->{template}, undef, 'ods'
+                );
+	} elsif (ref $parent->{template} eq 'SCALAR') {
 		$source = $parent->{template};
 	} elsif (ref $parent->{template} eq 'ARRAY') {
 		$source = join "\n", @{$parent->{template}};
@@ -858,14 +865,14 @@ sub process {
 		DELIMITER => ';',
 		DEBUG => ($parent->{debug})? 'dirs': undef,
 		DEBUG_FORMAT => '',
-		}) || throw Error::Simple Template->error(); 
+		}) || die Template->error(); 
 
 	if (not $template->process(
 		$source, 
 		{%$cleanvars, %$LedgerSMB::Template::TTI18N::ttfuncs,
 			'escape' => \&preprocess},
 		\$output, binmode => ':utf8')) {
-		throw Error::Simple $template->error();
+		die $template->error();
 	}
 	&_ods_process("$parent->{outputfile}.ods", $output);
 

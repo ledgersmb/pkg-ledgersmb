@@ -38,12 +38,15 @@
 #
 #######################################################################
 
-use Error qw(:try);
+package lsmb_legacy;
+use Try::Tiny;
 use LedgerSMB::Tax;
 use LedgerSMB::Template;
 use LedgerSMB::Sysconfig;
+use LedgerSMB::Setting;
 use LedgerSMB::Company_Config;
 use LedgerSMB::File;
+use List::Util 'reduce';
 
 # any custom scripts for this one
 if ( -f "bin/custom/io.pl" ) {
@@ -88,7 +91,7 @@ if ( -f "bin/custom/$form->{login}_io.pl" ) {
 
 sub _calc_taxes {
     $form->{subtotal} = $form->{invsubtotal};
-    my $moneyplaces = $LedgerSMB::Sysconfig::decimal_places;
+    my $moneyplaces = $LedgerSMB::Company_Config::settings->{decimal_places};
     for $i (1 .. $form->{rowcount}){
         my $discount_amount = $form->round_amount( $form->{"sellprice_$i"} 
         		       			   * ($form->{"discount_$i"} / 100), 
@@ -129,10 +132,44 @@ sub _calc_taxes {
     }
 }
 
+sub approve {
+    use LedgerSMB::DBObject::Draft;
+    use LedgerSMB;
+    $form->update_invnumber;
+    my $lsmb = LedgerSMB->new();
+    $lsmb->merge($form);
+
+    my $draft = LedgerSMB::DBObject::Draft->new({base => $lsmb});
+
+    $draft->approve();
+
+    if ($form->{callback}){
+        print "Location: $form->{callback}\n";
+        print "Status: 302 Found\n\n";
+        print qq|<html><body class="$form->{dojo_theme}">|;
+        my $url = $form->{callback};
+        print qq|If you are not redirected automatically, click <a href="$url">|
+                . qq|here</a>.</body></html>|;
+
+    } else {
+        $form->info($locale->text('Draft Posted'));
+    }
+}
+
 sub display_row {
     my $numrows = shift;
+    my $min_lines = $LedgerSMB::Company_Config::settings->{min_empty};
+    my $lsmb_module;
     my $desc_disabled = "";
     $desc_disabled = 'DISABLED="DISABLED"' if $form->{lock_description};
+    if ($form->{vc} eq 'customer'){
+       $lsmb_module = 'AR';
+    } elsif ($form->{vc} eq 'vendor'){
+       $lsmb_module = 'AP';
+    }
+    $form->all_business_units($form->{transdate}, 
+                              $form->{"$form->{vc}_id"}, 
+                              $lsmb_module);
     @column_index = qw(runningnumber partnumber description qty);
 
     if ( $form->{type} eq "sales_order" ) {
@@ -179,6 +216,13 @@ qq|<option value="$ref->{partsgroup}--$ref->{id}">$ref->{partsgroup}\n|;
     }
 
     push @column_index, @{LedgerSMB::Sysconfig::io_lineitem_columns};
+    for my $cls(@{$form->{bu_class}}){
+        if (scalar @{$form->{b_units}->{"$cls->{id}"}}){
+             push @column_index, "b_unit_$cls->{id}";
+             $column_data{"b_unit_$cls->{id}"} = 
+               qq|<th class=listheading nowrap>| . $cls->{label} . qq|</th>|;
+        }
+    }
 
     push @column_index, "taxformcheck";#increase the number of elements by pushing into column_index.(Ex: NEw added element 
 				       # taxformcheck & check the screen AR->Sales Invoice) do everything before colspan ;
@@ -240,7 +284,7 @@ qq|<option value="$ref->{partsgroup}--$ref->{id}">$ref->{partsgroup}\n|;
     $exchangerate = ($exchangerate) ? $exchangerate : 1;
 
     $spc = substr( $myconfig{numberformat}, -3, 1 );
-    for $i ( 1 .. $numrows ) {
+    for $i ( 1 .. $numrows  + $min_lines) {
         $desc_disabled = '' if $i == $numrows;
         if ( $spc eq '.' ) {
             ( $null, $dec ) = split /\./, $form->{"sellprice_$i"};
@@ -248,7 +292,7 @@ qq|<option value="$ref->{partsgroup}--$ref->{id}">$ref->{partsgroup}\n|;
         else {
             ( $null, $dec ) = split /,/, $form->{"sellprice_$i"};
         }
-        my $moneyplaces = $LedgerSMB::Sysconfig::decimal_places;
+        my $moneyplaces = LedgerSMB::Setting->get('decimal_places');
         $dec = length $dec;
         $dec ||= $moneyplaces;
         $form->{"precision_$i"} ||= $dec;
@@ -348,7 +392,26 @@ qq|<td><input name="description_$i" $desc_disabled size=48 value="$form->{"descr
 		$taxchecked="checked";
 
 	}
-
+        for my $cls(@{$form->{bu_class}}){
+            if (scalar @{$form->{b_units}->{"$cls->{id}"}}){
+                $column_data{"b_unit_$cls->{id}"} = 
+                   qq|<td><select name="b_unit_$cls->{id}_$i">
+                           <option></option>|;
+                for my $bu (@{$form->{b_units}->{"$cls->{id}"}}){
+                   my $selected = "";
+                   if ($bu->{id} eq $form->{"b_unit_$cls->{id}_$i"}){
+                       $selected = "SELECTED='SELECTED'";
+                   }
+                   $column_data{"b_unit_$cls->{id}"} .= qq|
+                       <option value="$bu->{id}" $selected >
+                               $bu->{control_code}
+                       </option>|;
+                }
+                $column_data{"b_unit_$cls->{id}"} .= qq|
+                     </select></td>|;
+                   
+            }
+        }
 
 $column_data{runningnumber} =
           qq|<td class="runningnumber"><input name="runningnumber_$i" size=3 value=$i></td>|;
@@ -528,7 +591,7 @@ sub select_item {
     $title = $locale->text('Select items');
 
     print qq|
-<body>
+<body class="$form->{dojo_theme}">
 
 <form method=post action="$form->{script}">
 
@@ -657,7 +720,7 @@ sub item_selected {
               if $form->{type} !~ /_quotation/;
 
             for (
-                qw(id partnumber sku description listprice lastcost
+                qw(id partnumber sku description listprice lastcost sellprice
                   bin unit weight assembly taxaccounts pricematrix onhand notes 
                   inventory_accno_id image income_accno_id expense_accno_id)
               )
@@ -670,7 +733,7 @@ sub item_selected {
             $form->{"partsgroup_$i"} =
               qq|$form->{"new_partsgroup_$j"}--$form->{"new_partsgroup_id_$j"}|;
 
-            my $moneyplaces = $LedgerSMB::Sysconfig::decimal_places;
+            my $moneyplaces = LedgerSMB::Setting->get('decimal_places');
             ($dec) = ( $form->{"sellprice_$i"} =~ /\.(\d+)/ );
             $dec = length $dec;
             $dec ||=$moneyplaces;
@@ -799,7 +862,7 @@ sub new_item {
     $form->header;
 
     print qq|
-<body>
+<body class="$form->{dojo_theme}">
 
 <h4 class=error>| . $locale->text('Item not on file!') . qq|</h4>|;
 
@@ -849,7 +912,6 @@ sub new_item {
 sub display_form {
     $form->close_form();
     $form->open_form();
-    $form->{dbh}->commit;
 
     # if we have a display_form
     if ( $form->{display_form} ) {
@@ -1302,6 +1364,7 @@ sub print_options {
 
     my $hiddens = shift;
     my %options;
+    $form->{format} = $form->get_setting('format') unless $form->{format};
     $form->{sendmode} = "attachment";
     $form->{copies} = 1 unless $form->{copies};
 
@@ -1388,6 +1451,14 @@ sub print_options {
             value => 'bin_list',
             };
     }
+    push @{$options{formname}{options}}, {
+            text => $locale->text('Envelope'),
+            value => 'envelope',
+            };
+    push @{$options{formname}{options}}, {
+            text => $locale->text('Shipping Label'),
+            value => 'shipping_label',
+            };
 
     if ( $form->{media} eq 'email' ) {
         $options{media} = {
@@ -1415,11 +1486,6 @@ sub print_options {
                 push @{$options{media}{options}}, {text => $_, value => $_};
             }
         }
-        if ( ${LedgerSMB::Sysconfig::latex} )
-        {
-            push @{$options{media}{options}}, {text => $locale->text('Queue'),
-                value => 'queue'};
-        }
     }
 
     $options{format} = {
@@ -1438,6 +1504,12 @@ sub print_options {
             value => 'pdf',
             };
     }
+    if ($form->{type} eq 'invoice'){
+       push @{$options{format}{options}}, {
+            text => $locale->text('894.EDI'),
+            value => '894.edi',
+            };
+    }
 
     if (   %{LedgerSMB::Sysconfig::printer}
         && ${LedgerSMB::Sysconfig::latex}
@@ -1448,13 +1520,11 @@ sub print_options {
 
     # $locale->text('Printed')
     # $locale->text('E-mailed')
-    # $locale->text('Queued')
     # $locale->text('Scheduled')
 
     $options{status} = (
         printed   => 'Printed',
         emailed   => 'E-mailed',
-        queued    => 'Queued',
         recurring => 'Scheduled'
     );
 
@@ -1488,7 +1558,7 @@ sub print_select { # Needed to print new printoptions output from non-template
 }
 sub print {
 
-    $logger->trace("setting fax from LedgerSMB::Company_Config::settings \$form->{formname}=$form->{formname} \$form->{fax}=$form->{fax}");
+  #  $logger->trace("setting fax from LedgerSMB::Company_Config::settings \$form->{formname}=$form->{formname} \$form->{fax}=$form->{fax}");
 
 
     # if this goes to the printer pass through
@@ -1517,6 +1587,7 @@ sub print_form {
     $form->{fax} = $csettings->{company_fax};
     my $inv = "inv";
     my $due = "due";
+    my $class;
 
     my $numberfld = "sinumber";
 
@@ -1602,10 +1673,14 @@ sub print_form {
         $numberfld     = "rfqnumber";
         $order         = 1;
     }
+    if (($form->{formname} eq 'envelope') 
+        or ($form->{formname} eq 'shipping_label')){
+
+       $inv = undef;
+    }
 
     if ($form->test_should_get_images){
         my $file = LedgerSMB::File->new();
-        $file->new_dbobject({base => $form, locale => $locale});
         my @files;
         my $fc;
         if ($inv eq 'inv') {
@@ -1615,7 +1690,7 @@ sub print_form {
         }
         my @files = $file->get_for_template(
                 {ref_key => $form->{id}, file_class => $fc}
-        ) if $form->{id};
+        );
         my @main_files;
         my %parts_files;
         for my $f (@files){
@@ -1702,10 +1777,27 @@ sub print_form {
     # create the form variables
     if ($order) {
         OE->order_details( \%myconfig, $form );
-    }
-    else {
+    } elsif ($form->{formname} eq 'product_receipt'){
+        @{$form->{number}} = map { $form->{"partnumber_$_"} }
+            1 .. $form->{rowcount};
+        @{$form->{item_description}} = map { $form->{"description_$_"} }
+            1 .. $form->{rowcount};
+        @{$form->{qty}} = map { $form->{"qty_$_"} }
+            1 .. $form->{rowcount};
+        @{$form->{unit}} = map { $form->{"unit_$_"} }
+            1 .. $form->{rowcount};
+        @{$form->{sellprice}} = map { $form->{"sellprice_$_"} }
+            1 .. $form->{rowcount};
+        @{$form->{discount}} = map { $form->{"discount_$_"} }
+            1 .. $form->{rowcount};
+        @{$form->{linetotal}} = map { 
+            $form->{"qty_$_"} * $form->{"sellprice_$_"}
+         }
+            1 .. $form->{rowcount} - 1;
+        $form->{invtotal} = reduce { $a + $b } @{$form->{linetotal}};
+    } else {
         IS->invoice_details( \%myconfig, $form );
-    } 
+    }
     if ( exists $form->{longformat} ) {
         $form->{"${due}date"} = $duedate;
         for ( "${inv}date", "${due}date", "shippingdate", "transdate" ) {
@@ -1726,7 +1818,7 @@ sub print_form {
         }
     }
 
-    $logger->trace("\$form->{formname}=$form->{formname} \$form->{fax}=$form->{fax} \$shipto=$shipto \$form->{shiptofax}=$form->{shiptofax}");
+    # $logger->trace("\$form->{formname}=$form->{formname} \$form->{fax}=$form->{fax} \$shipto=$shipto \$form->{shiptofax}=$form->{shiptofax}");
     if ($shipto) {
         if (   $form->{formname} eq 'purchase_order'
             || $form->{formname} eq 'request_quotation' )
@@ -1769,7 +1861,10 @@ sub print_form {
     $form->{pre} = "<body bgcolor=#ffffff>\n<pre>" if $form->{format} eq 'txt';
 
     my %output_options;
-    if ( $form->{media} !~ /(screen|queue|email)/ ) { # printing
+    if ($form->{media} eq 'zip'){
+        $form->{OUT}       = $form->{zipdir};
+        $form->{printmode} = '>';
+    } elsif ( $form->{media} !~ /(screen|zip|email)/ ) { # printing
         $form->{OUT}       = ${LedgerSMB::Sysconfig::printer}{ $form->{media} };
         $form->{printmode} = '|-';
         $form->{OUT} =~ s/<%(fax)%>/<%$form->{vc}$1%>/;
@@ -1913,13 +2008,7 @@ sub print_form {
         output_options => \%output_options,
 	output_file => $form->{formname} . "-" . $form->{"${inv}number"},
         );
-    try {
-        $template->render($form);
-    }
-    catch Error::Simple with {
-        my $E = shift;
-        $form->error( $E->stacktrace );
-    };
+    $template->render($form);
 
     # if we got back here restore the previous form
     if ( %$old_form ) {
@@ -1943,8 +2032,7 @@ sub print_form {
             }
         }
 
-        &{"$display_form"};
-
+        edit();
     }
 
 }
@@ -1992,7 +2080,7 @@ sub ship_to {
 
 
     print qq|
-               <body>
+               <body class="$form->{dojo_theme}">
 
 <form name="form" method=post action=$form->{script}>
 

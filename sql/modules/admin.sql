@@ -13,6 +13,7 @@
 --
 -- -CT
 
+BEGIN;
 -- work in progress, not documenting yet.
 CREATE OR REPLACE FUNCTION admin__add_user_to_role(in_username TEXT, in_role TEXT) returns INT AS $$
     
@@ -20,6 +21,7 @@ CREATE OR REPLACE FUNCTION admin__add_user_to_role(in_username TEXT, in_role TEX
         stmt TEXT;
         a_role name;
         a_user name;
+	t_userid int;
     BEGIN
     
         -- Issue the grant
@@ -31,14 +33,27 @@ CREATE OR REPLACE FUNCTION admin__add_user_to_role(in_username TEXT, in_role TEX
         select rolname into a_user from pg_roles where rolname = in_username;
         
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Cannot grant permissions to a non-existant user.';
+            RAISE EXCEPTION 'Cannot grant permissions to a non-existant database user.';
         END IF;
         
         stmt := 'GRANT '|| quote_ident(in_role) ||' to '|| quote_ident(in_username);
         
         EXECUTE stmt;
-        insert into lsmb_roles (user_id, role) 
-        SELECT id, in_role from users where username = in_username;
+
+	select id into t_userid from users where username = in_username;
+	if not FOUND then
+	  RAISE EXCEPTION 'Cannot grant permissions to a non-existant application user.';
+        end if;
+
+	perform * from lsmb_roles
+	 where user_id = t_userid and role = in_role;
+	if not FOUND then
+          -- not found --> adding
+          insert into lsmb_roles (user_id, role) 
+          SELECT id, in_role from users where username = in_username 
+                 AND id not in (select user_id from lsmb_roles 
+                                 where role = in_role);
+        end if;
         return 1;
     END;
     
@@ -219,13 +234,14 @@ FROM public;
         
 --$$ language 'plpgsql';
 
-CREATE OR REPLACE FUNCTION admin__get_user(in_user_id INT) returns setof users as $$
+DROP FUNCTION IF EXISTS  admin__get_user(in_entity_id INT);
+CREATE OR REPLACE FUNCTION admin__get_user(in_id INT) returns setof users as $$
     
     DECLARE
         a_user users;
     BEGIN
         
-        select * into a_user from users where id = in_user_id;
+        select * into a_user from users where id = in_id;
         return next a_user;
         return;
     
@@ -235,6 +251,23 @@ $$ language plpgsql;
 COMMENT ON FUNCTION admin__get_user(in_user_id INT) IS
 $$ Returns a set of (only one) user specified by the id.$$;
 
+CREATE OR REPLACE FUNCTION admin__get_user_by_entity(in_entity_id INT) returns setof users as $$
+    
+    DECLARE
+        a_user users;
+    BEGIN
+        
+        select * into a_user from users where entity_id = in_entity_id;
+        return next a_user;
+        return;
+    
+    END;    
+$$ language plpgsql;
+
+COMMENT ON FUNCTION admin__get_user_by_entity(in_entity_id INT) IS
+$$ Returns a set of (only one) user specified by the entity_id.$$;
+
+DROP FUNCTION IF EXISTS admin__get_roles_for_user(in_entity_id INT);
 CREATE OR REPLACE FUNCTION admin__get_roles_for_user(in_user_id INT) returns setof text as $$
     
     declare
@@ -258,6 +291,7 @@ CREATE OR REPLACE FUNCTION admin__get_roles_for_user(in_user_id INT) returns set
             ) as ar
          where 
             r.oid = ar.roleid
+            and r.rolname like (lsmb__role_prefix() || '%')
          LOOP
         
             RETURN NEXT u_role.rolname::text;
@@ -268,10 +302,50 @@ CREATE OR REPLACE FUNCTION admin__get_roles_for_user(in_user_id INT) returns set
     
 $$ language 'plpgsql' SECURITY DEFINER;
 
-REVOKE EXECUTE ON FUNCTION admin__get_roles_for_user(in_user_id INT) from PUBLIC;
+REVOKE EXECUTE ON FUNCTION admin__get_roles_for_user(in_entity_id INT) from PUBLIC;
 
 COMMENT ON FUNCTION admin__get_roles_for_user(in_user_id INT) IS
 $$ Returns a set of roles that  a user is a part of.$$;
+
+CREATE OR REPLACE FUNCTION admin__get_roles_for_user_by_entity(in_entity_id INT) returns setof text as $$
+    
+    declare
+        u_role record;
+        a_user users;
+    begin
+        select * into a_user from admin__get_user_by_entity(in_entity_id);
+        
+        FOR u_role IN 
+        select r.rolname 
+        from 
+            pg_roles r,
+            (select 
+                m.roleid 
+             from 
+                pg_auth_members m, pg_roles b 
+             where 
+                m.member = b.oid 
+             and 
+                b.rolname = a_user.username
+            ) as ar
+         where 
+            r.oid = ar.roleid
+            and r.rolname like (lsmb__role_prefix() || '%')
+         LOOP
+        
+            RETURN NEXT u_role.rolname::text;
+        
+        END LOOP;
+        RETURN;
+    end;
+    
+$$ language 'plpgsql' SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION admin__get_roles_for_user_by_entity(in_entity_id INT) from PUBLIC;
+
+COMMENT ON FUNCTION admin__get_roles_for_user_by_entity(in_entity_id INT) IS
+$$ Returns a set of roles that  a user is a part of.$$;
+
 
 CREATE OR REPLACE FUNCTION user__check_my_expiration()
 returns interval as
@@ -301,7 +375,7 @@ $$ Returns true if the password of the current logged in user is set to expire
 within on week.$$;
 
 CREATE OR REPLACE FUNCTION user__change_password(in_new_password text)
-returns int SET datestyle = 'ISO, YMD' as
+returns int SET datestyle = 'ISO, YMD' as -- datestyle needed due to legacy code
 $$
 DECLARE
 	t_expires timestamp;
@@ -330,14 +404,16 @@ COMMENT ON FUNCTION user__change_password(in_new_password text) IS
 $$ Alloes a user to change his or her own password.  The password is set to 
 expire setting_get('password_duration') days after the password change.$$;
 
+DROP FUNCTION IF EXISTS admin__save_user(int, int, text, text, bool);
+
 CREATE OR REPLACE FUNCTION admin__save_user(
     in_id int, 
     in_entity_id INT,
     in_username text, 
     in_password TEXT,
-    in_import BOOL
+    in_pls_import BOOL
 ) returns int 
-SET datestyle = 'ISO, YMD'
+SET datestyle = 'ISO, YMD' -- needed due to legacy code regarding datestyles
 AS $$
     DECLARE
     
@@ -357,7 +433,7 @@ AS $$
        t_is_role := found;
        t_is_user := admin__is_user(in_username);
 
-       IF t_is_role is true and t_is_user is false and in_import is false THEN
+       IF t_is_role is true and t_is_user is false and in_pls_import is NOT TRUE THEN
           RAISE EXCEPTION 'Duplicate user';
         END IF;
 
@@ -366,10 +442,10 @@ AS $$
                      ' WITH ENCRYPTED PASSWORD ' || quote_literal (in_password)
                      || $e$ valid until $e$ || 
                       quote_literal(now() + '1 day'::interval);
-        elsif in_import is false AND t_is_user is false 
+        elsif in_pls_import is false AND t_is_user is false 
               AND in_password IS NULL THEN
                 RAISE EXCEPTION 'No password';
-        elsif  t_is_role is false and in_import IS FALSE THEN
+        elsif  t_is_role is false and in_pls_import IS NOT TRUE THEN
             -- create an actual user
                 execute 'CREATE USER ' || quote_ident( in_username ) || 
                      ' WITH ENCRYPTED PASSWORD ' || quote_literal (in_password)
@@ -378,6 +454,9 @@ AS $$
         
         select * into a_user from users lu where lu.id = in_id;
         IF FOUND THEN 
+            PERFORM admin__add_user_to_role(
+                        a_user.username, 
+                        lsmb__role_prefix() || 'base_user');
             return a_user.id;
         ELSE
             -- Insert cycle
@@ -398,6 +477,9 @@ AS $$
                 INSERT into entity_employee (entity_id) values (in_entity_id);
             END IF;
             -- Finally, issue the create user statement
+            PERFORM admin__add_user_to_role(
+                        in_username, 
+                        lsmb__role_prefix() || 'base_user');
             
             return v_user_id ;
 
@@ -425,7 +507,8 @@ REVOKE EXECUTE ON FUNCTION admin__save_user(
     in_import bool
 ) FROM public; 
 
-DROP VIEW IF EXISTS role_view CASCADE;
+
+DROP VIEW if exists role_view CASCADE;
 create view role_view as 
     select * from pg_auth_members m join pg_roles a ON (m.roleid = a.oid);
         
@@ -455,13 +538,14 @@ $$ language 'plpgsql';
 CREATE OR REPLACE FUNCTION admin__create_group(in_group_name TEXT) RETURNS int as $$
     
     DECLARE
-        
         stmt text;
-        t_dbname text;
+        group_name text;
     BEGIN
-	t_dbname := current_database();
-        stmt := 'create role lsmb_'|| quote_ident(t_dbname || '__' || in_group_name);
+        group_name := lsmb__role(in_group_name);
+        stmt := 'create role '|| quote_ident(group_name);
         execute stmt;
+        INSERT INTO lsmb_group (role_name) 
+             values (group_name);
         return 1;
     END;
     
@@ -469,7 +553,71 @@ $$ language 'plpgsql' SECURITY DEFINER;
 
 REVOKE EXECUTE ON FUNCTION  admin__create_group(TEXT) FROM PUBLIC;
 
--- not sure if this is exposed to the front end yet. --CT
+CREATE OR REPLACE FUNCTION admin__add_group_to_role
+(in_group_name text, in_role_name text)
+RETURNS BOOL AS
+$$
+DECLARE
+   t_group_name text;
+   t_role_name  text;
+BEGIN
+   t_group_name := lsmb__role(in_group_name);
+   t_role_name := lsmb__role(in_role_name);
+   PERFORM * FROM lsmb_group_grants
+     WHERE group_name = t_group_name AND
+           granted_role = t_role_name;
+
+   IF NOT FOUND THEN
+      INSERT INTO lsmb_group_grants(group_name, granted_role) 
+           VALUES (t_group_name, t_role_name);
+   END IF;
+
+   EXECUTE 'GRANT ' || quote_ident(t_role_name) || ' TO ' ||
+           quote_literal(t_group_name);
+   RETURN TRUE;
+END;
+$$ LANGUAGE PLPGSQL SECURITY DEFINER;
+
+revoke execute on function admin__add_group_to_role 
+(in_group_name text, in_role_name text) FROM public;
+
+COMMENT ON function admin__add_group_to_role 
+(in_group_name text, in_role_name text) IS
+$$ This function inserts the arguments into lsmb_group_grants for future
+reference and issues the db-level grant.  It then returns true if there are no
+exceptions.$$;
+
+CREATE OR REPLACE FUNCTION admin__remove_group_from_role
+(in_group_name text, in_role_name text) RETURNS BOOL AS $$
+BEGIN
+
+   EXECUTE 'REVOKE ' || quote_ident(in_role_name) || ' FROM ' ||
+           quote_literal('lsmb_' || t_dbname || '__' || in_group_name);
+
+   DELETE FROM lsmb_group_grants 
+    WHERE group_name = in_group_name AND granted_role = in_role_name;
+
+   RETURN FOUND;
+
+END;
+
+$$ LANGUAGE PLPGSQL SECURITY DEFINER;  
+
+revoke execute on function admin__remove_group_from_role
+(in_group_name text, in_role_name text) FROM public;
+
+COMMENT ON  FUNCTION admin__remove_group_from_role
+(in_group_name text, in_role_name text) IS $$
+Returns true if the grant record was found and deleted, false otherwise.
+Issues db-level revoke in all cases.$$;
+
+CREATE OR REPLACE FUNCTION admin__list_group_grants(in_group_name text)
+RETURNS SETOF lsmb_group_grants AS $$
+SELECT * FROM lsmb_group_grants WHERE group_name = $1
+ORDER BY granted_role;
+$$ LANGUAGE SQL;
+
+--  not sure if this is exposed to the front end yet. --CT
 CREATE OR REPLACE FUNCTION admin__delete_user
 (in_username TEXT, in_drop_role bool) returns INT as $$
     
@@ -508,23 +656,21 @@ It leaves the entity and person references.
 If in_drop_role is set, it drops the role too.
 $$;
 
--- Work oin progress, not for ducmenting yet.
+-- Work in progress, not for ducmenting yet.
 CREATE OR REPLACE FUNCTION admin__delete_group (in_group_name TEXT) returns bool as $$
     
     DECLARE
         stmt text;
         a_role role_view;
-        t_dbname text;
+        group_name text;
     BEGIN
-        t_dbname := current_database();
-        
-
         select * into a_role from role_view where rolname = in_group_name;
-        
+
         if not found then
             return 'f'::bool;
         else
-            stmt := 'drop role lsmb_' || quote_ident(t_dbname || '__' || in_group_name);
+            group_name := lsmb__role(in_group_name);
+            stmt := 'drop role lsmb_' || quote_ident(group_name);
             execute stmt;
             return 't'::bool;
         end if;
@@ -537,28 +683,6 @@ comment on function admin__delete_group(text) IS $$
     Deletes the input group from the database. Not designed to be used to 
     remove a login-capable user.
 $$;
-
-CREATE OR REPLACE FUNCTION admin__list_roles(in_username text)
-RETURNS SETOF text AS
-$$
-DECLARE out_rolename RECORD;
-BEGIN
-	FOR out_rolename IN 
-		SELECT rolname FROM pg_roles 
-		WHERE oid IN (SELECT id FROM connectby (
-			'(SELECT m.member, m.roleid, r.oid FROM pg_roles r 
-			LEFT JOIN pg_auth_members m ON (r.oid = m.roleid)) a',
-			'oid', 'member', 'oid', '320461', '0', ','
-			) c(id integer, parent integer, "level" integer, 
-				path text, list_order integer)
-			)
-	LOOP
-		RETURN NEXT out_rolename.rolname;
-	END LOOP;
-END;
-$$ LANGUAGE PLPGSQL SECURITY DEFINER;
-
-REVOKE execute on function admin__list_roles(in_username text) from public;
 
 -- TODO:  Add admin user
 
@@ -599,17 +723,15 @@ $$ language sql;
 create or replace function admin__get_roles () returns setof pg_roles as $$
 DECLARE
     v_rol record;
-    t_dbname text;
 BEGIN
-    t_dbname := current_database();
-    FOR v_rol in 
+    FOR v_rol in
         SELECT *
-        from 
+        FROM
             pg_roles
-        where 
-            rolname ~ ('^lsmb_' || t_dbname || '__') 
-            and rolcanlogin is false
-        order by rolname ASC
+        WHERE
+            rolname ~ ('^' || lsmb__role_prefix())
+            AND NOT rolcanlogin
+        ORDER BY rolname ASC
     LOOP
         RETURN NEXT v_rol;
     END LOOP;
@@ -665,7 +787,7 @@ $$ language plpgsql;
 COMMENT ON function user__get_preferences (in_user_id int) IS
 $$ Returns the preferences row for the user.$$;
 
-DROP TYPE IF EXISTS user_result CASCADE;
+DROP TYPE if exists user_result CASCADE;
 CREATE TYPE user_result AS (
 	id int,
 	username text,
@@ -700,7 +822,7 @@ COMMENT ON FUNCTION  admin__search_users(in_username text, in_first_name text, i
 $$ Returns a list of users matching search criteria.  Nulls match all values.
 only username is not an exact match.$$;
 
-DROP TYPE IF EXISTS session_result CASCADE;
+DROP TYPE if exists session_result CASCADE;
 CREATE TYPE session_result AS (
 	id int,
 	username text,
@@ -731,3 +853,7 @@ $$ language plpgsql;
 
 COMMENT ON FUNCTION admin__drop_session(in_session_id int) IS
 $$ Drops the session identified, releasing all locks held.$$;
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
+
+COMMIT;

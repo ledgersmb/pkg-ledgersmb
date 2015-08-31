@@ -1,16 +1,17 @@
 <?lsmb PROCESS 'ui-header.html' ?>
 <?lsmb PROCESS 'elements.html' ?>
-
-<div class="body" id ="recon1">
-    <div class="listtop">
-       <?lsmb text('New Reconciliation Report') ?>
+<body class="<?lsmb dojo_theme ?>">
+<div class="body" id ="recon1" class="<?lsmb dojo_theme ?>">
+    <div class="title listtop">
+        <?lsmb text('New Reconciliation Report') ?>
     </div>
     <?lsmb IF error?>
         <div class="error">Error detected in file upload: <?lsmb error?><br/>
             Please check your CSV file and try again.
         </div>
     <?lsmb END?>
-    <form name="csv_upload" method="POST" action="recon.pl">
+    <form data-dojo-type="lsmb/lib/Form" name="csv_upload" method="POST" action="recon.pl">
+    <div class="tabular col-2">
        <!-- TODO:  Move this to CSS show/hide" --> 
 	<!-- div id="csv-file">
         <label for="file_upload"><?lsmb text('CSV File:') ?></label>
@@ -21,7 +22,7 @@
 		options = accounts,
 		text_attr = "name",
 		value_attr = "id",
-		label = "Account"
+		label = text("Account")
 	} ?>
 	<?lsmb INCLUDE input element_data = {
 		name = "total",
@@ -47,6 +48,7 @@
            name = "recon_fx"
         } ?>
         </div>
+     </div>
 	<div id="button-row">
 	<?lsmb INCLUDE button element_data = {
 		type = "submit",

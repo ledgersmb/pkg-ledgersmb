@@ -1,4 +1,5 @@
 BEGIN;
+
 CREATE OR REPLACE FUNCTION eoy__latest_checkpoint() RETURNS account_checkpoint
 LANGUAGE SQL AS
 $$
@@ -93,7 +94,8 @@ BEGIN
 	JOIN account acc ON (acc.id = a.chart_id)
 	WHERE a.transdate <= in_end_date 
 		AND a.transdate > coalesce(cp.end_date, a.transdate - 1)
-		AND acc.category IN ('I', 'E')
+		AND (acc.category IN ('I', 'E')
+                      OR acc.category = 'Q' AND acc.is_temp)
 	GROUP BY a.chart_id;
 
 	INSERT INTO acc_trans (transdate, trans_id, chart_id, amount)
@@ -229,7 +231,15 @@ $$ LANGUAGE PLPGSQL;
 COMMENT ON FUNCTION account__obtain_balance 
 (in_transdate date, in_account_id int) is
 $$Returns the account balance at a given point in time, calculating forward 
-from most recent check point.$$;
+from most recent check point.  This function is inclusive of in_transdate.  For
+an exclusive function see account__obtain_starting_balance below.$$;
+
+CREATE OR REPLACE FUNCTION account__obtain_starting_balance
+(in_transdate date, in_account_id int)
+RETURNS numeric LANGUAGE SQL AS
+$$
+SELECT account__obtain_balance($1 - 1, $2);
+$$;
 
 CREATE OR REPLACE FUNCTION eoy_earnings_accounts() RETURNS setof account AS 
 $$
@@ -242,5 +252,6 @@ $$ language sql;
 COMMENT ON FUNCTION eoy_earnings_accounts() IS
 $$ Lists equity accounts for the retained earnings dropdown.$$;
 
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
 
 COMMIT;

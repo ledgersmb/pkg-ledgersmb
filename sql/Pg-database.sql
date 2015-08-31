@@ -1,11 +1,52 @@
-CREATE LANGUAGE PLPGSQL; -- separate transaction since may already exist
-CREATE EXTENSION tablefunc; -- Separate transaction, only needed for 9.1
-CREATE EXTENSION pg_trgm; -- Separate transaction, only needed for 9.1
-CREATE EXTENSION btree_gist; -- Separate transaction, only needed for 9.1
 
 begin;
+
+-- Base sections for modules and roles
+
+CREATE TABLE lsmb_group (
+     role_name text primary key
+);
+
+CREATE TABLE lsmb_group_grants (
+     group_name text references lsmb_group(role_name),
+     granted_role text,
+     PRIMARY KEY (group_name, granted_role)
+); 
+
+CREATE TABLE lsmb_module (
+     id int not null unique,
+     label text primary key
+);
+
+COMMENT ON TABLE lsmb_module IS
+$$ This stores categories functionality into modules.  Addons may add rows here, but 
+the id should be hardcoded.  As always 900-1000 will be reserved for internal use, 
+and negative numbers will be reserved for testing.$$;
+
+INSERT INTO lsmb_module (id, label)
+VALUES (1, 'AR'),
+       (2, 'AP'),
+       (3, 'GL'),
+       (4, 'Entity'),
+       (5, 'Manufacturing'),
+       (6, 'Fixed Assets'),
+       (7, 'Timecards');
+
+--function person__get_my_entity_id() defined 2 times in Pg-database.sql, also defined in Person.sql
+--this first,dummy? definition needed because function is called in subsequent default statements in this file?
+CREATE OR REPLACE FUNCTION person__get_my_entity_id() RETURNS INT AS
+$$ SELECT -1;$$ LANGUAGE SQL;
+
 CREATE SEQUENCE id;
 -- As of 1.3 there is no central db anymore. --CT
+--
+CREATE TABLE language (
+  code varchar(6) PRIMARY KEY,
+  description text
+);
+
+COMMENT ON TABLE language IS
+$$ Languages for manual translations and so forth.$$;
 
 CREATE OR REPLACE FUNCTION concat_colon(TEXT, TEXT) returns TEXT as
 $$
@@ -44,12 +85,20 @@ CREATE TABLE account (
   id serial not null unique,
   accno text primary key,
   description text,
-  category CHAR(1) NOT NULL,
+  is_temp bool not null default false,
+  category CHAR(1) NOT NULL check (category IN ('A','L','Q','I','E')),
   gifi_accno text,
   heading int not null references account_heading(id),
   contra bool not null default false,
-  tax bool not null default false
+  tax bool not null default false,
+  obsolete bool not null default false
 );
+
+COMMENT ON COLUMN account.category IS
+$$ A=asset,L=liability,Q=Equity,I=Income,E=expense $$;
+
+COMMENT ON COLUMN account.is_temp IS
+$$ Only affects equity accounts.  If set, close at end of year. $$;
 
 COMMENT ON TABLE  account IS
 $$ This table stores the main account info.$$;
@@ -107,6 +156,7 @@ VALUES
 ('IC_taxservice',  FALSE, FALSE),
 ('IC_income',      FALSE, FALSE),
 ('IC_expense',     FALSE, FALSE),
+('IC_returns',     FALSE, FALSE),
 ('Asset_Dep',      FALSE, FALSE),
 ('Fixed_Asset',    FALSE, FALSE),
 ('asset_expense',  FALSE, FALSE),
@@ -115,14 +165,28 @@ VALUES
 
 
 CREATE TABLE account_link (
-   account_id int references account(id),
+   account_id int references account(id) on delete cascade,
    description text references account_link_description(description),
    primary key (account_id, description)
 );
 
 CREATE VIEW chart AS
-SELECT id, accno, description, 'H' as charttype, NULL as category, NULL as link, NULL as account_heading, null as gifi_accno, false as contra, false as tax from account_heading UNION
-select c.id, c.accno, c.description, 'A' as charttype, c.category, concat_colon(l.description) as link, heading, gifi_accno, contra, tax from account c left join account_link l ON (c.id = l.account_id) group by c.id, c.accno, c.description, c.category, c.heading, c.gifi_accno, c.contra, c.tax;
+SELECT id, accno, description,
+       'H' as charttype, NULL as category, NULL as link,
+       parent_id as account_heading,
+       null as gifi_accno, false as contra,
+       false as tax
+  from account_heading
+UNION
+select c.id, c.accno, c.description,
+       'A' as charttype, c.category, concat_colon(l.description) as link,
+       heading, gifi_accno, contra,
+       tax
+  from account c
+  left join account_link l
+    ON (c.id = l.account_id)
+group by c.id, c.accno, c.description, c.category, c.heading,
+         c.gifi_accno, c.contra, c.tax;
 
 GRANT SELECT ON chart TO public;
 
@@ -138,12 +202,6 @@ COMMENT ON TABLE pricegroup IS
 $$ Pricegroups are groups of customers who are assigned prices and discounts
 together.$$;
 --TABLE language moved here because of later references
-CREATE TABLE language (
-  code varchar(6) PRIMARY KEY,
-  description text
-);
-COMMENT ON TABLE language IS
-$$ Languages for manual translations and so forth.$$;
 INSERT INTO language (code, description)
 VALUES ('ar_EG', 'Arabic (Egypt)'),
        ('es_AR', 'Spanish (Argentina)'),
@@ -174,6 +232,7 @@ VALUES ('ar_EG', 'Arabic (Egypt)'),
        ('is',    'Icelandic'),
        ('it',    'Italian'),
        ('lt',    'Latvian'),
+       ('ms_MY','Malay'),
        ('nb',    'Norwegian'),
        ('nl',    'Dutch'),
        ('nl_BE', 'Dutch (Belgium)'),
@@ -457,6 +516,7 @@ create table country_tax_form (country_id int  references country(id) not null,
    form_name text not null,
    id serial not null unique,
    default_reportable bool not null default false,
+   is_accrual bool not null default false,
    primary key(country_id, form_name)
 );
 
@@ -465,10 +525,10 @@ $$ This table was designed for holding information relating to reportable
 sales or purchases, such as IRS 1099 forms and international equivalents.$$;
 
 -- BEGIN new entity management
+--table entity_class contained field country_id, the idea was that we could have country-specific entity classes, nobody uses this , it can be removed from 1.4.
 CREATE TABLE entity_class (
   id serial primary key,
   class text check (class ~ '[[:alnum:]_]') NOT NULL,
-  country_id int references country(id),
   active boolean not null default TRUE);
   
 COMMENT ON TABLE entity_class IS $$ Defines the class type such as vendor, customer, contact, employee $$;
@@ -486,29 +546,24 @@ CREATE TABLE entity (
   control_code text unique,
   country_id int references country(id) not null,
   PRIMARY KEY(control_code, entity_class));
-  
+
 COMMENT ON TABLE entity IS $$ The primary entity table to map to all contacts $$;
 COMMENT ON COLUMN entity.name IS $$ This is the common name of an entity. If it was a person it may be Joshua Drake, a company Acme Corp. You may also choose to use a domain such as commandprompt.com $$;
 
 
 ALTER TABLE entity ADD FOREIGN KEY (entity_class) REFERENCES entity_class(id);
 
-INSERT INTO entity_class (id,class) VALUES (1,'Vendor');
-INSERT INTO entity_class (id,class) VALUES (2,'Customer');
-INSERT INTO entity_class (id,class) VALUES (3,'Employee');
-INSERT INTO entity_class (id,class) VALUES (4,'Contact');
-INSERT INTO entity_class (id,class) VALUES (5,'Lead');
-INSERT INTO entity_class (id,class) VALUES (6,'Referral');
+INSERT INTO entity_class (id,class) 
+VALUES (1,'Vendor'),
+       (2,'Customer'),
+       (3,'Employee'),
+       (4,'Contact'),
+       (5,'Lead'),
+       (6,'Referral'),
+       (7,'Hot Lead'),
+       (8,'Cold Lead');
 
-SELECT setval('entity_class_id_seq',7);
-
-CREATE TABLE entity_class_to_entity (
-  entity_class_id integer not null references entity_class(id) ON DELETE CASCADE,
-  entity_id integer not null references entity(id) ON DELETE CASCADE,
-  PRIMARY KEY(entity_class_id,entity_id)
-  );
-
-COMMENT ON TABLE entity_class_to_entity IS $$ Relation builder for classes to entity $$;
+SELECT setval('entity_class_id_seq',8);
 
 -- USERS stuff --
 CREATE TABLE users (
@@ -518,16 +573,6 @@ CREATE TABLE users (
     entity_id int not null references entity(id) on delete cascade
 );
 
-COMMENT ON TABLE users IS $$username is the actual primary key here because we 
-do not want duplicate users$$;
-
-CREATE OR REPLACE FUNCTION person__get_my_entity_id() RETURNS INT AS
-$$
-	SELECT entity_id from users where username = SESSION_USER;
-$$ LANGUAGE SQL;
-
-COMMENT ON FUNCTION person__get_my_entity_id() IS
-$$ Returns the entity_id of the current, logged in user.$$;
 
 create table lsmb_roles (
     
@@ -550,7 +595,7 @@ session_id serial PRIMARY KEY,
 token VARCHAR(32) CHECK(length(token) = 32),
 last_used TIMESTAMP default now(),
 ttl int default 3600 not null,
-users_id INTEGER NOT NULL references users(id),
+users_id INTEGER NOT NULL references users(id) on delete cascade,
 notify_pasword interval not null default '7 days'::interval
 );
 
@@ -574,6 +619,7 @@ CREATE TABLE transactions (
   id int PRIMARY KEY,
   table_name text,
   locked_by int references "session" (session_id) ON DELETE SET NULL,
+  approved bool,
   approved_by int references entity (id),
   approved_at timestamp
 );
@@ -614,6 +660,7 @@ COMMENT ON column transactions.locked_by IS
 $$ This should only be used in pessimistic locking measures as required by large
 batch work flows. $$;
 
+
 -- LOCATION AND COUNTRY
 
 CREATE TABLE location_class (
@@ -626,13 +673,37 @@ COMMENT ON TABLE location_class is $$
 Individuals seeking to add new location classes should coordinate with others.
 $$;
 
+create table location_class_to_entity_class (
+  id serial unique,
+  location_class int not null references location_class(id),
+  entity_class int not null references entity_class(id)
+);
+
+GRANT SELECT ON location_class_to_entity_class TO PUBLIC;
+
+COMMENT ON TABLE location_class_to_entity_class IS
+$$This determines which location classes go with which entity classes$$;
+
 CREATE UNIQUE INDEX lower_class_unique ON location_class(lower(class));
 
 INSERT INTO location_class(id,class,authoritative) VALUES ('1','Billing',TRUE);
-INSERT INTO location_class(id,class,authoritative) VALUES ('2','Sales',TRUE);
-INSERT INTO location_class(id,class,authoritative) VALUES ('3','Shipping',TRUE);
+INSERT INTO location_class(id,class,authoritative) VALUES ('2','Sales',FALSE);
+INSERT INTO location_class(id,class,authoritative) VALUES ('3','Shipping',FALSE);
+INSERT INTO location_class(id,class,authoritative) VALUES ('4','Physical',TRUE);
+INSERT INTO location_class(id,class,authoritative) VALUES ('5','Mailing',FALSE);
 
-SELECT SETVAL('location_class_id_seq',4);
+SELECT SETVAL('location_class_id_seq',5);
+
+INSERT INTO location_class_to_entity_class 
+       (location_class, entity_class)
+SELECT lc.id, ec.id
+  FROM entity_class ec
+ cross
+  join location_class lc
+ WHERE ec.id <> 3 and lc.id < 4;
+
+INSERT INTO location_class_to_entity_class (location_class, entity_class)
+SELECT id, 3 from location_class lc where lc.id > 3;
   
 CREATE TABLE location (
   id serial PRIMARY KEY,
@@ -642,7 +713,7 @@ CREATE TABLE location (
   city text check (city ~ '[[:alnum:]_]') NOT NULL,
   state text check(state ~ '[[:alnum:]_]'),
   country_id integer not null REFERENCES country(id),
-  mail_code text check (mail_code ~ '[[:alnum:]_]'),
+  mail_code text check (mail_code ~ '[[:alnum:]_-]'),
   created date not null default now(),
   inactive_date timestamp default null,
   active boolean not null default TRUE
@@ -657,19 +728,21 @@ CREATE TABLE company (
   entity_id integer not null references entity(id),
   legal_name text check (legal_name ~ '[[:alnum:]_]'),
   tax_id text,
+  sales_tax_id text,
+  license_number text,
   sic_code varchar,
   created date default current_date not null,
   PRIMARY KEY (entity_id,legal_name));
   
 COMMENT ON COLUMN company.tax_id IS $$ In the US this would be a EIN. $$;  
 
-CREATE TABLE company_to_location (
+CREATE TABLE entity_to_location (
   location_id integer references location(id) not null,
   location_class integer not null references location_class(id),
-  company_id integer not null references company(id) ON DELETE CASCADE,
-  PRIMARY KEY(location_id,company_id, location_class));
+  entity_id integer not null references entity(id) ON DELETE CASCADE,
+  PRIMARY KEY(location_id, entity_id, location_class));
 
-COMMENT ON TABLE company_to_location IS
+COMMENT ON TABLE entity_to_location IS
 $$ This table is used for locations generic to companies.  For contract-bound
 addresses, use eca_to_location instead $$;
 
@@ -694,6 +767,8 @@ CREATE TABLE person (
     middle_name text,
     last_name text check (last_name ~ '[[:alnum:]_]') NOT NULL,
     created date not null default current_date,
+    birthdate date,
+    personal_id text,
     unique(entity_id) -- needed due to entity_employee assumptions --CT
  );
  
@@ -710,17 +785,12 @@ create table entity_employee (
     manager_id integer references entity(id),
     employeenumber varchar(32),
     dob date,
+    is_manager bool default false,
     PRIMARY KEY (entity_id)
 );
 
 COMMENT ON TABLE entity_employee IS 
 $$ This contains employee-specific extensions to person/entity. $$;
-
-CREATE TABLE person_to_location (
-  location_id integer not null references location(id),
-  location_class integer not null references location_class(id),
-  person_id integer not null references person(id) ON DELETE CASCADE,
-  PRIMARY KEY (location_id,person_id));
 
 CREATE TABLE person_to_company (
   location_id integer references location(id) not null,
@@ -740,26 +810,6 @@ CREATE TABLE entity_other_name (
 COMMENT ON TABLE entity_other_name IS $$ Similar to company_other_name, a person
 may be jd, Joshua Drake, linuxpoet... all are the same person.  Currently
 unused in the front-end but will likely be added in future versions.$$;
-
-CREATE TABLE person_to_entity (
- person_id integer not null references person(id) ON DELETE CASCADE,
- entity_id integer not null check (entity_id != person_id) references entity(id) ON DELETE CASCADE,
- related_how text,
- created date not null default current_date,
- PRIMARY KEY (person_id,entity_id));
-
-COMMENT ON TABLE person_to_entity IS
-$$ This provides a map so that entities can also be used like groups.$$;
- 
-CREATE TABLE company_to_entity (
- company_id integer not null references company(id) ON DELETE CASCADE,
- entity_id integer check (company_id != entity_id) not null references entity(id) ON DELETE CASCADE,
- related_how text,
- created date not null default current_date,
- PRIMARY KEY (company_id,entity_id));
- 
-COMMENT ON TABLE company_to_entity IS
-$$ This provides a map so that entities can also be used like groups.$$;
 
 CREATE TABLE contact_class (
   id serial UNIQUE,
@@ -791,29 +841,21 @@ INSERT INTO contact_class (id,class) values (14,'BCC');
 INSERT INTO contact_class (id,class) values (15,'Billing Email');
 INSERT INTO contact_class (id,class) values (16,'Billing CC');
 INSERT INTO contact_class (id,class) values (17,'Billing BCC');
+INSERT INTO contact_class (id,class) values (18,'EDI Interchange ID');
+INSERT INTO contact_class (id,class) values (19,'EDI ID');
 
-SELECT SETVAL('contact_class_id_seq',17);
+SELECT SETVAL('contact_class_id_seq',19);
 
-CREATE TABLE person_to_contact (
-  person_id integer not null references person(id) ON DELETE CASCADE,
+CREATE TABLE entity_to_contact (
+  entity_id integer not null references entity(id) ON DELETE CASCADE,
   contact_class_id integer references contact_class(id) not null,
   contact text check(contact ~ '[[:alnum:]_]') not null,
   description text,
-  PRIMARY KEY (person_id,contact_class_id,contact));
+  PRIMARY KEY (entity_id,contact_class_id,contact));
   
-COMMENT ON TABLE person_to_contact IS 
-$$ This table stores contact information for persons$$;
+COMMENT ON TABLE entity_to_contact IS 
+$$ This table stores contact information for entities$$;
   
-CREATE TABLE company_to_contact (
-  company_id integer not null references company(id) ON DELETE CASCADE,
-  contact_class_id integer references contact_class(id) not null,
-  contact text check(contact ~ '[[:alnum:]_]') not null,
-  description text,
-  PRIMARY KEY (company_id, contact_class_id,  contact));  
-
-COMMENT ON TABLE person_to_contact IS 
-$$ This table stores contact information for companies$$;
-
 CREATE TABLE entity_bank_account (
     id serial not null,
     entity_id int not null references entity(id) ON DELETE CASCADE,
@@ -870,6 +912,7 @@ CREATE TABLE entity_credit_account (
     CHECK (ar_ap_account_id IS NOT NULL OR entity_id = 0)
 );
 
+COMMENT ON TABLE entity IS $$ The primary entity table to map to all contacts $$;
 COMMENT ON TABLE entity_credit_account IS
 $$This table stores information relating to general relationships regarding 
 moneys owed on invoice.  Invoices, whether AR or AP, must be attached to 
@@ -895,7 +938,7 @@ CREATE TABLE eca_to_contact (
   PRIMARY KEY (credit_id, contact_class_id,  contact));  
 
 COMMENT ON TABLE eca_to_contact IS $$ To keep track of the relationship between multiple contact methods and a single vendor or customer account. For generic 
-contacts, use company_to_contact or person_to_contact instead.$$;
+contacts, use entity_to_contact instead.$$;
   
 CREATE TABLE eca_to_location (
   location_id integer references location(id) not null,
@@ -909,14 +952,139 @@ CREATE UNIQUE INDEX eca_to_location_billing_u ON eca_to_location(credit_id)
 
 COMMENT ON TABLE eca_to_location IS
 $$ This table is used for locations bound to contracts.  For generic contact
-addresses, use company_to_location instead $$;
+addresses, use entity_to_location instead $$;
 
--- Begin rocking notes interface
+CREATE TABLE employee_class (
+    label text not null primary key,
+    id serial not null unique
+);
+
+CREATE TABLE employee_to_ec (
+    employee_id int references entity_employee(entity_id),
+    ec_id int references employee_class(id),
+    primary key(employee_id)
+);
+
+
+-- Begin payroll section
+CREATE TABLE payroll_income_class (
+   id int not null,
+   country_id int not null references country(id),
+   label text not null,
+   unique (id, country_id),
+   primary key (country_id, label)
+);
+
+CREATE TABLE payroll_income_category (
+   id serial not null unique,
+   label text
+);
+
+INSERT INTO payroll_income_category (label) 
+values ('Salary'), 
+       ('Hourly'), 
+       ('Chord'), 
+       ('Non-cash');
+
+CREATE TABLE payroll_income_type (
+   id serial not null unique,
+   account_id int not null references account(id),
+   pic_id int not null,
+   country_id int not null,
+   label text not null,
+   unit text not null,
+   default_amount numeric,
+   foreign key(pic_id, country_id) 
+              references payroll_income_class(id, country_id)
+);
+
+CREATE TABLE payroll_wage (
+   entry_id serial not null unique,
+   entity_id int references entity(id),
+   type_id int references payroll_income_type(id),
+   rate numeric not null,
+   PRIMARY KEY(entity_id, type_id)
+);
+
+CREATE TABLE payroll_employee_class (
+   id serial not null unique,
+   label text primary key
+);
+
+CREATE TABLE payroll_employee_class_to_income_type (
+   ec_id int references payroll_employee_class (id),
+   it_id int references payroll_income_type(id),
+   primary key(ec_id, it_id)
+);
+
+CREATE TABLE payroll_deduction_class (
+   id int not null,
+   country_id int not null references country(id),
+   label text not null,
+   stored_proc_name name not null,
+   unique (id, country_id),
+   primary key (country_id, label)
+);
+
+CREATE TABLE payroll_deduction_type (
+   id serial not null unique,
+   account_id int not null references account(id),
+   pdc_id int not null,
+   country_id int not null,
+   label text not null,
+   unit text not null,
+   default_amount numeric,
+   calc_percent bool not null,
+   foreign key(pdc_id, country_id) 
+              references payroll_deduction_class(id, country_id)
+);
+
+CREATE TABLE payroll_deduction (
+   entry_id serial not null unique,
+   entity_id int references entity(id),
+   type_id int references payroll_deduction_type(id),
+   rate numeric not null,
+   PRIMARY KEY(entity_id, type_id)
+);
+
+CREATE TABLE payroll_report (
+   id serial not null primary key,
+   ec_id int not null references payroll_employee_class(id),
+   payment_date date not null,
+   created_by int references entity_employee(entity_id),
+   approved_by int references  entity_employee(entity_id)
+);
+
+CREATE TABLE payroll_report_line (
+   id serial not null unique,
+   report_id int not null references payroll_report(id),
+   employee_id int not null references entity(id),
+   it_id int not null references payroll_income_type(id),
+   qty numeric not null,
+   rate numeric not null,
+   description text,
+   primary key (it_id, employee_id, report_id)
+);
+
+CREATE TABLE payroll_pto_class (
+   id serial not null unique,
+   label text primary key
+);
+
+CREATE TABLE payroll_paid_timeoff (
+   employee_id int not null references entity(id),
+   pto_class_id int not null references payroll_pto_class(id),
+   report_id int not null references payroll_report(id),
+   amount numeric not null
+);
+
+--TODO:  Add payroll line items, approval process, registry for locale functions, etc
 -- Begin rocking notes interface
 CREATE TABLE note_class(id serial primary key, class text not null check (class ~ '[[:alnum:]_]'));
 INSERT INTO note_class(id,class) VALUES (1,'Entity');
 INSERT INTO note_class(id,class) VALUES (2,'Invoice');
 INSERT INTO note_class(id,class) VALUES (3,'Entity Credit Account');
+INSERT INTO note_class(id,class) VALUES (5,'Journal Entry');
 CREATE UNIQUE INDEX note_class_idx ON note_class(lower(class));
 
 COMMENT ON TABLE note_class IS 
@@ -974,14 +1142,197 @@ $$ references entity_credit_account.id$$;
 --
 CREATE TABLE makemodel (
   parts_id int,
+  barcode text,
   make text,
   model text,
-  PRIMARY KEY (parts_id, make, model)
+  primary key(parts_id, make, model)
 );
 
 COMMENT ON TABLE makemodel IS
 $$ A single parts entry can have multiple make/model entries.  These
 store manufacturer/model number info.$$;
+--
+CREATE TABLE journal_type (
+   id serial not null unique,
+   name text primary key
+);
+
+COMMENT ON TABLE journal_type IS
+$$ This table describes the journal entry type of the transaction.  The 
+following values are hard coded by default:
+1:  General journal
+2:  Sales (AR)
+3:  Purchases (AP)
+4:  Receipts
+5:  Payments
+
+$$;
+
+CREATE TABLE cr_report (
+    id bigserial primary key not null,
+    chart_id int not null references account(id),
+    their_total numeric not null,
+    approved boolean not null default 'f',
+    submitted boolean not null default 'f',
+    end_date date not null default now(),
+    updated timestamp not null default now(),
+    entered_by int not null default person__get_my_entity_id() references entity(id),
+    entered_username text not null default SESSION_USER,
+    deleted boolean not null default 'f'::boolean,
+    deleted_by int references entity(id),
+    approved_by int references entity(id),
+    approved_username text,
+    recon_fx bool default false,
+    max_ac_id int,
+    CHECK (deleted is not true or approved is not true)
+);
+
+COMMENT ON TABLE cr_report IS
+$$This table holds header data for cash reports.$$;
+
+CREATE TABLE cr_report_line (
+    id bigserial primary key not null,
+    report_id int NOT NULL references cr_report(id),
+    scn text, -- SCN is the check #
+    their_balance numeric,
+    our_balance numeric,
+    errorcode INT,
+    "user" int references entity(id) not null, 
+    clear_time date,
+    insert_time TIMESTAMPTZ NOT NULL DEFAULT now(),
+    trans_type text, 
+    post_date date,
+    ledger_id int,
+    voucher_id int,
+    overlook boolean not null default 'f',
+    cleared boolean not null default 'f'
+);
+
+
+COMMENT ON TABLE cr_report_line IS
+$$ This stores line item data on transaction lines and whether they are 
+cleared.$$;
+
+COMMENT ON COLUMN cr_report_line.scn IS
+$$ This is the check number.  Maps to gl.reference $$;
+
+CREATE TABLE cr_coa_to_account (
+    chart_id int not null references account(id),
+    account text not null
+);
+
+COMMENT ON TABLE cr_coa_to_account IS
+$$ Provides name mapping for the cash reconciliation screen.$$;
+
+INSERT INTO journal_type (id, name) 
+VALUES (1, 'General'), 
+       (2, 'Sales'),
+       (3, 'Purchases'),
+       (4, 'Receipts'),
+       (5, 'Payments');
+
+
+CREATE TABLE journal_entry (
+    id serial not null, 
+    reference text not null, 
+    description text, 
+    locked_by int references session(session_id) on delete set null,
+    journal int references journal_type(id),
+    post_date date not null default now(),
+    effective_start date not null, 
+    effective_end date not null,
+    currency char(3) not null,
+    approved bool default false,
+    is_template bool default false,
+    entered_by int not null references entity(id),
+    approved_by int references entity(id),
+    primary key (id),
+    check (is_template is false or approved is false)
+);
+
+
+COMMENT ON TABLE journal_entry IS $$
+This tale records the header information for each transaction.  It replaces 
+parts of the following tables:  acc_trans, ar, ap, gl, transactions.
+
+Note now all ar/ap transactions are also journal entries.$$;
+
+COMMENT ON COLUMN journal_entry.reference IS 
+$$ Invoice number or journal entry number.$$;
+
+COMMENT ON COLUMN journal_entry.effective_start IS
+$$ For transactions whose effects are spread out over a period of time, this is
+the effective start date for the transaction.  To be used by add-ons for 
+automating adjustments.$$;
+
+COMMENT ON COLUMN journal_entry.effective_end IS
+$$ For transactions whose effects are spread out over a period of time, this is
+the effective end date for the transaction.  To be used by add-ons for 
+automating adjustments.$$;
+
+COMMENT ON COLUMN journal_entry.is_template IS
+$$ Set true for template transactions.  Templates can never be approved but can
+be copied into new transactions and are useful for recurrances. $$;
+
+CREATE UNIQUE INDEX je_unique_source ON journal_entry (journal, reference) 
+WHERE journal IN (1, 2); -- cannot reuse GL source and AR invoice numbers
+
+CREATE TABLE journal_line (
+    id serial, 
+    account_id int references account(id)  not null,
+    journal_id int references journal_entry(id) not null,
+    amount numeric not null check (amount <> 'NaN'),
+    cleared bool not null default false,
+    reconciliation_report int references cr_report(id),
+    line_type text references account_link_description,
+    primary key (id)
+);
+
+COMMENT ON TABLE journal_line IS
+$$ Replaces acc_trans as the main account transaction line table.$$;
+
+COMMENT ON COLUMN journal_line.cleared IS
+$$ Still needed both for legacy data and in case reconciliation data must 
+eventually be purged.$$;
+
+CREATE TABLE eca_invoice (
+     order_id int, -- TODO reference inventory_order when added
+    journal_id int references journal_entry(id),
+    on_hold bool default false,
+    reverse bool default false,
+    credit_id int references entity_credit_account(id) not null,
+    due date not null,
+    language_code char(6) references language(code), 
+    force_closed bool not null default false, 
+    order_number text,
+    PRIMARY KEY  (journal_id)
+);
+
+COMMENT ON TABLE eca_invoice IS 
+$$ Replaces the rest of the ar and ap tables.
+Also tracks payments and receipts. $$;
+
+COMMENT ON COLUMN eca_invoice.order_id IS 
+$$ Link to order it was created from$$;
+
+COMMENT ON COLUMN eca_invoice.on_hold IS 
+$$ On hold invoices can not be paid, and overpayments that are on hold cannot 
+be used to pay invoices.$$;
+
+COMMENT ON COLUMN eca_invoice.reverse IS
+$$ When this is set to true, the invoice is shown with opposite normal numbers,
+i.e. negatives appear as positives, and positives appear as negatives.$$;
+
+COMMENT ON COLUMN eca_invoice.force_closed IS
+$$ When this is set to true, the invoice does not show up on outstanding reports
+and cannot be paid.  Overpayments where this is set to true do not appear on 
+outstanding reports and cannot be paid.$$;
+
+COMMENT ON COLUMN eca_invoice.order_number IS
+$$ This is the order number of the other party.  So for a sales invoice, this 
+would be a purchase order, and for a vendor invoice, this would be a sales 
+order.$$;
+
 --
 CREATE TABLE gl (
   id int DEFAULT nextval ( 'id' ) PRIMARY KEY REFERENCES transactions(id),
@@ -990,8 +1341,7 @@ CREATE TABLE gl (
   transdate date DEFAULT current_date,
   person_id integer references person(id),
   notes text,
-  approved bool default true,
-  department_id int default 0
+  approved bool default true
 );
 
 COMMENT ON TABLE gl IS
@@ -1027,7 +1377,7 @@ sinumber|1
 sonumber|1
 yearend|1
 businessnumber|1
-version|1.3.46
+version|1.4.15
 closedto|\N
 revtrans|1
 ponumber|1
@@ -1049,7 +1399,22 @@ separate_duties|1
 entity_control|A-00001
 batch_cc|B-11111
 check_prefix|CK
+decimal_places|2
+disable_back|0
+dojo_theme|claro
 \.
+
+-- Sequence handling
+
+
+CREATE TABLE lsmb_sequence (
+   label text primary key,
+   setting_key text not null references defaults(setting_key),
+   prefix text,
+   suffix text,
+   sequence text not null default '1',
+   accept_input bool default true
+);
 
 -- */
 -- batch stuff
@@ -1061,7 +1426,7 @@ CREATE TABLE batch_class (
 
 COMMENT ON TABLE batch_class IS 
 $$ These values are hard-coded.  Please coordinate before adding standard
-values.$$;
+values. Values from 900 to 999 are reserved for local use.$$;
 
 insert into batch_class (id,class) values (1,'ap');
 insert into batch_class (id,class) values (2,'ar');
@@ -1070,8 +1435,10 @@ insert into batch_class (id,class) values (4,'payment_reversal');
 insert into batch_class (id,class) values (5,'gl');
 insert into batch_class (id,class) values (6,'receipt');
 insert into batch_class (id,class) values (7,'receipt_reversal');
+insert into batch_class (id,class) values (8,'sales_invoice');
+insert into batch_class (id,class) values (9,'vendor_invoice');
 
-SELECT SETVAL('batch_class_id_seq',6);
+SELECT SETVAL('batch_class_id_seq',9);
 
 CREATE TABLE batch (
   id serial primary key,
@@ -1112,15 +1479,15 @@ voucher. $$;
 
 COMMENT ON COLUMN voucher.id IS $$ This is simply a surrogate key for easy reference.$$;
 
+--TODO 1.5 invoice_id references invoice(id)
 CREATE TABLE acc_trans (
   trans_id int NOT NULL REFERENCES transactions(id),
   chart_id int NOT NULL REFERENCES  account(id),
-  amount NUMERIC,
+  amount NUMERIC NOT NULL,
   transdate date DEFAULT current_date,
   source text,
   cleared bool DEFAULT 'f',
   fx_transaction bool DEFAULT 'f',
-  project_id int,
   memo text,
   invoice_id int,
   approved bool default true,
@@ -1129,6 +1496,8 @@ CREATE TABLE acc_trans (
   voucher_id int references voucher(id),
   entry_id SERIAL PRIMARY KEY
 );
+
+ALTER TABLE cr_report ADD FOREIGN KEY (max_ac_id) REFERENCES acc_trans(entry_id);
 
 COMMENT ON TABLE acc_trans IS
 $$This table stores line items for financial transactions.  Please note that
@@ -1143,6 +1512,7 @@ CREATE INDEX acc_trans_voucher_id_idx ON acc_trans(voucher_id);
 -- preventing closed transactions
 
 
+--
 --
 CREATE TABLE parts (
   id serial PRIMARY KEY,
@@ -1160,9 +1530,10 @@ CREATE TABLE parts (
   assembly bool DEFAULT 'f',
   alternate bool DEFAULT 'f',
   rop numeric, 
-  inventory_accno_id int,
-  income_accno_id int,
-  expense_accno_id int,
+  inventory_accno_id int references account(id),
+  income_accno_id int references account(id),
+  expense_accno_id int references account(id),
+  returns_accno_id int references account(id),
   bin text,
   obsolete bool DEFAULT 'f',
   bom bool DEFAULT 'f',
@@ -1170,7 +1541,6 @@ CREATE TABLE parts (
   drawing text,
   microfiche text,
   partsgroup_id int,
-  project_id int,
   avgcost NUMERIC
 );
 
@@ -1198,6 +1568,30 @@ $$Hyperlink to product image.$$;
 	
 CREATE UNIQUE INDEX parts_partnumber_index_u ON parts (partnumber) 
 WHERE obsolete is false;
+
+CREATE SEQUENCE lot_tracking_number;
+CREATE TABLE mfg_lot (
+    id serial not null unique,
+    lot_number text not null unique default nextval('lot_tracking_number')::text,
+    parts_id int not null references parts(id),
+    qty numeric not null,
+    stock_date date not null default now()::date
+);
+
+COMMENT ON TABLE mfg_lot IS 
+$$ This tracks assembly restocks.  This is designed to work with old code and
+may change as we refactor the parts.$$;
+    
+CREATE TABLE mfg_lot_item (
+    id serial not null unique,
+    mfg_lot_id int not null references mfg_lot(id),
+    parts_id int not null references parts(id),
+    qty numeric not null
+);
+
+COMMENT ON TABLE mfg_lot_item IS
+$$ This tracks items used in assembly restocking.$$;
+
 CREATE TABLE invoice (
   id serial PRIMARY KEY,
   trans_id int REFERENCES transactions(id),
@@ -1210,8 +1604,7 @@ CREATE TABLE invoice (
   fxsellprice NUMERIC,
   discount numeric,
   assemblyitem bool DEFAULT 'f',
-  unit varchar(5),
-  project_id int,
+  unit varchar,
   deliverydate date,
   serialnumber text,
   vendor_sku text,
@@ -1234,8 +1627,34 @@ ALTER TABLE invoice_note ADD FOREIGN KEY (ref_key) REFERENCES invoice(id);
 
 --
 
+CREATE TABLE payment_map (
+    line_id int references journal_line(id),
+    pays int references eca_invoice(journal_id) not null,
+    primary key(line_id)
+);
+
+COMMENT ON TABLE payment_map IS $$ This maps the payment journal entry to the
+invoices it pays.  A couple notes here:
+1)  There is no requirement tht the payment "invoice" be linked to the same
+entity_credit_account as the paid invoice.  People can pay eachothers invoices
+if LedgerSMB supports this at an app level.
+2)  This now means that payments are first class transactions.$$;
 --
 
+
+CREATE TABLE journal_note (
+   internal_only bool not null default false,
+   primary key (id),
+   check(note_class = 5),
+   foreign key(ref_key) references journal_entry(id)
+) INHERITS (note);
+
+COMMENT ON TABLE journal_note IS
+$$ This stores notes attached to journal entries, including payments and
+invoices.$$;
+
+COMMENT ON COLUMN journal_note.internal_only IS
+$$ When set to true, does not show up in notes list for invoice templates$$;
 -- THe following credit accounts are used for inventory adjustments.
 INSERT INTO entity (id, name, entity_class, control_code,country_id) 
 values (0, 'Inventory Entity', 1, 'AUTO-01','232');
@@ -1253,7 +1672,7 @@ VALUES
 
 --
 CREATE TABLE assembly (
-  id int REFERENCES parts(id),
+  id int REFERENCES parts(id) on delete cascade,
   parts_id int REFERENCES parts(id),
   qty numeric,
   bom bool,
@@ -1294,7 +1713,6 @@ CREATE TABLE ar (
   till varchar(20),
   quonumber text,
   intnotes text,
-  department_id int default 0,
   shipvia text,
   language_code varchar(6),
   ponumber text,
@@ -1304,9 +1722,13 @@ CREATE TABLE ar (
   entity_credit_account int references entity_credit_account(id) not null,
   force_closed bool,
   description text,
-  unique(invnumber), -- probably a good idea as per Erik's request --CT
-  crdate date
+  is_return bool default false,
+  crdate date,
+  setting_sequence text,
+  check (invnumber is not null or not approved)
 );
+
+CREATE UNIQUE INDEX ar_invnumber_key ON ar(invnumber) where invnumber is not null;
 
 COMMENT ON TABLE ar IS
 $$ Summary/header information for AR transactions and sales invoices.
@@ -1358,15 +1780,9 @@ COMMENT ON COLUMN ar.force_closed IS
 $$ Not exposed to the UI, but can be set to prevent an invoice from showing up
 for payment or in outstanding reports.$$;
 
-COMMENT ON COLUMN ar.crdate IS
-$$ This is for recording the AR/AP creation date, which is always that date, when the invoice created. This is different, than transdate or duedate.
-This kind of date does not effect on ledger/financial data, but for administrative purposes in Hungary, probably in other countries, too.
-Use case: 
-if somebody pay in cash, crdate=transdate=duedate
-if somebody will receive goods T+5 days and have 15 days term, the dates are the following:  crdate: now,  transdate=crdate+5,  duedate=transdate+15.
-There are rules in Hungary, how to fill out a correct invoice, where the crdate and transdate should be important.$$;
-
 --
+--TODO 1.5 ap invnumber text check (invnumber ~ '[[:alnum:]_]') NOT NULL
+--TODO 1.5 ap paid,datepaid , drop those fields? they are not maintained in Payment.sql!
 CREATE TABLE ap (
   id int DEFAULT nextval ( 'id' ) PRIMARY KEY REFERENCES transactions(id),
   invnumber text,
@@ -1387,7 +1803,6 @@ CREATE TABLE ap (
   till varchar(20),
   quonumber text,
   intnotes text,
-  department_id int DEFAULT 0,
   shipvia text,
   language_code varchar(6),
   ponumber text,
@@ -1398,8 +1813,9 @@ CREATE TABLE ap (
   terms int2 DEFAULT 0,
   description text,
   force_closed bool,
-  entity_credit_account int references entity_credit_account(id) NOT NULL,
-  crdate date
+  crdate date,
+  is_return bool default false,
+  entity_credit_account int references entity_credit_account(id) NOT NULL
 );
 
 COMMENT ON TABLE ap IS
@@ -1452,13 +1868,24 @@ COMMENT ON COLUMN ap.force_closed IS
 $$ Not exposed to the UI, but can be set to prevent an invoice from showing up
 for payment or in outstanding reports.$$;
 
-COMMENT ON COLUMN ap.crdate IS
-$$ This is for recording the AR/AP creation date, which is always that date, when the invoice created. This is different, than transdate or duedate.
-This kind of date does not effect on ledger/financial data, but for administrative purposes in Hungary, probably in other countries, too.
-Use case: 
-if somebody pay in cash, crdate=transdate=duedate
-if somebody will receive goods T+5 days and have 15 days term, the dates are the following:  crdate: now,  transdate=crdate+5,  duedate=transdate+15.
-There are rules in Hungary, how to fill out a correct invoice, where the crdate and transdate should be important.$$;
+-- INVENTORY ADJUSTMENTS
+
+CREATE TABLE inventory_report (
+   id serial primary key, -- these are not tied to external sources usually
+   transdate date NOT NULL,    
+   source text, -- may be null 
+   ar_trans_id int,  -- would be null if no items were adjusted down
+   ap_trans_id int  -- would be null if no items were adjusted up
+);
+
+CREATE TABLE inventory_report_line (
+   adjust_id int REFERENCES inventory_report(id), 
+   parts_id int REFERENCES parts(id),
+   counted numeric,
+   expected numeric,
+   variance numeric,
+   PRIMARY KEY (adjust_id, parts_id)
+);
 
 --
 CREATE TABLE taxmodule (
@@ -1498,7 +1925,7 @@ CREATE TABLE tax (
   validto timestamp not null default 'infinity',
   pass integer DEFAULT 0 NOT NULL,
   taxmodule_id int DEFAULT 1 NOT NULL,
-  FOREIGN KEY (chart_id) REFERENCES  account(id),
+  --FOREIGN KEY (chart_id) REFERENCES  account(id),--already defined before
   FOREIGN KEY (taxmodule_id) REFERENCES taxmodule (taxmodule_id),
   PRIMARY KEY (chart_id, validto)
 );
@@ -1511,22 +1938,14 @@ $$This is an integer indicating the pass of the tax. This is to support
 cumultative sales tax rules (for example, Quebec charging taxes on the federal
 taxes collected).$$;
 --
-CREATE TABLE customertax (
-  customer_id int references entity_credit_account(id) on delete cascade,
+CREATE TABLE eca_tax (
+  eca_id int references entity_credit_account(id) on delete cascade,
   chart_id int REFERENCES account(id),
-  PRIMARY KEY (customer_id, chart_id)
+  PRIMARY KEY (eca_id, chart_id)
 );
 
-COMMENT ON TABLE customertax IS $$ Mapping customer to taxes.$$;
+COMMENT ON TABLE eca_tax IS $$ Mapping customers and vendors to taxes.$$;
 --
-CREATE TABLE vendortax (
-  vendor_id int references entity_credit_account(id) on delete cascade,
-  chart_id int REFERENCES account(id),
-  PRIMARY KEY (vendor_id, chart_id)
-);
---
-COMMENT ON TABLE vendortax IS $$ Mapping vendor to taxes.$$;
-
 CREATE TABLE oe_class (
   id smallint unique check(id IN (1,2,3,4)),
   oe_class text primary key);
@@ -1563,7 +1982,6 @@ CREATE TABLE oe (
   quotation bool default 'f',
   quonumber text,
   intnotes text,
-  department_id int default 0,
   shipvia text,
   language_code varchar(6),
   ponumber text,
@@ -1589,7 +2007,6 @@ CREATE TABLE orderitems (
   precision int,
   discount numeric,
   unit varchar(5),
-  project_id int,
   reqdate date,
   ship numeric,
   serialnumber text,
@@ -1612,24 +2029,151 @@ whatever you can get for it when you sell the acquired currency (sell rate).
 When you have to pay someone in a foreign currency, the equivalent amount is the amount
 you have to spend to acquire the foreign currency (buy rate).$$;
 --
-CREATE TABLE project (
-  id serial PRIMARY KEY,
-  projectnumber text,
-  description text,
-  startdate date,
-  enddate date,
-  parts_id int,
-  production numeric default 0,
-  completed numeric default 0,
-  credit_id int references entity_credit_account(id)
+
+CREATE TABLE business_unit_class (
+    id serial not null unique,
+    label text primary key,
+    active bool not null default false,
+    ordering int
 );
 
-COMMENT ON COLUMN project.parts_id IS
+COMMENT ON TABLE business_unit_class IS 
+$$ Consolidates projects and departments, and allows this to be extended for
+funds accounting and other purposes.$$;
+
+INSERT INTO business_unit_class (id, label, active, ordering)
+VALUES (1, 'Department', '0', '10'),
+       (2, 'Project', '0', '20'),
+       (3, 'Job', '0', '30'),
+       (4, 'Fund', '0', '40'),
+       (5, 'Customer', '0', '50'),
+       (6, 'Vendor', '0', '60'),
+       (7, 'Lot',  '0', 50);
+
+CREATE TABLE bu_class_to_module (
+   bu_class_id int references business_unit_class(id),
+   module_id int references lsmb_module(id),
+   primary key (bu_class_id, module_id)
+);
+
+INSERT INTO  bu_class_to_module (bu_class_id, module_id)
+SELECT business_unit_class.id, lsmb_module.id
+  FROM business_unit_class
+ CROSS
+  JOIN lsmb_module; -- by default activate all existing business units on all modules
+       
+
+CREATE TABLE business_unit (
+  id serial PRIMARY KEY,
+  class_id int not null references business_unit_class(id),
+  control_code text,
+  description text,
+  start_date date,
+  end_date date,
+  parent_id int references business_unit(id),
+  credit_id int references entity_credit_account(id),
+  UNIQUE(id, class_id), -- needed for foreign keys
+  UNIQUE(class_id, control_code) 
+);
+
+CREATE TABLE job (
+  bu_id int primary key references business_unit(id),
+  parts_id int,
+  production numeric default 0,
+  completed numeric default 0
+);
+
+CREATE TABLE business_unit_jl (
+    entry_id int references journal_line(id),
+    bu_class int references business_unit_class(id),
+    bu_id int references business_unit(id) NOT NULL,
+    PRIMARY KEY(entry_id, bu_class)
+);
+
+CREATE TABLE business_unit_ac (
+  entry_id int references acc_trans(entry_id) on delete cascade,
+  class_id int references business_unit_class(id),
+  bu_id int,
+  primary key(bu_id, class_id, entry_id),
+  foreign key(class_id, bu_id) references business_unit(class_id, id)
+);
+-- The index is required for fast lookup when deleting acc_trans lines
+-- which happens when not-approved transactions are deleted
+CREATE INDEX business_unit_ac_entry_id_idx ON business_unit_ac(entry_id);
+
+CREATE TABLE business_unit_inv (
+  entry_id int references invoice(id) on delete cascade,
+  class_id int references business_unit_class(id),
+  bu_id int,
+  primary key(bu_id, class_id, entry_id),
+  foreign key(class_id, bu_id) references business_unit(class_id, id)
+);
+-- The index is required for fast lookup when deleting invoices
+-- which happens when not-approved transactions are deleted
+CREATE INDEX business_unit_inv_entry_id_idx ON business_unit_inv(entry_id);
+
+CREATE TABLE business_unit_oitem (
+  entry_id int references orderitems(id) on delete cascade,
+  class_id int references business_unit_class(id),
+  bu_id int,
+  primary key(bu_id, class_id, entry_id),
+  foreign key(class_id, bu_id) references business_unit(class_id, id)
+);
+-- The index is required for fast lookup when deleting order item lines
+-- which happens when not-approved transactions are deleted
+CREATE INDEX business_unit_oitem_entry_id_idx ON business_unit_oitem(entry_id);
+
+COMMENT ON TABLE business_unit IS
+$$ Tracks Projects, Departments, Funds, Etc.$$;
+
+CREATE TABLE budget_info (
+   id serial not null unique,
+   start_date date not null,
+   end_date date not null,
+   reference text primary key,
+   description text not null,
+   entered_by int not null references entity(id) 
+                  default person__get_my_entity_id(),
+   approved_by int references entity(id),
+   obsolete_by int references entity(id),
+   entered_at timestamp not null default now(),
+   approved_at timestamp,
+   obsolete_at timestamp,
+   check (start_date < end_date)
+);
+
+CREATE TABLE budget_to_business_unit (
+    budget_id int not null unique references budget_info(id),
+    bu_id int not null references business_unit(id),
+    bu_class int references business_unit_class(id),
+    primary key (budget_id, bu_class)
+);
+
+
+CREATE TABLE budget_line (
+    budget_id int not null references budget_info(id),
+    account_id int not null references account(id),
+    description text,
+    amount numeric not null,
+    primary key (budget_id, account_id) 
+);
+
+INSERT INTO note_class (id, class) values ('6', 'Budget');
+
+CREATE TABLE budget_note (
+    primary key(id),
+    check (note_class = 6),
+    foreign key(ref_key) references budget_info(id)
+) INHERITS (note);
+ALTER TABLE budget_note ALTER COLUMN note_class SET DEFAULT 6;
+
+COMMENT ON COLUMN job.parts_id IS
 $$ Job costing/manufacturing here not implemented.$$;
 --
 CREATE TABLE partsgroup (
-  id serial PRIMARY KEY,
-  partsgroup text
+  id serial primary key,
+  partsgroup text,
+  parent int references partsgroup(id)
 );
 
 COMMENT ON TABLE partsgroup is $$ Groups of parts for Point of Sale screen.$$;
@@ -1646,22 +2190,6 @@ CREATE TABLE status (
 COMMENT ON TABLE status IS
 $$ Whether AR/AP transactions and invoices have been emailed and/or printed $$;
 
---
-CREATE TABLE department (
-  id serial PRIMARY KEY,
-  description text,
-  role char(1) default 'P'
-);
-
-COMMENT ON COLUMN department.role IS $$P for Profit Center, C for Cost Center$$;
---
--- department transaction table
-CREATE TABLE dpt_trans (
-  trans_id int PRIMARY KEY,
-  department_id int
-);
-
-COMMENT ON TABLE dpt_trans IS $$Department to Transaction Map$$;
 --
 -- business table
 CREATE TABLE business (
@@ -1711,7 +2239,7 @@ CREATE TABLE yearend (
 );
 
 COMMENT ON TABLE yearend IS
-$$ An extension to the gl table to track transactionsactions which close out 
+$$ An extension to the journal_entry table to track transactionsactions which close out 
 the books at yearend.$$;
 --
 CREATE TABLE partsvendor (
@@ -1743,7 +2271,6 @@ CREATE TABLE partscustomer (
 COMMENT ON TABLE partscustomer IS
 $$ Tracks per-customer pricing.  Discounts can be offered for periods of time
 and for pricegroups as well as per customer$$;
---
 --
 CREATE TABLE audittrail (
   trans_id int,
@@ -1778,13 +2305,13 @@ ALTER TABLE parts_translation ADD foreign key (trans_id) REFERENCES parts(id);
 COMMENT ON TABLE parts_translation IS
 $$ Translation information for parts.$$;
 
-CREATE TABLE project_translation 
+CREATE TABLE business_unit_translation 
 (PRIMARY KEY (trans_id, language_code)) INHERITS (translation);
-ALTER TABLE project_translation 
-ADD foreign key (trans_id) REFERENCES project(id);
+ALTER TABLE business_unit_translation 
+ADD foreign key (trans_id) REFERENCES business_unit(id);
 
-COMMENT ON TABLE project_translation IS
-$$ Translation information for projects.$$;
+COMMENT ON TABLE business_unit_translation IS
+$$ Translation information for projects, departments, etc.$$;
 
 CREATE TABLE partsgroup_translation 
 (PRIMARY KEY (trans_id, language_code)) INHERITS (translation);
@@ -1796,7 +2323,7 @@ $$ Translation information for partsgroups.$$;
 
 --
 CREATE TABLE user_preference (
-    id int PRIMARY KEY REFERENCES users(id),
+    id int PRIMARY KEY REFERENCES users(id) on delete cascade,
     language varchar(6) REFERENCES language(code),
     stylesheet text default 'ledgersmb.css' not null,
     printer text,
@@ -1809,13 +2336,12 @@ COMMENT ON TABLE user_preference IS
 $$ This table sets the basic preferences for formats, languages, printers, and user-selected stylesheets.$$;
 
 CREATE TABLE recurring (
-  id int DEFAULT nextval ( 'id' ) PRIMARY KEY,
+  id int not null references transactions(id) unique,
   reference text,
   startdate date,
   nextdate date,
   enddate date,
-  repeat int2,
-  unit varchar(6),
+  recurring_interval interval, 
   howmany int,
   payment bool default 'f'
 );
@@ -1833,7 +2359,7 @@ CREATE TABLE payment_type (
 
 --
 CREATE TABLE recurringemail (
-  id int,
+  id int references recurring(id), 
   formname text,
   format text,
   message text,
@@ -1844,7 +2370,7 @@ COMMENT ON TABLE recurringemail IS
 $$Email  to be sent out when recurring transaction is posted.$$;
 --
 CREATE TABLE recurringprint (
-  id int,
+  id int references recurring(id),
   formname text,
   format text,
   printer text,
@@ -1854,9 +2380,26 @@ CREATE TABLE recurringprint (
 COMMENT ON TABLE recurringprint IS
 $$ Template, printer etc. to print to when recurring transaction posts.$$;
 --
+CREATE TABLE jctype (
+  id int not null unique, -- hand assigned
+  label text primary key,
+  description text not null,
+  is_service bool default true,
+  is_timecard bool default true
+);
+
+INSERT INTO jctype (id, label, description, is_service, is_timecard)
+VALUES (1, 'time', 'Timecards for project services', true, true);
+
+INSERT INTO jctype (id, label, description, is_service, is_timecard)
+VALUES (2, 'materials', 'Materials for projects', false, false);
+
+INSERT INTO jctype (id, label, description, is_service, is_timecard)
+VALUES (3, 'overhead', 'Time/Overhead for payroll, manufacturing, etc', false, true);
+
 CREATE TABLE jcitems (
   id serial PRIMARY KEY,
-  project_id int,
+  business_unit_id int references business_unit(id),
   parts_id int,
   description text,
   qty numeric,
@@ -1869,7 +2412,9 @@ CREATE TABLE jcitems (
   person_id integer references person(id) not null,
   notes text,
   total numeric not null,
-  non_billable numeric not null default 0
+  non_billable numeric not null default 0,
+  jctype int not null,
+  curr char(3) not null
 );
 
 COMMENT ON TABLE jcitems IS $$ Time and materials cards. 
@@ -1879,13 +2424,15 @@ CREATE OR REPLACE FUNCTION track_global_sequence() RETURNS TRIGGER AS
 $$
 BEGIN
 	IF tg_op = 'INSERT' THEN
-		INSERT INTO transactions (id, table_name) 
-		VALUES (new.id, TG_RELNAME);
+		INSERT INTO transactions (id, table_name, approved) 
+		VALUES (new.id, TG_RELNAME, new.approved);
 	ELSEIF tg_op = 'UPDATE' THEN
-		IF new.id = old.id THEN
+		IF new.id = old.id AND new.approved = old.approved THEN
 			return new;
 		ELSE
-			UPDATE transactions SET id = new.id WHERE id = old.id;
+			UPDATE transactions SET id = new.id, 
+                                                approved = new.approved
+                         WHERE id = old.id;
 		END IF;
 	ELSE 
 		DELETE FROM transactions WHERE id = old.id;
@@ -1929,9 +2476,8 @@ $$ Deprecated, use only with old code.$$;
 
 INSERT INTO taxmodule (
   taxmodule_id, taxmodulename
-  ) VALUES (
-  1, 'Simple'
-);
+  ) VALUES (1, 'Simple'), 
+  (2, 'Rounded');
 
 CREATE TABLE ac_tax_form (
         entry_id int references acc_trans(entry_id) primary key,
@@ -1939,7 +2485,7 @@ CREATE TABLE ac_tax_form (
 );
 
 COMMENT ON TABLE ac_tax_form IS
-$$ Mapping acc_trans to country_tax_form for reporting purposes.$$;
+$$ Mapping journal_line to country_tax_form for reporting purposes.$$;
 
 CREATE TABLE invoice_tax_form (
         invoice_id int references invoice(id) primary key,
@@ -2009,41 +2555,20 @@ FOR EACH ROW EXECUTE PROCEDURE prevent_closed_transactions();
 CREATE TRIGGER gl_audit_trail AFTER INSERT OR UPDATE OR DELETE ON gl
 FOR EACH ROW EXECUTE PROCEDURE gl_audit_trail_append();
 
-CREATE TRIGGER ar_audit_trail AFTER insert or update or delete ON ar
+CREATE TRIGGER ar_audit_trail AFTER INSERT OR UPDATE OR DELETE ON ar
 FOR EACH ROW EXECUTE PROCEDURE gl_audit_trail_append();
 
-CREATE TRIGGER ap_audit_trail AFTER insert or update or delete ON ap
+CREATE TRIGGER ap_audit_trail AFTER INSERT OR UPDATE OR DELETE ON ap
 FOR EACH ROW EXECUTE PROCEDURE gl_audit_trail_append();
-create index acc_trans_trans_id_key on acc_trans (trans_id);
-create index acc_trans_chart_id_key on acc_trans (chart_id);
-create index acc_trans_transdate_key on acc_trans (transdate);
-create index acc_trans_source_key on acc_trans (lower(source));
---
-create index ap_id_key on ap (id);
-create index ap_transdate_key on ap (transdate);
-create index ap_invnumber_key on ap (invnumber);
-create index ap_ordnumber_key on ap (ordnumber);
-create index ap_quonumber_key on ap (quonumber);
-create index ap_curr_idz on ap(curr);
---
-create index ar_id_key on ar (id);
-create index ar_transdate_key on ar (transdate);
-create index ar_ordnumber_key on ar (ordnumber);
-create index ar_quonumber_key on ar (quonumber);
-create index ar_curr_idz on ar(curr);
---
+
+CREATE TRIGGER je_audit_trail AFTER insert or update or delete ON journal_entry
+FOR EACH ROW EXECUTE PROCEDURE gl_audit_trail_append();
+
 create index assembly_id_key on assembly (id);
---
-create index customer_customer_id_key on customertax (customer_id);
 --
 create index exchangerate_ct_key on exchangerate (curr, transdate);
 --
 create unique index gifi_accno_key on gifi (accno);
---
-create index gl_id_key on gl (id);
-create index gl_transdate_key on gl (transdate);
-create index gl_reference_key on gl (reference);
-create index gl_description_key on gl (lower(description));
 --
 create index invoice_id_key on invoice (id);
 create index invoice_trans_id_key on invoice (trans_id);
@@ -2064,15 +2589,12 @@ create index parts_description_key on parts (lower(description));
 create index partstax_parts_id_key on partstax (parts_id);
 --
 --
-create index project_id_key on project (id);
-create unique index projectnumber_key on project (projectnumber);
 --
 create index partsgroup_id_key on partsgroup (id);
 create unique index partsgroup_key on partsgroup (partsgroup);
 --
 create index status_trans_id_key on status (trans_id);
 --
-create index department_id_key on department (id);
 --
 create index partsvendor_parts_id_key on partsvendor (parts_id);
 --
@@ -2097,126 +2619,6 @@ end;
 ' language 'plpgsql';
 -- end function
 --
-CREATE TRIGGER del_yearend AFTER DELETE ON gl FOR EACH ROW EXECUTE PROCEDURE del_yearend();
--- end trigger
---
-CREATE FUNCTION del_department() RETURNS TRIGGER AS '
-begin
-  delete from dpt_trans where trans_id = old.id;
-  return NULL;
-end;
-' language 'plpgsql';
--- end function
---
-CREATE TRIGGER del_department AFTER DELETE ON ar FOR EACH ROW EXECUTE PROCEDURE del_department();
--- end trigger
-CREATE TRIGGER del_department AFTER DELETE ON ap FOR EACH ROW EXECUTE PROCEDURE del_department();
--- end trigger
-CREATE TRIGGER del_department AFTER DELETE ON gl FOR EACH ROW EXECUTE PROCEDURE del_department();
--- end trigger
-CREATE TRIGGER del_department AFTER DELETE ON oe FOR EACH ROW EXECUTE PROCEDURE del_department();
--- end trigger
---
-CREATE FUNCTION del_exchangerate() RETURNS TRIGGER AS '
-
-declare
-  t_transdate date;
-  t_curr char(3);
-  t_id int;
-  d_curr text;
-
-begin
-
-  select into d_curr substr(value,1,3) from defaults where setting_key = ''curr'';
-  
-  if TG_RELNAME = ''ar'' then
-    select into t_curr, t_transdate curr, transdate from ar where id = old.id;
-  end if;
-  if TG_RELNAME = ''ap'' then
-    select into t_curr, t_transdate curr, transdate from ap where id = old.id;
-  end if;
-  if TG_RELNAME = ''oe'' then
-    select into t_curr, t_transdate curr, transdate from oe where id = old.id;
-  end if;
-
-  if d_curr != t_curr then
-
-    select into t_id a.id from acc_trans ac
-    join ar a on (a.id = ac.trans_id)
-    where a.curr = t_curr
-    and ac.transdate = t_transdate
-
-    except select a.id from ar a where a.id = old.id
-    
-    union
-    
-    select a.id from acc_trans ac
-    join ap a on (a.id = ac.trans_id)
-    where a.curr = t_curr
-    and ac.transdate = t_transdate
-    
-    except select a.id from ap a where a.id = old.id
-    
-    union
-    
-    select o.id from oe o
-    where o.curr = t_curr
-    and o.transdate = t_transdate
-    
-    except select o.id from oe o where o.id = old.id;
-
-    if not found then
-      delete from exchangerate where curr = t_curr and transdate = t_transdate;
-    end if;
-  end if;
-return old;
-
-end;
-' language 'plpgsql';
--- end function
---
-CREATE TRIGGER del_exchangerate BEFORE DELETE ON ar FOR EACH ROW EXECUTE PROCEDURE del_exchangerate();
--- end trigger
---
-CREATE TRIGGER del_exchangerate BEFORE DELETE ON ap FOR EACH ROW EXECUTE PROCEDURE del_exchangerate();
--- end trigger
---
-CREATE TRIGGER del_exchangerate BEFORE DELETE ON oe FOR EACH ROW EXECUTE PROCEDURE del_exchangerate();
--- end trigger
---
-CREATE FUNCTION check_department() RETURNS TRIGGER AS '
-
-declare
-  dpt_id int;
-
-begin
- 
-  if new.department_id = 0 then
-    delete from dpt_trans where trans_id = new.id;
-    return NULL;
-  end if;
-
-  select into dpt_id trans_id from dpt_trans where trans_id = new.id;
-  
-  if dpt_id > 0 then
-    update dpt_trans set department_id = new.department_id where trans_id = dpt_id;
-  else
-    insert into dpt_trans (trans_id, department_id) values (new.id, new.department_id);
-  end if;
-return NULL;
-
-end;
-' language 'plpgsql';
--- end function
---
-CREATE TRIGGER check_department AFTER INSERT OR UPDATE ON ar FOR EACH ROW EXECUTE PROCEDURE check_department();
--- end trigger
-CREATE TRIGGER check_department AFTER INSERT OR UPDATE ON ap FOR EACH ROW EXECUTE PROCEDURE check_department();
--- end trigger
-CREATE TRIGGER check_department AFTER INSERT OR UPDATE ON gl FOR EACH ROW EXECUTE PROCEDURE check_department();
--- end trigger
-CREATE TRIGGER check_department AFTER INSERT OR UPDATE ON oe FOR EACH ROW EXECUTE PROCEDURE check_department();
--- end trigger
 --
 CREATE FUNCTION del_recurring() RETURNS TRIGGER AS '
 BEGIN
@@ -2227,13 +2629,7 @@ BEGIN
 END;
 ' language 'plpgsql';
 --end function
-CREATE TRIGGER del_recurring AFTER DELETE ON ar FOR EACH ROW EXECUTE PROCEDURE del_recurring();
--- end trigger
-CREATE TRIGGER del_recurring AFTER DELETE ON ap FOR EACH ROW EXECUTE PROCEDURE del_recurring();
--- end trigger
-CREATE TRIGGER del_recurring AFTER DELETE ON gl FOR EACH ROW EXECUTE PROCEDURE del_recurring();
--- end trigger
---
+
 CREATE FUNCTION avgcost(int) RETURNS FLOAT AS '
 
 DECLARE
@@ -2368,57 +2764,42 @@ $$This table stores the tree structure of the menu.$$;
 -- Name: menu_node_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ledgersmb
 --
 
-SELECT pg_catalog.setval('menu_node_id_seq', 242, true);
-
+SELECT pg_catalog.setval('menu_node_id_seq', 253, true);
 
 --
 -- Data for Name: menu_node; Type: TABLE DATA; Schema: public; Owner: ledgersmb
 --
 
 COPY menu_node (id, label, parent, "position") FROM stdin;
-205	Transaction Approval	0	5
+91	Search Groups	77	6
+92	Search Pricegroups	77	8
+6	Import Inventory	77	13
+106	Search	98	1
+101	Generate	98	4
+8	Import	98	3
+114	Inventory Activity	85	2
+11	Import AR Batch	249	3
+13	Import AP Batch	250	3
+16	Enter Inventory	77	14
 206	Batches	205	1
-46	HR	0	6
-50	Order Entry	0	7
-63	Shipping	0	8
-67	Quotations	0	9
-73	General Journal	0	10
-77	Goods and Services	0	11
+14	Search	19	2
+12	Add Contact	19	3
+15	Customer History	4	6
+34	Vendor History	24	6
+110	Chart of Accounts	73	5
+137	Add Accounts	73	6
 0	Top-level	\N	0
-1	AR	0	1
+20	Invoice Vouchers	249	2
 2	Add Transaction	1	1
-5	Transactions	4	1
-6	Outstanding	4	2
 7	AR Aging	4	3
-9	Taxable Sales	4	4
-10	Non-Taxable	4	5
-12	Add Customer	11	1
-13	Reports	11	2
-14	Search	13	1
-15	History	13	2
-16	Point of Sale	0	2
-17	Sale	16	1
-18	Open	16	2
-19	Receipts	16	3
-20	Close Till	16	4
-21	AP	0	3
+39	Invoice Vouchers	250	2
 22	Add Transaction	21	1
-145	Add Department	144	1
-25	Transactions	24	1
-26	Outstanding	24	2
 27	AP Aging	24	3
-28	Taxable	24	4
-29	Non-taxable	24	5
-31	Add Vendor	30	1
-32	Reports	30	2
-33	Search	32	1
-34	History	32	2
-35	Cash	0	4
+25	Search	21	7
 36	Receipt	35	1
 38	Payment	35	3
 223	Use Overpayment	35	4
 37	Use AR Overpayment	35	2
-146	List Departments	144	2
 42	Receipts	41	1
 43	Payments	41	2
 44	Reconciliation	41	3
@@ -2433,7 +2814,6 @@ COPY menu_node (id, label, parent, "position") FROM stdin;
 57	Sales Orders	56	1
 58	Purchase Orders	56	2
 56	Generate	50	4
-60	Consolidate	50	5
 61	Sales Orders	60	1
 62	Purchase Orders	60	2
 64	Ship	63	1
@@ -2445,62 +2825,15 @@ COPY menu_node (id, label, parent, "position") FROM stdin;
 71	Quotations	70	1
 72	RFQs	70	2
 74	Journal Entry	73	1
-75	Adjust Till	73	2
-76	Reports	73	3
-78	Add Part	77	1
-79	Add Service	77	2
-80	Add Assembly	77	3
-81	Add Overhead	77	4
-82	Add Group	77	5
-83	Add Pricegroup	77	6
-84	Stock Assembly	77	7
-85	Reports	77	8
-86	All Items	85	1
-87	Parts	85	2
-88	Requirements	85	3
-89	Services	85	4
-90	Labor	85	5
-91	Groups	85	6
-92	Pricegroups	85	7
-93	Assembly	85	8
-94	Components	85	9
-95	Translations	77	9
 96	Description	95	1
 97	Partsgroup	95	2
-99	Add Project	98	1
 100	Add Timecard	98	2
-101	Generate	98	3
 102	Sales Orders	101	1
-103	Reports	98	4
-104	Search	103	1
-105	Transactions	103	2
-106	Time Cards	103	3
 107	Translations	98	5
 108	Description	107	1
-110	Chart of Accounts	109	1
-111	Trial Balance	109	2
-112	Income Statement	109	3
 113	Balance Sheet	109	4
-114	Inventory Activity	109	5
-117	Sales Invoices	116	1
-118	Sales Orders	116	2
-119	Checks	116	3
-120	Work Orders	116	4
-121	Quotations	116	5
-122	Packing Lists	116	6
-123	Pick Lists	116	7
-124	Purchase Orders	116	8
-125	Bin Lists	116	9
-126	RFQs	116	10
-127	Time Cards	116	11
-129	Audit Control	128	1
 130	Taxes	128	2
 131	Defaults	128	3
-132	Yearend	128	4
-137	Add Accounts	136	1
-138	List Accounts	136	2
-139	Add GIFI	136	3
-140	List GIFI	136	4
 142	Add Warehouse	141	1
 143	List Warehouse	141	2
 148	Add Business	147	1
@@ -2509,88 +2842,46 @@ COPY menu_node (id, label, parent, "position") FROM stdin;
 152	List Languages	150	2
 154	Add SIC	153	1
 155	List SIC	153	2
-157	Income Statement	156	1
-158	Balance Sheet	156	2
-159	Invoice	156	3
-160	AR Transaction	156	4
-161	AP Transaction	156	5
-162	Packing List	156	6
-163	Pick List	156	7
-164	Sales Order	156	8
-165	Work Order	156	9
-166	Purchase Order	156	10
-167	Bin List	156	11
-168	Statement	156	12
-169	Quotation	156	13
-170	RFQ	156	14
-171	Timecard	156	15
-241	Letterhead	156	16
 173	Invoice	172	1
-174	AR Transaction	172	2
-175	AP Transaction	172	3
-176	Packing List	172	4
-177	Pick List	172	5
-178	Sales Order	172	6
-179	Work Order	172	7
-180	Purchase Order	172	8
-181	Bin List	172	9
-182	Statement	172	10
-183	Check	172	11
-184	Receipt	172	12
-185	Quotation	172	13
-186	RFQ	172	14
-187	Timecard	172	15
-242	Letterhead	172	16
+205	Transaction Approval	0	6
+1	AR	0	2
+21	AP	0	4
+35	Cash	0	5
 189	POS Invoice	188	1
-198	AR Voucher	1	2
-3	Sales Invoice	1	3
-11	Customers	1	7
-4	Reports	1	6
-194	Credit Note	1	4
-195	Credit Invoice	1	5
-199	AP Voucher	21	2
-23	Vendor Invoice	21	3
-24	Reports	21	6
-30	Vendors	21	7
-196	Debit Note	21	4
-197	Debit Invoice	21	5
+19	Contacts	0	1
+246	Import Chart	73	7
+136	GIFI	128	7
+24	Reports	21	9
+250	Vouchers	21	8
 200	Vouchers	35	5
 40	Transfer	35	6
 41	Reports	35	8
 45	Reconciliation	35	7
-203	Receipts	200	3
-204	Reverse Receipts	200	4
+132	Year End	73	3
+111	Trial Balance	109	1
+112	Income Statement	109	2
+60	Combine	50	5
+78	Add Part	77	2
+79	Add Service	77	3
+80	Add Assembly	77	4
+86	Search	77	1
 201	Payments	200	1
 202	Reverse Payment	200	2
-98	Projects	0	12
-109	Reports	0	13
-115	Recurring Transactions	0	14
 210	Drafts	205	2
 211	Reconciliation	205	3
-217	Tax Forms	0	15
 218	Add Tax Form	217	1
-219	Admin Users	128	5
 188	Text Templates	128	15
 172	LaTeX Templates	128	14
 156	HTML Templates	128	13
 153	SIC	128	12
 150	Language	128	11
 147	Type of Business	128	10
-144	Departments	128	9
+144	Reporting Units	128	9
 141	Warehouses	128	8
-136	Chart of Accounts	128	7
-220	Add User	219	1
-221	Search Users	219	2
-222	Sessions	219	3
+222	Sessions	128	5
 225	List Tax Forms	217	2
+203	Receipts	200	4
 226	Reports	217	3
-227	Fixed Assets	0	17
-193	Logout	0	23
-192	New Window	0	22
-191	Preferences	0	21
-190	Stylesheet	0	20
-128	System	0	19
-116	Batch Printing	0	18
 228	Asset Classes	227	1
 229	Assets	227	2
 230	Add Class	228	1
@@ -2604,10 +2895,92 @@ COPY menu_node (id, label, parent, "position") FROM stdin;
 236	Reports	229	11
 239	Depreciation	236	2
 240	Disposal	236	3
+243	Import Batch	21	3
+23	Vendor Invoice	21	4
+196	Debit Note	21	5
+197	Debit Invoice	21	6
+244	Import Batch	1	3
+3	Sales Invoice	1	4
+194	Credit Note	1	5
+195	Credit Invoice	1	6
+245	Import	73	2
+76	Search and GL	73	4
+139	Add GIFI	136	4
+140	List GIFI	136	5
+247	Import GIFI	136	6
+248	Import	153	3
+198	AR Voucher	249	1
+199	AP Voucher	250	1
+252	Add Budget	251	1
+253	Search	251	2
+251	Budgets	0	7
+46	HR	0	8
+50	Order Entry	0	9
+63	Shipping	0	10
+67	Quotations	0	11
+73	General Journal	0	12
+77	Goods and Services	0	13
+109	Reports	0	15
+115	Recurring Transactions	0	16
+217	Tax Forms	0	17
+227	Fixed Assets	0	19
+193	Logout	0	25
+192	New Window	0	24
+191	Preferences	0	23
+128	System	0	21
+9	Outstanding	4	1
+10	Outstanding	24	1
+81	Add Overhead	77	5
+82	Add Group	77	7
+83	Add Pricegroup	77	9
+84	Stock Assembly	77	10
+95	Translations	77	12
+85	Reports	77	11
+98	Timecards	0	14
+17	Sequences	128	4
+204	Reverse Receipts	200	5
+18	Reverse Overpay	200	3
+26	Reverse AR Overpay	200	6
+59	Inventory	205	4
+75	Inventory and COGS	109	5
+159	Invoice	156	4
+160	AR Transaction	156	5
+161	AP Transaction	156	6
+162	Packing List	156	7
+163	Pick List	156	8
+164	Sales Order	156	9
+165	Work Order	156	10
+166	Purchase Order	156	11
+167	Bin List	156	12
+168	Statement	156	13
+169	Quotation	156	14
+170	RFQ	156	15
+171	Timecard	156	16
+241	Letterhead	156	17
+174	AR Transaction	172	3
+175	AP Transaction	172	4
+176	Packing List	172	5
+177	Pick List	172	6
+178	Sales Order	172	7
+179	Work Order	172	8
+180	Purchase Order	172	9
+181	Bin List	172	10
+182	Statement	172	11
+183	Check	172	12
+184	Receipt	172	13
+185	Quotation	172	14
+186	RFQ	172	15
+187	Timecard	172	16
+242	Letterhead	172	17
+90	Product Receipt	172	2
+99	Product Receipt	156	2
+129	Add Return	1	7
+5	Search	1	8
+4	Reports	1	10
+249	Vouchers	1	9
 \.
 
---
--- Name: menu_node_parent_key; Type: CONSTRAINT; Schema: public; Owner: ledgersmb; Tablespace: 
+
 --
 
 ALTER TABLE ONLY menu_node
@@ -2656,18 +3029,16 @@ $$;
 -- Name: menu_attribute_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ledgersmb
 --
 
-SELECT pg_catalog.setval('menu_attribute_id_seq', 649, true);
+SELECT pg_catalog.setval('menu_attribute_id_seq', 681, true);
 
 
 --
 -- Data for Name: menu_attribute; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+
 COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
-26	outstanding	1	584
 205	menu	1	574
-206	module	vouchers.pl	575
-206	action	search_batch	576
 1	menu	1	1
 2	module	ar.pl	2
 2	action	add	3
@@ -2675,41 +3046,7 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 3	module	is.pl	5
 3	type	invoice	6
 4	menu	1	7
-5	module	ar.pl	8
-5	action	search	9
-5	nextsub	transactions	10
-6	module	ar.pl	12
-6	action	search	13
-6	nextsub	transactions	14
-7	module	rp.pl	15
-7	action	report	16
-7	report	ar_aging	17
-6	outstanding	1	18
-9	module	rp.pl	21
-9	action	report	22
-9	report	tax_collected	23
-10	module	rp.pl	24
-10	action	report	25
-10	report	nontaxable_sales	26
-11	menu	1	27
-12	module	customer.pl	28
 12	action	add	29
-13	menu	1	31
-14	module	customer.pl	32
-14	action	search	36
-15	db	customer	37
-15	action	history	33
-16	menu	1	38
-17	module	ps.pl	39
-17	action	add	40
-17	nextsub	openinvoices	41
-18	action	openinvoices	42
-18	module	ps.pl	43
-19	module	ps.pl	44
-19	action	receipts	46
-20	module	ps.pl	47
-20	action	till_closing	48
-20	pos	true	49
 21	menu	1	50
 22	action	add	52
 22	module	ap.pl	51
@@ -2717,32 +3054,6 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 23	type	invoice	55
 23	module	ir.pl	54
 24	menu	1	56
-25	action	search	58
-25	nextsub	transactions	59
-25	module	ap.pl	57
-26	action	search	61
-26	nextsub	transactions	62
-26	module	ap.pl	60
-27	module	rp.pl	63
-27	action	report	64
-28	module	rp.pl	66
-28	action	report	67
-28	report	tax_paid	68
-27	report	ap_aging	65
-29	module	rp.pl	69
-29	action	report	70
-29	report	nontaxable_purchases	71
-30	menu	1	72
-31	module	vendor.pl	73
-31	action	add	74
-31	db	vendor	75
-32	menu	1	76
-33	module	vendor.pl	77
-33	action	search	79
-33	db	vendor	78
-34	module	vendor.pl	80
-34	action	history	81
-34	db	vendor	82
 35	menu	1	83
 36	module	payment.pl	84
 36	action	payment	85
@@ -2757,25 +3068,17 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 38	module	payment.pl	90
 38	action	payment	91
 38	type	check	92
-38	account_class	1	554
 194	module	ar.pl	538
 194	action	add	539
 40	module	gl.pl	96
 40	action	add	97
 40	transfer	1	98
 41	menu	1	99
-42	module	rp.pl	100
-42	action	report	101
-42	report	receipts	102
-43	module	rp.pl	103
-43	action	report	104
-43	report	payments	105
 44	report	1	110
 46	menu	1	111
 47	menu	1	112
-48	module	employee.pl	113
+48	module	contact.pl	113
 48	action	add	114
-49	action	search	117
 50	menu	1	119
 51	module	oe.pl	120
 51	action	add	121
@@ -2784,33 +3087,9 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 52	action	add	124
 52	type	purchase_order	125
 53	menu	1	126
-54	module	oe.pl	127
-54	type	sales_order	129
-54	action	search	128
-55	module	oe.pl	130
-55	type	purchase_order	132
-55	action	search	131
 56	menu	1	133
-57	module	oe.pl	134
-57	action	search	136
-58	module	oe.pl	137
-58	action	search	139
-57	type	generate_sales_order	135
-58	type	generate_purchase_order	138
 60	menu	1	550
-61	module	oe.pl	140
-61	action	search	141
-62	module	oe.pl	143
-62	action	search	144
-62	type	consolidate_purchase_order	145
-61	type	consolidate_sales_order	142
 63	menu	1	146
-64	module	oe.pl	147
-64	action	search	148
-64	type	ship_order	149
-65	module	oe.pl	150
-65	action	search	151
-65	type	receive_order	152
 66	module	oe.pl	153
 66	action	search_transfer	154
 67	menu	1	155
@@ -2818,32 +3097,37 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 68	action	add	157
 69	module	oe.pl	159
 69	action	add	160
-49	module	employee.pl	118
 68	type	sales_quotation	158
 69	type	request_quotation	161
 70	menu	1	162
-71	module	oe.pl	163
-71	type	sales_quotation	165
-71	action	search	164
-72	module	oe.pl	166
-72	action	search	168
-72	type	request_quotation	167
+7	module	reports.pl	15
+7	action	start_report	16
+7	report_name	aging	17
+27	module	reports.pl	63
+27	report_name	aging	65
+12	module	contact.pl	28
+14	action	start_report	36
+14	module	reports.pl	32
+14	module_name	gl	27
+15	action	start_report	33
+15	report_name	purchase_history	37
+34	action	start_report	81
+34	report_name	purchase_history	82
+34	module	reports.pl	80
+5	action	start_report	9
+25	action	start_report	58
 73	menu	1	169
 74	module	gl.pl	170
 74	action	add	171
-75	module	gl.pl	172
-75	action	add_pos_adjust	174
-75	rowcount	3	175
-75	pos_adjust	1	176
-75	reference	Adjusting Till: (Till)  Source: (Source)	177
-75	descripton	Adjusting till due to data entry error	178
-76	module	gl.pl	180
-76	action	search	181
 77	menu	1	182
 78	module	ic.pl	183
 78	action	add	184
 78	item	part	185
 79	module	ic.pl	186
+206	module	reports.pl	575
+206	action	start_report	576
+38	account_class	1	39
+49	module	reports.pl	118
 79	action	add	187
 79	item	service	188
 80	module	ic.pl	189
@@ -2856,318 +3140,259 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 82	module	pe.pl	196
 83	action	add	198
 83	module	pe.pl	199
-83	type	pricegroup	200
-82	type	partsgroup	197
 84	module	ic.pl	202
+5	module	invoice.pl	8
+25	module	invoice.pl	57
+5	report_name	invoice_search	10
+25	report_name	invoice_search	59
+42	module	payment.pl	100
+42	action	get_search_criteria	101
+42	account_class	2	102
+43	action	get_search_criteria	104
+43	module	payment.pl	103
+43	account_class	1	105
+49	action	start_report	117
+54	module	order.pl	127
+55	module	order.pl	130
+71	module	order.pl	163
+72	module	order.pl	166
+54	action	get_criteria	128
+55	action	get_criteria	131
+71	action	get_criteria	164
+72	action	get_criteria	168
+54	search_type	search	129
+55	search_type	search	132
+71	search_type	search	165
+72	search_type	search	167
+57	action	get_criteria	136
+58	action	get_criteria	139
+61	action	get_criteria	141
+62	action	get_criteria	144
+62	search_type	combine	145
+61	search_type	combine	142
+61	module	order.pl	140
+62	module	order.pl	143
+57	module	order.pl	134
+58	module	order.pl	137
+57	search_type	generate	135
+58	search_type	generate	138
+64	action	get_criteria	148
+65	action	get_criteria	151
+64	search_type	ship	149
+64	module	order.pl	147
+65	module	order.pl	150
 84	action	stock_assembly	203
 85	menu	1	204
-86	module	ic.pl	205
-86	action	search	610
-86	searchitems	all	611
-87	module	ic.pl	612
-87	action	search	206
-87	searchitems	part	210
-88	module	ic.pl	211
-88	action	requirements	212
-89	action	search	213
-89	module	ic.pl	214
-89	searchitems	service	215
-90	action	search	216
-90	module	ic.pl	217
-90	searchitems	labor	218
-91	module	pe.pl	221
-91	type	partsgroup	222
-91	action	search	220
-92	module	pe.pl	224
-92	type	pricegroup	225
-92	action	search	223
-93	action	search	226
-93	module	ic.pl	227
-93	searchitems	assembly	228
-94	action	search	229
-94	module	ic.pl	230
-94	searchitems	component	231
 95	menu	1	232
 96	module	pe.pl	233
 96	action	translation	234
 96	translation	description	235
+91	action	start_report	220
+92	action	start_report	223
 97	module	pe.pl	236
 97	action	translation	237
 97	translation	partsgroup	238
 98	menu	1	239
-99	module	pe.pl	240
-99	action	add	241
-99	type	project	242
-100	module	jc.pl	243
-100	action	add	244
-99	project	project	245
+100	module	timecard.pl	243
+100	action	new	244
 100	project	project	246
 100	type	timecard	247
 101	menu	1	248
 102	module	pe.pl	249
 102	action	project_sales_order	250
-103	menu	1	255
-104	module	pe.pl	256
-104	type	project	258
-104	action	search	257
-105	action	report	260
-105	report	projects	261
-105	module	rp.pl	262
-106	module	jc.pl	263
-106	action	search	264
-106	type	timecard	265
-106	project	project	266
 107	menu	1	268
 108	module	pe.pl	269
 108	action	translation	270
 108	translation	project	271
 109	menu	1	272
-110	module	ca.pl	273
 110	action	chart_of_accounts	274
-111	action	report	275
-111	module	rp.pl	276
-111	report	trial_balance	277
-112	action	report	278
-112	module	rp.pl	279
-112	report	income_statement	280
-113	action	report	281
-113	module	rp.pl	282
-113	report	balance_sheet	283
-114	action	report	284
-114	module	rp.pl	285
-114	report	inv_activity	286
+113	action	start_report	281
+113	module	reports.pl	282
+113	report_name	balance_sheet	283
 115	action	recurring_transactions	287
 115	module	am.pl	288
-116	menu	1	289
-119	module	bp.pl	290
-119	action	search	291
-119	type	check	292
-119	vc	vendor	293
-117	module	bp.pl	294
-117	action	search	295
-117	vc	customer	297
-117	type	invoice	296
-118	module	bp.pl	298
-118	action	search	299
-118	vc	customer	300
-118	type	sales_order	301
-120	module	bp.pl	302
-120	action	search	303
-120	vc	customer	304
-121	module	bp.pl	306
-121	action	search	307
-121	vc	customer	308
-122	module	bp.pl	310
-122	action	search	311
-122	vc	customer	312
-120	type	work_order	305
-121	type	sales_quotation	309
-122	type	packing_list	313
-123	module	bp.pl	314
-123	action	search	315
-123	vc	customer	316
-123	type	pick_list	317
-124	module	bp.pl	318
-124	action	search	319
-124	vc	vendor	321
-124	type	purchase_order	320
-125	module	bp.pl	322
-125	action	search	323
-125	vc	vendor	325
-126	module	bp.pl	326
-126	action	search	327
-126	vc	vendor	329
-127	module	bp.pl	330
-127	action	search	331
-127	type	timecard	332
-125	type	bin_list	324
-126	type	request_quotation	328
-127	vc	employee	333
+76	module	reports.pl	180
+76	action	start_report	181
+110	module	journal.pl	273
 128	menu	1	334
-129	module	am.pl	337
 130	module	am.pl	338
-131	module	am.pl	339
-129	action	audit_control	340
 130	taxes	audit_control	341
-131	action	defaults	342
 130	action	taxes	343
 132	module	account.pl	346
 132	action	yearend_info	347
-138	module	am.pl	356
 139	module	am.pl	357
-140	module	am.pl	358
-138	action	list_account	360
+140	module	reports.pl	358
 139	action	add_gifi	361
 140	action	list_gifi	362
 141	menu	1	363
 142	module	am.pl	364
-143	module	am.pl	365
+143	module	reports.pl	365
 142	action	add_warehouse	366
+131	module	configuration.pl	339
+111	report_name	trial_balance	277
+111	action	start_report	275
+131	action	defaults_screen	342
 143	action	list_warehouse	367
-145	module	am.pl	368
-146	module	am.pl	369
-145	action	add_department	370
-146	action	list_department	371
+144	module	business_unit.pl	368
+144	action	list_classes	370
 147	menu	1	372
 148	module	am.pl	373
-149	module	am.pl	374
+149	module	reports.pl	374
+112	action	start_report	278
+112	module	reports.pl	279
+112	report_name	income_statement	280
 148	action	add_business	375
-149	action	list_business	376
+149	action	list_business_types	376
 150	menu	1	377
 151	module	am.pl	378
-152	module	am.pl	379
+152	module	reports.pl	379
 151	action	add_language	380
 152	action	list_language	381
 153	menu	1	382
 154	module	am.pl	383
-155	module	am.pl	384
+155	module	reports.pl	384
 154	action	add_sic	385
 155	action	list_sic	386
+86	action	search_screen	610
 156	menu	1	387
-157	module	am.pl	388
-158	module	am.pl	389
-159	module	am.pl	390
-160	module	am.pl	391
-161	module	am.pl	392
-162	module	am.pl	393
-163	module	am.pl	394
-164	module	am.pl	395
-165	module	am.pl	396
-166	module	am.pl	397
-167	module	am.pl	398
-168	module	am.pl	399
-169	module	am.pl	400
-170	module	am.pl	401
-171	module	am.pl	402
-241	module	am.pl	642
-157	action	list_templates	403
-158	action	list_templates	404
-159	action	list_templates	405
-160	action	list_templates	406
-161	action	list_templates	407
-162	action	list_templates	408
-163	action	list_templates	409
-164	action	list_templates	410
-165	action	list_templates	411
-166	action	list_templates	412
-167	action	list_templates	413
-168	action	list_templates	414
-169	action	list_templates	415
-170	action	list_templates	416
-171	action	list_templates	417
-241	action	list_templates	643
-157	template	income_statement	418
-158	template	balance_sheet	419
-159	template	invoice	420
-160	template	ar_transaction	421
-161	template	ap_transaction	422
-162	template	packing_list	423
-163	template	pick_list	424
-164	template	sales_order	425
-165	template	work_order	426
-166	template	purchase_order	427
-167	template	bin_list	428
-168	template	statement	429
-169	template	sales_quotation	430
-170	template	request_quotation	431
-171	template	timecard	432
-241	template	letterhead	644
-157	format	HTML	433
-158	format	HTML	434
-159	format	HTML	435
-160	format	HTML	436
-161	format	HTML	437
-162	format	HTML	438
-163	format	HTML	439
-164	format	HTML	440
-165	format	HTML	441
-166	format	HTML	442
-167	format	HTML	443
-168	format	HTML	444
-169	format	HTML	445
-170	format	HTML	446
-171	format	HTML	447
-241	format	HTML	645
+159	module	template.pl	390
+160	module	template.pl	391
+161	module	template.pl	392
+162	module	template.pl	393
+163	module	template.pl	394
+164	module	template.pl	395
+165	module	template.pl	396
+166	module	template.pl	397
+167	module	template.pl	398
+168	module	template.pl	399
+169	module	template.pl	400
+170	module	template.pl	401
+171	module	template.pl	402
+241	module	template.pl	642
+159	action	display	405
+160	action	display	406
+161	action	display	407
+162	action	display	408
+163	action	display	409
+164	action	display	410
+165	action	display	411
+166	action	display	412
+167	action	display	413
+114	module	reports.pl	285
+114	report_name	inventory_activity	286
+114	action	start_report	284
+168	action	display	414
+169	action	display	415
+170	action	display	416
+171	action	display	417
+241	action	display	643
+159	template_name	invoice	420
+160	template_name	ar_transaction	421
+161	template_name	ap_transaction	422
+162	template_name	packing_list	423
+163	template_name	pick_list	424
+164	template_name	sales_order	425
+165	template_name	work_order	426
+166	template_name	purchase_order	427
+106	action	start_report	264
+106	module_name	timecards	265
+106	report_name	timecards	266
+167	template_name	bin_list	428
+168	template_name	statement	429
+169	template_name	sales_quotation	430
+170	template_name	rfq	431
+171	template_name	timecard	432
+241	template_name	letterhead	644
+159	format	html	435
+160	format	html	436
+161	format	html	437
+162	format	html	438
+163	format	html	439
+164	format	html	440
+165	format	html	441
+166	format	html	442
+167	format	html	443
+168	format	html	444
+169	format	html	445
+170	format	html	446
+171	format	html	447
+241	format	html	645
 172	menu	1	448
-173	action	list_templates	449
-174	action	list_templates	450
-175	action	list_templates	451
-176	action	list_templates	452
-177	action	list_templates	453
-178	action	list_templates	454
-179	action	list_templates	455
-180	action	list_templates	456
-181	action	list_templates	457
-182	action	list_templates	458
-183	action	list_templates	459
-184	action	list_templates	460
-185	action	list_templates	461
-186	action	list_templates	462
-187	action	list_templates	463
-242	action	list_templates	646
-173	module	am.pl	464
-174	module	am.pl	465
-175	module	am.pl	466
-176	module	am.pl	467
-177	module	am.pl	468
-178	module	am.pl	469
-179	module	am.pl	470
-180	module	am.pl	471
-181	module	am.pl	472
-182	module	am.pl	473
-183	module	am.pl	474
-184	module	am.pl	475
-185	module	am.pl	476
-186	module	am.pl	477
-187	module	am.pl	478
-242	module	am.pl	647
-173	format	LATEX	479
-174	format	LATEX	480
-175	format	LATEX	481
-176	format	LATEX	482
-177	format	LATEX	483
-178	format	LATEX	484
-179	format	LATEX	485
-180	format	LATEX	486
-181	format	LATEX	487
-182	format	LATEX	488
-183	format	LATEX	489
-184	format	LATEX	490
-185	format	LATEX	491
-186	format	LATEX	492
-187	format	LATEX	493
-242	format	LATEX	648
-173	template	invoice	506
-174	template	ar_transaction	507
-175	template	ap_transaction	508
-176	template	packing_list	509
-177	template	pick_list	510
-178	template	sales_order	511
-179	template	work_order	512
-180	template	purchase_order	513
-181	template	bin_list	514
-182	template	statement	515
-185	template	sales_quotation	518
-186	template	rfq	519
-187	template	timecard	520
-183	template	check	516
-184	template	receipt	517
-242	template	letterhead	649
+173	action	display	449
+174	action	display	450
+175	action	display	451
+176	action	display	452
+177	action	display	453
+178	action	display	454
+179	action	display	455
+180	action	display	456
+181	action	display	457
+182	action	display	458
+183	action	display	459
+184	action	display	460
+185	action	display	461
+186	action	display	462
+187	action	display	463
+242	action	display	646
+173	module	template.pl	464
+174	module	template.pl	465
+175	module	template.pl	466
+176	module	template.pl	467
+177	module	template.pl	468
+178	module	template.pl	469
+179	module	template.pl	470
+180	module	template.pl	471
+181	module	template.pl	472
+182	module	template.pl	473
+183	module	template.pl	474
+184	module	template.pl	475
+185	module	template.pl	476
+186	module	template.pl	477
+187	module	template.pl	478
+242	module	template.pl	647
+173	format	tex	479
+174	format	tex	480
+175	format	tex	481
+176	format	tex	482
+177	format	tex	483
+178	format	tex	484
+179	format	tex	485
+180	format	tex	486
+181	format	tex	487
+182	format	tex	488
+183	format	tex	489
+184	format	tex	490
+185	format	tex	491
+186	format	tex	492
+187	format	tex	493
+242	format	tex	648
+173	template_name	invoice	506
+174	template_name	ar_transaction	507
+175	template_name	ap_transaction	508
+176	template_name	packing_list	509
+177	template_name	pick_list	510
+178	template_name	sales_order	511
+179	template_name	work_order	512
+180	template_name	purchase_order	513
+181	template_name	bin_list	514
+182	template_name	statement	515
+185	template_name	quotation	518
+186	template_name	rfq	519
+187	template_name	timecard	520
+183	template_name	check	516
+184	template_name	receipt	517
+242	template_name	letterhead	649
 188	menu	1	521
-189	module	am.pl	522
-189	action	list_templates	523
-189	template	pos_invoice	524
-189	format	TEXT	525
-190	action	display_stylesheet	526
-190	module	am.pl	527
+189	module	template.pl	522
+189	action	display	523
+189	template_name	pos_invoice	524
+189	format	txt	525
 193	module	login.pl	532
 193	action	logout	533
 193	target	_top	534
-192	menu	1	530
 192	new	1	531
 0	menu	1	535
 136	menu	1	536
-144	menu	1	537
 195	action	add	540
 195	module	is.pl	541
 196	action	add	543
@@ -3189,16 +3414,12 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 201	action	create_batch	563
 203	module	vouchers.pl	565
 203	action	create_batch	566
-203	batch_type	receipts	567
 202	module	vouchers.pl	568
 202	action	create_batch	569
 204	module	vouchers.pl	571
 204	action	create_batch	572
 201	batch_type	payment	564
-210	action	search	585
-210	module	drafts.pl	586
 199	batch_type	ap	561
-15	module	customer.pl	35
 45	module	recon.pl	106
 45	action	new_report	107
 44	module	recon.pl	108
@@ -3216,22 +3437,12 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 218	module	taxform.pl	599
 137	module	account.pl	355
 137	action	new	359
-219	menu	1	600
-220	module	admin.pl	601
-220	action	new_user	602
-221	module	admin.pl	603
-221	action	search_users	604
 222	module	admin.pl	605
 222	action	list_sessions	606
-49	l_last_name	1	115
-49	l_employeenumber	1	116
-49	l_first_name	1	613
-49	l_id	1	614
-49	l_startdate	1	615
-49	l_enddate	1	616
 225	module	taxform.pl	613
 225	action	list_all	614
 226	module	taxform.pl	615
+226	action	report	201
 227	menu	1	616
 228	menu	1	617
 229	menu	1	618
@@ -3242,7 +3453,6 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 234	module	asset.pl	627
 234	action	new_report	628
 235	module	asset.pl	630
-235	action	import	631
 236	menu	1	632
 237	module	asset.pl	633
 237	action	display_nbv	634
@@ -3258,12 +3468,140 @@ COPY menu_attribute (node_id, attribute, value, id) FROM stdin;
 239	depreciation	1	639
 240	module	asset.pl	640
 240	action	search_reports	641
+235	action	begin_import	631
+249	menu	1	668
+243	module	import_csv.pl	650
+243	action	begin_import	651
+243	type	ap_multi	652
+244	module	import_csv.pl	653
+244	action	begin_import	654
+244	type	ar_multi	655
+245	module	import_csv.pl	656
+245	action	begin_import	657
+245	type	gl	658
+246	module	import_csv.pl	659
+246	action	begin_import	660
+246	type	chart	661
+247	module	import_csv.pl	662
+247	action	begin_import	663
+247	type	gifi	664
+248	module	import_csv.pl	665
+248	action	begin_import	666
+248	type	sic	667
+83	type	pricegroup	200
+82	type	partsgroup	197
+203	batch_type	receipt	567
+250	menu	1	669
+7	module_name	gl	671
+7	entity_class	2	672
+27	entity_class	1	673
+76	report_name	gl	530
+27	action	start_report	64
+27	module_name	gl	674
+251	menu	1	675
+252	module	budgets.pl	676
+253	module	reports.pl	677
+252	action	new_budget	678
+253	report_name	budget_search	680
+253	module_name	gl	681
+253	action	start_report	679
+76	module_name	gl	670
+19	menu	1	11
+14	report_name	contact_search	31
+20	module	vouchers.pl	72
+20	action	create_batch	73
+20	batch_type	sales_invoice	74
+39	module	vouchers.pl	75
+39	action	create_batch	76
+39	batch_type	vendor_invoice	77
+15	module	reports.pl	35
+34	entity_class	1	20
+15	entity_class	2	19
+5	entity_class	2	12
+25	entity_class	1	13
+210	module	reports.pl	586
+49	module_name	gl	115
+49	entity_class	3	43
+206	module_name	gl	14
+206	report_name	unapproved	18
+206	search_type	batches	30
+210	action	start_report	585
+210	module_name	gl	44
+210	report_name	unapproved	45
+49	report_name	contact_search	116
+111	module	reports.pl	276
+111	module_name	gl	40
+210	search_type	drafts	46
+112	module_name	gl	79
+65	search_type	ship	34
+9	module	invoice.pl	21
+9	action	start_report	22
+9	entity_class	2	24
+10	module	invoice.pl	25
+10	action	start_report	26
+10	entity_class	1	67
+9	report_name	invoice_outstanding	23
+10	report_name	invoice_outstanding	66
+54	oe_class_id	1	62
+55	oe_class_id	2	68
+71	oe_class_id	3	69
+72	oe_class_id	4	70
+61	oe_class_id	1	38
+62	oe_class_id	2	41
+57	oe_class_id	2	42
+58	oe_class_id	1	47
+64	oe_class_id	1	48
+65	oe_class_id	2	49
+86	module	goods.pl	205
+91	module	reports.pl	221
+91	report_name	search_partsgroups	222
+92	module	reports.pl	224
+92	report_name	search_pricegroups	225
+6	module	import_csv.pl	60
+6	action	begin_import	61
+6	type	inventory	71
+8	module	import_csv.pl	78
+8	action	begin_import	93
+8	type	timecard	94
+11	module	import_csv.pl	95
+13	module	import_csv.pl	152
+11	action	begin_import	172
+13	action	begin_import	173
+11	type	ar_multi	174
+13	type	ap_multi	175
+11	multi	1	176
+13	multi	1	177
+16	module	inventory.pl	178
+16	action	begin_adjust	179
+17	module	configuration.pl	206
+17	action	sequence_screen	207
+18	batch_type	payment_reversal	208
+18	module	vouchers.pl	209
+18	action	create_batch	210
+18	overpayment	1	211
+26	batch_type	receipt_reversal	212
+26	module	vouchers.pl	213
+26	action	create_batch	214
+26	overpayment	1	215
+59	module	reports.pl	216
+59	action	start_report	217
+59	report_name	inventory_adj	218
+106	module	reports.pl	263
+75	module	reports.pl	219
+75	action	start_report	226
+75	report_name	cogs_lines	227
+90	module	template.pl	228
+90	action	display	229
+90	template_name	product_receipt	230
+90	format	tex	231
+99	module	template.pl	240
+99	action	display	241
+99	template_name	product_receipt	242
+99	format	html	245
+129	module	is.pl	251
+129	action	add	252
+129	type	customer_return	253
 \.
-
-
---
--- PostgreSQL database dump complete
---
 
 --
 
@@ -3286,14 +3624,10 @@ found for any role of which the user is a member, where the acl_type is set to
 'deny'.$$;
 
 
-
 ALTER TABLE ONLY menu_acl
     ADD CONSTRAINT menu_acl_node_id_fkey FOREIGN KEY (node_id) REFERENCES menu_node(id);
 
-
---
--- PostgreSQL database dump complete
---
+CREATE INDEX menu_acl_node_id_idx ON menu_acl (node_id);
 
 CREATE OR REPLACE FUNCTION to_args (in_base text[], in_args text[])
 RETURNS text[] AS
@@ -3327,216 +3661,6 @@ $$ Turns a setof ARRAY[key,value] into an
 ARRAY[key||'='||value, key||'='||value,...]
 $$;
 
-CREATE TYPE menu_item AS (
-   position int,
-   id int,
-   level int,
-   label varchar,
-   path varchar,
-   args varchar[]
-);
-
-
-CREATE OR REPLACE FUNCTION menu_generate() RETURNS SETOF menu_item AS 
-$$
-DECLARE 
-	item menu_item;
-	arg menu_attribute%ROWTYPE;
-BEGIN
-	FOR item IN 
-		SELECT n.position, n.id, c.level, n.label, c.path, 
-                       to_args(array[ma.attribute, ma.value])
-		FROM connectby('menu_node', 'id', 'parent', 'position', '0', 
-				0, ',') 
-			c(id integer, parent integer, "level" integer, 
-				path text, list_order integer)
-		JOIN menu_node n USING(id)
-                JOIN menu_attribute ma ON (n.id = ma.node_id)
-               WHERE n.id IN (select node_id 
-                                FROM menu_acl
-                                JOIN (select rolname FROM pg_roles
-                                      UNION 
-                                     select 'public') pgr 
-                                     ON pgr.rolname = role_name
-                               WHERE pg_has_role(CASE WHEN coalesce(pgr.rolname,
-                                                                    'public') 
-                                                                    = 'public'
-                                                      THEN current_user
-                                                      ELSE pgr.rolname
-                                                   END, 'USAGE')
-                            GROUP BY node_id
-                              HAVING bool_and(CASE WHEN acl_type ilike 'DENY'
-                                                   THEN FALSE
-                                                   WHEN acl_type ilike 'ALLOW'
-                                                   THEN TRUE
-                                                END))
-                    or exists (select cn.id, cc.path
-                                 FROM connectby('menu_node', 'id', 'parent', 
-                                                'position', '0', 0, ',')
-                                      cc(id integer, parent integer, 
-                                         "level" integer, path text,
-                                         list_order integer)
-                                 JOIN menu_node cn USING(id)
-                                WHERE cn.id IN 
-                                      (select node_id FROM menu_acl
-                                        JOIN (select rolname FROM pg_roles
-                                              UNION 
-                                              select 'public') pgr 
-                                              ON pgr.rolname = role_name
-                                        WHERE pg_has_role(CASE WHEN coalesce(pgr.rolname,
-                                                                    'public') 
-                                                                    = 'public'
-                                                      THEN current_user
-                                                      ELSE pgr.rolname
-                                                   END, 'USAGE')
-                                     GROUP BY node_id
-                                       HAVING bool_and(CASE WHEN acl_type 
-                                                                 ilike 'DENY'
-                                                            THEN false
-                                                            WHEN acl_type 
-                                                                 ilike 'ALLOW'
-                                                            THEN TRUE
-                                                         END))
-                                       and cc.path like c.path || ',%')
-            GROUP BY n.position, n.id, c.level, n.label, c.path, c.list_order
-            ORDER BY c.list_order
-                             
-	LOOP
-		RETURN NEXT item;
-	END LOOP;
-END;
-$$ language plpgsql;
-
-COMMENT ON FUNCTION menu_generate() IS
-$$
-This function returns the complete menu tree.  It is used to generate nested
-menus for the web interface.
-$$;
-
-CREATE OR REPLACE FUNCTION menu_children(in_parent_id int) RETURNS SETOF menu_item
-AS $$
-declare 
-	item menu_item;
-	arg menu_attribute%ROWTYPE;
-begin
-        FOR item IN
-		SELECT n.position, n.id, c.level, n.label, c.path, 
-                       to_args(array[ma.attribute, ma.value])
-		FROM connectby('menu_node', 'id', 'parent', 'position', 
-				in_parent_id, 1, ',') 
-			c(id integer, parent integer, "level" integer, 
-				path text, list_order integer)
-		JOIN menu_node n USING(id)
-                JOIN menu_attribute ma ON (n.id = ma.node_id)
-               WHERE n.id IN (select node_id 
-                                FROM menu_acl
-                                JOIN (select rolname FROM pg_roles
-                                      UNION 
-                                      select 'public') pgr 
-                                      ON pgr.rolname = role_name
-                                WHERE pg_has_role(CASE WHEN coalesce(pgr.rolname,
-                                                                    'public') 
-                                                                    = 'public'
-                                                               THEN current_user
-                                                               ELSE pgr.rolname
-                                                               END, 'USAGE')
-                            GROUP BY node_id
-                              HAVING bool_and(CASE WHEN acl_type ilike 'DENY'
-                                                   THEN FALSE
-                                                   WHEN acl_type ilike 'ALLOW'
-                                                   THEN TRUE
-                                                END))
-                    or exists (select cn.id, cc.path
-                                 FROM connectby('menu_node', 'id', 'parent', 
-                                                'position', '0', 0, ',')
-                                      cc(id integer, parent integer, 
-                                         "level" integer, path text,
-                                         list_order integer)
-                                 JOIN menu_node cn USING(id)
-                                WHERE cn.id IN 
-                                      (select node_id FROM menu_acl
-                                         JOIN (select rolname FROM pg_roles
-                                              UNION 
-                                              select 'public') pgr 
-                                              ON pgr.rolname = role_name
-                                        WHERE pg_has_role(CASE WHEN coalesce(pgr.rolname,
-                                                                    'public') 
-                                                                    = 'public'
-                                                               THEN current_user
-                                                               ELSE pgr.rolname
-                                                               END, 'USAGE')
-                                     GROUP BY node_id
-                                       HAVING bool_and(CASE WHEN acl_type 
-                                                                 ilike 'DENY'
-                                                            THEN false
-                                                            WHEN acl_type 
-                                                                 ilike 'ALLOW'
-                                                            THEN TRUE
-                                                         END))
-                                       and cc.path like c.path || ',%')
-            GROUP BY n.position, n.id, c.level, n.label, c.path, c.list_order
-            ORDER BY c.list_order
-        LOOP
-                return next item;
-        end loop;
-end;
-$$ language plpgsql;
-
-COMMENT ON FUNCTION menu_children(int) IS 
-$$ This function returns all menu  items which are children of in_parent_id 
-(the only input parameter). 
-
-It is thus similar to menu_generate() but it only returns the menu items 
-associated with nodes directly descendant from the parent.  It is used for
-menues for frameless browsers.$$;
-
-CREATE OR REPLACE FUNCTION 
-menu_insert(in_parent_id int, in_position int, in_label text)
-returns int
-AS $$
-DECLARE
-	new_id int;
-BEGIN
-	UPDATE menu_node 
-	SET position = position * -1
-	WHERE parent = in_parent_id
-		AND position >= in_position;
-
-	INSERT INTO menu_node (parent, position, label)
-	VALUES (in_parent_id, in_position, in_label);
-
-	SELECT INTO new_id currval('menu_node_id_seq');
-
-	UPDATE menu_node 
-	SET position = (position * -1) + 1
-	WHERE parent = in_parent_id
-		AND position < 0;
-
-	RETURN new_id;
-END;
-$$ language plpgsql;
-
-comment on function menu_insert(int, int, text) is $$
-This function inserts menu items at arbitrary positions.  The arguments are, in
-order:  parent, position, label.  The return value is the id number of the menu
-item created. $$;
-
-
-CREATE VIEW menu_friendly AS
-SELECT t."level", t.path, t.list_order, 
-       (repeat(' '::text, (2 * t."level")) || (n.label)::text) AS label, 
-        n.id, n."position" 
-  FROM (connectby('menu_node'::text, 'id'::text, 'parent'::text, 
-                  'position'::text, '0'::text, 0, ','::text
-        ) t(id integer, parent integer, "level" integer, path text, 
-        list_order integer) 
-   JOIN menu_node n USING (id));
-
-COMMENT ON VIEW menu_friendly IS
-$$ A nice human-readable view for investigating the menu tree.  Does not
-show menu attributes or acls.$$;
-
-
 --ALTER TABLE public.menu_friendly OWNER TO ledgersmb;
 
 --
@@ -3569,69 +3693,10 @@ $$ Returns an n dimensional array.
 Example: SELECT as_array(ARRAY[id::text, class]) from contact_class
 $$;
 
-CREATE INDEX ap_approved_idx ON ap(approved);
-CREATE INDEX ar_approved_idx ON ar(approved);
-CREATE INDEX gl_approved_idx ON gl(approved);
-
-CREATE TABLE pending_job (
-	id serial not null unique,
-	batch_class int references batch_class(id),
-	entered_by text REFERENCES users(username)
-		not null default SESSION_USER,
-	entered_at timestamp default now(),
-	batch_id int references batch(id),
-	completed_at timestamp,
-	success bool,
-	error_condition text,
-	CHECK (completed_at IS NULL OR success IS NOT NULL),
-	CHECK (success IS NOT FALSE OR error_condition IS NOT NULL)
-);
-COMMENT ON table pending_job IS
-$$ Purpose:  This table stores pending/queued jobs to be processed async.
-Additionally, this functions as a log of all such processing for purposes of 
-internal audits, performance tuning, and the like. $$;
-
-CREATE INDEX pending_job_batch_id_pending ON pending_job(batch_id) where success IS NULL;
-
-CREATE INDEX pending_job_entered_by ON pending_job(entered_by);
-
-CREATE OR REPLACE FUNCTION trigger_pending_job() RETURNS TRIGGER
-AS
-$$
-BEGIN
-  IF NEW.success IS NULL THEN
-    NOTIFY job_entered;
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE PLPGSQL;
-
-CREATE TRIGGER notify_pending_jobs BEFORE INSERT OR UPDATE ON pending_job
-FOR EACH ROW EXECUTE PROCEDURE trigger_pending_job();
-
-CREATE TABLE payments_queue (
-	transactions numeric[], 
-	batch_id int, 
-	source text, 
-	total numeric,
-	ar_ap_accno text, 
-	cash_accno text, 
-	payment_date date, 
-	account_class int,
-	job_id int references pending_job(id) 
-		DEFAULT currval('pending_job_id_seq')
-);
-
-CREATE INDEX payments_queue_job_id ON payments_queue(job_id);
-
-COMMENT ON table payments_queue IS 
-$$ This is a holding table and hence not a candidate for normalization.
-Jobs should be deleted from this table when they complete successfully.$$;
-
 CREATE TABLE new_shipto (
 	id serial primary key,
 	trans_id int references transactions(id),
-	oe_id int references oe(id),
+	oe_id int references oe(id) on delete cascade,
 	location_id int references location(id)
 );
 
@@ -3739,8 +3804,8 @@ CREATE TABLE asset_item (
 	purchase_date date  not null,
         start_depreciation date not null,
 	location_id int references warehouse(id),
-	department_id int references department(id),
-	invoice_id int references ap(id),
+	department_id int references business_unit(id),
+	invoice_id int references eca_invoice(journal_id),
 	asset_account_id int references account(id),
 	dep_account_id int references account(id),
 	exp_account_id int references account(id),
@@ -3804,7 +3869,7 @@ CREATE TABLE asset_report_line(
 	asset_id bigint references asset_item(id),
         report_id bigint references asset_report(id),
 	amount numeric,
-	department_id int references department(id),
+	department_id int references business_unit(id),
 	warehouse_id int references warehouse(id),
 	PRIMARY KEY(asset_id, report_id)
 );
@@ -4524,9 +4589,14 @@ CREATE TABLE file_class (
        class text primary key
 );
 
-insert into file_class values (1, 'transaction');
-insert into file_class values (2, 'order');
-insert into file_class values (3, 'part');
+insert into file_class values (1, 'transaction'),
+                              (2, 'order'),
+                              (3, 'part'),
+                              (4, 'entity'),
+                              (5, 'eca'),
+                              (6, 'internal'),
+                              (7, 'incoming');
+
 
 COMMENT ON TABLE file_class IS
 $$ File classes are collections of files attached against rows in specific 
@@ -4573,7 +4643,7 @@ CREATE TABLE file_order (
        check (file_class=2),
        unique(id),
        primary key (ref_key, file_name, file_class),
-       foreign key (ref_key) references oe(id)
+       foreign key (ref_key) references oe(id) on delete cascade
 ) inherits (file_base);
 
 COMMENT ON TABLE file_order IS
@@ -4583,11 +4653,62 @@ CREATE TABLE file_part (
        check (file_class=3),
        unique(id),
        primary key (ref_key, file_name, file_class),
-       foreign key (ref_key) references parts(id)
+       foreign key (ref_key) references parts(id) on delete cascade
 ) inherits (file_base);
 
 COMMENT ON TABLE file_part IS
-$$ File attachments primarily attached to orders and quotations.$$;
+$$ File attachments primarily attached to goods and services.$$;
+
+CREATE TABLE file_entity (
+       check (file_class=4),
+       unique(id),
+       primary key (ref_key, file_name, file_class),
+       foreign key (ref_key) references entity(id)
+) inherits (file_base);
+
+COMMENT ON TABLE file_entity IS
+$$ File attachments primarily attached to entities.$$;
+
+CREATE TABLE file_eca (
+       check (file_class=5),
+       unique(id),
+       primary key (ref_key, file_name, file_class),
+       foreign key (ref_key) references entity_credit_account(id)
+) inherits (file_base);
+
+COMMENT ON TABLE file_eca IS
+$$ File attachments primarily attached to customer and vendor agreements.$$;
+
+CREATE TABLE file_internal (
+   check (file_class = 6),
+   unique(id),
+   primary key (ref_key, file_name, file_class),
+   check (ref_key = 0)
+) inherits (file_base);
+
+COMMENT ON COLUMN file_internal.ref_key IS
+$$ Always must be 0, and we have no primary key since these files all
+are for internal use and against the company, not categorized.$$;
+
+COMMENT ON TABLE file_internal IS
+$$ This is for internal files used operationally by LedgerSMB.  For example,
+company logos would be here.$$;
+
+CREATE TABLE file_incoming (
+   check (file_class = 7),
+   unique(id),
+   primary key (ref_key, file_name, file_class),
+   check (ref_key = 0) 
+) inherits (file_base);
+
+
+COMMENT ON COLUMN file_incoming.ref_key IS
+$$ Always must be 0, and we have no primary key since these files all
+are for interal incoming use, not categorized.$$;
+
+COMMENT ON TABLE file_incoming IS
+$$ This is essentially a spool for files to be reviewed and attached.  It is 
+important that the names are somehow guaranteed to be unique, so one may want to prepend them with an email equivalent or the like.$$;
 
 CREATE TABLE file_secondary_attachment (
        file_id int not null,
@@ -4625,7 +4746,7 @@ VALUES (new.file_id, 1, new.ref_key, 2,
        coalesce(new.attached_at, now()));
 
 COMMENT ON TABLE file_tx_to_order IS 
-$$ Secondary links from transactions to orders.$$;
+$$ Secondary links from journal entries to orders.$$;
 
 CREATE TABLE file_order_to_order (
        PRIMARY KEY(file_id, source_class, dest_class, ref_key),
@@ -4651,7 +4772,7 @@ VALUES (new.file_id, 2, new.ref_key, 2,
 CREATE TABLE file_order_to_tx (
        PRIMARY KEY(file_id, source_class, dest_class, ref_key),
        foreign key (file_id) references file_order(id),
-       foreign key (ref_key) references transactions(id),
+       foreign key (ref_key) references gl(id),
        check (source_class = 2),
        check (dest_class = 1)
 ) INHERITS (file_secondary_attachment);
@@ -4674,60 +4795,14 @@ CREATE TABLE file_view_catalog (
        view_name text not null unique
 );
 
-CREATE TABLE cr_report (
-    id bigserial primary key not null,
-    chart_id int not null references account(id),
-    their_total numeric not null,
-    approved boolean not null default 'f',
-    submitted boolean not null default 'f',
-    end_date date not null default now(),
-    updated timestamp not null default now(),
-    entered_by int not null default person__get_my_entity_id() references entity(id),
-    entered_username text not null default SESSION_USER,
-    deleted boolean not null default 'f'::boolean,
-    deleted_by int references entity(id),
-    approved_by int references entity(id),
-    approved_username text,
-    recon_fx bool default false,
-    CHECK (deleted is not true or approved is not true)
-);
+--function  person__get_my_entity_id() also defined in Person.sql, may disappear here?
+CREATE OR REPLACE FUNCTION person__get_my_entity_id() RETURNS INT AS
+$$
+	SELECT entity_id from users where username = SESSION_USER;
+$$ LANGUAGE SQL;
 
-COMMENT ON TABLE cr_report IS
-$$This table holds header data for cash reports.$$;
-
-CREATE TABLE cr_report_line (
-    id bigserial primary key not null,
-    report_id int NOT NULL references cr_report(id),
-    scn text, -- SCN is the check #
-    their_balance numeric,
-    our_balance numeric,
-    errorcode INT,
-    "user" int references entity(id) not null, 
-    clear_time date,
-    insert_time TIMESTAMPTZ NOT NULL DEFAULT now(),
-    trans_type text, 
-    post_date date,
-    ledger_id int REFERENCES acc_trans(entry_id),
-    voucher_id int REFERENCES voucher(id),
-    overlook boolean not null default 'f',
-    cleared boolean not null default 'f'
-);
-
-COMMENT ON TABLE cr_report_line IS
-$$ This stores line item data on transaction lines and whether they are 
-cleared.$$;
-
-COMMENT ON COLUMN cr_report_line.scn IS
-$$ This is the check number.  Maps to acc_trans.source $$;
-
-CREATE TABLE cr_coa_to_account (
-    chart_id int not null references account(id),
-    account text not null
-);
-
-COMMENT ON TABLE cr_coa_to_account IS
-$$ Provides name mapping for the cash reconciliation screen.$$;
-
+COMMENT ON FUNCTION person__get_my_entity_id() IS
+$$ Returns the entity_id of the current, logged in user.$$;
 --
 -- WE NEED A PAYMENT TABLE 
 --
@@ -4742,8 +4817,7 @@ CREATE TABLE payment (
   entity_credit_id   integer references entity_credit_account(id),
   employee_id integer references person(id),
   currency char(3),
-  notes text,
-  department_id integer default 0);
+  notes text);
               
 COMMENT ON TABLE payment IS $$ This table will store the main data on a payment, prepayment, overpayment, et$$;
 COMMENT ON COLUMN payment.reference IS $$ This field will store the code for both receipts and payment order  $$; 
@@ -4773,8 +4847,101 @@ COMMENT ON TABLE payment_links IS $$
  This reasoning is hacky and i hope it can dissapear when we get to 1.4 - D.M.
 $$;
 
+CREATE TABLE trial_balance__yearend_types (
+    type text primary key
+);
+INSERT INTO trial_balance__yearend_types (type) 
+     VALUES ('none'), ('all'), ('last');
+
+
+CREATE TABLE trial_balance (
+    id serial primary key,
+    date_from date, 
+    date_to date,
+    description text NOT NULL,
+    yearend text not null references trial_balance__yearend_types(type)
+);
+
+CREATE TABLE trial_balance__account_to_report (
+    report_id int not null references trial_balance(id),
+    account_id int not null references account(id)
+);
+
+CREATE TABLE trial_balance__heading_to_report (
+    report_id int not null references trial_balance(id),
+    heading_id int not null references account_heading(id)
+);
+
+CREATE TYPE trial_balance__entry AS (
+    id int,
+    date_from date,
+    date_to date,
+    description text,
+    yearend text,
+    heading_id int,
+    accounts int[]
+);
+
+ALTER TABLE cr_report_line ADD FOREIGN KEY(ledger_id) REFERENCES acc_trans(entry_id);
+
+
+CREATE VIEW tx_report AS
+SELECT id, reference, null::int as entity_credit_account, 'gl' as table, 
+       approved
+  FROM gl
+UNION ALL
+SELECT id, invnumber, entity_credit_account, 'ap', approved
+  FROM ap
+UNION ALL
+SELECT id, invnumber, entity_credit_account, 'ar', approved
+  FROM ar;
+
+COMMENT ON VIEW tx_report IS
+$$ This view provides join and approval information for transactions.$$;
+
+CREATE VIEW cash_impact AS
+SELECT id, '1'::numeric AS portion, 'gl' as rel, gl.transdate FROM gl
+UNION ALL
+SELECT id, CASE WHEN gl.amount = 0 THEN 0 -- avoid div by 0
+                WHEN gl.transdate = ac.transdate
+                     THEN 1 + sum(ac.amount) / gl.amount
+                ELSE 
+                     1 - (gl.amount - sum(ac.amount)) / gl.amount
+                END , 'ar' as rel, ac.transdate
+  FROM ar gl
+  JOIN acc_trans ac ON ac.trans_id = gl.id
+  JOIN account_link al ON ac.chart_id = al.account_id and al.description = 'AR'
+ GROUP BY gl.id, gl.amount, ac.transdate, gl.transdate
+UNION ALL
+SELECT id, CASE WHEN gl.amount = 0 THEN 0
+                WHEN gl.transdate = ac.transdate
+                     THEN 1 - sum(ac.amount) / gl.amount
+                ELSE 
+                     1 - (gl.amount + sum(ac.amount)) / gl.amount
+            END, 'ap' as rel, ac.transdate
+  FROM ap gl
+  JOIN acc_trans ac ON ac.trans_id = gl.id
+  JOIN account_link al ON ac.chart_id = al.account_id and al.description = 'AP'
+ GROUP BY gl.id, gl.amount, ac.transdate, gl.transdate;
+
+COMMENT ON VIEW cash_impact IS
+$$ This view is used by cash basis reports to determine the fraction of a
+transaction to be counted.$$;
+
 -- helpful to keeping the selection of all years fast
 create index ac_transdate_year_idx on acc_trans(EXTRACT ('YEAR' FROM transdate));
 
- 
+CREATE TABLE template ( -- not for UI templates
+    id serial not null unique,
+    template_name text not null,
+    language_code varchar(6) references language(code),
+    template text not null,
+    format text not null,
+    unique(template_name, language_code, format)
+);
+
+CREATE UNIQUE INDEX template_name_idx_u ON template(template_name, format) 
+WHERE language_code is null; -- Pseudo-Pkey
+
 commit;
+

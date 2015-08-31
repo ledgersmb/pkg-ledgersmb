@@ -4,6 +4,7 @@ Contents
 --------
 
  * System requirements
+ * Simple Server Setup: Running on Starman
  * Installing Apache 2
  * Installing PostgreSQL
  * PostgreSQL authorization settings
@@ -24,11 +25,57 @@ System requirements
 
 LedgerSMB depends on the following software:
 
- * a web server (Apache v2.x or MS IIS)
- * PostgreSQL 8.2+
- * Perl 5.8+
+ * a web server (Apache v2.x, Nginx, MS IIS, etc)
+ * PostgreSQL 9.0+
+ * Perl 5.10+
 
 
+Installation process overview
+=============================
+
+ 1) Install the base software: web server (Apache),
+    database server (PostgreSQL) and Perl from your distribution
+    and package manager or source. Read on for details
+ 2) Installing Perl module dependencies from your distribution and
+    package manager or CPAN.  Read on for details
+ 3) Give the web server access to the ledgersmb directory
+ 4) Edit ./ledgersmb/ledgersmb.conf to be able to access the database
+    and locate the relevant PostgreSQL contrib scripts
+ 5) Initializing a company database
+    Database setup and upgrade script at http://localhost/ledgersmb/setup.pl
+ 6) Login with your name (database username),
+    password (database user password), Company (databasename)
+
+Running on Starman
+===================
+As an alternative to Apache 2, LedgerSMB now supports the Perl-based web server
+named Starman.  To install you need:
+
+ * Starman
+ * CGI::Emulate::PSGI
+ * PSGI::Middleware::Static
+ * Plack::Builder
+
+Compared to Apache 2, Starman seems to perform better at the Perl portions of
+the application, but slower at serving Javascript and CSS files, though these
+are usually cached on the browser.  Thus it is not unusual to see the software
+seem to be slower at the first and then pick up speed, becoming faster than the
+equivalent CGI installations.
+
+The above may be installed by running the Makefile.PL and selecting appropriate
+options.
+
+Then from the LedgerSMB directory starting is as simple as:
+
+ starman --preload-app tools/starman.psgi
+
+The server by default starts on port 5000 so you would access the installation
+by pointing your web browser to:
+
+ http://localhost:5000/login.pl
+
+You can also daemonize Starman, run it on the default port, and much more.  See
+the starman documentation for details.
 
 Installing Apache 2
 ===================
@@ -38,7 +85,8 @@ is as simple as running:
 
  $ apt-get install apache2
 
-On Fedora systems the following command does the same:
+On Fedora and its derivatives (RedHat, Centos ++) the following command
+does the same:
 
  $ yum install httpd
 
@@ -53,7 +101,7 @@ On Debian and its derivatives installing PostgreSQL works with:
 
  $ apt-get install postgresql-server postgresql-client postgresql-contrib
 
-On Fedora systems this command does the same:
+On Fedora and its derivatives this command does the same:
 
  $ yum install postgresql postgresql-server postgresql-contrib
 
@@ -94,8 +142,10 @@ host   all   all   127.0.0.1/32    md5
 
 If you want to lock this down, you can lock it down further by:
 host   lsmbdb  all  127.0.0.1/32    md5
-host   template1 postgres 127.0.0.1/32    md5
 host  postgres postgres  127.0.0.1/32    md5
+
+As of 1.4, connections to template1 are no longer required for the db setup 
+process.
 
 Note that the above will require new pg_hba.conf lines for each db created.
 
@@ -103,39 +153,47 @@ Note that the above will require new pg_hba.conf lines for each db created.
 Installing Perl module dependencies
 ===================================
 
-LedgerSMB depends on these required modules:
+LedgerSMB depends on these additional modules (not listing core modules):
 
+  Test::More
+  Test::Trap
+  Test::Exception
   Data::Dumper
   Log::Log4perl
   Locale::Maketext
-  DateTime
   Locale::Maketext::Lexicon
+  DateTime
   DBI
+  DBD::Pg
   MIME::Base64
   Digest::MD5
-  HTML::Entities
-  DBD::Pg
-  Math::BigFloat
-  IO::File
-  Encode
-  Locale::Country
-  Locale::Language
-  Time::Local
-  Cwd
-  Config::Std
+  HTML::Entities    (part of HTML::Parser)
+  Math::BigFloat    (part of Math::BigInt)
+  IO::Scalar        (part of IO-stringy)
+  Config::IniFiles
   MIME::Lite
-  Template
-  Error
+  Template  (also known as The Template Toolkit or TT)
   CGI::Simple
   File::MimeInfo
+  Number::Format
+  DateTime::Format::Strptime
+  Moose
+  Try::Tiny
+  JSON
 
 and these optional ones:
 
+  XML::Simple        [RESTful Web Services XML support]
+  Image::Size        [Size detection for images for embedding in LaTeX]
   Net::TCLink        [Support for TrustCommerce credit card processing]
   Parse::RecDescent  [Support for the *experimental* scripting engine]
+  Getopt::Long       [Developer tool dependencies]
+  FileHandle         [Developer tool dependencies]
+  Locale::Country    [Developer tool dependencies]
+  Locale::Language   [Developer tool dependencies]
   Template::Plugin::Latex [Support for Postscript and PDF output]
   XML::Twig               [Support for OpenOffice output]
-  Excel::Template::Plus   [Support for Excel output]
+  OpenOffice::OODoc       [Support for OpenOffice output]
 
 To build using the Makefile.PL you will also need:
 
@@ -171,96 +229,42 @@ CPAN module (the Perl module downloader) as well.
 
 >>> Perl module dependencies for Debian
 
-[For a list of actions to take on Lenny, see below]
+---- Actions for Debian Wheezy  (7.x stable)
 
----- Actions for Debian Squeeze
-
-To install all the required packages which Squeeze supports, execute the
+To install all the required packages which Wheezy supports, execute the
 following command:
 
  $ aptitude install libdatetime-perl libdbi-perl libdbd-pg-perl \
-   libcgi-simple-perl libtemplate-perl libconfig-std-perl libmime-lite-perl \
-   liberror-perl liblocale-maketext-lexicon-perl libtest-exception-perl \
+   libcgi-simple-perl libtemplate-perl libmime-lite-perl \
+   liblocale-maketext-lexicon-perl libtest-exception-perl \
    libtest-trap-perl liblog-log4perl-perl libmath-bigint-gmp-perl \
-   libfile-mimeinfo-perl
+   libfile-mimeinfo-perl libtemplate-plugin-number-format-perl \
+   libdatetime-format-strptime-perl libconfig-general-perl \
+   libdatetime-format-strptime-perl libio-stringy-perl libmoose-perl \
+   libconfig-inifiles-perl libnamespace-autoclean-perl \
+   libcarp-always-perl libjson-perl
 
-This installs the modules available from the Squeeze repository.
 
-As far as the optional packages are concerned on Squeeze, the Excel and
-PDF/Postscript output options are not directly available. If you want
-these output options, you'll need to download them from CPAN.
+This installs the required modules available from the Wheezy repository.
 
-Please note that the PDF/Postscript module depends on the TeX/LaTeX
-package which *is* in the Squeeze package repository:
+To install the (optional) PDF/Postscript output module, install the
+following packages by executing this command:
 
- $ aptitude install texlive-latex-recommended
+ $ aptitude install libtemplate-plugin-latex-perl texlive-latex-recommended
 
 The credit card processing support for TrustCommerce is available
-from the Squeeze repository through:
+from the Wheezy repository through:
 
  $ aptitude install libnet-tclink-perl
 
-The Open Office output option is available from the Squeeze repository
+The Open Office output option is available from the Wheezy repository
 as well through the command:
 
  $ aptitude install libxml-twig-perl
 
+Please see the following about UTF8 characters, XeTeX, and templates:
 
----- Actions for Debian Lenny
-
-To install all the required packages which Lenny supports, execute the
-following command:
-
- $ aptitude install libdatetime-perl libdbi-perl libdbd-pg-perl \
-   libcgi-simple-perl libtemplate-perl libconfig-std-perl libmime-lite-perl \
-   liberror-perl liblocale-maketext-lexicon-perl libtest-exception-perl \
-   liblog-log4perl-perl libmath-bigint-gmp-perl libfile-mimeinfo-perl
-
-The required module Test::Trap isn't available as a Lenny package. In order
-to install that component, execute the following commands:
-
- $ aptitude install libmodule-install-perl
- $ cpan 'Test::Trap'
-
-
-As far as the optional packages are concerned on Lenny, the Excel and
-PDF/Postscript output options are not directly available. If you want
-these output options, you'll need to download them from CPAN.
-
-Please note that the PDF/Postscript module depends on the TeX/LaTeX
-package which *is* in the Lenny package repository:
-
- $ aptitude install texlive-latex-recommended
-
-The credit card processing support for TrustCommerce is available
-from the Lenny repository through:
-
- $ aptitude install libnet-tclink-perl
-
-The Open Office output option is available from the Lenny repository
-as well through the command:
-
- $ aptitude install libxml-twig-perl
-
-
-
----- Actions for Fedora 18
-
- $ sudo yum install mlocate perl perl-Class-Std perl-ExtUtils-MakeMaker \
-   perl-Test-Base perl-Test-Pod perl-Test-Pod-Coverage tar
-
-Get repoforge's perl-Config-Std (0.900-1 or newer version):
- $ curl http://apt.sw.be/source/perl-Config-Std-0.900-1.rf.src.rpm --O \ 
-   perl-Config-Std-0.900-1.rf.src.rpm
-
-Rebuild the source rpm:
-
-As root do:
- $ rpmbuild --rebuild perl-Config-Std-0.900-1.rf.src.rpm
-
- $ yum localinstall /path/to/new-rpm/perl-Config-Std-XXXXX.rpm
-
- $ yum localinstall ledgersmb-1.3.XX.noarch.rpm
+http://ledgersmb.org/faq/localization/im-using-non-ascii-unicode-characters-why-cant-i-generate-pdf-output
 
 
 
@@ -376,10 +380,6 @@ through to the LedgerSMB application. Currently, Apache (with mod_rewrite
 support) and IIS are known to support this requirement. The section below
 details the Apache setup process.
 
-The default configuration file only works with Apache 2.2.  To run this with 
-Apache 2.4, you will want to move the ledgersmb-httpd.conf.template out of the
-way and replace it with the ledgersmb-httpd-2.4.conf.template before proceding.
-
 Default installation layouts for Apache HTTPD on various operating systems 
 and distributions: http://wiki.apache.org/httpd/DistrosDefaultLayout
 
@@ -390,14 +390,9 @@ LoadModule rewrite_module <path-to-apache-modules-directory>/mod_rewrite.so
 
 [On Debian and its derivatives, mod_rewrite can be enabled using the command
 
- # a2enmod rewrite
+ $ a2enmod rewrite
 
-executed as the root user.
-
-Also note on Debian, if using Apache 2.4, you may need to:
- # a2enmod cgi
-
-Also as root.]
+executed as the root user.]
 
 A default configuration file to be used with Apache2 comes with LedgerSMB in
 its root project directory: ledgersmb-httpd.conf.template. You can use the 
@@ -413,10 +408,15 @@ you do not need to add the the line to your Apache configuration.
 [Debian, Fedora, Centos, RedHat]
 
 [On Debian and derivatives, you can store the resulting
-configuration file directly in the /etc/apache2/conf.d directory, for Apache 
-2.2, and /etc/apache2/conf-enabled/ for Apache 2.4.  From
-that location, it'll be automatically included upon the next server (re)start.]
-
+configuration file directly in the /etc/apache2/conf.d directory.  From
+that location, it'll be automatically included upon the next server (re)start.
+On Apache 2.4 on Debian and derivatives, you can store the configuration file 
+in the /etc/apache2/conf-enabled directory. You will need to add the cgi module
+by going to /etc/apache2/mods-enabled/ and creating a symbolic link like this:
+ln -s /etc/apache2/mods-available/cgi.load cgi.load
+You also may need to add a symbolic link to enable apache to see postgres:
+ln -s /user/bin/psql /bin/psql
+both these commands will need to be performed with root permissions (use sudo)]
 
 In order for the changes to take effect, you should run
 

@@ -6,7 +6,6 @@ use inc::Module::Install 0.65;
 use File::Copy;
 
 copy ('ledgersmb.conf.default', 'ledgersmb.conf') unless -f 'ledgersmb.conf';
-copy ('pos.conf.pl.template', 'pos.conf.pl') unless -f 'pos.conf.pl';
 
 name 'LedgerSMB';
 version_from 'LedgerSMB.pm';
@@ -15,6 +14,8 @@ license 'GPL';
 perl_version '5.8.1';
 
 requires 'Data::Dumper';
+requires 'Carp::Always';
+requires 'TeX::Encode';
 requires 'Log::Log4perl';
 requires 'Locale::Maketext';
 requires 'DateTime';
@@ -30,18 +31,34 @@ requires 'IO::Scalar';
 requires 'Encode';
 requires 'Time::Local';
 requires 'Cwd';
-requires 'Config::Std';
+requires 'Config::IniFiles';
 requires 'MIME::Lite';
 requires 'Template' => '2.14';
-requires 'Error';
 requires 'CGI::Simple';
 requires 'File::MimeInfo';
+requires 'Number::Format';
+requires 'DateTime::Format::Strptime';
+requires 'Moose';
+requires 'namespace::autoclean';
+requires 'JSON';
 
 recommends 'Math::BigInt::GMP';
 
 test_requires 'Test::More';
 test_requires 'Test::Trap';
 test_requires 'Test::Exception';
+
+feature 'RESTful Web Services XML support',
+    -default => 0,
+    'XML::Simple' => 0;
+
+feature 'Standalone Server w/Starman',
+    -default => 0,
+    'Starman' => 0,
+    'CGI::Emulate::PSGI' => 0,
+    'Plack::Builder' => 0,
+    'Plack::Middleware::Static' => 0;
+  
 
 feature 'Size detection for images for embedding in LaTeX templates',
     -default => 0,
@@ -62,10 +79,15 @@ feature 'Developer tool dependencies',
     'Locale::Country' => 0,
     'Locale::Language' => 0;
 
+feature 'X12 EDI support',
+    -default => 0,
+    'X12::Parser' => 0;
+
 # Rendering options
 feature 'PDF and Postscript output',
     -default => 0,
-    'Template::Plugin::Latex' => 1;
+    'Template::Plugin::Latex' => 0,
+    'TeX::Encode' => 0;
 
 feature 'OpenOffice.org output',
     -default => 0,

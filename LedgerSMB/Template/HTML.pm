@@ -46,10 +46,14 @@ package LedgerSMB::Template::HTML;
 use warnings;
 use strict;
 
-use Error qw(:try);
 use CGI::Simple::Standard qw(:html);
 use Template;
 use LedgerSMB::Template::TTI18N;
+use LedgerSMB::Sysconfig;
+use LedgerSMB::Company_Config;
+use LedgerSMB::App_State;
+use LedgerSMB::Company_Config;
+use LedgerSMB::Template::DB;
 
 my $binmode = ':utf8';
 binmode STDOUT, $binmode;
@@ -63,6 +67,9 @@ sub get_template {
 sub preprocess {
     my $rawvars = shift;
     my $vars;
+    if (eval {$rawvars->can('to_output')}){
+        $rawvars = $rawvars->to_output;
+    }
     my $type = ref $rawvars;
 
     return $rawvars if $type =~ /^LedgerSMB::Locale/;
@@ -72,9 +79,9 @@ sub preprocess {
             push @{$vars}, preprocess( $_ );
         }
     } elsif (!$type) {
-        return escapeHTML($rawvars);
+        return escape($rawvars);
     } elsif ($type eq 'SCALAR' or $type eq 'Math::BigInt::GMP') {
-        return escapeHTML($$rawvars);
+        return escape($$rawvars);
     } elsif ($type eq 'CODE'){
         return $rawvars;
     } elsif ($type eq 'IO::File'){
@@ -92,7 +99,6 @@ sub escape {
     my $vars = shift @_;
     if (defined $vars){
         $vars = escapeHTML($vars);
-        $vars =~ s|\n|<br \/>|gm;#better syntax-look under gvim with escaped slash
         return $vars;
     }
     return undef;
@@ -105,14 +111,32 @@ sub process {
 	my $output;
 	my $source;
         $parent->{binmode} = $binmode;
-         
+
+        my $dojo_theme; 
+        if ($LedgerSMB::App_State::DBH){
+           eval { $LedgerSMB::Company_Config->initialize() 
+                       unless $LedgerSMB::App_State::Company_Config;
+             $dojo_theme = $LedgerSMB::App_State::Company_Config->{dojo_theme};
+           }; # eval required to make setup.pl work as advertised
+        } 
+        $dojo_theme ||= $LedgerSMB::Sysconfig::dojo_theme;
+	$cleanvars->{dojo_theme} ||= $dojo_theme;
+        $cleanvars->{UNESCAPE} = sub { return unescapeHTML(shift @_) };
 	
 	if ($parent->{outputfile}) {
+            if (ref $parent->{outputfile}){
+		$output = $parent->{outputfile};
+            } else {
 		$output = "$parent->{outputfile}.html";
+            }
 	} else {
 		$output = \$parent->{output};
 	}
-	if (ref $parent->{template} eq 'SCALAR') {
+        if ($parent->{include_path} eq 'DB'){
+                $source = LedgerSMB::Template::DB->get_template(
+                       $parent->{template}, undef, 'html'
+                );
+	} elsif (ref $parent->{template} eq 'SCALAR') {
 		$source = $parent->{template};
 	} elsif (ref $parent->{template} eq 'ARRAY') {
 		$source = join "\n", @{$parent->{template}};
@@ -140,13 +164,13 @@ sub process {
        
 	$template = Template->new(
                     $arghash
-		) || throw Error::Simple Template->error(); 
+		) || die Template->error(); 
 	if (not $template->process(
 		$source, 
 		{%$cleanvars, %$LedgerSMB::Template::TTI18N::ttfuncs,
 			'escape' => \&preprocess},
 		$output, {binmode => ':utf8'})) {
-		throw Error::Simple $template->error();
+		die $template->error();
 	}
 	$parent->{mimetype} = 'text/html';
 }

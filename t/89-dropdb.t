@@ -4,7 +4,7 @@ use DBI;
     
 my $temp = $ENV{TEMP} || '/tmp/';
 my $run_tests = 6;
-for my $evar (qw(LSMB_NEW_DB LSMB_TEST_DB PG_CONTRIB_DIR)){
+for my $evar (qw(LSMB_NEW_DB LSMB_TEST_DB)){
   if (!defined $ENV{$evar}){
       $run_tests = 0;
       plan skip_all => "$evar not set";
@@ -20,7 +20,8 @@ if ($run_tests){
 	$ENV{PGDATABASE} = $ENV{LSMB_NEW_DB};
 }
 
-ok(open (DBLOCK, '<', "$temp/LSMB_TEST_DB"), 'Opened db lock file');
+ok(open (DBLOCK, '<', "$temp/LSMB_TEST_DB"), 'Opened db lock file')
+  || BAIL_OUT("could not open lock file: \$!=$!, \$@=$@");
 my $db = <DBLOCK>;
 chomp($db);
 cmp_ok($db, 'eq', $ENV{LSMB_NEW_DB}, 'Got expected db name out') &&

@@ -1,0 +1,123 @@
+<?lsmb
+
+PROCESS "ui-header.html"
+   stylesheet = USER.stylesheet;
+
+PROCESS "elements.html";
+
+PROCESS "dynatable.html";
+
+LINK = 'http://' _ ENVARS.SERVER_NAME _ ENVARS.SCRIPT_NAME 
+           _ '?' _ ENVARS.QUERY_STRING _ '&company=' _ DBNAME;
+
+?>
+<body class="<?lsmb dojo_theme ?>">
+<div class="report_header"><label><?lsmb text('Report Name') ?>:</label>
+<span class="report_header"><?lsmb name ?></span>
+</div>
+<body class="<?lsmb dojo_theme ?>">
+<div class="report_header"><label><?lsmb text('Company') ?>:</label>
+<span class="report_header"><?lsmb request.company ?></span>
+</div>
+<?lsmb FOREACH LINE IN hlines ?>
+<div class="report_header"><label><?lsmb LINE.text ?>:</label>
+<span class="report_header"><?lsmb request.${LINE.name} ?></span>
+</div>
+<?lsmb END ?>
+
+<form data-dojo-type="lsmb/lib/Form" method="get" action="report_aging.pl">
+<?lsmb
+
+IF request.action == 'select_all';
+   FOREACH ROW IN rows;
+      ROW.select = 1;
+   END;
+END;
+
+FOREACH KEY IN report.keys();
+    IF KEY == 'rows' or KEY.keys();
+       NEXT;
+    ELSE;
+        PROCESS input element_data = {
+             name = KEY
+             type = 'hidden'
+            value = report.$KEY
+        };
+    END;
+END;
+
+PROCESS input element_data = {
+    name = 'rowcount'
+   value = rows.size
+    type = 'hidden'
+};
+
+PROCESS dynatable tbody = {rows = rows } 
+               attributes = {id = 'aging', class = 'report' };
+PROCESS button element_data = {
+    text = text('Select All') #'
+    name = 'action'
+   value = 'select_all'
+    type = 'submit'
+   class = 'submit'
+};
+PROCESS select element_data = {
+    name = 'print_template'
+ options = [{text = 'Statement', value = 'statement'}]
+   class = 'print_template'
+};
+
+PRINTERS.push({text = text('Email'), value = 'email' });
+
+PFORMATS = [];
+
+FOREACH F IN LIST_FORMATS();
+  PFORMATS.push({text = F, value = F});
+END;
+
+PROCESS select element_data = {
+   name = 'print_format'
+options = PFORMATS
+  class = 'print_format'
+};
+
+PROCESS select element_data = {
+   name = 'print_to'
+options = PRINTERS
+  class = 'printers'
+};
+
+PROCESS input element_data = {
+   name = 'copies'
+  value = '1'
+   type = 'text'
+   size = '2'
+  class = 'smallint'
+};
+
+PROCESS button element_data = {
+    text = text('Generate')
+    name = 'action'
+   value = 'generate_statement'
+    type = 'submit'
+   class = 'submit'
+};
+ ?>
+</form><br />
+<a href="<?lsmb LINK ?>">[<?lsmb text('permalink') ?>]</a>&nbsp;
+<?lsmb IF FORMATS.grep('PDF').size()
+?>
+<a href="<?lsmb LINK _ '&format=PDF' ?>">[<?lsmb text('PDF') ?>]</a>&nbsp;
+<?lsmb END;
+IF FORMATS.grep('TXT').size();
+?>
+<a href="<?lsmb LINK _ '&format=CSV' ?>">[<?lsmb text('CSV') ?>]</a>&nbsp;
+<?lsmb END;
+IF FORMATS.grep('XLS').size() ?>
+<a href="<?lsmb LINK _ '&format=XLS' ?>">[<?lsmb text('XLS') ?>]</a>&nbsp;
+<?lsmb END;
+IF FORMATS.grep('ODS').size() ?>
+<a href="<?lsmb LINK _ '&format=ODS' ?>">[<?lsmb text('ODS') ?>]</a>&nbsp;
+<?lsmb END; ?>
+</body>
+<?lsmb PROCESS end_html ?>

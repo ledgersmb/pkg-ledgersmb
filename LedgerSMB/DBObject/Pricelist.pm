@@ -53,21 +53,31 @@ sub save {
         $line->merge($ref);
         $line->exec_method({funcname => 'pricelist__save'});
     }
-    $self->{dbh}->commit;
 }
 
-=item delete
+=back
 
-Deletes the pricelist entry. Requires credit_id and entry_id to be set.
+=over
+
+=item delete(entry_id);
+
+Deletes the referred pricelist entry.
 
 =cut
 
 sub delete {
-    my ($self) = @_;
-    $self->exec_method({funcname => 'pricelist__delete'});
+    my ($self, $entry_id) = @_;
+
+    my $line = __PACKAGE__->new({base => $self,
+                                 merge => ['credit_id', 'entry_id'] }
+        );
+    $line->exec_method({funcname => 'pricelist__delete'});
 }
 
+
+
 =back
+
 
 =head1 COPYRIGHT
 

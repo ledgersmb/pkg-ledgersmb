@@ -1,16 +1,12 @@
 <?lsmb INCLUDE 'ui-header.html' 
-	include_script = [
-		"UI/ajax/scriptaculous/lib/prototype.js",
-		"UI/ajax/scriptaculous/src/scriptaculous.js?load=builder,effects,dragdrop,controls",
-		"UI/ajax/helpers.js"]
 	stylesheet=form.stylesheet ?>
 <?lsmb PROCESS elements.html ?> 
 
-<body>
+<body class="<?lsmb dojo_theme ?>">
 
 <?lsmb INCLUDE OPEN_STATUS_DIV 
              id=form.id approved = form.approved action=form.action ?>
-<form method="post" action="<?lsmb form.script ?>">
+<form data-dojo-type="lsmb/lib/Form" method="post" action="<?lsmb form.script ?>">
 <table width="100%">
 <tr>
     <th class="listtop" ><?lsmb form.title ?></th>
@@ -29,41 +25,32 @@
 			size = "20",
 			class = 'reference'
 			id = "ref_1"
-		} ?>
-
+		};
+             IF form.sequences;
+                 form.sequences.unshift({});
+                 PROCESS select element_data = {
+                    name = 'setting_sequence'
+          default_values = [form.setting_sequence]
+                 options = form.sequences
+               text_attr = 'label'
+              value_attr = 'label'
+                 }; 
+             END; ?>
          </td>          
 	  <th align="right"><?lsmb text('Date') ?></th>
 	  <td>
               <?lsmb INCLUDE input element_data = {
 			name = "transdate"
 			value = form.transdate
-			type = "text"
 			size = "11"
+                        type = 'text'
 			class = 'date'
-			id = "tra_1"
 	      } ?>
           </td>
 	</tr>
-	<?lsmb IF form.departmentset == 1 ?>
-         <tr>
-  	    <th align="right" ><?lsmb text('Department') ?></th>
-	    <td>
-		    <?lsmb INCLUDE select element_data = {
-			text_attr = "description"
-			value_attr = "departmentstyle"
-			default_values = [form.department]
-			options = form.all_department
-			name = "department"
-			id = "dep_1"
-		    } ?>
-
-            </td>
-	 </tr>
-        <?lsmb END ?>
-
 	<tr>
           <th align="right"><?lsmb text('Description') ?></th>
-	  <td colspan="3">
+	  <td colspan="3"> 
 			<?lsmb IF form.colrowdesc ==1 ?>
 			      <?lsmb INCLUDE textarea element_data={
 							name = "description"
@@ -74,9 +61,9 @@
 								    } 
 			       ?>
 			<?lsmb ELSE ?>
-				  <?lsmb INCLUDE input element_data = {
+				  <?lsmb INCLUDE textarea element_data = {
 						      name = "description",
-						      value = form.description,
+						      text = form.description,
 						      type = "text",
 						      size = "50",
 						      class = 'description'
@@ -105,6 +92,7 @@
 						      value = form.notes,
 						      type = "text",
 						      size = "50",
+						      dojo_type = 'dijit/form/Textarea',
 						      class = 'notes'
 						      id = "not_1"
                                                           } 
@@ -132,18 +120,26 @@
 	  <?lsmb IF form.projectset == 1 ?>
 	  <th class="listheading"><?lsmb text('Project') ?></th>
 	  <?lsmb END ?>
+          <?lsmb FOREACH cls IN form.bu_class ?>
+              <?lsmb IF form.b_units.${cls.id} ?>
+          <th><?lsmb text(cls.label) ?></th>
+               <?lsmb END ?>
+          <?lsmb END ?>
 	</tr>
 	<?lsmb FOREACH displayrow IN displayrows ?> 
 	<tr>
 		<?lsmb INDEX=displayrow.index ?>
 		  <td>
 			<?lsmb IF displayrow.accnoset == 0 ?>
-              			<?lsmb PROCESS ajaxselect element_data = {
+              			<?lsmb PROCESS input element_data = {
 		                     name = "accno_$INDEX"
+				     type = "text"
 		                     initial_value = ${"accno_$INDEX"}
+		                     value = ${"accno_$INDEX"}
 		                     text_attr = 'accno'
 		                     value_attr = 'id'
-		                     ajax_target = 'journal.pl'
+				     class = 'AccountBox'
+				     dojo_type = 'lsmb/accounts/AccountSelector'
 		              } ?> 
 			   
 			  <?lsmb ELSE ?>
@@ -187,7 +183,7 @@
 			  <?lsmb PROCESS input element_data = {
 				  value = displayrow.debit
 				  name = "debit_$INDEX"
-				  type = "text"
+				  type = "currency"
 				  size = 12
 				  accesskey = displayrow.index
 			          id = "deb_$INDEX"
@@ -199,7 +195,7 @@
 			  <?lsmb PROCESS input element_data = {
 				  value = displayrow.credit
 				  name = "credit_$INDEX"
-				  type = "text"
+				  type = "currency"
 				  size = 12
 			          id = "cre_$INDEX"
                                       }  ?>
@@ -210,6 +206,7 @@
 			  <?lsmb PROCESS input element_data = {
 				  value = displayrow.source
 				  name = "source_$INDEX"
+				  dojo_type = 'dijit/form/TextBox'
 				  type = "text"
 				  size = 10
 				  id = "sou_$INDEX"
@@ -222,6 +219,7 @@
 			  <?lsmb PROCESS input element_data = {
 				  value = displayrow.memo
 				  name = "memo_$INDEX"
+				  dojo_type = 'dijit/form/Textarea'
 				  type = "text"
 				  size = 30
 			          id = "mem_$INDEX"
@@ -252,6 +250,24 @@
 			<?lsmb END ?>
 
 		   </td>
+                       <?lsmb END ?>
+                   <?lsmb FOREACH cls IN form.bu_class ?>
+                      <?lsmb IF form.b_units.${cls.id} ?>
+                   <td>
+                       
+                       <?lsmb clsid = cls.id;
+                              bucid = "b_unit_$clsid";
+                              burow = "${bucid}_$INDEX";
+                       form.b_units.${clsid}.unshift({});
+                       INCLUDE select element_data = {
+                              text_attr = "control_code"
+                             value_attr = "id"
+                         default_values = [displayrow.${bucid}]
+                                   name = "$burow"
+                                options = form.b_units.${clsid}
+                       } ?>
+                   </td>
+                   <?lsmb END ?>
 		  <?lsmb END ?>
 
         </tr>
@@ -259,11 +275,11 @@
         <tr class="listtotal">
 	  <th>&nbsp;</th>
 	     <th class="listheading">&nbsp;</th>
-	  <th class="listtotal" align="right">
+	  <th class="listtotal debitsubtotal" align="right">
 			<?lsmb form.totaldebit ?>
 	  </th>
 	  
-	  <th class="listtotal" align="right">
+	  <th class="listtotal creditsubtotal" align="right">
 			<?lsmb form.totalcredit ?>
 	  </th>
 	  <th>&nbsp;</th>
@@ -280,7 +296,6 @@
     <td><hr size="3"></hr></td>
   </tr>
 </table>
-
 <?lsmb FOREACH hidden IN hiddens.keys;
 	PROCESS input element_data={
 		type => 'hidden',
@@ -348,5 +363,7 @@ FOREACH link IN form.file_links;
 <a href="file.pl?action=show_attachment_screen&ref_key=<?lsmb form.id 
    ?>&file_class=1&callback=<?lsmb tt_url(callback) ?>">[<?lsmb text('Attach') ?>]</a>
 <?lsmb END # IF for<?lsmb INCLUDE CLOSE_STATUS_DIV id=form.id approved = form.approved ?>
-</body>
+</form>
 <?lsmb INCLUDE CLOSE_STATUS_DIV ?>
+</body>
+</html>

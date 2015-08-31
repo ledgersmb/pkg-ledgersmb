@@ -1,22 +1,42 @@
+
+
+function show_indicator() {
+        var e = document.getElementById('login-indicator');
+        e.style.visibility='visible';
+}
+
 function submit_form() {
+        window.setTimeout(show_indicator, 0);
+        window.setTimeout(send_form, 10);
+        return false;
+}
+
+function send_form() {
 	var http = get_http_request_object();
     var username = document.login.login.value;
 	var password = document.login.password.value;
 	var company = document.login.company.value;
 	var action = document.login.action.value;
-        //alert('document.login.company.value='+document.login.company.value);
-	http.open("get", 'login.pl?action=authenticate&company='+company, false, username, password);
-	http.send("");
-        if (http.status != 200){
-                if (http.status != '454'){
-  		     alert("Access Denied:  Bad username/Password");
-                } else {
-                     alert('Company does not exist.');
-                }
-		return false;
-	}
-	document.location=document.login.action.value+".pl?action=login&company="+document.login.company.value;
-	return false;//otherwise 2 login's in parallell!
+        // console.log(password, company, username);
+        // alert('document.login.company.value='+document.login.company.value);
+	http.open("get", 'login.pl?action=authenticate&company='+company, true, username, password);
+        http.onreadystatechange = function(){
+            if (http.readyState != 4){
+               return true;
+            }
+            if (http.status != 200){
+                    if (http.status == '454'){
+                          alert('Company does not exist.');
+                    } else {
+  	   	          alert("Access Denied:  Bad username/Password");
+                    }
+                    var e = document.getElementById('login-indicator');
+                    e.style.visibility='hidden';
+	  	    return false;
+	    }
+	    document.location=document.login.action.value+".pl?action=login&company="+document.login.company.value;
+        };
+ 	http.send("");
 }
 
 function check_auth() {
@@ -31,44 +51,16 @@ function check_auth() {
     );
 }
 
-function setup_page(login_label, password_label) {
-	var credential_html;
+    require(['dojo/dom-construct', 'dijit/ProgressBar', 'dojo/domReady!'],
+    function(construct, progressbar){
+           var indicator = new progressbar({
+                  "style": "width: 10em",
+                  "id": "login-progressbar",
+                  "value": 100,
+                "indeterminate": true
+           }).placeAt("login-indicator", "only");
+           indicator.startup();
+               
+    });
 
-	var cred_div = document.getElementById("credentials");
-	credential_html = 
-		'<div class="labelledinput">' +
-			'<div class="label">' +
-				'<label for="login">' +
-				login_label+
-				":</label>" +
-			'</div>' +
-			'<div class="input">' +
-				'<input class="login" ' + 
-				'name="login" size="30" ' + 
-				'value="" id="login" '+ 
-				'accesskey="n" />' +
-			'</div>' +
-		'</div>' +
-		'<div class="labelledinput">' +
-			'<div class="label">' +
-				'<label for="password">' +
-				password_label +
-				':</label>' +
-			'</div>' +
-			'<div class="input">' +
-				'<input class="login" ' + 
-					'type="password" ' +
-					'name="password" ' +
-					'size="30" ' +
-					'id="password" ' +
-					'accesskey="p" />' +
-			'</div>' +
-		'</div>';
-	if (!document.login.blacklisted.value && get_http_request_object()){
-		cred_div.innerHTML = credential_html;
-		document.login.login.focus();
-	}
-	else {
-		document.login.company.focus();
-	}
-}
+

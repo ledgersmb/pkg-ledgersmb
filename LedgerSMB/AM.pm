@@ -55,193 +55,9 @@ This module provides some administrative functions
 package AM;
 use LedgerSMB::Tax;
 use LedgerSMB::Sysconfig;
+use Log::Log4perl;
 
 my $logger = Log::Log4perl->get_logger('AM');
-
-=item AM->get_account($myconfig, $form);
-
-Populates the $form attributes accno, description, charttype, gifi_accno,
-category, link, and contra with details about the account that has the id
-$form->{id}.  If there are no acc_trans entries that refer to that account,
-$form->{orphaned} is made true, otherwise $form->{orphaned} is set to false.
-
-Also populates 'inventory_accno_id', 'income_accno_id', 'expense_accno_id',
-'fxgain_accno_id', and 'fxloss_accno_id' with the values from defaults.
-
-$myconfig is unused.
-
-=cut
-
-sub get_account {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    my $dbh = $form->{dbh};
-
-    my $query = qq|
-		SELECT accno, description, charttype, gifi_accno,
-		       category, link, contra
-		  FROM chart
-		 WHERE id = ?|;
-
-    my $sth = $dbh->prepare($query);
-    $sth->execute( $form->{id} ) || $form->dberror($query);
-
-    my $ref = $sth->fetchrow_hashref(NAME_lc);
-    for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
-    $sth->finish;
-
-    # get default accounts
-    $query = qq|
-		SELECT (SELECT value FROM defaults
-		         WHERE setting_key = 'inventory_accno_id')
-		       AS inventory_accno_id,
-		       (SELECT value FROM defaults
-		         WHERE setting_key = 'income_accno_id')
-		       AS income_accno_id, 
-		       (SELECT value FROM defaults
-		         WHERE setting_key = 'expense_accno_id')
-		       AS expense_accno_id,
-		       (SELECT value FROM defaults
-		         WHERE setting_key = 'fxgain_accno_id')
-		       AS fxgain_accno_id, 
-		       (SELECT value FROM defaults
-		         WHERE setting_key = 'fxloss_accno_id')
-		       AS fxloss_accno_id|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    $ref = $sth->fetchrow_hashref(NAME_lc);
-    for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
-    $sth->finish;
-
-    # check if we have any transactions
-    $query = qq|
-		SELECT trans_id 
-		  FROM acc_trans
-		 WHERE chart_id = ? 
-		 LIMIT 1|;
-    $sth = $dbh->prepare($query);
-    $sth->execute( $form->{id} );
-    ( $form->{orphaned} ) = $sth->fetchrow_array();
-    $form->{orphaned} = !$form->{orphaned};
-
-    $dbh->commit;
-}
-
-=item AM->delete_account($myconfig, $form);
-
-Deletes the account with the id $form->{id}.  Calls $form->error if there are
-any acc_trans entries that reference it.  If any parts have that account for
-an inventory, income, or COGS (expense) account, switch the part to using the
-default account for that type.  Also deletes all tax, partstax, customertax, and
-vendortax table entries for the account.
-
-$myconfig is unused.
-
-=cut
-
-sub delete_account {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database, turn off AutoCommit
-    my $dbh = $form->{dbh};
-    my $sth;
-    my $query = qq|
-		SELECT count(*)
-		  FROM acc_trans
-		 WHERE chart_id = ?|;
-    $sth = $dbh->prepare($query);
-    $sth->execute( $form->{id} );
-    my ($rowcount) = $sth->fetchrow_array();
-
-    if ($rowcount) {
-        $form->error( "Cannot delete accounts with associated or pending transactions!" );
-    }
-
-    # delete chart of account record
-    $query = qq|
-		DELETE FROM account where id = ?|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute( $form->{id} ) || $form->dberror($query);
-
-    # set inventory_accno_id, income_accno_id, expense_accno_id to defaults
-    $query = qq|
-		UPDATE parts
-		   SET inventory_accno_id = (SELECT value::int
-		                               FROM defaults
-					      WHERE setting_key = 
-							'inventory_accno_id')
-		 WHERE inventory_accno_id = ?|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute( $form->{id} ) || $form->dberror($query);
-
-    for (qw(income_accno_id expense_accno_id)) {
-        $query = qq|
-			UPDATE parts
-			   SET $_ = (SELECT value::int
-			               FROM defaults
-			              WHERE setting_key = '$_')
-			 WHERE $_ = ?|;
-
-        $sth = $dbh->prepare($query);
-        $sth->execute( $form->{id} ) || $form->dberror($query);
-        $sth->finish;
-    }
-
-    foreach my $table (qw(partstax customertax vendortax tax)) {
-        $query = qq|
-			DELETE FROM $table
-			      WHERE chart_id = ?|;
-
-        $sth = $dbh->prepare($query);
-        $sth->execute( $form->{id} ) || $form->dberror($query);
-        $sth->finish;
-    }
-
-    # commit and redirect
-    my $rc = $dbh->commit;
-
-    $rc;
-}
-
-=item AM->gifi_accounts($myconfig, $form);
-
-Populates the list referred to as $form->{ALL} with hashes of gifi numbers and
-descriptions in order of the GIFI number.  The GIFI number referred to as
-'accno'.
-
-$myconfig is not used.
-
-=cut
-
-sub gifi_accounts {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    my $query = qq|
-		  SELECT accno, description
-		    FROM gifi
-		ORDER BY accno|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        push @{ $form->{ALL} }, $ref;
-    }
-
-    $sth->finish;
-    $dbh->commit;
-
-}
 
 =item AM->get_gifi($myconfig, $form);
 
@@ -276,7 +92,7 @@ sub get_gifi {
     $query = qq|
 		SELECT count(*) 
 		  FROM acc_trans a
-		  JOIN chart c ON (a.chart_id = c.id)
+		  JOIN account c ON (a.chart_id = c.id)
 		  JOIN gifi g ON (c.gifi_accno = g.accno)
 		 WHERE g.accno = ?|;
 
@@ -290,7 +106,6 @@ sub get_gifi {
         $form->{orphaned} = 0;
     }
 
-    $dbh->commit;
 
 }
 
@@ -338,7 +153,6 @@ sub save_gifi {
     $sth = $dbh->prepare($query);
     $sth->execute(@queryargs) || $form->dberror($query);
     $sth->finish;
-    $dbh->commit;
 
 }
 
@@ -365,42 +179,6 @@ sub delete_gifi {
     $sth = $dbh->prepare($query);
     $sth->execute( $form->{id} ) || $form->dberror($query);
     $sth->finish;
-    $dbh->commit;
-
-}
-
-=item AM->warehouses($myconfig, $form);
-
-Populates the list referred to as $form->{ALL} with hashes describing
-warehouses, ordered according to the logic of $form->sort_order.  Each hash has
-an id and a description element.
-
-$myconfig is not used.
-
-=cut
-
-sub warehouses {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    $form->sort_order();
-    my $query = qq|
-		  SELECT id, description
-		    FROM warehouse
-		ORDER BY description $form->{direction}|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        push @{ $form->{ALL} }, $ref;
-    }
-
-    $sth->finish;
-    $dbh->commit;
 
 }
 
@@ -449,7 +227,6 @@ sub get_warehouse {
         $form->{orphaned} = 0;
     }
 
-    $dbh->commit;
 }
 
 =item AM->save_warehouse($myconfig, $form);
@@ -491,7 +268,6 @@ sub save_warehouse {
     $sth = $dbh->prepare($query);
     $sth->execute(@queryargs) || $form->dberror($query);
     $sth->finish;
-    $dbh->commit;
 
 }
 
@@ -515,195 +291,6 @@ sub delete_warehouse {
 		      WHERE id = ?|;
 
     $dbh->prepare($query)->execute( $form->{id} ) || $form->dberror($query);
-    $dbh->commit;
-
-}
-
-=item AM->departments($myconfig, $form);
-
-Populate the list referred to as $form->{ALL} with hashes of details about
-departments.  The hashes all contain the id, description, and role of the
-department and are ordered by the description.
-
-$myconfig is unused.
-
-=cut
-
-sub departments {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    $form->sort_order();
-    my $query = qq|SELECT id, description, role
-					 FROM department
-				 ORDER BY description $form->{direction}|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        push @{ $form->{ALL} }, $ref;
-    }
-
-    $sth->finish;
-    $dbh->commit;
-
-}
-
-=item AM->get_department($myconfig, $form);
-
-Fills $form->{description} and $form->{role} with details about the department
-with the id value of $form->{id}.  If the department has not been used as part
-of a transaction referred to in dpt_trans, set $form->{orphaned} to true, 
-otherwise it is set to false.
-
-$myconfig is unused.
-
-=cut
-
-sub get_department {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-    my $sth;
-
-    my $query = qq|
-		SELECT description, role
-		  FROM department
-		 WHERE id = ?|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute( $form->{id} );
-    ( $form->{description}, $form->{role} ) = $sth->fetchrow_array;
-    $sth->finish;
-
-    for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
-
-    # see if it is in use
-    $query = qq|
-		SELECT count(*) 
-		  FROM dpt_trans
-		 WHERE department_id = ? |;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute( $form->{id} );
-    ( $form->{orphaned} ) = $sth->fetchrow_array;
-    if ( ( $form->{orphaned} * 1 ) == 0 ) {
-        $form->{orphaned} = 1;
-    }
-    else {
-        $form->{orphaned} = 0;
-    }
-
-    $dbh->commit;
-}
-
-=item AM->save_department($myconfig, $form);
-
-Add or update a department record.  If $form->{id} is set, the department with
-that id is updated, otherwise a new department is added.  The department role
-(either 'C' for cost centres or 'P' for profit centres) and description is
-taken from the $form attributes 'role' and 'description'.
-
-$myconfig is unused.
-
-=cut
-
-sub save_department {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    $form->{description} =~ s/-(-)+/-/g;
-    $form->{description} =~ s/ ( )+/ /g;
-    my $sth;
-    my @queryargs = ( $form->{description}, $form->{role} );
-    if ( $form->{id} ) {
-        $query = qq|
-			UPDATE department 
-			   SET description = ?,
-			       role = ?
-			 WHERE id = ?|;
-        push @queryargs, $form->{id};
-
-    }
-    else {
-        $query = qq|
-			INSERT INTO department (description, role)
-			     VALUES (?, ?)|;
-    }
-
-    $sth = $dbh->prepare($query);
-    $sth->execute(@queryargs) || $form->dberror($query);
-    $dbh->commit;
-
-}
-
-=item AM->delete_department($myconfig, $form)
-
-Deletes the department with an id of $form->{id}.
-
-$myconfig is unused.
-
-=cut
-
-sub delete_department {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    $query = qq|
-		DELETE FROM department
-		      WHERE id = ?|;
-
-    $dbh->prepare($query)->execute( $form->{id} );
-    $dbh->commit;
-
-}
-
-=item AM->business($myconfig, $form);
-
-Populates the list referred to as $form->{ALL} with hashes containing details
-about all known types of business.  Each hash contains the id, description, and
-discount for businesses of this type.  The discount is represented in numeric
-form, such that a 10% discount is stored and retrieved as 0.1.  The hashes are
-sorted by the business description.
-
-$myconfig is unused.
-
-=cut
-
-sub business {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    $form->sort_order();
-    my $query = qq|
-		  SELECT id, description, discount
-		    FROM business
-		ORDER BY description $form->{direction}|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        push @{ $form->{ALL} }, $ref;
-    }
-
-    $sth->finish;
-    $dbh->commit;
 
 }
 
@@ -731,7 +318,6 @@ sub get_business {
     $sth = $dbh->prepare($query);
     $sth->execute( $form->{id} );
     ( $form->{description}, $form->{discount} ) = $sth->fetchrow_array();
-    $dbh->commit;
 
 }
 
@@ -782,7 +368,6 @@ sub save_business {
         $sth->execute();
         ($form->{id}) = $sth->fetchrow_array;
     }
-    $dbh->commit;
 
 }
 
@@ -805,52 +390,6 @@ sub delete_business {
 		      WHERE id = ?|;
 
     $dbh->prepare($query)->execute( $form->{id} ) || $form->dberror($query);
-    $dbh->commit;
-
-}
-
-=item AM->sic($myconfig, $form);
-
-Populate the list referred to as $form->{ALL} with hashes containing SIC (some
-well known systems of which are NAICS and ISIC) data from the sic table.  code
-is the actual SIC code, description is a textual description of the code, and
-sictype is an indicator of whether or not the entry refers to a header.  The
-hashes will be sorted by either the code or description.
-
-$myconfig is unused.
-
-=cut
-
-sub sic {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    $form->{sort} = "code" unless $form->{sort};
-    my @a = qw(code description);
-
-    my %ordinal = (
-        code        => 1,
-        description => 3
-    );
-
-    my $sortorder = $form->sort_order( \@a, \%ordinal );
-
-    my $query = qq|SELECT code, sictype, description
-					 FROM sic
-				 ORDER BY $sortorder|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        push @{ $form->{ALL} }, $ref;
-    }
-
-    $sth->finish;
-    $dbh->commit;
 
 }
 
@@ -883,7 +422,6 @@ sub get_sic {
     for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
 
     $sth->finish;
-    $dbh->commit;
 
 }
 
@@ -929,7 +467,6 @@ sub save_sic {
     }
 
     $dbh->prepare($query)->execute(@queryargs) || $form->dberror($query);
-    $dbh->commit;
 
 }
 
@@ -952,55 +489,6 @@ sub delete_sic {
 		      WHERE code = ?|;
 
     $dbh->prepare($query)->execute( $form->{code} );
-    $dbh->commit;
-
-}
-
-=item AM->language($myconfig, $form);
-
-Populates the list referred to as $form->{ALL} with hashes containing the code
-and description of all languages entered in the language table.  The usual set
-of $form attributes affect the order in which the hashes are entered in the
-list.
-
-These language functions are unrelated to LedgerSMB::Locale, although these
-language codes are also used for non-UI templates and by LedgerSMB::PE.
-
-$myconfig is unused.
-
-=cut
-
-sub language {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    $form->{sort} = "code" unless $form->{sort};
-    my @a = qw(code description);
-
-    my %ordinal = (
-        code        => 1,
-        description => 2
-    );
-
-    my $sortorder = $form->sort_order( \@a, \%ordinal );
-
-    my $query = qq|
-		  SELECT code, description
-		    FROM language
-		ORDER BY $sortorder|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        push @{ $form->{ALL} }, $ref;
-    }
-
-    $sth->finish;
-    $dbh->commit;
 
 }
 
@@ -1033,7 +521,6 @@ sub get_language {
     for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
 
     $sth->finish;
-    $dbh->commit;
 
 }
 
@@ -1080,7 +567,6 @@ sub save_language {
     }
 
     $dbh->prepare($query)->execute(@queryargs) || $form->dberror($query);
-    $dbh->commit;
 
 }
 
@@ -1326,7 +812,6 @@ sub recurring_transactions {
         chop $form->{transactions}{$transaction}->[$i]->{recurringprint};
     }
 
-    $dbh->commit;
 
 }
 
@@ -1432,7 +917,6 @@ sub recurring_details {
     for (qw(arinvoice apinvoice invnumber)) { delete $form->{$_} }
     
 
-    $dbh->commit;
 
 }
 
@@ -1484,7 +968,6 @@ sub update_recurring {
 
     $dbh->do($query) || $form->dberror($query);
 
-    $dbh->commit;
 
 }
 
@@ -1533,324 +1016,6 @@ sub check_template_name {
     }
 }
 
-=item AM->load_template($myconfig, $form);
-
-Populates $form->{body} with the contents of the file $form->{file}.
-
-=cut
-
-sub load_template {
-
-    my ( $self, $myconfig, $form ) = @_;
-    my $testval = 0;
-
-    $form->{file} ||= lc "$myconfig->{templates}/$form->{template}.$form->{format}";
-    $self->check_template_name( \%$myconfig, \%$form );
-    open( TEMPLATE, '<', "$form->{file}" ) || ($testval = 1);
-    binmode TEMPLATE, ':utf8';
-    if ($testval == 1 && ($! eq 'No such file or directory')){
-      my $file = $form->{file};
-      $file =~ s|$form->{code}/|| if $form->{code};
-      open( TEMPLATE, '<', "$file" ) ||  $form->error(
-                    "Template not found: $file"
-      );
-    } elsif ($testval == 1){
-       $form->error("$form->{file} : $!");
-    }
-    while (<TEMPLATE>) {
-        $form->{body} .= $_;
-    }
-
-    close(TEMPLATE);
-
-}
-
-=item AM->save_template($myconfig, $form);
-
-Overwrites the file $form->{file} with the contents of $form->{body}, excluding
-carriage returns.
-
-=cut
-
-sub save_template {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    $form->{file} ||= lc "$myconfig->{templates}/$form->{template}.$form->{format}";
-    $self->check_template_name( \%$myconfig, \%$form );
-    open( TEMPLATE, '>', "$form->{file}" )
-      or $form->error("$form->{file} : $!");
-    binmode TEMPLATE, ':utf8';
-
-    # strip
-    $form->{body} =~ s/\r//g;
-    print TEMPLATE $form->{body};
-
-    close(TEMPLATE);
-
-}
-
-=item AM->save_preferences($myconfig, $form);
-
-Saves the preferences for the current user.  New values are taken from the $form
-attributes name, email, dateformat, signature, numberformat, vclimit, tel, fax,
-company, menuwidth, countrycode, address, timeout, stylesheet, printer,
-password, new_password, and old_password.  Password updates occur when
-new_password and old_password differ.
-
-=cut
-
-sub save_preferences {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    # get username, is same as requested?
-    my @queryargs;
-    my $query = qq|
-		SELECT login
-		  FROM employee 
-		 WHERE login = ?|;
-    @queryargs = ( $form->{login} );
-    my $sth = $dbh->prepare($query);
-    $sth->execute(@queryargs) || $form->dberror($query);
-    my ($dbusername) = $sth->fetchrow_array;
-    $sth->finish;
-
-    return 0 if ( $dbusername ne $form->{login} );
-
-    # update name
-    $query = qq|
-		UPDATE employee 
-		   SET name = ?
-		 WHERE login = ?|;
-
-    @queryargs = ( $form->{name}, $form->{login} );
-    $dbh->prepare($query)->execute(@queryargs) || $form->dberror($query);
-
-    # get default currency
-    $query = qq|
-		SELECT value, (SELECT value FROM defaults
-		                WHERE setting_key = 'businessnumber')
-		  FROM defaults
-		 WHERE setting_key = 'curr'|;
-
-    ( $form->{currency}, $form->{businessnumber} ) =
-      $dbh->selectrow_array($query);
-    $form->{currency} =~ s/:.*//;
-
-    $dbh->commit;
-
-    $myconfig = LedgerSMB::User->new( $form->{login} );
-
-    map { $myconfig->{$_} = $form->{$_} if exists $form->{$_} }
-      qw(name email dateformat signature numberformat vclimit tel fax
-      company menuwidth countrycode address timeout stylesheet
-      printer password);
-
-    $myconfig->{password} = $form->{new_password}
-      if ( $form->{old_password} ne $form->{new_password} );
-
-    $myconfig->save_member();
-
-    1;
-
-}
-
-=item AM->save_defaults($myconfig, $form, \@defaults);
-
-Sets the values in the defaults table to values derived from $form.  glnumber,
-sinumber, vinumber, sonumber, ponumber, sqnumber, rfqnumber, partnumber,
-employeenumber, customernumber, vendornumber, projectnumber, yearend, curr,
-weightunit, and businessnumber are taken directly from the $form value with
-the corresponding name.
-
-Stores the templates directory for a specific company on defaults table.
-
-@defaults identifies the list of values to be stored in defaults.  If not 
-provided, a default list is used.
-
-=cut
-
-sub save_defaults {
-
-    my ( $self, $myconfig, $form, $defaults) = @_;
-
-    my @roles = @{$form->{_roles}};
-    $form->error('Access Denied') unless grep /system_settings_change/, @roles;
-    
-
-    for (qw(inventory income expense fxgain fxloss)) {
-        ( $form->{$_ . "_accno_id"} ) = split /--/, $form->{$_ . "_accno_id"};
-    }
-
-    my @a;
-    $form->{curr} =~ s/ //g;
-    for ( split /:/, $form->{curr} ) { push( @a, uc pack "A3", $_ ) if $_ }
-    $form->{curr} = join ':', @a;
-    # connect to database
-    my $dbh = $form->{dbh};
-    # save defaults
-#    $sth_plain = $dbh->prepare( "
-#		UPDATE defaults SET value = ? WHERE setting_key = ?" );
-    my $sth_accno = $dbh->prepare(
-        qq|
-		UPDATE defaults
-                   SET value = (SELECT id
-                                               FROM chart
-                                              WHERE accno = ?)
-		 WHERE setting_key = ?|
-    );
-    my $sth_insert_accno = $dbh->prepare(
-       " INSERT INTO defaults (setting_key, value)
-         SELECT ?, id
-           FROM account 
-          WHERE accno = ? AND 1 NOT IN (SELECT 1 FROM defaults
-                                           WHERE setting_key = ?)"
-    );
-             
-    if (!@{$defaults}){
-       @$defaults = qw(inventory_accno_id income_accno_id expense_accno_id
-                      fxgain_accno_id fxloss_accno_id glnumber sinumber vinumber
-                      sonumber ponumber sqnumber rfqnumber partnumber 
-                      employeenumber customernumber vendornumber projectnumber 
-                      yearend curr weightunit businessnumber default_country 
-                      check_prefix password_duration templates vclimit 
-                      template_images disable_back)
-    }
-    for (@$defaults)
-    {
-        my $val = $form->{$_};
-        if ( $translation{$_} ) {
-            $val = $form->{ $translation{$_} };
-        }
-        if ( $_ =~ /accno/ ) {
-            $sth_accno->execute( $val, $_ )
-              || $form->dberror("Saving $_");
-            $sth_insert_accno->execute($_, $val, $_);
-        }
-        else {
-	    my $found=0;
-	    my $sth_defcheck=$dbh->prepare("select count(*) from defaults where setting_key='$_';") || $form->dberror("Select defaults $_");
-	    $sth_defcheck->execute() || $form->dberror("execute defaults $_");
-            while(my $found1=$sth_defcheck->fetchrow()){$found=$found1;}
-		    
-  	      if($found) {
-		  $dbh->do("update defaults set value=" . $dbh->quote($val) . " where setting_key='$_';");
-	       } else {
-	          $dbh->do("insert into defaults(value,setting_key) values( " . $dbh->quote($val) . ",'$_');"); 
-	       }
-
-        }
-
-    }
-    my $rc = $dbh->commit;
-
-    $rc;
-
-}
-
-=item AM->defaultaccounts($myconfig, $form);
-
-Retrieves the numbers of default accounts and sets $form->{defaults}{$key} to
-the appropriate account numbers, where $key can be 'inventory_accno_id',
-'income_accno_id', 'income_accno_id', 'expense_accno_id', 'fxgain_accno_id'
-and 'fxloss_accno_id'.
-
-Sets the hashes refered to as $form->{accno}{${type}_accno_id}{$accno} -
-where $type one of 'inventory', 'income' and 'expense' - to contain the id
-and description of all accounts with IC elements in their link fields keyed
-on the account number.
-
-Fills the hashes referred to as $form->{accno}{fx(gain|loss)_accno_id} with
-the id and description of all income and expense accounts, keyed on the
-account number.
-
-$myconfig is unused.
-
-=cut
-
-sub defaultaccounts {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    # get defaults from defaults table
-    my $query = qq|
-		SELECT setting_key, value FROM defaults
-		 WHERE setting_key LIKE ?|;
-    my $sth = $dbh->prepare($query);
-    $sth->execute('%accno_id') || $form->dberror($query);
-
-    my $ref;
-    while ( $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        $form->{defaults}{ $ref->{setting_key} } = $ref->{value};
-    }
-
-    $sth->finish;
-
-    $query = qq|
-		SELECT id, accno, description, link
-		  FROM chart
-		 WHERE link LIKE '%IC%'
-		 ORDER BY accno|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    my %link_map = (
-        IC         => 'inventory',
-        IC_income  => 'income',
-        IC_sale    => 'income',
-        IC_expense => 'expense',
-        IC_cogs    => 'expense'
-    );
-
-    while ( $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        foreach my $key ( split( /:/, $ref->{link} ) ) {
-            if ( exists $link_map{$key} ) {
-                %{ $form->{accno}{"$link_map{$key}_accno_id"}{ $ref->{accno} } } = (
-                    id          => $ref->{id},
-                    description => $ref->{description}
-                );
-            }
-        }
-    }
-
-    $sth->finish;
-
-    $query = qq|
-		    SELECT id, accno, description
-		      FROM chart
-		     WHERE (category = 'I' OR category = 'E')
-		           AND charttype = 'A'
-		  ORDER BY accno|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        %{ $form->{accno}{fxgain_accno_id}{ $ref->{accno} } } = (
-            id          => $ref->{id},
-            description => $ref->{description}
-        );
-
-        %{ $form->{accno}{fxloss_accno_id}{ $ref->{accno} } } = (
-            id          => $ref->{id},
-            description => $ref->{description}
-        );
-    }
-
-    $sth->finish;
-
-    $dbh->commit;
-
-}
-
 =item AM->taxes($myconfig, $form);
 
 Retrieve details about all taxes in the database.  $form->{taxrates} refers to a
@@ -1873,7 +1038,7 @@ sub taxes {
 
     my $query = qq|
 		  SELECT c.id, c.accno, c.description, 
-		         t.rate * 100 AS rate, t.taxnumber, t.validto,
+		         t.rate * 100 AS rate, t.taxnumber, t.validto::date,
 			 t.minvalue, t.pass, m.taxmodulename
 		    FROM chart c
 		    LEFT JOIN
@@ -1907,7 +1072,6 @@ sub taxes {
 
     $sth->finish;
 
-    $dbh->commit;
 
 }
 
@@ -1973,313 +1137,9 @@ sub save_taxes {
        $sth->finish;
     }
 
-    my $rc = $dbh->commit;
 
-    $rc;
+    1;
 
-}
-
-=item AM->closedto($myconfig, $form);
-
-Populates $form->{closedto}, $form->{revtrans}, and $form->{audittrail} with
-their values in the defaults table.
-
-$myconfig is unused.
-
-=cut
-
-sub closedto {
-    my ( $self, $myconfig, $form ) = @_;
-
-    my $dbh = $form->{dbh};
-
-    my $query = qq|
-		SELECT (SELECT value FROM defaults 
-		         WHERE setting_key = 'closedto'), 
-		       (SELECT value FROM defaults
-		         WHERE setting_key = 'revtrans'), 
-		       (SELECT value FROM defaults
-		         WHERE setting_key = 'audittrail')|;
-
-    ( $form->{closedto}, $form->{revtrans}, $form->{audittrail} ) =
-      $dbh->selectrow_array($query);
-
-    $dbh->commit;
-
-}
-
-=item AM->closebooks($myconfig, $form);
-
-Updates the revtrans, closedto, and audittrail entries in the defaults table
-using their corresponding $form values.  If $form->{removeaudittrail} is set,
-this used to remove all audittrail entries with a transdate prior to the date
-given by $form->{removeaudittrail}, but has been disabled.
-
-$myconfig is unused.
-
-=cut
-
-sub closebooks {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    my $dbh   = $form->{dbh};
-    my $query = qq|
-		UPDATE defaults SET value = ? 
-		 WHERE setting_key = ?|;
-    my $sth = $dbh->prepare($query);
-    my $sth_closedto = $dbh->prepare(qq|
-		UPDATE defaults SET value = to_char(?::date, 'YYYY-MM-DD') 
-		 WHERE setting_key = ?|);
-		
-    for (qw(revtrans closedto audittrail)) {
-
-        if ( $form->{$_} ) {
-            $val = $form->{$_};
-        }
-        else {
-            $val = 0;
-        }
-        if ($_ eq 'closedto'){
-            $sth_closedto->execute( $val || undef, $_);
-        } else { 
-            $sth->execute( $val, $_ );
-        }
-    }
-
-## SC: Disabling audit trail removal
-##    if ( $form->{removeaudittrail} ) {
-##        $query = qq|
-##			DELETE FROM audittrail
-##			 WHERE transdate < ?|;
-##
-##        $dbh->do($query, undef, $form->{removeaudittrail}) || $form->dberror($query);
-##    }
-
-    $dbh->commit;
-
-}
-
-=item AM->earningsaccounts($myconfig, $form);
-
-Populates the list referred to as $form->{chart} with hashes containing the
-account number (accno) and the description of all equity accounts, ordered by
-the account number.
-
-$myconfig is unused.
-
-=cut
-
-sub earningsaccounts {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    my ( $query, $sth, $ref );
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    # get chart of accounts
-    $query = qq|
-		    SELECT accno,description
-		      FROM chart
-		     WHERE charttype = 'A'
-		           AND category = 'Q'
-		  ORDER BY accno|;
-
-    $sth = $dbh->prepare($query);
-    $sth->execute || $form->dberror($query);
-    $form->{chart} = [];
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-        push @{ $form->{chart} }, $ref;
-    }
-
-    $sth->finish;
-    $dbh->commit;
-}
-
-=item AM->post_yearend($myconfig, $form);
-
-Posts the termination of a financial year.  Makes use of the $form attributes
-login, reference, notes, description, and transdate to populate the gl table
-entry.  The id of the gl transaction is placed in $form->{id}.  
-
-For every accno_$i in $form, where $i is between 1 and $form->{rowcount}, an
-acc_trans entry will be added if credit_$i or debit_$i is non-zero.
-
-A new yearend entry is populated with the id and transdate of the gl
-transaction.
-
-Adds an entry to the audittrail.
-
-$myconfig is unused.
-
-=cut
-
-sub post_yearend {
-
-    my ( $self, $myconfig, $form ) = @_;
-
-    my $dbh = $form->{dbh};
-
-    my $query;
-    my @queryargs;
-    my $uid = localtime;
-    $uid .= "$$";
-
-    $query = qq|
-		INSERT INTO gl (reference, person_id)
-		     VALUES (?, (SELECT id FROM person WHERE entity_id = (select entity_id from users where username = current_user)))|;
-
-    $dbh->prepare($query)->execute( $uid)
-      || $form->dberror($query);
-
-    $query = qq|
-		SELECT id 
-		  FROM gl
-		 WHERE reference = ?|;
-
-    my $sth = $dbh->prepare($query);
-    $sth->execute($uid);
-    ( $form->{id} ) = $sth->fetchrow_array;
-
-    $query = qq|
-		UPDATE gl 
-		   SET reference = ?,
-		       description = ?,
-		       notes = ?,
-		       transdate = ?,
-		       department_id = 0
-		 WHERE id = ?|;
-
-    @queryargs = (
-        $form->{reference}, $form->{description}, $form->{notes},
-        $form->{transdate}, $form->{id}
-    );
-    $dbh->prepare($query)->execute(@queryargs) || $form->dberror($query);
-
-    my $amount;
-    my $accno;
-    $query = qq|
-		INSERT INTO acc_trans (trans_id, chart_id, amount, transdate, 
-		            source)
-		     VALUES (?, (SELECT id
-		                   FROM chart
-		                  WHERE accno = ?),
-		            ?, ?, ?)|;
-
-    # insert acc_trans transactions
-    for my $i ( 1 .. $form->{rowcount} ) {
-
-        # extract accno
-        ($accno) = split( /--/, $form->{"accno_$i"} );
-        $amount = 0;
-
-        if ( $form->{"credit_$i"} ) {
-            $amount = $form->{"credit_$i"};
-        }
-
-        if ( $form->{"debit_$i"} ) {
-            $amount = $form->{"debit_$i"} * -1;
-        }
-
-        # if there is an amount, add the record
-        if ($amount) {
-            my @args = (
-                $form->{id}, $accno, $amount, $form->{transdate},
-                $form->{reference}
-            );
-
-            $dbh->prepare($query)->execute(@args)
-              || $form->dberror($query);
-        }
-    }
-
-    $query = qq|
-		INSERT INTO yearend (trans_id, transdate)
-		     VALUES (?, ?)|;
-
-    $dbh->prepare($query)->execute( $form->{id}, $form->{transdate} )
-      || $form->dberror($query);
-
-    my %audittrail = (
-        tablename => 'gl',
-        reference => $form->{reference},
-        formname  => 'yearend',
-        action    => 'posted',
-        id        => $form->{id}
-    );
-
-    $form->audittrail( $dbh, "", \%audittrail );
-
-    # commit and redirect
-    my $rc = $dbh->commit;
-
-    $rc;
-
-}
-
-=item AM->get_all_defaults($form);
-
-Retrieves all settings from defaults and sets the appropriate $form values.
-Also runs AM->defaultaccounts.
-
-=cut
-
-sub get_all_defaults {
-    my ( $self, $form ) = @_;
-    my $dbh   = $form->{dbh};
-    my $query = "select setting_key, value FROM defaults";
-    $sth = $dbh->prepare($query);
-    $sth->execute;
-    while ( ( $skey, $value ) = $sth->fetchrow_array() ) {
-        $form->{$skey} = $value;
-    }
-    $sth->finish;
-    $query = "select id, name from country order by name";
-    $sth = $dbh->prepare($query);
-    $sth->execute;
-    $form->{countries} = [];
-    while ($ref = $sth->fetchrow_hashref('NAME_lc')) {
-        push @{$form->{countries}}, $ref;
-    }
-    $sth->finish;
-    #HV do not know if i can use 'sub language' here which fills $form->{ALL}
-    $query = "select code,description from language order by code";
-    $sth = $dbh->prepare($query);
-    $sth->execute;
-    $form->{languages} = [];
-    while ($ref = $sth->fetchrow_hashref('NAME_lc')) {
-        push @{$form->{languages}}, $ref;
-    }
-    $sth->finish;
-
-    $self->defaultaccounts( undef, $form );
-    $dbh->commit;
-    my $dirname = "./templates";
-    my $subdircount = 0;
-}
-
-=item AM->get_templates_directories;
-
-This functions gets all the directories from $LedgerSMB::Sysconfig::templates to list all the possible
-non-Ui templates.
-
-=cut
-sub get_templates_directories {
-my ( $self, $form ) = @_;
-my $subdircount = 0;
-my @dirarray;
-opendir ( DIR, $LedgerSMB::Sysconfig::templates) || $form->error("Error while opening file: ./".$LedgerSMB::Sysconfig::templates);
-while( (my $name = readdir(DIR))){
-                 next if ($name =~ /\./);
-                 if (-d $LedgerSMB::Sysconfig::templates.'/'.$name) {
-                         $dirarray[$subdircount++] = $name;
-                 }
-}
-closedir(DIR);
-@{$form->{templates_directories}} = @dirarray;
 }
 
 

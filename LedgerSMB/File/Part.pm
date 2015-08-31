@@ -22,8 +22,8 @@ methods only
 =cut
 
 package LedgerSMB::File::Part;
-use strict;
-use base qw(LedgerSMB::File);
+use Moose;
+extends 'LedgerSMB::File';
 
 =head1 METHODS
 
@@ -38,7 +38,6 @@ Attaches or links a specific file to the given transaction.
 sub attach {
     my ($self, $args) = @_;
     $self->exec_method({funcname => 'file__attach_to_part'});
-    $self->commit unless $args->{no_commit};
 }
 
 =back

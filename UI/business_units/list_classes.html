@@ -1,0 +1,115 @@
+<?lsmb INCLUDE 'ui-header.html' 
+      include_stylesheet = ["UI/business_units/list_classes.css"] 
+?>
+<?lsmb PROCESS 'elements.html' ?>
+<body class="<?lsmb dojo_theme ?>">
+<div class="listtop"><?lsmb title ?></div>
+<div class="table">
+<!-- headings -->
+<div class="tr listheading"> 
+    <div class="th"><?lsmb text('ID') ?></div>
+    <div class="th"><?lsmb text('Label') ?></div>
+    <div class="th"><?lsmb text('Active') ?></div>
+    <div class="th"><?lsmb text('Ordering') ?></div>
+  <?lsmb FOREACH m IN modules ?>
+    <div class="th"><?lsmb text(m.label) ?></div>
+  <?lsmb END ?>
+    <div class="th">&nbsp;</div>
+    <div class="th">&nbsp;</div>
+</div>
+<?lsmb classes.push({}); 
+       FOR c IN classes;
+           id = c.id;
+?>
+<form data-dojo-type="lsmb/lib/Form" action="<?lsmb script ?>" method=POST id="edit-<?lsmb id ?>" class="tr">
+<div class="td">
+<?lsmb PROCESS input element_data = {
+    type = "hidden"
+   value = id
+    name = "id"
+} ?><?lsmb id ?></div>
+<div class="td"><?lsmb PROCESS input element_data = {
+    type = "text"
+   class = "control_code"
+    name = "label"
+   value = c.label
+      id = "label_$id"
+    size = 12
+} ?>
+</div>
+<div class="td"><?lsmb PROCESS input element_data = {
+    type = "checkbox"
+   value = "1"
+   class = "is-active"
+    name = "active"
+      id = "active_$id"
+ checked = (c.active)? 'CHECKED' : ''
+} ?>
+</div>
+<div class="td"><?lsmb PROCESS input element_data = {
+    type = "text"
+   class = "ordering"
+    name = "ordering"
+   value = c.ordering
+      id = "ordering_$id"
+    size = 4
+} ?>
+</div>
+  <?lsmb FOREACH m IN modules ?>
+    <div class="td"><?lsmb 
+    checked = undef;
+    FOREACH mm IN c.modules;
+       IF mm.id == m.id;
+            checked = 'checked';
+       END;
+    END;
+    PROCESS input element_data = {
+       type = 'checkbox'
+    checked = checked
+       name = "module_" _ m.id
+         id = "module_$id" _ "_" _ m.id
+      value = 1
+    } ?> </div>
+  <?lsmb END ?>
+    <!-- TODO:  Add modules perms here -->
+<div class="td"><?lsmb PROCESS button element_data = {
+    type = "submit"
+   class = "submit"
+    name = "action"
+   value = "save_class"
+      id = "save_class_$id"
+    text = (c.id) ? text('Save') : text('Add Class')
+};
+PROCESS button element_data = {
+    type = "submit"
+   class = "submit"
+    name = "action"
+   value = "delete_class"
+      id = "delete_class_$id"
+    text = text('Delete')
+} ?>
+</div>
+<div class="td"><?lsmb 
+IF c.id;
+PROCESS button element_data = {
+    type = "submit"
+   class = "submit"
+    name = "action"
+      id = "action_$id"
+   value = "add"
+    text = text('Add Unit') #'
+};
+PROCESS button element_data = {
+    type = "submit"
+   class = "submit"
+    name = "action"
+   value = "list"
+      id = "list_$id"
+    text = text('List Units')#'
+};
+END; ?></div>
+</form>
+<?lsmb END ?>
+</div>
+</body>
+</html>

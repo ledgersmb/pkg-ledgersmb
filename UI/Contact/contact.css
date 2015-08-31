@@ -1,7 +1,7 @@
 label {
 	text-align: right;
 	margin-left: auto;
-        margin-right: 1em;
+        margin-right: 1em
 }
 
 input { margin-left: 0em;
@@ -80,34 +80,70 @@ div.input_group3 {
 }
 
 #company_div div.input_group2 label {
-	width: 6em;
-}
-
-#credit_div label {
 	width: 8em;
 }
 
-#credittax_div label {
-	width: 24em;
+#credit_div label {
+	width: 10em;
 }
 
-
-
-
-#location_div label {
-	width: 10em;
+#address_div label {
+	width: 6em;
 }
 
 #contact_div label {
-	width: 10em;
+	width: 6em;
 }
 
 #bank_div label {
-	width: 10em;
+	width: 9em;
 }
 
 #notes_div label {
-	width: 10em;
+	width: 6em;
 }
 
+#employee_div .g1 {
+        width: 27em;
+}
 
+#employee_div .g2 {
+        width: 25em;
+}
+
+#employee_div .g2 label {
+        width: 8em;
+}
+#employee_div .g1 label, #employee_div .solo label {
+        width: 10em;
+}
+
+#user_div table {
+       width: 40em;
+}
+
+#user_div input[type=~'checkbox'], #user_div input[type=~'radio'] {
+       float: left;
+}
+
+#user_div div.input_group {
+       float: left;
+       overflow: auto;
+}
+#user_div div.input_line {
+       overflow: auto;
+       display: block;
+}
+
+#user_div label {
+      width: 8em;
+      text-align: right;
+}
+
+#user_div table .input_group label {
+      width: 2em;
+}
+
+#user_div table label {
+      width: 15em;
+}

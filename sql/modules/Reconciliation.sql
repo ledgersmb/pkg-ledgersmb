@@ -11,6 +11,18 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
 
+CREATE OR REPLACE FUNCTION reconciliation__reject_set(in_report_id int)
+RETURNS bool language plpgsql as $$
+BEGIN
+     UPDATE cr_report set submitted = false 
+      WHERE id = in_report_id
+            AND approved is not true;
+     RETURN found;
+END;
+$$ SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION reconciliation__reject_set(in_report_id int) FROM public;
+
 COMMENT ON FUNCTION reconciliation__submit_set(
         in_report_id int, in_line_ids int[]) IS
 $$Submits a reconciliation report for approval. 
@@ -251,6 +263,7 @@ create or replace function reconciliation__add_entry(
 		t_scn := t_prefix || in_scn;
 	END IF;
 	IF t_scn IS NOT NULL THEN
+                -- could this be changed to update, if not found insert?
 		SELECT count(*) INTO in_count FROM cr_report_line
 		WHERE scn ilike t_scn AND report_id = in_report_id 
 			AND their_balance = 0 AND post_date = in_date;
@@ -418,6 +431,7 @@ RETURNS int as $$
 			AND ((rl.ledger_id = ac.entry_id 
 				AND ac.voucher_id IS NULL) 
 				OR (rl.voucher_id = ac.voucher_id)))
+                LEFT JOIN cr_report r ON r.id = in_report_id
                 LEFT JOIN exchangerate ex ON gl.transdate = ex.transdate
 		WHERE ac.cleared IS FALSE
 			AND ac.approved IS TRUE
@@ -428,13 +442,15 @@ RETURNS int as $$
                             OR (t_recon_fx is true 
                                 AND (gl.table <> 'gl' OR ac.fx_transaction
                                                       IS TRUE))) 
+                        AND (ac.entry_id > coalesce(r.max_ac_id, 0))
 		GROUP BY gl.ref, ac.source, ac.transdate,
 			ac.memo, ac.voucher_id, gl.table, 
                         case when gl.table = 'gl' then gl.id else 1 end
 		HAVING count(rl.id) = 0;
 
 		UPDATE cr_report set updated = now(),
-			their_total = coalesce(in_their_total, their_total)
+			their_total = coalesce(in_their_total, their_total),
+                        max_ac_id = (select max(entry_id) from acc_trans)
 		where id = in_report_id;
     RETURN in_report_id;
     END;
@@ -503,7 +519,7 @@ $$ Retrieves all header info from the reconciliation report.$$;
 CREATE OR REPLACE FUNCTION reconciliation__search
 (in_date_from date, in_date_to date, 
 	in_balance_from numeric, in_balance_to numeric, 
-	in_chart_id int, in_submitted bool, in_approved bool) 
+	in_account_id int, in_submitted bool, in_approved bool) 
 returns setof cr_report AS
 $$
 DECLARE report cr_report;
@@ -518,7 +534,7 @@ BEGIN
 				or in_balance_from <= their_total ) AND
 			(in_balance_to IS NULL 
 				OR in_balance_to >= their_total) AND
-			(in_chart_id IS NULL OR in_chart_id = chart_id) AND
+			(in_account_id IS NULL OR in_account_id = chart_id) AND
 			(in_submitted IS NULL or in_submitted = submitted) AND
 			(in_approved IS NULL OR in_approved = approved) AND
 			(r.deleted IS FALSE)
@@ -594,7 +610,7 @@ account.  For asset and expense accounts this is the debit balance, for others
 this is the credit balance.$$;
 
 CREATE OR REPLACE VIEW recon_payee AS
- SELECT n.name AS payee, rr.id, rr.report_id, rr.scn, rr.their_balance, rr.our_balance, rr.errorcode, rr."user", rr.clear_time, rr.insert_time, rr.trans_type, rr.post_date, rr.ledger_id, rr.voucher_id, rr.overlook, rr.cleared
+ SELECT n.name AS payee, rr.id, rr.report_id, rr.scn, rr.their_balance, rr.our_balance, rr.errorcode, rr."user", rr.clear_time, rr.insert_time, rr.trans_type, rr.post_date, rr.ledger_id, ac.voucher_id, rr.overlook, rr.cleared
    FROM cr_report_line rr
    LEFT JOIN acc_trans ac ON rr.ledger_id = ac.entry_id
    LEFT JOIN gl ON ac.trans_id = gl.id
@@ -627,5 +643,7 @@ $$ language 'plpgsql';
 
 COMMENT ON FUNCTION reconciliation__report_details_payee (in_report_id INT) IS
 $$ Pulls the payee information for the reconciliation report.$$;
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
 
 COMMIT;

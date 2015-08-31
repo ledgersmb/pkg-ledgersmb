@@ -3,13 +3,15 @@
         stylesheet = stylesheet
         include_stylesheet = [
 		"css/scripts/create_batch.css"
-        ]
+        ];
+       PROCESS elements.html;
+       PROCESS dynatable.html;
 ?>
-<body>
+<body class="<?lsmb dojo_theme ?>">
 <div class="listtop"><?lsmb text('Create New Batch') ?></div>
-<form name="create_batch" method="post">
+<form data-dojo-type="lsmb/lib/Form" name="create_batch" method="post">
 <div class="labelledinput">
-  <div class="input">
+  <div class="inputgroup">
     <?lsmb text("Batch Number") ?>
   </div>
   <div class="value">
@@ -19,7 +21,7 @@
   <div class="label">
     <?lsmb text("Description") ?>
   </div>
-  <div class="input">
+  <div class="inputgroup">
     <input name="description" type="text" value="<?lsmb batch_number ?>"/>
   </div>
 </div>
@@ -27,7 +29,7 @@
   <div class="label">
      <?lsmb text("Batch Date") ?>
   </div>
-  <div class="input">
+  <div class="inputgroup">
      <input type=text class=date name="batch_date" 
             value="<?lsmb batch_date ?>" />
   </div>
@@ -36,30 +38,35 @@
 <button value="create_vouchers" type="submit" class="submit" name="action">
 <?lsmb text('Continue') ?></button>
 </div>
-<?lsmb FOREACH item = hidden ?>
+<?lsmb 
+hidden_url_base = '';
+FOREACH item = hidden;
+  IF item.value;
+      hidden_url_base = hidden_url_base _ '&' _ item.name _ '=' _ item.value;
+  END;
+   ?>
 <input type=hidden name="<?lsmb item.name ?>" value="<?lsmb item.value ?>">
 <?lsmb END ?>
 </form>
 <div class="listtop"><?lsmb text('Or Add To Batch') ?></div>
-<table>
-<tr class="listheading">
-  <th class="listtop"><?lsmb text('Batch Type') ?></th>
-  <th class="listtop"><a class="listtop" href = "<?lsmb "vouchers.pl?action=create_batch&batch_type=$batch_type&order_by=control_code" ?>"><?lsmb text('Control Number') ?></th>
-  <th class="listtop"><a class="listtop" href = "<?lsmb "vouchers.pl?action=create_batch&batch_type=$batch_type&order_by=description" ?>"><?lsmb text('Description') ?></th>
-  <th class="listtop"><a class="listtop" href = "<?lsmb "vouchers.pl?action=create_batch&batch_type=$batch_type&order_by=created_by" ?>"><?lsmb text('Created By') ?></th>
-  <th class="listtop"><a class="listtop" href = "<?lsmb "vouchers.pl?action=create_batch&batch_type=$batch_type&order_by=created_on" ?>"><?lsmb text('Created On') ?></th>
-  <th class="listtop"><a class="listtop" href = "<?lsmb "vouchers.pl?action=create_batch&batch_type=$batch_type&order_by=default_date" ?>"><?lsmb text('Post Date') ?></th>
-</tr>
-<?lsmb FOR row = search_results ?>
-<tr>
-  <td><?lsmb text(row.batch_class) ?></td>
-  <td><a href="<?lsmb "vouchers.pl?action=add_vouchers&batch_type=$batch_type&id=$row.id" ?>"><?lsmb row.control_code ?></td>
-  <td><?lsmb row.description ?></td>
-  <td><?lsmb row.created_by ?></td>
-  <td><?lsmb row.created_on ?></td>
-  <td><?lsmb row.default_date?></td>
-</tr>
-<?lsmb END ?>
-</table>
+<?lsmb 
+
+FOREACH row IN search_results;
+     row.row_id = row.id _ "&post_date=" _ row.default_date;
+END;
+
+PROCESS dynatable 
+               attributes = {id = 'batch_list'}
+               tbody = {rows = search_results}
+               columns = [
+        { col_id='control_code', type='href', name=text('Control Number'), #'
+       href_base="vouchers.pl?action=add_vouchers" _
+                   hidden_url_base _ "&id=" }
+        { col_id='description', type='text', name = text('Description') }
+        { col_id='created_by', type='text', name = text('Created By') } #'
+        { col_id='created_on', type='text', name = text('Created On') } #'
+         { col_id='default_date', type='text', name = text('Post Date') } #'
+       ];
+?>
 </body>
 </html>

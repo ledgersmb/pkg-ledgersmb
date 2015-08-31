@@ -41,9 +41,9 @@ LedgerSMB::OE - Order Entry
 package OE;
 use LedgerSMB::Tax;
 use LedgerSMB::Sysconfig;
+use Log::Log4perl;
 
 my $logger = Log::Log4perl->get_logger('OE');
-
 =over
 
 =item get_files
@@ -53,15 +53,12 @@ provisional, and will change for 1.4 as the GL transaction functionality is
                   {ref_key => $self->{id}, file_class => 2}
 rewritten
 
-=back
-
 =cut
 
 sub get_files {
      my ($self, $form, $locale) = @_;
      return if !$form->{id};
-     my $file = LedgerSMB::File->new();
-     $file->new_dbobject({base => $form, locale => $locale});
+     my $file = LedgerSMB::File->new(%$form);
      @{$form->{files}} = $file->list({ref_key => $form->{id}, file_class => 2});
      @{$form->{file_links}} = $file->list_links(
                   {ref_key => $form->{id}, file_class => 2}
@@ -69,13 +66,9 @@ sub get_files {
 
 }
 
-=over
-
-=item get_type 
+=get_type 
 
 Sets the type field for an existing order or quotation
-
-=back
 
 =cut
 
@@ -91,238 +84,23 @@ sub get_type {
     $sth->finish;
 }
 
-sub transactions {
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    my $query;
-    my $null;
-    my $var;
-    my $ordnumber = 'ordnumber';
-    my $quotation = '0';
-    my $department;
-
-    my $rate = ( $form->{vc} eq 'customer' ) ? 'buy' : 'sell';
-
-    ( $form->{transdatefrom}, $form->{transdateto} ) =
-      $form->from_to( $form->{year}, $form->{month}, $form->{interval} )
-      if $form->{year} && $form->{month};
-
-    if ( $form->{type} =~ /_quotation$/ ) {
-        $quotation = '1';
-        $ordnumber = 'quonumber';
-    }
-
-    $ordnumber = ($ordnumber eq 'ordnumber') ? 'ordnumber' : 'quonumber';
-    my $number  = $form->like( lc $form->{$ordnumber} );
-    my $name    = $form->like( lc $form->{ $form->{vc} } );
-    my @dptargs = ();
-
-    for (qw(department employee)) {
-        if ( $form->{$_} ) {
-            ( $null, $var ) = split /--/, $form->{$_};
-            $department .= " AND o.${_}_id = ?";
-            push @dptargs, $var;
-        }
-    }
-
-    if ( $form->{vc} ne 'customer' ) {    # Sanitize $form->{vc}
-        $form->{vc} = 'vendor';
-    }
-    $query = qq|
-		SELECT o.id, o.ordnumber, o.transdate, o.reqdate,
-			o.amount, c.legal_name AS name, o.netamount, o.entity_credit_account AS $form->{vc}_id,
-			ex.$rate AS exchangerate, o.closed, o.quonumber, 
-			o.shippingpoint, o.shipvia,
-			pe.first_name \|\| ' ' \|\| pe.last_name AS employee, 
-			pm.first_name \|\| ' ' \|\| pm.last_name AS manager, 
-			o.curr, o.ponumber, ct.meta_number, c.entity_id
-		FROM oe o
-		JOIN entity_credit_account ct ON (o.entity_credit_account = ct.id)
-		JOIN company c ON (c.entity_id = ct.entity_id)
-		LEFT JOIN person pe ON (o.person_id = pe.id)
-		LEFT JOIN entity_employee e ON (pe.entity_id = e.entity_id)
-		LEFT JOIN person pm ON (e.manager_id = pm.id)
-		LEFT JOIN entity_employee m ON (pm.entity_id = m.entity_id)
-		LEFT JOIN exchangerate ex 
-			ON (ex.curr = o.curr AND ex.transdate = o.transdate)
-		WHERE o.quotation = ?
-                      AND o.oe_class_id = ?
-		$department|;
-
-    my @queryargs = @dptargs;
-    unshift @queryargs, $form->{oe_class_id};
-    unshift @queryargs, $quotation;
-
-    my %ordinal = (
-        id        => 1,
-        ordnumber => 2,
-        transdate => 3,
-        reqdate   => 4,
-        name      => 6,
-        quonumber => 11,
-        shipvia   => 13,
-        employee  => 14,
-        manager   => 15,
-        curr      => 16,
-        ponumber  => 17
-    );
-
-    my @a = ( 'transdate', $ordnumber, 'name' );
-    push @a, "employee" if $form->{l_employee};
-    if ( $form->{type} !~ /(ship|receive)_order/ ) {
-        push @a, "manager" if $form->{l_manager};
-    }
-    my $sortorder = $form->sort_order( \@a, \%ordinal );
-
-    # build query if type eq (ship|receive)_order
-    if ( $form->{type} =~ /(ship|receive)_order/ ) {
-
-        my ( $warehouse, $warehouse_id ) = split /--/, $form->{warehouse};
-
-        #HV alias company.ct changed to company.c
-        $query = qq|
-			SELECT DISTINCT o.id, o.ordnumber, o.transdate,
-				o.reqdate, o.amount, c.legal_name as name, 
-                                eca.meta_number, o.netamount, eca.entity_id,
-                                o.entity_credit_account as $form->{vc}_id, 
-                                ex.$rate AS exchangerate,
-		 		o.closed, o.quonumber, o.shippingpoint, 
-				o.shipvia, ee.name AS employee, o.curr, 
-				o.ponumber
-			FROM oe o
-			JOIN entity_credit_account eca  
-                             ON (o.entity_credit_account = eca.id)
-                        JOIN company c ON eca.entity_id = c.entity_id
-			JOIN orderitems oi ON (oi.trans_id = o.id)
-			JOIN parts p ON (p.id = oi.parts_id)|;
-
-        if ( $warehouse_id && $form->{type} eq 'ship_order' ) {
-            $query .= qq|
-				JOIN inventory i ON (oi.parts_id = i.parts_id)
-				|;
-        }
-
-        $query .= qq|
-                        LEFT JOIN person per ON per.id = o.person_id
-			LEFT JOIN entity_employee e ON (per.entity_id = e.entity_id)
-			LEFT JOIN entity ee ON (e.entity_id = ee.id)
-			LEFT JOIN exchangerate ex 
-				ON (ex.curr = o.curr 
-					AND ex.transdate = o.transdate)
-			WHERE o.quotation = '0'
-			AND (p.inventory_accno_id > 0 OR p.assembly = '1')
-			AND oi.qty != oi.ship
-                        AND o.oe_class_id = ?
-			$department|;
-        @queryargs = ( $form->{oe_class_id} );
-
-        if ( $warehouse_id && $form->{type} eq 'ship_order' ) {
-            $query .= qq| 
-				AND i.warehouse_id = ?
-				AND ( 
-					SELECT SUM(i.qty)
-					FROM inventory i
-					WHERE oi.parts_id = i.parts_id
-					AND i.warehouse_id = ? 
-				) > 0|;
-            push( @queryargs, $warehouse_id, $warehouse_id );
-        }
-
-    }
-
-    if ( $form->{"$form->{vc}_id"} ) {
-        $query .= qq| AND o.$form->{vc}_id = $form->{"$form->{vc}_id"}|;
-    }
-    elsif ( $form->{ $form->{vc} } ne "" ) {
-        $query .= " AND lower(c.legal_name) LIKE ?";
-        push @queryargs, $name;
-    }
-
-    if ( $form->{$ordnumber} ne "" ) {
-        $query .= " AND lower($ordnumber) LIKE ?";
-        push @queryargs, $number;
-    }
-    if ( $form->{ponumber} ne "" ) {
-        $query .= " AND lower(ponumber) LIKE '%' || lower(?) || '%'";
-        push @queryargs, $form->{ponumber};
-    }
-
-    if ( !$form->{open} && !$form->{closed} ) {
-        $query .= " AND o.id = 0";
-    }
-    elsif ( !( $form->{open} && $form->{closed} ) ) {
-        $query .=
-          ( $form->{open} ) ? " AND o.closed = '0'" : " AND o.closed = '1'";
-    }
-
-    if ( $form->{shipvia} ne "" ) {
-        $var = $form->like( lc $form->{shipvia} );
-        $query .= " AND lower(o.shipvia) LIKE ?";
-        push @queryargs, $var;
-    }
-
-    if ( $form->{description} ne "" ) {
-        $var = $dbh->quote($form->like( lc $form->{description} ));
-        $query .= " AND o.id IN (SELECT DISTINCT trans_id
-                             FROM orderitems
-			     WHERE lower(description) LIKE $var)";
-    }
-
-    if ( $form->{transdatefrom} ) {
-        $query .= " AND o.transdate >= ?";
-        push @queryargs, $form->{transdatefrom};
-    }
-    if ( $form->{transdateto} ) {
-        $query .= " AND o.transdate <= ?";
-        push @queryargs, $form->{transdateto};
-    }
-
-    $query .= " ORDER by $sortorder";
-    
-    my $sth = $dbh->prepare($query);
-    $sth->execute(@queryargs) || $form->dberror($query);
-
-    my %oid = ();
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-
-	$form->db_parse_numeric(sth=>$sth, hashref=>$ref);
-        $ref->{exchangerate} = 1 unless $ref->{exchangerate};
-        if ( $ref->{id} != $oid{id}{ $ref->{id} } ) {
-            push @{ $form->{OE} }, $ref;
-            $oid{vc}{ $ref->{curr} }{ $ref->{"$form->{vc}_id"} }++;
-        }
-        $oid{id}{ $ref->{id} } = $ref->{id};
-    }
-    $sth->finish;
-
-    $dbh->commit;
-
-    if ( $form->{type} =~ /^consolidate_/ ) {
-        @a = ();
-        foreach $ref ( @{ $form->{OE} } ) {
-            push @a, $ref
-              if $oid{vc}{ $ref->{curr} }{ $ref->{"$form->{vc}_id"} } > 1;
-        }
-
-        @{ $form->{OE} } = @a;
-    }
-
-}
-
 sub save {
     my ( $self, $myconfig, $form ) = @_;
   
+    $form->all_business_units;
     $form->db_prepare_vars(
         "quonumber", "transdate",     "vendor_id",     "entity_id",
         "reqdate",   "taxincluded",   "shippingpoint", "shipvia",
         "currency",  "department_id", "employee_id",   "language_code",
         "ponumber",  "terms"
     );
-    # connect to database, turn off autocommit
+
     my $dbh = $form->{dbh};
+    my $b_unit_sth = $dbh->prepare(
+         "INSERT INTO business_unit_oitem (entry_id, class_id, bu_id)
+          VALUES (currval('orderitems_id_seq'), ?, ?)"
+    );
+
     my @queryargs;
     my $quotation;
     my $ordnumber;
@@ -353,7 +131,7 @@ sub save {
     }
     $form->{"$ordnumber"} =
       $form->update_defaults( $myconfig, $numberfld, $dbh )
-      unless $form->{"$ordnumber"};
+      if $form->should_update_defaults($ordnumber);
 
 
 
@@ -371,7 +149,7 @@ sub save {
     my $ml = ( $form->{type} eq 'sales_order' ) ? 1 : -1;
 
     $query = qq|
-		SELECT p.assembly, p.project_id
+		SELECT p.assembly 
 		FROM parts p WHERE p.id = ?|;
     my $pth = $dbh->prepare($query) || $form->dberror($query);
 
@@ -423,11 +201,11 @@ sub save {
 			INSERT INTO oe 
 				(id, ordnumber, quonumber, transdate, 
 				reqdate, shippingpoint, shipvia,
-				notes, intnotes, curr, closed, department_id,
+				notes, intnotes, curr, closed, 
 				person_id, language_code, ponumber, terms,
 				quotation, oe_class_id, entity_credit_account)
 			VALUES 
-				($form->{id}, ?, ?, ?,
+				($form->{id}, ?, ?, 
 				?, ?, ?,
 				?, ?, ?, ?, ?,
 				?, ?, ?, ?,
@@ -438,7 +216,7 @@ sub save {
             $form->{shippingpoint}, $form->{shipvia},
             $form->{notes},         $form->{intnotes},
             $form->{currency},      $form->{closed},
-            $form->{department_id}, $form->{person_id},
+            $form->{person_id},
             $form->{language_code}, $form->{ponumber},
             $form->{terms},         $quotation, $class_id, $form->{"$form->{vc}_id"}
         );
@@ -564,21 +342,27 @@ sub save {
             # save detail record in orderitems table
             $query = qq|INSERT INTO orderitems (
 		          trans_id, parts_id, description, qty, sellprice,
-		          discount, unit, reqdate, project_id, ship, 
+		          discount, unit, reqdate, ship, 
 		          serialnumber, notes, precision)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)|;
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)|;
             $sth = $dbh->prepare($query);
             push( @queryargs,
                 $form->{id},                $form->{"id_$i"},
                 $form->{"description_$i"},  $form->{"qty_$i"},
                 $fxsellprice,               $form->{"discount_$i"},
                 $form->{"unit_$i"},         $form->{"reqdate_$i"},
-                $project_id,                $form->{"ship_$i"},
+                $form->{"ship_$i"},
                 $form->{"serialnumber_$i"}, $form->{"notes_$i"},
                 $form->{"precision_$i"}
             );
             $sth->execute(@queryargs) || $form->dberror($query);
             $form->{"sellprice_$i"} = $fxsellprice;
+            for my $cls(@{$form->{bu_class}}){
+                if ($form->{"b_unit_$cls->{id}_$i"}){
+                 $b_unit_sth->execute($cls->{id}, $form->{"b_unit_$cls->{id}_$i"});
+                }
+            }
+
         }
         $form->{"discount_$i"} *= 100;
  
@@ -643,7 +427,6 @@ sub save {
 				curr = ?, 
 				closed = ?, 
 				quotation = ?, 
-				department_id = ?, 
 				person_id = ?, 
 				language_code = ?, 
 				ponumber = ?, 
@@ -662,7 +445,7 @@ sub save {
             $form->{shipvia},       $form->{notes},
             $form->{intnotes},      $form->{currency},
             $form->{closed},        $quotation,
-            $form->{department_id}, $form->{person_id},
+            $form->{person_id},
             $form->{language_code}, $form->{ponumber},
             $form->{terms},         $form->{id}
         );
@@ -716,11 +499,6 @@ sub save {
         id       => $form->{id}
     );
 
-   # $form->audittrail( $dbh, "", \%audittrail );
-
-    my $rc = $dbh->commit;
-
-    $rc;
 }
 
 sub delete {
@@ -802,15 +580,11 @@ sub delete {
 
     $form->audittrail( $dbh, "", \%audittrail );
 
-    my $rc = $dbh->commit;
 
-    if ($rc) {
-        foreach $spoolfile (@spoolfiles) {
-            unlink "${LedgerSMB::Sysconfig::spool}/$spoolfile" if $spoolfile;
-        }
+    foreach $spoolfile (@spoolfiles) {
+        unlink "${LedgerSMB::Sysconfig::spool}/$spoolfile" if $spoolfile;
     }
-
-    $rc;
+    return 1;
 
 }
 
@@ -820,6 +594,11 @@ sub retrieve {
 
     # connect to database
     my $dbh = $form->{dbh};
+
+    my $bu_sth = $dbh->prepare(
+            qq|SELECT * FROM business_unit_oitem
+                WHERE entry_id = ?  |
+    );
 
     my $query;
     my $sth;
@@ -846,25 +625,30 @@ sub retrieve {
 				o.notes, o.intnotes, o.curr AS currency, 
 				pe.first_name \|\| ' ' \|\| pe.last_name AS employee,
 				o.person_id AS employee_id,
-				o.entity_credit_account AS $form->{vc}_id, c.legal_name AS $form->{vc}, 
+				o.entity_credit_account, vc.name as legal_name,
 				o.amount AS invtotal, o.closed, o.reqdate, 
-				o.quonumber, o.department_id, 
-				d.description AS department, o.language_code, 
-				o.ponumber, ns.location_id as locationid
+				o.quonumber, o.language_code,
+				o.ponumber, cr.entity_class,
+                                ns.location_id as locationid
 			FROM oe o
 			JOIN entity_credit_account cr ON (cr.id = o.entity_credit_account)
-			JOIN company c ON (cr.entity_id = c.entity_id)
-			JOIN entity vc ON (c.entity_id = vc.id)
+			JOIN entity vc ON (cr.entity_id = vc.id)
 			LEFT JOIN person pe ON (o.person_id = pe.id)
 			LEFT JOIN entity_employee e 
                                   ON (pe.entity_id = e.entity_id)
-			LEFT JOIN department d ON (o.department_id = d.id)
                         LEFT JOIN new_shipto ns ON ns.oe_id = o.id
 			WHERE o.id = ?|;
         $sth = $dbh->prepare($query);
         $sth->execute( $form->{id} ) || $form->dberror($query);
 
         $ref = $sth->fetchrow_hashref('NAME_lc');
+        if ($ref->{entity_class} == 2){
+           $form->{vc} = 'customer';
+        } elsif ($ref->{entity_class} == 1){
+           $form->{vc} = 'vendor';
+        }
+        $form->{$form->{vc}} = $ref->{legal_name};
+        $form->{"$form->{vc}_id"} = $ref->{entity_credit_account};
         $form->db_parse_numeric(sth=>$sth, hashref=>$ref);
         for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
         $sth->finish;
@@ -905,8 +689,8 @@ sub retrieve {
                                 p.assembly, 
 				o.description, o.qty, o.sellprice, o.precision, 
 				o.parts_id AS id, o.unit, o.discount, p.bin,
-				o.reqdate, o.project_id, o.ship, o.serialnumber,
-				o.notes, pr.projectnumber, pg.partsgroup, 
+				o.reqdate, o.ship, o.serialnumber,
+				o.notes, pg.partsgroup, 
 				p.partsgroup_id, p.partnumber AS sku,
 				p.listprice, p.lastcost, p.weight, p.onhand,
 				p.inventory_accno_id, p.income_accno_id, 
@@ -914,7 +698,6 @@ sub retrieve {
 					AS partsgrouptranslation
 			FROM orderitems o
 			JOIN parts p ON (o.parts_id = p.id)
-			LEFT JOIN project pr ON (o.project_id = pr.id)
 			LEFT JOIN partsgroup pg ON (p.partsgroup_id = pg.id)
 			LEFT JOIN partsvendor pv ON (pv.parts_id = p.id
                                            AND pv.credit_id = ?)
@@ -949,6 +732,11 @@ sub retrieve {
 
         while ( $ref = $sth->fetchrow_hashref('NAME_lc') ) {
             $form->db_parse_numeric(sth=>$sth, hashref=>$ref);
+
+            $bu_sth->execute($ref->{invoice_id});
+            while ( $buref = $bu_sth->fetchrow_hashref(NAME_lc) ) {
+                $ref->{"b_unit_$buref->{class_id}"} = $buref->{bu_id};
+            }
 
             ($decimalplaces) = ( $ref->{sellprice} =~ /\.(\d+)/ );
             $decimalplaces = length $decimalplaces;
@@ -1010,7 +798,6 @@ sub retrieve {
 
     }
 
-    $dbh->commit;
 
 }
 
@@ -1664,7 +1451,6 @@ sub order_details {
 		 WHERE setting_key = 'weightunit'|;
     ( $form->{weightunit} ) = $dbh->selectrow_array($query);
 
-    $dbh->commit;
 
 }
 
@@ -1968,10 +1754,7 @@ sub save_inventory {
 
         }
     }
-
-    my $rc = $dbh->commit;
-
-    $rc;
+    1;
 
 }
 
@@ -2194,7 +1977,6 @@ sub get_inventory {
     }
     $sth->finish;
 
-    $dbh->commit;
 }
 
 sub transfer {
@@ -2247,10 +2029,6 @@ sub transfer {
         }
     }
 
-    my $rc = $dbh->commit;
-
-    $rc;
-
 }
 
 sub get_soparts {
@@ -2270,11 +2048,11 @@ sub get_soparts {
 		WHERE oi.trans_id = ?|;
     my $sth = $dbh->prepare($query) || $form->dberror($query);
 
-    for ( my $i = 1 ; $i <= $form->{rowcount} ; $i++ ) {
+    for ( 1 .. $form->{rowcount_} ) {
 
-        if ( $form->{"ndx_$i"} ) {
+        if ( $form->{"select_$i"} ) {
 
-            $sth->execute( $form->{"ndx_$i"} );
+            $sth->execute( $form->{"select_$i"} );
 
             while ( $ref = $sth->fetchrow_hashref(NAME_lc) ) {
                 $form->db_parse_numeric(sth=>$sth, hashref=>$ref);
@@ -2291,8 +2069,6 @@ sub get_soparts {
 
     # foreign exchange rates
     &exchangerate_defaults( $dbh, $form );
-
-    $dbh->commit;
 
 }
 
@@ -2413,7 +2189,7 @@ sub generate_orders {
         $query = qq|
 			SELECT v.curr, v.taxincluded, t.rate, c.accno
 			FROM entity_credit_account v
-			LEFT JOIN vendortax vt ON (v.id = vt.vendor_id)
+			LEFT JOIN eca_tax vt ON (v.id = vt.vendor_id)
 			LEFT JOIN tax t ON (t.chart_id = vt.chart_id)
 			LEFT JOIN chart c ON (c.id = t.chart_id)
 			WHERE v.id = ?|;
@@ -2548,201 +2324,10 @@ sub generate_orders {
 
     }
 
-    my $rc = $dbh->commit;
-
-    $rc;
-
 }
 
-sub consolidate_orders {
-    my ( $self, $myconfig, $form ) = @_;
+=back
 
-    # connect to database
-    my $dbh = $form->{dbh};
-
-    my $i;
-    my $id;
-    my $ref;
-    my %oe = ();
-
-    my $query = qq|SELECT * FROM oe WHERE id = ?|;
-    my $sth = $dbh->prepare($query) || $form->dberror($query);
-
-    my $credit_account;
-    my $oe_class_id;
-    for ( $i = 1 ; $i <= $form->{rowcount} ; $i++ ) {
-
-        # retrieve order
-        if ( $form->{"ndx_$i"} ) {
-            $sth->execute( $form->{"ndx_$i"} );
-
-            $ref = $sth->fetchrow_hashref(NAME_lc);
-
-	    $form->error( "Can't consolidate orders from different accounts" )
-		if (defined( $credit_account )
-     		    && ($credit_account != $ref->{entity_credit_account}));
-	    $credit_account = $ref->{entity_credit_account};
-            $oe_class_id = $ref->{oe_class_id};
-
-            $ref->{ndx} = $i;
-            $oe{oe}{ $ref->{curr} }{ $ref->{id} } = $ref;
-
-            $oe{vc}{ $ref->{curr} }{ $ref->{"$form->{vc}_id"} }++;
-            $sth->finish;
-        }
-    }
-
-    $query = qq|SELECT * FROM orderitems WHERE trans_id = ?|;
-    $sth = $dbh->prepare($query) || $form->dberror($query);
-
-    foreach $curr ( keys %{ $oe{oe} } ) {
-
-        foreach $id (
-            sort { $oe{oe}{$curr}{$a}->{ndx} <=> $oe{oe}{$curr}{$b}->{ndx} }
-            keys %{ $oe{oe}{$curr} }
-          )
-        {
-
-            # retrieve order
-            $vc_id = $oe{oe}{$curr}{$id}->{"$form->{vc}_id"};
-
-            if ( $oe{vc}{ $oe{oe}{$curr}{$id}->{curr} }{$vc_id} > 1 ) {
-
-                push @{ $oe{orders}{$curr}{$vc_id} }, $id;
-
-                $sth->execute($id);
-                while ( $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-                    push @{ $oe{orderitems}{$curr}{$id} }, $ref;
-                }
-                $sth->finish;
-
-            }
-        }
-    }
-
-    my $ordnumber = $form->{ordnumber};
-    my $numberfld = ( $form->{vc} eq 'customer' ) ? 'sonumber' : 'ponumber';
-
-    my ( $department, $department_id ) = $form->{department};
-    $department_id *= 1;
-
-    my $uid = localtime;
-    $uid .= "$$";
-
-    my @orderitems = ();
-
-    foreach $curr ( keys %{ $oe{orders} } ) {
-
-        foreach $vc_id ( sort { $a <=> $b } keys %{ $oe{orders}{$curr} } ) {
-
-            # the orders
-            @orderitems = ();
-            $form->{entity_id} = $vc_id;
-            $amount                   = 0;
-            $netamount                = 0;
-            my @orderids;
-            my $orderid_str = "";
-
-            foreach $id ( @{ $oe{orders}{$curr}{$vc_id} } ) {
-                push(@orderids, $id);
-                $orderid_str .= "?, ";
-
-                # header
-                $ref = $oe{oe}{$curr}{$id};
-
-                $amount    += $ref->{amount};
-                $netamount += $ref->{netamount};
-
-                $id = $dbh->quote($id);
-                foreach $item ( @{ $oe{orderitems}{$curr}{$id} } ) {
-
-                    push @orderitems, $item;
-                }
-
-                # close order
-                $query = qq|
-					UPDATE oe SET
-						closed = '1'
-					WHERE id = $id|;
-                $dbh->do($query) || $form->dberror($query);
-
-                # reset shipped
-                $query = qq|
-					UPDATE orderitems SET
-						ship = 0
-					WHERE trans_id = $id|;
-                $dbh->do($query) || $form->dberror($query);
-            }
-
-            $ordnumber ||=
-              $form->update_defaults( $myconfig, $numberfld, $dbh, 1);
-
-            #fixme:  Change this
-            #also $credit_account is safe since it is local to this function
-            #and pulled from the db. Same with oe_class_id.  --CT
-            $query = qq|
-		INSERT INTO oe (ordnumber, entity_credit_account, oe_class_id) 
-		        VALUES ('$uid', $credit_account, $oe_class_id)|;
-            $dbh->do($query) || $form->dberror($query);
-
-            $query = qq|
-				SELECT id
-				FROM oe
-				WHERE ordnumber = '$uid'|;
-            ($id) = $dbh->selectrow_array($query);
-
-            $ref->{employee_id} *= 1;
-
-            $query = qq|
-				UPDATE oe SET
-					ordnumber = | . $dbh->quote($ordnumber) . qq|,
-					transdate = current_date,
-					amount = $amount,
-					netamount = $netamount,
-					reqdate = | . $form->dbquote( $ref->{reqdate}, SQL_DATE ) . qq|,
-					taxincluded = |. $form->dbquote($ref->{taxincluded}) . qq|,
-					shippingpoint = | . $dbh->quote( $ref->{shippingpoint} ) . qq|,
-					notes = | . $dbh->quote( $ref->{notes} ) . qq|,
-					curr = '$curr',
-					person_id = | . $dbh->quote($ref->{person_id}) . qq|,
-					intnotes = | . $dbh->quote( $ref->{intnotes} ) . qq|,
-					shipvia = | . $dbh->quote( $ref->{shipvia} ) . qq|,
-					language_code = '$ref->{language_code}',
-					ponumber = | . $dbh->quote( $form->{ponumber} ) . qq|,
-					department_id = $department_id
-				WHERE id = $id|;
-            $sth = $dbh->prepare($query);
-            $sth->execute() || $form->dberror($query);
-
-            $orderid_str =~ s/, $//;
-
-            # add items
-            $query = qq|
-				INSERT INTO orderitems 
-					(trans_id, parts_id, description,
-					qty, sellprice, discount, unit, reqdate,
-					project_id, ship, serialnumber, notes,
-                                        precision)
-				SELECT ?, parts_id, description,
-					qty, sellprice, discount, unit, reqdate,
-					project_id, ship, serialnumber, notes,
-                                        precision
-				  FROM orderitems
-                                 WHERE trans_id IN ($orderid_str)|;
-
-            $sth = $dbh->prepare($query);
-            $sth->execute($id, @orderids) || $form->dberror($query);
-
-           
-        }
-    }
-
-    $rc = $dbh->commit;
-
-    $rc;
-
-}
-
+=cut
 
 1;
-

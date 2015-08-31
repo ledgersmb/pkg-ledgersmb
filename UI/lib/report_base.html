@@ -1,0 +1,251 @@
+<?lsmb- BLOCK business_classes;
+        FOREACH BUC IN bu_classes ?>
+        <tr>
+          <th align="right"><?lsmb text(BUC.label) ?></th>
+          <?lsmb b_units.${BUC.id}.unshift({}) ?>
+          <td colspan=3><?lsmb PROCESS select element_data = {
+                   name = 'business_unit_' _ loop.count
+                   id = 'business_unit_' _ loop.count
+                options = b_units.${BUC.id}
+              text_attr = 'text'
+             value_attr = 'id'
+                  class = 'business_unit'
+              } ?></td>
+        </tr>
+        <?lsmb END; # FOREACH BUC;
+        PROCESS input element_data = {
+             type = 'hidden'
+             name = 'bc_count'
+             value = bu_classes.size
+        }; 
+END # BLOCK -?>
+
+<?lsmb BLOCK business_classes_div ?>
+<?lsmb FOREACH BUC IN bu_classes ?>
+<div class="inputrow"><div class="inputgroup">
+          <?lsmb PROCESS select element_data = {
+                   name = 'business_unit_' _ loop.count
+                   id = 'business_unit_' _ loop.count
+                options = b_units.${BUC.id}
+              text_attr = 'text'
+             value_attr = 'id'
+                  class = 'business_unit'
+                  label = text(BUC.label)
+              } ?>
+</div></div>
+<?lsmb END # FOREACH BUC ?>
+<?lsmb END # BLOCK ?>
+
+<?lsmb- BLOCK entity_class ?>
+      <tr>
+      <th align="right"><?lsmb text('Entity Class') ?></th>
+      <td><?lsmb
+        entity_classes.unshift({text = '', value_attr = ''});
+        PROCESS select element_data = {
+		name = "entity_class"
+      id = "entity_class"
+		options = entity_classes
+		default_values = [entity_class]
+		text_attr = 'class'
+		value_attr = 'id'
+	} ?></td>
+       </tr>
+<?lsmb END # BLOCK -?>
+
+<?lsmb- BLOCK gifi_or_standard ?>
+        <tr>
+          <th align="right"><?lsmb text('Accounts') ?></th>
+          <td>
+  <?lsmb PROCESS input element_data={
+    type = 'radio',
+    name = 'accounttype',
+    id = 'accounttype-standard',
+    value = 'standard',
+    label = text('Standard'),
+    checked = 'checked',
+    } -?>
+  <?lsmb PROCESS input element_data={
+    type = 'radio',
+    name = 'accounttype',
+    id = 'accounttype-gifi',
+    value = 'gifi',
+    label = text('GIFI'),
+    } -?>
+          </td>
+        </tr>
+<?lsmb END # BLOCK -?>
+
+<?lsmb- BLOCK ignore_yearend ?>
+	<tr>
+	  <th align="right"><?lsmb text('Ignore Year-ends'); ?></th>
+	  <td>
+	      <?lsmb PROCESS select element_data = {
+                 options = form.yearend_options,
+                 default_values = [form.ignore_yearend],
+                 name = 'ignore_yearend',
+                 id = 'ignore_yearend',
+                 text_attr = 'label',
+                 value_attr = 'id',
+           }?>
+       </td>
+	</tr>
+<?lsmb END # BLOCK -?>
+
+<?lsmb BLOCK date_row ?>
+	<tr>
+
+	  <th align="right"><?lsmb text('From') ?></th>
+	  <td><?lsmb PROCESS input element_data = {
+               class="date" 
+               name="from_date" _ SUFFIX 
+               id="from_date" _ SUFFIX 
+               size="11" 
+               title=datestyle } ?></td>
+	  <th align="right"><?lsmb text('To') ?></th>
+	  <td><?lsmb PROCESS input element_data = {
+                 class="date" 
+                 name="to_date" _ SUFFIX 
+                 id="to_date" _ SUFFIX 
+                 size="11" 
+                 title=datestyle } ?></td>
+	</tr>
+	
+        <tr>
+	<th align="right"><?lsmb text('Period') ?></th>
+
+	<td colspan="5">
+        <?lsmb 
+        all_months.unshift({});
+        all_years.unshift({}); 
+        PROCESS select element_data = {
+               name = "from_month" _ SUFFIX
+               id = "from_month" _ SUFFIX
+               options = all_months
+        } ?>
+
+	<?lsmb PROCESS select element_data = {
+               name="from_year" _ SUFFIX
+               id="from_year" _ SUFFIX
+               options = all_years
+               text_attr = "date_get_all_years"
+               value_attr = "date_get_all_years"
+        } ?>
+	<?lsmb PROCESS input element_data = {
+               name="interval" _ SUFFIX
+               class="radio"
+               type="radio"
+               value="none" 
+               checked="checked" } ?>&nbsp;<?lsmb text('Current') ?>
+	<?lsmb PROCESS input element_data = { 
+               name="interval"  _ SUFFIX
+               class="radio" 
+               type="radio" 
+               value="month" } ?>&nbsp;<?lsmb text('Month') ?>
+	<?lsmb PROCESS input element_data = {
+               name="interval" _ SUFFIX
+               class="radio"
+               type="radio"
+               value="quarter" } ?>&nbsp;<?lsmb text('Quarter') ?>
+        <?lsmb PROCESS input element_data = {
+               name="interval" _ SUFFIX
+               class="radio"
+               type="radio"
+               value="year" } ?>&nbsp;<?lsmb text('Year') ?>
+              
+	</td>
+      </tr>
+<?lsmb END #BLOCK ?>
+<?lsmb BLOCK date_row_div ?>
+	<div class="input_row">
+          <div class="input_group">
+	  <?lsmb PROCESS input element_data = {
+               label=text('From')
+               class="date" 
+               name="from_date" 
+               id="from_date" 
+               size="11" 
+               title=datestyle } ?></div>
+          <div class="input_group">
+	  <?lsmb PROCESS input element_data = {
+               label=text('To')
+                 class="date" 
+                 name="to_date" 
+                 id="to_date" 
+                 size="11" 
+                 title=datestyle } ?></div>
+        <div class="input_row">
+          <div class="input_group">
+	<label align="right"><?lsmb text('Period') ?></label>
+
+        <?lsmb 
+        all_months.unshift({});
+        all_years.unshift({}); 
+        PROCESS select element_data = {
+               name = "from_month"
+               id = "from_month"
+               options = all_months
+        } ?>
+
+	<?lsmb PROCESS select element_data = {
+               name="from_year"
+               id="from_year"
+               options = all_years
+               text_attr = "date_get_all_years"
+               value_attr = "date_get_all_years"
+        } ?>
+	<?lsmb PROCESS input element_data = {
+               name="interval"
+               id="interval-current"
+               class="radio"
+               type="radio"
+               value="none" 
+               checked="checked" } ?>&nbsp;<?lsmb text('Current') ?>
+	<?lsmb PROCESS input element_data = { 
+               name="interval" 
+               id="interval-month"
+               class="radio" 
+               type="radio" 
+               value="month" } ?>&nbsp;<?lsmb text('Month') ?>
+	<?lsmb PROCESS input element_data = {
+               name="interval"
+               id="interval-quarter"
+               class="radio"
+               type="radio"
+               value="quarter" } ?>&nbsp;<?lsmb text('Quarter') ?>
+        <?lsmb PROCESS input element_data = {
+               name="interval"
+               id="interval-year"
+               class="radio"
+               type="radio"
+               value="year" } ?>&nbsp;<?lsmb text('Year') ?>
+              
+	</div>
+      </div>
+<?lsmb END #BLOCK ?>
+
+<?lsmb 
+
+  BLOCK employee_row;
+  # DEFAULTS
+  IF ! SELECTNAME.defined;
+     #SELECTNAME = 'employee_id';
+     SELECTNAME = 'person_id';
+  END;
+  FOREACH e IN employees;
+     e.text = e.first_name _ ' ' _ e.last_name;
+  END;
+  #employees.push({})
+  employees.unshift({}) ?>
+<tr>
+  <th><?lsmb text('Employees') ?></th>
+  <td><?lsmb PROCESS select element_data = {
+                 name = SELECTNAME
+                 id = SELECTNAME
+       default_values = [$SELECTNAME]
+              options = employees
+           value_attr = 'person_id' #??
+                class = 'employee'
+       } ?></td>
+</tr><?lsmb
+
+  END # BLOCK employees ?>
