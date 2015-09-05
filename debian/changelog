@@ -1,3 +1,10 @@
+ledgersmb (1.3.46-2~1) UNRELEASED; urgency=medium
+
+  * Add Nick Prater copyright information to debian/copyright.
+  * Explicitly do 'db_stop' when done with debconf in debian/ledgersmb.postinst.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 05 Sep 2015 14:46:54 -0400
+
 ledgersmb (1.3.46-1~bpo8+1) jessie-backports; urgency=medium
 
   * Rebuild for jessie-backports.
