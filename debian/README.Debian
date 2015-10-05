@@ -54,16 +54,12 @@ CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'passwor
 Optional Perl modules
 =====================
 
-    Net::TCLink              [Support for TrustCommerce credit card processing]
     X12::Parser              [Support for X12 EDI support]
     OpenOffice::OODoc        [Support for OpenOffice output]
     Template::Plugin::Latex  [Support for Postscript and PDF output]
     Parse::RecDescent        [Support for the *experimental* scripting engine]
     Image::Size              [Support for image size detection in templates]
     Plack                    [Support for using Plack to run LedgerSMB]
-
-    The credit card processing support for TrustCommerce is available as
-    the package libnet-tclink-perl if not already installed.
 
     The X12 EDI support is available as the package libx12-parser-perl if it is
     not already installed.
