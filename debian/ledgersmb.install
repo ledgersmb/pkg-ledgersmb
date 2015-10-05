@@ -13,7 +13,6 @@ index.html usr/share/ledgersmb
 ledgersmb-httpd-2.0-2.2.conf.template usr/share/ledgersmb
 ledgersmb-httpd-2.4.conf.template usr/share/ledgersmb
 locale/* usr/share/ledgersmb/locale
-pos.conf.pl etc/ledgersmb
 sql/* usr/share/ledgersmb/sql
 templates/* usr/share/ledgersmb/templates
 tools/* usr/share/ledgersmb/tools

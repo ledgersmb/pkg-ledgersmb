@@ -1,7 +1,6 @@
 ledgersmb.conf.default
 ledgersmb-httpd-2.0-2.2.conf.template
 ledgersmb-httpd-2.4.conf.template
-pos.conf.pl.template
 css
 templates
 utils
