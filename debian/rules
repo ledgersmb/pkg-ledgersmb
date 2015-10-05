@@ -17,6 +17,7 @@ override_dh_install:
 
 override_dh_fixperms:
 	dh_fixperms
+	chmod -x debian/ledgersmb/usr/share/ledgersmb/lsmb-request.pl
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/bin/gl.pl
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/po/*
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/html/splash.html
