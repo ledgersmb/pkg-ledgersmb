@@ -1,6 +1,6 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Correct path for Bash in tools scripts.
-Last-Update: 2013-01-30
+Last-Update: 2015-10-05
 --- a/tools/rebuild_pot.sh
 +++ b/tools/rebuild_pot.sh
 @@ -1,4 +1,4 @@
@@ -24,4 +24,12 @@ Last-Update: 2013-01-30
 +#!/bin/bash
  
  killall perl-fcgi-pm
+ 
+--- a/tools/regen_db_docs.sh
++++ b/tools/regen_db_docs.sh
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/bin/bash
+ 
+ #  PostgreSQL Autodoc - http://www.rbt.ca/autodoc/
  
