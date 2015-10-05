@@ -1,5 +1,6 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
+Origin: vendor
 Last-Update: 2014-12-02
 --- a/ledgersmb-httpd-2.0-2.2.conf.template
 +++ b/ledgersmb-httpd-2.0-2.2.conf.template

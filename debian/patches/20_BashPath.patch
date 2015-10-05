@@ -1,5 +1,6 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Correct path for Bash in tools scripts.
+Origin: vendor
 Last-Update: 2015-10-05
 --- a/tools/rebuild_pot.sh
 +++ b/tools/rebuild_pot.sh
