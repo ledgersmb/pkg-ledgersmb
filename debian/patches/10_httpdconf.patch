@@ -1,8 +1,9 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
-Last-Update: 2014-03-11
---- a/ledgersmb-httpd.conf.template
-+++ b/ledgersmb-httpd.conf.template
+Origin: vendor
+Last-Update: 2015-12-09
+--- a/ledgersmb-httpd-2.0-2.2.conf.template
++++ b/ledgersmb-httpd-2.0-2.2.conf.template
 @@ -1,8 +1,8 @@
  # This file must be edited to substitute the current path with WORKING_DIR
  

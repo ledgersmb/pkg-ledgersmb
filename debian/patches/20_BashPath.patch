@@ -1,6 +1,8 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Correct path for Bash in tools scripts.
-Last-Update: 2013-01-30
+Origin: vendor
+Last-Update: 2015-12-09
+>>>>>>> c6469c8... Add 'Origin: vendor' to the debian/patches/*.patch files.
 --- a/tools/rebuild_pot.sh
 +++ b/tools/rebuild_pot.sh
 @@ -1,4 +1,4 @@
