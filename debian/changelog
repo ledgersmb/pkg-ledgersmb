@@ -1,3 +1,9 @@
+ledgersmb (1.4.17+ds-0jessie1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 18 Oct 2015 08:23:19 -0400
+
 ledgersmb (1.4.16+ds-0jessie1) jessie; urgency=medium
 
   * New upstream release.
@@ -5,7 +11,7 @@ ledgersmb (1.4.16+ds-0jessie1) jessie; urgency=medium
   * Update 20_BashPath.patch for new upstream tools/regen_db_docs.sh script.
   * Changes in debian/rules:
    - Correct permissions of tools/*.psgi in override_dh_fixperms stanza.
-  	- Correct permissions of lsmb-request.pl in override_dh_fixperms stanza.
+   - Correct permissions of lsmb-request.pl in override_dh_fixperms stanza.
   * Remove references to pos.conf.pl as it is no longer being used.
   * Remove references to Net::TCLink in debian/README.Debian and debian/control
     as it is no longer being used.
