@@ -2,9 +2,9 @@
 
 use strict;
 use warnings;
-use Test::More tests => 61;
+use Test::More tests => 60;
 
-use_ok('LedgerSMB::Sysconfig') 
+use_ok('LedgerSMB::Sysconfig')
     || BAIL_OUT('System Configuration could be loaded!');
 use_ok('LedgerSMB');
 use_ok('LedgerSMB::AA');
@@ -72,10 +72,3 @@ SKIP: {
 }
 use_ok('LedgerSMB::Template::TXT');
 use_ok('LedgerSMB::User');
-
-SKIP: {
-	eval { require Net::TCLink };
-
-	skip 'Net::TCLink not installed', 1 if $@;
-	use_ok('LedgerSMB::CreditCard');
-}

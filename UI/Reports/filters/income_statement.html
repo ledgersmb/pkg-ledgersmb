@@ -59,9 +59,52 @@
                 <tr><td><?lsmb PROCESS input element_data = {
                                type = 'checkbox',
                               value = 1,
-                              label = 'gifi',
+                              label = text('GIFI'),
                                name = 'gifi',
                           } ?></td></tr>
+                <tr><td><?lsmb PROCESS input element_data = {
+                               type = 'checkbox',
+                              value = 1,
+                              label = text('Account numbers'),
+                               name = 'incl_accnos',
+                            checked = 'checked'
+                          } ?></td></tr>
+                <tr><td><?lsmb text('Hierarchy type') ?>
+<?lsmb
+HIERARCHY_SETUP = earn_id;
+IF HIERARCHY_SETUP;
+    full_checked = 'CHECKED';
+    full_disabled = undef;
+    legacy_checked = 'undef';
+ELSE;
+    full_disabled = 'DISABLED';
+    full_checked = undef;
+    legacy_checked = 'CHECKED';
+END;
+PROCESS input element_data = {
+   label = text('Full')
+    type = 'radio'
+    name = 'legacy_hierarchy'
+   value = 0
+      id = 'legacy-hierarchy-0'
+ checked = full_checked
+disabled = full_disabled
+};
+
+PROCESS input element_data = {
+   label = text('Account category')
+    type = 'radio'
+    name = 'legacy_hierarchy'
+   value = 1
+      id = 'legacy-hierarchy-1'
+ checked = legacy_checked
+};
+?></td></tr>
+<?lsmb IF full_disabled ?>
+<tr class="setupwarning" id="warning-hierarchy-not-setup">
+  <th colspan="2"><a href="http://ledgersmb.org/topic/using-account-hierarchies-reporting" target='_blank'><?lsmb text('Not set up for hierarchy reporting, please see linked instructions') ?></a></th>
+</tr>
+<?lsmb END ?>
       </table>
     </td>
   </tr>
@@ -74,7 +117,7 @@
        <th colspan="7"><?lsmb text('Enter up to 3 date ranges for comparison') ?></th>
        </tr>
        <?lsmb FOREACH c IN [1, 2, 3];
-              PROCESS date_row SUFFIX='_' _ c; 
+              PROCESS date_row SUFFIX='_' _ c;
               END ?>
     </table>
   </td>

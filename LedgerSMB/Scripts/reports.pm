@@ -97,6 +97,7 @@ sub start_report {
     @{$request->{employees}} =  $request->call_procedure(
         procname => 'employee__all_salespeople'
     );
+    $request->{earn_id} = LedgerSMB::Setting->get('earn_id');
     my $template = LedgerSMB::Template->new(
         request => $request,
         user => $request->{_user},
@@ -172,12 +173,17 @@ Generates a balance sheet
 sub balance_sheet {
     my ($request) = @_;
     $ENV{LSMB_ALWAYS_MONEY} = 1;
-    my $report = LedgerSMB::Report::Balance_Sheet->new(%$request);
+    my $report = LedgerSMB::Report::Balance_Sheet->new(
+        %$request,
+        column_path_prefix => [ 0 ]);
     $report->run_report;
     for my $count (1 .. 3){
         next unless $request->{"to_date_$count"};
         $request->{to_date} = $request->{"to_date_$count"};
-        my $comparison = LedgerSMB::Report::Balance_Sheet->new(%$request);
+        my $comparison =
+            LedgerSMB::Report::Balance_Sheet->new(
+                %$request,
+                column_path_prefix => [ $count ]);
         $comparison->run_report;
         $report->add_comparison($comparison);
     }

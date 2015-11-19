@@ -1,6 +1,84 @@
 Changelog for 1.4 Series
 Released 2014-09-15
 
+Changelog for 1.4.19
+* Fixed permission denied when entering budgets (GH944, Chris T)
+* Fixed error when deleting batches with inventory (GH953 Chris T)
+* Fixed report sorting back proxying to different directory (GH858, Chris T)
+* Added auto-generation of person control code like company (Chris T)
+* Removed redirect on posting sales invoice draft (GH 941, Chris T)
+* Fixed aging report not respecting name search field (GH 954, Chris T)
+* Fixed lack of redirection w/parts causing workflow problems (GH 940 Chris T)
+* Fixed ugly moose error on lack of file upload (GH 949, Chris T)
+* Fixed load issues of some COA files, added tests (GH 772, Chris T)
+* Removing SKR03 from charts of accounts (Chris T)
+* Fixed payments not showing up when cleint has no threshold (Chris T)
+* Fixed invoice total per client showing amount paid instead (Chris T)
+* Fixed net amounts being siet to paid amounts (GH 961, Chris T)
+* Removed many references to the chart view (GH #930, Chris T)
+* Fixed saving user fails with error 4 or 5 (GH #1008, Chris T)
+* Disabled hierarchy reports where not set up (GH #1025, Chris T)
+* Fixed unable to create accounts without delete privilege (Chris T)
+
+Chris T is Chris Travers
+
+Changelog for 1.4.18
+* New feature:  Create users from setup.pl with no new perms (GH 883, Chris T)
+* Fixed Net Book Value reporting '0' before depreciation (GH 879, ChrisT)
+* Fixed permissions entering assets (GH 878, ChrisT)
+* Removed broken handling of old datestyle settings (Chris T)
+* Fixed #765, manage_users broken on db creation (Chris T)
+* Fixed date showing up as PGDate::Hash on Asset report (Chris T)
+* Removed unused pos_invoice.txt (GH #875, Chris T)
+* Fixed SF1312, receipt not skipped on empty pay field (Chris T)
+* Fixed SF1315, inv/part problems when heading/acc have same accno (Chris T)
+* Fixed cannot create user with same user id as already in db (GH882 Chris T)
+* Fixed sales checkbox doesnt save or display correctly (GH877, Chris T)
+* Fixed orders search not respecting name field (SF1345, Chris T)
+* Fixed role_prefix not committed after Copy Database (GH964, NickP)
+* Add datepicker widget to Transaction Form date fields (NickP)
+* Fixed invoice query not showing addresses for persons (Rami H
+* Fixed ar/ap handling with calculated taxes. (GH 
+
+ChrisT is Chris Travers
+NickP is Nick Prater
+Rami H is Rami Hovi
+
+
+Changelog for 1.4.17
+* FEATURE: Automatic calculation of taxes in AR/AP transactions (ErikH)
+* FEATURE: Use account hierarchies in balance and PnL reporting (ErikH)
+* Fixed partial shipments decrementing extra inventory (ChrisT)
+* Fixed template references to item (order/invoice) descriptions (ErikH)
+* Added more SQL Ledger 2.8 migration checks (ErikH)
+* Fixed incomplete (xe)demo and demo-with-images templates (ErikH)
+* Fixed unable to make heading its own root (GH 896, Chris T)
+
+Note: This release changes the way the account headings are used
+   on the balancesheet and income statement reports.  This requires
+   additional configuration. See
+       http://ledgersmb.org/topic/using-account-hierarchies-reporting
+   for more information.
+
+ChrisT is Chris Travers
+ErikH is Erik Huelsmann
+
+
+Changelog for 1.4.16
+* FEATURE: Added possibility to translate account descriptions (ErikH)
+* Fixed shell environment being clobbered when loading schema (GH #813) (ErikH)
+* Fixed FX handling in payment bulk posting workflow (GH #758)
+* Removed unused Net::TCLink dependency and POS code (ErikH)
+* Update schema documentation files in doc/database/ (ErikH)
+* Failure to open HR/Employee screen (ChrisT)
+* Failure to save user preferences (ErikH)
+* Tax module 'Rounded' offered, but not available (ErikH)
+* Single-payment screen doesn't collapse details divs on open (ErikH)
+
+ErikH is Erik Huelsmann
+ChrisT is Chris Travers
+
+
 Changelog for 1.4.15
 * Fix printing invoices and orders under Starman (GH 736) (ErikH)
 * Fix payroll deduction types report failing to load (GH 740) (ChrisT)
@@ -17,6 +95,7 @@ Changelog for 1.4.15
 ErikH is Erik Huelsmann
 ChrisT is Chris Travers
 JohnL is John Locke
+
 
 Changelog for 1.4.14
 * Replace spanish CoA for compliance; donated by AccountNet

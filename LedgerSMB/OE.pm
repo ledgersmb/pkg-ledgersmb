@@ -158,8 +158,6 @@ sub save {
         $query = qq|SELECT id FROM oe WHERE id = $form->{id}|;
 
         if ( $dbh->selectrow_array($query) ) {
-            &adj_onhand( $dbh, $form, $ml )
-              if $form->{type} =~ /_order$/;
 
             $query = qq|DELETE FROM orderitems WHERE trans_id = ?|;
             $sth   = $dbh->prepare($query);
@@ -485,7 +483,6 @@ sub save {
     if ( $form->{type} =~ /_order$/ ) {
 
         # adjust onhand
-        &adj_onhand( $dbh, $form, $ml * -1 );
         &adj_inventory( $dbh, $myconfig, $form );
     }
 
@@ -720,7 +717,7 @@ sub retrieve {
 
         # taxes
         $query = qq|
-			SELECT c.accno FROM chart c
+			SELECT c.accno FROM account c
 			JOIN partstax pt ON (pt.chart_id = c.id)
 			WHERE pt.parts_id = ?|;
         my $tth = $dbh->prepare($query) || $form->dberror($query);
