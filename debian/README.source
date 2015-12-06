@@ -1,8 +1,11 @@
-Note that an original source archive is created by downloading the archive for
-version n.n.nn as ledgersmb-n.n.nn.tar.gz and its associated gpg signature file
-ledgersmb-n.n.nn.tar.gz.asc. The file is verified against the signature and it
-is then renamed as ledgersmb_n.n.nn.orig.tar.gz.
+Note that an LedgerSMB original source archive is created by downloading the
+archive for version n.n.nn as ledgersmb-n.n.nn.tar.gz as well as its associated
+gpg signature file ledgersmb-n.n.nn.tar.gz.asc. The file is verified against the
+signature, the unneeded embedded 'dojo' related files are removed and it is then
+renamed as the file ledgersmb_n.n.nn+ds.orig.tar.gz.  Note that this can be done
+automatically by running the 'uscan' command in the directory that contains the
+package 'debian/' subdirectory.
 
-Please read /usr/share/doc/quilt/README.source to know how to apply
-and manage Debian specific patches on this package.
+Please read /usr/share/doc/quilt/README.source for how to apply and manage
+Debian specific patches on this package.
 
