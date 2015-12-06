@@ -14,24 +14,16 @@ LedgerSMB Configuration
     and 'ledgersmb'.
 
     One way that company databases can be created fairly easily is by directing
-    your web browser to the setup.pl script, which by default can be accessed at 
+    your web browser to the setup.pl script, which by default can be accessed at
     http://localhost/ledgersmb/setup.pl. This is very different from approaches
     taken by LedgerSMB 1.2.x and SQL-Ledger, but rather forms a wizard to walk
     you through the process of creating company databases and initial users for
     those databases.
 
     The standard database superuser used in the setup.pl script has the name
-    'ledgersmb'. If it is not created during the package installation,
-    it can be created using the following sql statement:
-
-CREATE ROLE ledgersmb WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD 'password';
-
-    You can use 'ALTER' instead of 'CREATE' if it was created incorrectly.
-
-    Besides assuming that a database superuser is known, the setup.pl script
-    also assumes that the contrib_dir directive is already set correctly in
-    /etc/ledgersmb/ledgersmb.conf for the location of the PostgreSQL contrib
-    scripts. For v9.1 it would be /usr/share/postresql/9.1/extension.
+    'ledgersmb'. If it is not created and its password set during the package
+    installation, that can be done or its password changed by running the
+    following command: 'dpkg-reconfigure ledgersmb'.
 
     Configuration files for Apache 2.2 or 2.4 are installed as necessary, with
     an example Apache fastcgi configuration available at lsmb_13-fcgi.conf in
