@@ -1,14 +1,24 @@
-ledgersmb (1.4.20+ds-0jessie1~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.20+ds-0jessie1) jessie; urgency=medium
 
   * New upstream release.
+  * Update debhelper version from '8' to '9'.
+  * Correct spelling of 'Portugese' as 'Portuguese' in debian/copyright.
+  * Update debian/README.Debian to reflect package changes for LedgerSMB v1.4.
+  * Rewrite debian/README.source regarding repacking the 'orig' source archive.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 03 Dec 2015 08:08:38 -0500
+ -- Robert James Clay <jame@rocasa.us>  Mon, 07 Dec 2015 10:22:37 -0500
 
 ledgersmb (1.4.19+ds-0jessie1) jessie; urgency=medium
 
   * New upstream release.
 
  -- Robert James Clay <jame@rocasa.us>  Thu, 19 Nov 2015 11:50:35 -0500
+
+ledgersmb (1.4.17+ds-0jessie1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 18 Oct 2015 08:23:19 -0400
 
 ledgersmb (1.4.16+ds-0jessie1) jessie; urgency=medium
 
