@@ -1,12 +1,12 @@
-ledgersmb (1.3.46-2~2) UNRELEASED; urgency=medium
+ledgersmb (1.3.47~rc1-1~1) UNRELEASED; urgency=medium
 
   * Add 'Origin: vendor' to the debian/patches/*.patch files.
   * Add 'Nick Prater' copyright information to debian/copyright.
   * Changes to debian/ledgersmb.postinst:
-    - Explicitly do 'db_stop' when operations with debconf have completed..
+    - Explicitly do 'db_stop' when operations with debconf have completed.
     - Rewrite how to enable apache 2.4 modules. (Closes: #800036, LP#1513691)
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 15 Dec 2015 21:39:52 -0500
+ -- Robert James Clay <jame@rocasa.us>  Wed, 16 Dec 2015 09:29:52 -0500
 
 ledgersmb (1.3.46-1~bpo8+1) jessie-backports; urgency=medium
 
