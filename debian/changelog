@@ -1,8 +1,9 @@
-ledgersmb (1.4.21+ds-0jessie1~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.22+ds-0jessie1~1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Add debian/patches/22_SpellingErrors.patch that fixes spelling errors.
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 22 Dec 2015 14:32:05 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sat,  2 Jan 2016 11:05:32 -0500
 
 ledgersmb (1.4.20+ds-0jessie1) jessie; urgency=medium
 
