@@ -1,15 +1,7 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Correct path for Bash in tools scripts.
 Origin: vendor
-Last-Update: 2015-10-05
---- a/tools/rebuild_pot.sh
-+++ b/tools/rebuild_pot.sh
-@@ -1,4 +1,4 @@
--#!/usr/bin/bash
-+#!/bin/bash
- 
- # EXTRACTING DB STRINGS
- echo "select 'text(''' || label || ''')' FROM menu_node" | 
+Last-Update: 2016-01-02
 --- a/tools/system/lsmbstart
 +++ b/tools/system/lsmbstart
 @@ -1,4 +1,4 @@
