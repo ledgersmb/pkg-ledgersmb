@@ -21,7 +21,7 @@ Files: *
 Copyright:  2006-2015, Chris Travers <chris@metatrontech.com>
             2007-2015, Pongracz Istvan <pongracz.istvan@gmail.com>
             2012-2014, Havard Sorli <havard@anix.no>
-            2011-2015, Erik Huelsmann <ehuels@gmail.com>
+            2011-2016, Erik Huelsmann <ehuels@gmail.com>
             2011-2015, John Locke <john@freelock.com>
             2014-2015, Nick Prater <nick@npbroadcast.com>
             2013-2014, Herman Vierendeels <herman.vierendeels@gmail.com>
@@ -73,7 +73,7 @@ Comment: Copyright and License for debian directory files.
 Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
            2008-2009, Elizabeth Krumbach <lyz@princessleia.com>
              2008,    Roberto C. Sanchez <robert@debian.org>
-           2009-2014, Robert James Clay <jame@rocasa.us>
+           2009-2016, Robert James Clay <jame@rocasa.us>
 License: GPL
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
