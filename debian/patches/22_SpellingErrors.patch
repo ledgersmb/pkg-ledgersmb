@@ -1,11 +1,14 @@
 Author: Robert James Clay <jame@rocasa.us>
-Description: Correct minor spelling errors in LedgerSMB/DBObject/Payment.pm.
+Description: Correct minor spelling errors in upstream source.
+ Correct minor spelling errors in the LedgerSMB/DBObject/Payment.pm and
+ in the LedgerSMB/Inventory/Adjust.pm upstream Perl modules.
 URL: https://github.com/ledgersmb/LedgerSMB/issues/1178
+URL: https://github.com/ledgersmb/LedgerSMB/issues/1183
 Origin: vendor
-Last-Update: 2015-12-31
+Last-Update: 2016-01-01
 --- a/LedgerSMB/DBObject/Payment.pm
 +++ b/LedgerSMB/DBObject/Payment.pm
-@@ -281,7 +281,7 @@
+@@ -278,7 +278,7 @@
  =item $payment->get_open_invoice()
  
  This function is an especific case of get_open_invoices(), because get_open_invoice() 
@@ -14,7 +17,7 @@ Last-Update: 2015-12-31
  variable 
  
  =back
-@@ -421,7 +421,7 @@
+@@ -418,7 +418,7 @@
  This method gets a list of the open currencies inside the database, it requires that  
  $self->{account_class} (must be 1 or 2)  exist to work. 
  
@@ -22,4 +25,15 @@ Last-Update: 2015-12-31
 +WARNING THIS IS NOT BEING USED BY THE SINGLE PAYMENT SYSTEM.... 
  
  =back
+ 
+--- a/LedgerSMB/Inventory/Adjust.pm
++++ b/LedgerSMB/Inventory/Adjust.pm
+@@ -117,7 +117,7 @@
+ date of the report.   This happens during the save process.
+ 
+ This then appends the lines onto the current report's @rows in order to ensure
+-that many differnet sources could be combined together in this way.
++that many different sources could be combined together in this way.
+ 
+ =cut
  
