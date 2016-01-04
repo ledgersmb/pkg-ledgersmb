@@ -3,7 +3,7 @@ Section: web
 Priority: optional
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
-Build-Depends: debhelper (>= 9),
+Build-Depends: debhelper (>= 8),
                po-debconf,
                libmodule-install-perl,
                dh-linktree,
