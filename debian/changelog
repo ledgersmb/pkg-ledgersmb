@@ -1,9 +1,10 @@
-ledgersmb (1.4.23+ds-0jessie1~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.23+ds-0jessie1) jessie; urgency=medium
 
   * New upstream release.
   * Remove 22_SpellingErrors.patch as it is no longer necessary.
+  * Remove debian/source.lintian-overrides as it is no longer necessary.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 13 Jan 2016 12:30:17 -0500
+ -- Robert James Clay <jame@rocasa.us>  Thu, 14 Jan 2016 10:01:38 -0500
 
 ledgersmb (1.4.22+ds-0jessie1) jessie; urgency=medium
 
