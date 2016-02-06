@@ -1,8 +1,10 @@
-ledgersmb (1.4.24+ds-0jessie1) UNRELEASED; urgency=medium
+ledgersmb (1.4.24+ds-1~1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Update debian/copyright to reflect upstream changes to the following
+    files: locale/po/da.po, locale/po/ar_EG.po, and locale/po/et.po.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 05 Feb 2016 23:14:16 -0500
+ -- Robert James Clay <jame@rocasa.us>  Fri, 05 Feb 2016 23:45:14 -0500
 
 ledgersmb (1.4.23+ds-0jessie1) jessie; urgency=medium
 
