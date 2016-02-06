@@ -87,7 +87,7 @@ Manual addition of a company database
     If you want to perform the installation of the company database completely
     manually, you should consult the 'prepare-company-database.sh' or the
     'dbsetup.pl' scripts which are available in the /usr/share/ledgersmb/tools/
-    directory as the authorative documentation of the steps to perform.
+    directory as the authoritative documentation of the steps to perform.
 
 
 Company database removal
