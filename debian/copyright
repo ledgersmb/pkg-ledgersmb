@@ -14,7 +14,7 @@ Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
  Erik Huelsmann, Havard Sorli, John Locke, Pongracz Istvan, Herman Vierendeels,
  and Robert James Clay. For a full list including contact information of
  contributors, maintainers, and copyright holders, see the CONTRIBUTORS file.
-Copyright:  2006-2015, The LedgerSMB Core Team
+Copyright:  2006-2016, The LedgerSMB Core Team
             1999-2006, DWS Systems Inc.
 
 Files: *
@@ -113,8 +113,7 @@ License: GPL
 
 Files: locale/po/ar_EG.po
 Comment: Egypt Arabic texts
-Copyright:  2003, Omar BaheyEldin <o@ab2.com>
-            2003, Rania Tayel
+Copyright:  2016, Rami Assi <ramiassi@gmail.com>
 License: GPL-2+
 
 Files: locale/po/bg.po
@@ -134,9 +133,7 @@ License: GPL-2+
 
 Files: locale/po/da.po
 Comment: Danish texts
-Copyright:  2001, Keld Jørn Simonsen <keld@dkuug.dk>
-            2001, Jonas Smedegaard <jonas@jones.dk>
-            2006, Mads Kiilerich <mads@kiilerich.com>
+Copyright:  2016, Mikkel Høgh <mikkel@hoegh.org>
 License: GPL-2+
 
 Files: locale/po/de.po
@@ -215,7 +212,7 @@ License: GPL-2+
 
 Files: locale/po/et.po
 Comment: Estonian texts
-Copyright:  2006, Andrei Kolu <andrei.kolu@mail.ee>
+Copyright:  2016, Peeter Pärtel <peeter@sigma.ee>
 License: GPL-2+
 
 Files: locale/po/fi.po
