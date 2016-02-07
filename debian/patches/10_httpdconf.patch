@@ -1,7 +1,7 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
 Origin: vendor
-Last-Update: 2015-12-16
+Last-Update: 2016-02-07
 --- a/ledgersmb-httpd.conf.template
 +++ b/ledgersmb-httpd.conf.template
 @@ -1,8 +1,8 @@
@@ -107,8 +107,7 @@ Last-Update: 2015-12-16
 +
 +Alias /lsmbcss /var/lib/ledgersmb/css/
 +<Directory /var/lib/ledgersmb/css>
-+  Order Deny,Allow
-+  Allow from 127.0.0.1
-+  Allow from localhost
-+  Deny from All
++  Require ip 127.0.0.1
++  Require host localhost
++  Require all denied
 +</Directory>
