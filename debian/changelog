@@ -1,19 +1,25 @@
-ledgersmb (1.3.47-1~2) UNRELEASED; urgency=medium
+ledgersmb (1.3.47-1~3) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Changes to debian/copyright:
     - Add 'Nick Prater' copyright information.
     - Correct spelling of 'Portugese' to 'Portuguese'.
+    - Update end years in debian/copyright as necessary.
   * Changes to debian/patches/*:
     - Create debian/patches/22_SpellingErrors.patch.
-    - Remove unneeded line in debian/patches/20_BashPath.patch.
     - Add 'Origin: vendor' to the debian/patches/*.patch files.
-    - Refresh debian/patches/10_httpdconf.patch for updated package.
+    - Remove unneeded line 5 in debian/patches/20_BashPath.patch.
+    - Corrected apache 2.4 related lines in debian/patches/10_httpdconf.patch.
+  * Changes to debian/ledgersmb.preinst and debian/ledgersmb.postrm:
+    - Update the package version being checked for the apache config file rename
+      to package version v1.3.18-2.
   * Changes to debian/ledgersmb.postinst:
+    - Update the package version being checked for the apache config file rename
+      to package version v1.3.18-2.
     - Explicitly do 'db_stop' when operations with debconf have completed.
     - Rewrite how apache 2.4 modules are enabled. (Closes: #800036, LP#1513691)
 
- -- Robert James Clay <jame@rocasa.us>  Mon,  4 Jan 2016 14:52:39 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sun,  7 Feb 2016 06:50:14 -0500
 
 ledgersmb (1.3.46-1~bpo8+1) jessie-backports; urgency=medium
 
