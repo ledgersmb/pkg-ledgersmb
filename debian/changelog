@@ -1,3 +1,10 @@
+ledgersmb (1.4.25+ds-1~1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * Corrected apache 2.4 related lines in debian/patches/10_httpdconf.patch.
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 22 Feb 2016 18:21:46 -0500
+
 ledgersmb (1.4.24+ds-0jessie1) jessie; urgency=medium
 
   * New upstream release.
