@@ -1,7 +1,7 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
 Origin: vendor
-Last-Update: 2016-02-07
+Last-Update: 2016-02-22
 --- a/ledgersmb-httpd-2.0-2.2.conf.template
 +++ b/ledgersmb-httpd-2.0-2.2.conf.template
 @@ -1,8 +1,8 @@
@@ -77,16 +77,16 @@ Last-Update: 2016-02-07
 +Alias /ledgersmb /usr/share/ledgersmb/
  
 -<Directory WORKING_DIR>
-+<Directory /usr/share/ledgersmb>
++<Directory /usr/share/ledgersmb >
  
    # Rewrite rule to allow HTTP Authorization information to the scripts only
    # from this directory.
-@@ -36,26 +36,34 @@
+@@ -36,26 +36,33 @@
    </Files>
  </Directory>
  
 -<Directory WORKING_DIR/users>
-+<Directory /usr/share/ledgesmb/users>
++<Directory /usr/share/ledgersmb/users>
    Require all denied
  </Directory>
  
@@ -101,23 +101,23 @@ Last-Update: 2016-02-07
  </Directory>
  
 -<Directory WORKING_DIR/spool>
-+<Directory /usr/share/ledgersmb/spool>
++<Directory  /usr/share/ledgersmb/spool>
    Require all denied
  </Directory>
  
 -<Directory WORKING_DIR/templates>
-+<Directory /var/share/ledgersmb/templates>
++<Directory /var/lib/ledgersmb/templates>
    Require all denied
  </Directory>
  
 -<Directory WORKING_DIR/LedgerSMB>
 +<Directory /usr/share/ledgersmb/LedgerSMB>
-   Require all denied
- </Directory>
++  Require all denied
++</Directory>
 +
 +Alias /lsmbcss /var/lib/ledgersmb/css/
 +<Directory /var/lib/ledgersmb/css>
 +  Require ip 127.0.0.1
 +  Require host localhost
-+  Require all denied
-+</Directory>
+   Require all denied
+ </Directory>
