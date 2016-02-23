@@ -77,7 +77,7 @@ Last-Update: 2016-02-22
 +Alias /ledgersmb /usr/share/ledgersmb/
  
 -<Directory WORKING_DIR>
-+<Directory /usr/share/ledgersmb >
++<Directory /usr/share/ledgersmb>
  
    # Rewrite rule to allow HTTP Authorization information to the scripts only
    # from this directory.
