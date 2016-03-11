@@ -1,7 +1,7 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
 Origin: vendor
-Last-Update: 2016-02-07
+Last-Update: 2016-03-11
 --- a/ledgersmb-httpd.conf.template
 +++ b/ledgersmb-httpd.conf.template
 @@ -1,8 +1,8 @@
@@ -76,7 +76,7 @@ Last-Update: 2016-02-07
  
    # Rewrite rule to allow HTTP Authorization information to the scripts only
    # from this directory.
-@@ -35,22 +35,30 @@
+@@ -35,22 +35,29 @@
    </Files>
  </Directory>
  
@@ -102,12 +102,12 @@ Last-Update: 2016-02-07
  
 -<Directory WORKING_DIR/LedgerSMB>
 +<Directory /usr/share/ledgersmb/LedgerSMB>
-   Require all denied
- </Directory>
++  Require all denied
++</Directory>
 +
 +Alias /lsmbcss /var/lib/ledgersmb/css/
 +<Directory /var/lib/ledgersmb/css>
 +  Require ip 127.0.0.1
 +  Require host localhost
-+  Require all denied
-+</Directory>
+   Require all denied
+ </Directory>
