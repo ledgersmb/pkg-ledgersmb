@@ -174,8 +174,8 @@ sub new {
     #menubar will be deprecated, replaced with below
     $self->{lynx} = 1 if ( ( defined $self->{path} ) && ( $self->{path} =~ /lynx/i ) );
 
-    $self->{version}   = "1.4.25";
-    $self->{dbversion} = "1.4.25";
+    $self->{version}   = "1.4.26";
+    $self->{dbversion} = "1.4.26";
 
     bless $self, $type;
 
@@ -239,6 +239,7 @@ sub check_form {
     if (!$ENV{GATEWAY_INTERFACE}){
         return 1;
     }
+    return 0 unless $self->{form_id};
     my $sth = $self->{dbh}->prepare('select form_check(?, ?)');
     $sth->execute($self->{session_id}, $self->{form_id});
     my @results = $sth->fetchrow_array();

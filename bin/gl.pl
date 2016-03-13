@@ -156,6 +156,12 @@ sub new {
      add();
 }
 
+sub copy_to_new {
+     delete $form->{reference};
+     delete $form->{id};
+     update();
+}
+
 sub add {
 
     $form->{title} = "Add";
@@ -283,6 +289,8 @@ sub display_form
 		    { ndx => 7, key => 'H', value => $locale->text('Schedule') },
                   'new' => 
                     { ndx => 9, key => 'N', value => $locale->text('New') },
+                   'copy_to_new' =>
+                    { ndx => 10, key => 'C', value => $locale->text('Copy to New') },
 	      );
 
 	      if ($form->{separate_duties}){            
@@ -295,13 +303,13 @@ sub display_form
 	      if ( $form->{id}) {
                   $a{'new'} = 1;
 
-		  for ( 'save_as_new', 'schedule' ) { $a{$_} = 1 }
+		  for ( 'save_as_new', 'schedule', 'copy_to_new' ) { $a{$_} = 1 }
 
 		  for ( 'post', 'delete' ) { $a{$_} = 1 }
 	      }
-	      elsif (!$form->{id}){
+	      else {
                  $a{'update'} = 1;
-		  if ( $transdate > $closedto ) {
+		  if ( ($transdate > $closedto) or !$closedto ) {
 		      for ( "post", "schedule" ) { $a{$_} = 1 }
 		  }
 	      }
@@ -597,6 +605,7 @@ sub gl_subtotal {
 
 sub update {
      my $min_lines = $LedgerSMB::Company_Config::settings->{min_empty};
+     $form->open_form unless $form->check_form;
 
      $form->{transdate} = LedgerSMB::PGDate->from_input($form->{transdate})->to_output();
      if ( $form->{transdate} ne $form->{oldtransdate} ) {
