@@ -1,8 +1,8 @@
-ledgersmb (1.4.26+ds-0jessie1~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.26+ds-1) stable; urgency=medium
 
   * New upstream release.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 13 Mar 2016 12:14:18 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 22 Mar 2016 21:09:44 -0400
 
 ledgersmb (1.4.25+ds-0jessie1) jessie; urgency=medium
 
