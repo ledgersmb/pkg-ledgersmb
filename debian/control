@@ -44,9 +44,9 @@ Recommends: default-mta | mail-transport-agent,
             libopenoffice-oodoc-perl,
             libparse-recdescent-perl,
             libtemplate-plugin-latex-perl,
-            texlive-latex-recommended
-Suggests: texlive-xetex,
-          latex-cjk-all,
+            texlive-latex-recommended,
+            texlive-xetex
+Suggests: latex-cjk-all,
           libimage-size-perl,
           libnet-tclink-perl,
           libplack-perl,
