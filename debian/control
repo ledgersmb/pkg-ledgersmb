@@ -46,9 +46,9 @@ Recommends: default-mta | mail-transport-agent,
             libparse-recdescent-perl,
             libtemplate-plugin-latex-perl,
             libtex-encode-perl,
-            texlive-latex-recommended
-Suggests: texlive-xetex,
-          latex-cjk-all,
+            texlive-latex-recommended,
+            texlive-xetex
+Suggests: latex-cjk-all,
           libcgi-emulate-psgi-perl,
           libimage-size-perl,
           libx12-parser-perl,
