@@ -1,4 +1,4 @@
-ledgersmb (1.3.47-1~3) UNRELEASED; urgency=medium
+ledgersmb (1.3.47-1~4) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Changes to debian/copyright:
@@ -9,7 +9,11 @@ ledgersmb (1.3.47-1~3) UNRELEASED; urgency=medium
     - Create debian/patches/22_SpellingErrors.patch.
     - Add 'Origin: vendor' to the debian/patches/*.patch files.
     - Remove unneeded line 5 in debian/patches/20_BashPath.patch.
-    - Corrected apache 2.4 related lines in debian/patches/10_httpdconf.patch.
+    - Refresh debian/patches/10_httpdconf.patch for updated package.
+  * Correct spelling of 'authorative' as 'authoritative' in the file
+    debian/README.Debian.
+  * Change texlive-xetex from 'Suggests' to 'Recommends' in debian/control to
+    work around issues using liblatex-driver-perl needed for printing.
   * Changes to debian/ledgersmb.preinst and debian/ledgersmb.postrm:
     - Update the package version being checked for the apache config file rename
       to package version v1.3.18-2.
@@ -17,9 +21,10 @@ ledgersmb (1.3.47-1~3) UNRELEASED; urgency=medium
     - Update the package version being checked for the apache config file rename
       to package version v1.3.18-2.
     - Explicitly do 'db_stop' when operations with debconf have completed.
-    - Rewrite how apache 2.4 modules are enabled. (Closes: #800036, LP#1513691)
+    - Rewrite how apache 2.4 modules are enabled. (Closes: #800036, #819481,
+      LP#1513691)
 
- -- Robert James Clay <jame@rocasa.us>  Sun,  7 Feb 2016 06:50:14 -0500
+ -- Robert James Clay <jame@rocasa.us>  Wed, 30 Mar 2016 16:36:35 -0500
 
 ledgersmb (1.3.46-1~bpo8+1) jessie-backports; urgency=medium
 
