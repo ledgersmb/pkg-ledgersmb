@@ -1,8 +1,7 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Correct minor spelling errors in LedgerSMB/DBObject/Payment.pm.
-URL: https://github.com/ledgersmb/LedgerSMB/issues/1178
 Origin: vendor
-Last-Update: 2015-12-31
+Last-Update: 2016-03-31
 --- a/LedgerSMB/DBObject/Payment.pm
 +++ b/LedgerSMB/DBObject/Payment.pm
 @@ -281,7 +281,7 @@
@@ -22,4 +21,26 @@ Last-Update: 2015-12-31
 +WARNING THIS IS NOT BEING USED BY THE SINGLE PAYMENT SYSTEM.... 
  
  =back
+ 
+--- a/LedgerSMB/DBObject.pm
++++ b/LedgerSMB/DBObject.pm
+@@ -36,7 +36,7 @@
+ it will be up to the application to handle any exceptions.
+ 
+ =item __validate__ is called on every new() invocation.  It is blank in this 
+-module but can be overridden in decendant modules.
++module but can be overridden in descendant modules.
+ 
+ =item _db_array_scalars(@elements) creates a db array from scalars.
+ 
+--- a/LedgerSMB/File.pm
++++ b/LedgerSMB/File.pm
+@@ -279,7 +279,7 @@
+ 
+ =item get
+ 
+-Retrives a file.  ID and file_class properties must be set.
++Retrieves a file.  ID and file_class properties must be set.
+ 
+ =cut
  
