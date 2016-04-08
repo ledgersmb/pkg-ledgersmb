@@ -1,9 +1,9 @@
-ledgersmb (1.3.47-1~6) UNRELEASED; urgency=medium
+ledgersmb (1.3.47-1) unstable; urgency=medium
 
   * New upstream release.
   * Changes to debian/control:
     - Set the Vcs-Browser URL to use 'https' instead of 'http'.
-    - Set Standards-Version to 3.9.7, no package changes required.
+    - Set Standards-Version to 3.9.8, no package changes required.
     - Change texlive-xetex from 'Suggests' to 'Recommends' to work around issues
       with using liblatex-driver-perl needed for printing.
   * Changes to debian/copyright:
@@ -21,16 +21,14 @@ ledgersmb (1.3.47-1~6) UNRELEASED; urgency=medium
     debian/README.Debian.
   * Default to 'true' in debian/templates to automatically configure package.
   * Changes to debian/ledgersmb.preinst and debian/ledgersmb.postrm:
-    - Update the package version being checked for the apache config file rename
-      to package version v1.3.18-2.
+    - Update the package version to v1.3.18-2 that is being checked for in the
+      ledgersmb apache config file renaming.
   * Changes to debian/ledgersmb.postinst:
-    - Update the package version being checked for the apache config file rename
-      to package version v1.3.18-2.
     - Explicitly do 'db_stop' after operations with debconf have completed.
     - Rewrite how apache 2.4 modules are enabled and how the apache v2.2 related
       configuration files are handled. (Closes: #800036, #819481, LP#1513691)
 
- -- Robert James Clay <jame@rocasa.us>  Thu,  7 Apr 2016 10:28:08 -0500
+ -- Robert James Clay <jame@rocasa.us>  Fri, 08 Apr 2016 11:15:15 -0400
 
 ledgersmb (1.3.46-1~bpo8+1) jessie-backports; urgency=medium
 
