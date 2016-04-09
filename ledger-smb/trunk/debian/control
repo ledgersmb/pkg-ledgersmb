@@ -9,10 +9,10 @@ Build-Depends: debhelper (>= 8),
                dh-linktree,
                libjs-prototype,
                libjs-scriptaculous
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://anonscm.debian.org/pkg-sql-ledger/ledger-smb/trunk
-Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
+Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
 
 Package: ledgersmb
 Architecture: all
@@ -44,9 +44,9 @@ Recommends: default-mta | mail-transport-agent,
             libopenoffice-oodoc-perl,
             libparse-recdescent-perl,
             libtemplate-plugin-latex-perl,
-            texlive-latex-recommended
-Suggests: texlive-xetex,
-          latex-cjk-all,
+            texlive-latex-recommended,
+            texlive-xetex
+Suggests: latex-cjk-all,
           libimage-size-perl,
           libnet-tclink-perl,
           libplack-perl,
