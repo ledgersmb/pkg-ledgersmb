@@ -1,3 +1,41 @@
+ledgersmb (1.3.47-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Changes to debian/control:
+    - Set the Vcs-Browser URL to use 'https' instead of 'http'.
+    - Set Standards-Version to 3.9.8, no package changes required.
+    - Change texlive-xetex from 'Suggests' to 'Recommends' to work around issues
+      with using liblatex-driver-perl needed for printing.
+  * Changes to debian/copyright:
+    - Add 'Nick Prater' copyright information.
+    - Correct spelling of 'Portugese' to 'Portuguese'.
+    - Update end years in debian/copyright as necessary.
+  * Changes to debian/patches/*:
+    - Create debian/patches/22_SpellingErrors.patch.
+    - Add 'Origin: vendor' to the debian/patches/*.patch files.
+    - Remove unneeded line 5 in debian/patches/20_BashPath.patch.
+    - Refresh debian/patches/10_httpdconf.patch for updated package.
+    - Set default for the 'contrib_dir' setting in 05_confdir.patch to be for
+      v9.5 instead of v9.1.
+  * Correct spelling of 'authorative' as 'authoritative' in the file
+    debian/README.Debian.
+  * Default to 'true' in debian/templates to automatically configure package.
+  * Changes to debian/ledgersmb.preinst and debian/ledgersmb.postrm:
+    - Update the package version to v1.3.18-2 that is being checked for in the
+      ledgersmb apache config file renaming.
+  * Changes to debian/ledgersmb.postinst:
+    - Explicitly do 'db_stop' after operations with debconf have completed.
+    - Rewrite how apache 2.4 modules are enabled and how the apache v2.2 related
+      configuration files are handled. (Closes: #800036, #819481, LP#1513691)
+
+ -- Robert James Clay <jame@rocasa.us>  Fri, 08 Apr 2016 11:15:15 -0400
+
+ledgersmb (1.3.46-1~bpo8+1) jessie-backports; urgency=medium
+
+  * Rebuild for jessie-backports.
+
+ -- Robert James Clay <jame@rocasa.us>  Tue, 26 May 2015 09:36:37 -0400
+
 ledgersmb (1.3.46-1) unstable; urgency=medium
 
   * New upstream release. (Closes: #771822)
