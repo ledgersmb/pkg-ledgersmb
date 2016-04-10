@@ -27,19 +27,6 @@ fi
 
 case "$1" in
     configure)
-        # Only do these if this is the initial install.
-        if [ -z "$old_version" ]; then
-            # Create initial default set of css files from the examples
-            if [ ! -d "/var/lib/ledgersmb/css" ]; then
-                cp -r /usr/share/ledgersmb/css /var/lib/ledgersmb
-                chown -R www-data:www-data /var/lib/ledgersmb/css
-            fi
-            # Create initial default set of templates from the examples
-            if [ ! -d "/var/lib/ledgersmb/templates" ]; then
-                cp -r /usr/share/ledgersmb/templates /var/lib/ledgersmb
-                chown -R www-data:www-data /var/lib/ledgersmb/templates
-            fi
-        fi
         # Do Apache related processing if it is present.
         if [ -d "/etc/apache2" ]; then
             # If the old ledgersmb-httpd.conf is present, rename it.
