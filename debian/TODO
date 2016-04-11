@@ -16,9 +16,9 @@ review locale/po/* files for updating debian/copyright as necessary
 
 ----------------------------------------------------
 
-Now running lintian... ( v1.4.20+ds-0jessie1 )
-	- These seem to be missing the short description and the 'dash' sign after the "NAME" entry
-	in source Perl file.
+Now running lintian... ( v1.4.27+ds-0jessie1 )
+    - These seem to be missing the short description and the 'dash' sign after the "NAME" entry
+    in source Perl file.
 W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::App_State.3pm.gz
 W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Budget.3pm.gz
 W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Business_Unit_Class.3pm.gz
@@ -77,57 +77,10 @@ dojo libraries, use Aliases in the Apache config, something like this?
 It would only be useful for those installs using Apache directly, not as a proxy,
 but that is currently the default.
 
------------------------------------------------------------------------------------
-
--   https://bugs.launchpad.net/ubuntu/+source/ledgersmb/+bug/1473318
-- reported against v15.04 (vivid) against v1.3.40-1   on 2015-07-10
-
-- TMK; already resolved with LSMB v1.3.46-1?, available in Unbuntu v15.10 (wily)
 
 -----------------------------------------------------------------------------------
 
--   https://bugs.launchpad.net/ubuntu/+source/ledgersmb/+bug/1513691
--  Reported agains
-This issue happened after upgrade from 15.04 to 15.10
-
-ProblemType: Package
-DistroRelease: Ubuntu 15.10
-Package: ledgersmb 1.3.46-1
-Uname: Linux 4.2.3-040203-generic x86_64
-ApportVersion: 2.19.1-0ubuntu4
-Architecture: amd64
-Date: Fri Nov 6 08:05:52 2015
-DuplicateSignature: package:ledgersmb:1.3.46-1:subprocess installed post-installation script returned error exit status 2
-ErrorMessage: subprocess installed post-installation script returned error exit status 2
-InstallationDate: Installed on 2015-08-23 (74 days ago)
-InstallationMedia: Ubuntu 15.04 "Vivid Vervet" - Release amd64 (20150422)
-PackageArchitecture: all
-RelatedPackageVersions:
- dpkg 1.18.2ubuntu5
- apt 1.0.10.2ubuntu1
-SourcePackage: ledgersmb
-Title: package ledgersmb 1.3.46-1 failed to install/upgrade: subprocess installed post-installation script returned error exit status 2
-UpgradeStatus: No upgrade log present (probably fresh install)
-
-
-From: https://launchpadlibrarian.net/225324647/DpkgTerminalLog.txt
-Setting up ledgersmb (1.3.46-1) ...
-Installing new version of config file /etc/ledgersmb/ledgersmb.conf ...
-apache2_invoke ledgersmb.conf: already enabled
-apache2_reload: Your configuration is broken. Not reloading Apache 2
-apache2_reload: AH00526: Syntax error on line 9 of /etc/apache2/conf-enabled/ledgersmb.conf:
-apache2_reload: Invalid command 'RewriteEngine', perhaps misspelled or defined by a module
-not included in the server configuration
-
-That line 9 is the "RewriteEngine On" line.  That error might come up rewrite mod
- wasn't enabled in apache, but this happened during an upgrade from v15.04 to v15.10,
- where apache and ledgersmb were already installed and operational and therefore the
- rewrite mod should already have been enabled in apache.
-
-
------------------------------------------------------------------------------------
-
-	- google search:  debconf preload
+    - google search:  debconf preload
 
 http://blog.delgurth.com/2009/01/19/pre-loading-debconf-values-for-easy-installation/
 -----------------------------------------------------------------------------------
@@ -155,4 +108,4 @@ the apache config also need to be updated to allow that?)
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Sun,  6 Dec 2015 08:44 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 11 Apr 2016 08:30 -0400
