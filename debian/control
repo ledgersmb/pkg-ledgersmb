@@ -14,8 +14,7 @@ Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
 Package: ledgersmb
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.7.2)
-Depends: apache2 | httpd-cgi,
-         libcarp-always-perl,
+Depends: libcarp-always-perl,
          libcgi-simple-perl,
          libconfig-inifiles-perl,
          libdatetime-perl,
@@ -40,7 +39,8 @@ Depends: apache2 | httpd-cgi,
          postgresql-contrib,
          ${misc:Depends},
          ${perl:Depends}
-Recommends: default-mta | mail-transport-agent,
+Recommends: apache2 | httpd-cgi,
+            default-mta | mail-transport-agent,
             libmath-bigint-gmp-perl,
             libopenoffice-oodoc-perl,
             libparse-recdescent-perl,
