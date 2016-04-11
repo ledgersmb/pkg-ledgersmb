@@ -1,5 +1,5 @@
 Author: Robert James Clay <jame@rocasa.us>
-Description: Changing paths in Apache config
+Description: Changing paths in Apache config for use on Debian.
 Origin: vendor
 Last-Update: 2016-04-11
 --- a/ledgersmb-httpd-2.0-2.2.conf.template
@@ -45,13 +45,13 @@ Last-Update: 2016-04-11
  </Directory>
  
 -<Directory WORKING_DIR/spool>
-+<Directory  /usr/lib/ledgersmb/spool>
++<Directory /usr/share/ledgersmb/spool>
    Order Deny,Allow
    Deny from All
  </Directory>
  
 -<Directory WORKING_DIR/templates>
-+<Directory /usr/lib/ledgersmb/templates>
++<Directory /usr/share/ledgersmb/templates>
    Order Deny,Allow
    Deny from All
  </Directory>
@@ -64,7 +64,7 @@ Last-Update: 2016-04-11
  
  #to avoid 'Directory index forbidden by Options directive' , i had to code follwoing with trailing slash ,tshvr4
 -<Directory WORKING_DIR/css/>
-+<Directory /usr/lib/ledgersmb/css/>
++<Directory /usr/share/ledgersmb/css/>
     Options Indexes FollowSymLinks
     Order Deny,Allow
     Allow from All
@@ -81,7 +81,7 @@ Last-Update: 2016-04-11
  
    # Rewrite rule to allow HTTP Authorization information to the scripts only
    # from this directory.
-@@ -36,26 +36,33 @@
+@@ -36,26 +36,26 @@
    </Files>
  </Directory>
  
@@ -101,12 +101,12 @@ Last-Update: 2016-04-11
  </Directory>
  
 -<Directory WORKING_DIR/spool>
-+<Directory  /usr/share/ledgersmb/spool>
++<Directory /usr/share/ledgersmb/spool>
    Require all denied
  </Directory>
  
 -<Directory WORKING_DIR/templates>
-+<Directory /usr/lib/ledgersmb/templates>
++<Directory /usr/share/ledgersmb/templates>
    Require all denied
  </Directory>
  
@@ -114,5 +114,3 @@ Last-Update: 2016-04-11
 +<Directory /usr/share/ledgersmb/LedgerSMB>
    Require all denied
  </Directory>
-
-
