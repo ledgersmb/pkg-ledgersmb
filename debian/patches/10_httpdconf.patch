@@ -1,7 +1,7 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Changing paths in Apache config
 Origin: vendor
-Last-Update: 2016-02-22
+Last-Update: 2016-04-11
 --- a/ledgersmb-httpd-2.0-2.2.conf.template
 +++ b/ledgersmb-httpd-2.0-2.2.conf.template
 @@ -1,8 +1,8 @@
@@ -45,13 +45,13 @@ Last-Update: 2016-02-22
  </Directory>
  
 -<Directory WORKING_DIR/spool>
-+<Directory  /var/lib/ledgersmb/spool>
++<Directory  /usr/lib/ledgersmb/spool>
    Order Deny,Allow
    Deny from All
  </Directory>
  
 -<Directory WORKING_DIR/templates>
-+<Directory /var/lib/ledgersmb/templates>
++<Directory /usr/lib/ledgersmb/templates>
    Order Deny,Allow
    Deny from All
  </Directory>
@@ -64,7 +64,7 @@ Last-Update: 2016-02-22
  
  #to avoid 'Directory index forbidden by Options directive' , i had to code follwoing with trailing slash ,tshvr4
 -<Directory WORKING_DIR/css/>
-+<Directory /var/lib/ledgersmb/css/>
++<Directory /usr/lib/ledgersmb/css/>
     Options Indexes FollowSymLinks
     Order Deny,Allow
     Allow from All
@@ -106,18 +106,13 @@ Last-Update: 2016-02-22
  </Directory>
  
 -<Directory WORKING_DIR/templates>
-+<Directory /var/lib/ledgersmb/templates>
++<Directory /usr/lib/ledgersmb/templates>
    Require all denied
  </Directory>
  
 -<Directory WORKING_DIR/LedgerSMB>
 +<Directory /usr/share/ledgersmb/LedgerSMB>
-+  Require all denied
-+</Directory>
-+
-+Alias /lsmbcss /var/lib/ledgersmb/css/
-+<Directory /var/lib/ledgersmb/css>
-+  Require ip 127.0.0.1
-+  Require host localhost
    Require all denied
  </Directory>
+
+
