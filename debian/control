@@ -39,6 +39,7 @@ Depends: libcarp-always-perl,
          perl (>= 5.8.1-1),
          postgresql-client,
          postgresql-contrib,
+         starman,
          ${misc:Depends},
          ${perl:Depends}
 Recommends: apache2 | httpd-cgi,
