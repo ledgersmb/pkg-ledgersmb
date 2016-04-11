@@ -1,4 +1,4 @@
-ledgersmb (1.4.27+ds-0~2) UNRELEASED; urgency=medium
+ledgersmb (1.4.27+ds-0jessie1) jessie; urgency=medium
 
   * New upstream release.
   * Changes to debian/patches:
@@ -14,7 +14,7 @@ ledgersmb (1.4.27+ds-0~2) UNRELEASED; urgency=medium
   * Remove unnessessary v1.3.18-1 related stanza from debian/ledgersmb.preinst.
   * Remove unneeded related to /var/lib/ledgersmb from debian/ledgersmb.postinst.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 11 Apr 2016 10:16:40 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 11 Apr 2016 13:45:16 -0400
 
 ledgersmb (1.4.26+ds-1) stable; urgency=medium
 
