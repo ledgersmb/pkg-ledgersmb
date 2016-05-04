@@ -2,4 +2,8 @@
 ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/bin/custom/
 ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/scripts/custom/
 ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/LedgerSMB/Reconciliation/CSV/Formats/
+#
+# suppress Lintian experimental reports
+ledgersmb binary: duplicate-files
+
 
