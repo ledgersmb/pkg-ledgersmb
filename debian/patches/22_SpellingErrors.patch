@@ -1,0 +1,59 @@
+Author: Robert James Clay <jame@rocasa.us>
+Description: Correct minor spelling errors in some LedgerSMB modules.
+Origin: vendor
+Last-Update: 2016-05-04
+--- a/LedgerSMB/DBObject.pm
++++ b/LedgerSMB/DBObject.pm
+@@ -36,7 +36,7 @@
+ it will be up to the application to handle any exceptions.
+ 
+ =item __validate__ is called on every new() invocation.  It is blank in this 
+-module but can be overridden in decendant modules.
++module but can be overridden in descendant modules.
+ 
+ =item _db_array_scalars(@elements) creates a db array from scalars.
+ 
+--- a/LedgerSMB/File.pm
++++ b/LedgerSMB/File.pm
+@@ -207,7 +207,7 @@
+ 
+ =item get
+ 
+-Retrives a file.  ID and file_class properties must be set.
++Retrieves a file.  ID and file_class properties must be set.
+ 
+ =cut
+ 
+--- a/LedgerSMB/Report/GL.pm
++++ b/LedgerSMB/Report/GL.pm
+@@ -253,7 +253,7 @@
+ 
+ Is one of A (Asset), L (Liability), Q (Equity), I (Income), or E (Expense).
+ 
+-When set only matches lines attached to transactions of specfied type.
++When set only matches lines attached to transactions of specified type.
+ 
+ =cut
+ 
+--- a/LedgerSMB/Report/Inventory/Search.pm
++++ b/LedgerSMB/Report/Inventory/Search.pm
+@@ -19,7 +19,7 @@
+ 
+ This is the main inventory item search for goods and services in LedgerSMB
+ starting with version 1.4.  Compared to LedgerSMB 1.3 this has no summary 
+-and details support and no searching for open vs closed invoices. The eqivalent
++and details support and no searching for open vs closed invoices. The equivalent
+ of a summary report is found in the inventory activities report instead.
+ 
+ The open/closed detection was omitted for performance reasons, and a search for
+--- a/LedgerSMB/Timecard/Type.pm
++++ b/LedgerSMB/Timecard/Type.pm
+@@ -8,7 +8,7 @@
+ 
+  my $type = LedgerSMB::Timecard::Type->get($id);
+ 
+-To list all types, orderd by label:
++To list all types, ordered by label:
+ 
+  my @types = LedgerSMB::Timecard::Type->list();
+ 
