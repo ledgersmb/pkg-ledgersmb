@@ -1,14 +1,13 @@
-ledgersmb (1.4.28+ds-0~2) UNRELEASED; urgency=medium
+ledgersmb (1.4.28+ds-0~3) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Initial package update for v1.4.x versions. (Closes: #773363)
   * Update debhelper version from '8' to '9'.
   * Changes to debian/patches:
-    - Refresh debian/patches/05_confdir.patch for directory changes.
-    - Refresh debian/patches/10_httpdconf.patch for directory changes.
+    - Refresh debian/patches/05_confdir.patch for new upstream release.
     - Corrected apache 2.4 related lines in debian/patches/10_httpdconf.patch.
     - Update 20_BashPath.patch for new upstream tools/regen_db_docs.sh script.
-    - Updated debian/patches/22_SpellingErrors.patch to fix spelling errors.
+    - Updated debian/patches/22_SpellingErrors.patch for 1.4.x upstream.
   * Changes in debian/control:
     - Add 'starman' package as a 'Depends'.
     - Change libplack-perl from a 'Suggests' to a 'Depends'.
@@ -31,6 +30,9 @@ ledgersmb (1.4.28+ds-0~2) UNRELEASED; urgency=medium
   * Changes in debian/ledgersmb.postinst:
    - Change where ledgersmb.conf is enabled for apache 2.4.
    - Remove no longer unneeded references to /var/lib/ledgersmb.
+  * Changes in debian/ledgersmb.lintian-overrides:
+   - Add entry for Lintian warning 'manpage-has-bad-whatis'.
+   - Add entry for experimental Lintian result 'duplicate-files'.
   * Remove unnecessary v1.3.18-1 related stanza from debian/ledgersmb.preinst.
   * Remove debian/source.lintian-overrides as it is no longer necessary.
   * Update debian/README.Debian to reflect package changes for LedgerSMB v1.4.
@@ -41,7 +43,7 @@ ledgersmb (1.4.28+ds-0~2) UNRELEASED; urgency=medium
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
   * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 04 May 2016 10:30:12 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 04 May 2016 13:23:30 -0400
 
 ledgersmb (1.3.47-1) unstable; urgency=medium
 
