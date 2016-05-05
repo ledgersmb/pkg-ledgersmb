@@ -21,6 +21,7 @@ override_dh_fixperms:
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/bin/gl.pl
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/po/*
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/html/splash.html
+	chmod -x debian/ledgersmb/usr/share/ledgersmb/UI/Reports/*.html
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/Reconciliation.pl
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/*.pl
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/*.psgi
