@@ -63,4 +63,5 @@ Description: financial accounting and ERP program
  "General Ledger" tracking as well as inventory control and fixed assets
  handling. The LedgerSMB client can be a web browser or a programmed API call.
  The goal of the LedgerSMB project is to bring high quality ERP and accounting
- capabilities to Small and Midsize Businesses.
+ capabilities to Small and Midsize Businesses. For more information, please
+ see /usr/share/doc/ledgersmb/README.Debian.
