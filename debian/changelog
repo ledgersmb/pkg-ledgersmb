@@ -1,4 +1,4 @@
-ledgersmb (1.4.28+ds-0~3) UNRELEASED; urgency=medium
+ledgersmb (1.4.28+ds-0~4) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Initial package update for v1.4.x versions. (Closes: #773363)
@@ -9,15 +9,14 @@ ledgersmb (1.4.28+ds-0~3) UNRELEASED; urgency=medium
     - Update 20_BashPath.patch for new upstream tools/regen_db_docs.sh script.
     - Updated debian/patches/22_SpellingErrors.patch for 1.4.x upstream.
   * Changes in debian/control:
-    - Add 'starman' package as a 'Depends'.
-    - Change libplack-perl from a 'Suggests' to a 'Depends'.
-    - Change 'apache2 | httpd-cgi' from a 'Depends' to a 'Recommends'.
     - Added to Recommends: libtex-encode-perl.
     - Added to Suggests: libx12-parser-perl.
-    - Added to Depends: libjs-dojo-dojox, libjson-perl|libjson-xs-perl,
+    - Added to Depends: libjs-dojo-dojox, libjson-xs-perl | libjson-perl,
       libmoose-perl, libnumber-format-perl,libnamespace-autoclean-perl,
-      libcarp-always-perl, libcgi-emulate-psgi-perl.
+      libcarp-always-perl, starman.
     - Drop dh-linktree,libjs-prototype,libjs-scriptaculous from Build-Depends.
+    - Drop libio-stringy-perl & libhtml-parser-perl from Depends.
+    - Minor edit to long description pointing to README.Debian.
   * Changes in debian/copyright:
     - Update copyright years for the '*' Files stanza
     - Remove references related to libjs-prototype & libjs-scriptaculous.
@@ -27,6 +26,7 @@ ledgersmb (1.4.28+ds-0~3) UNRELEASED; urgency=medium
   * Changes in debian/rules:
    - Correct permissions of tools/*.psgi in override_dh_fixperms stanza.
    - Correct permissions of lsmb-request.pl in override_dh_fixperms stanza.
+   - Correct permissions of UR/Reports/*.html in override_dh_fixperms stanza.
   * Changes in debian/ledgersmb.postinst:
    - Change where ledgersmb.conf is enabled for apache 2.4.
    - Remove no longer unneeded references to /var/lib/ledgersmb.
@@ -43,7 +43,7 @@ ledgersmb (1.4.28+ds-0~3) UNRELEASED; urgency=medium
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
   * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 04 May 2016 13:23:30 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 08 May 2016 15:06:43 -0400
 
 ledgersmb (1.3.47-1) unstable; urgency=medium
 
