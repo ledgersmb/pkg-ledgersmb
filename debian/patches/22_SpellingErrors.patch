@@ -1,7 +1,7 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Correct minor spelling errors in some LedgerSMB modules.
-Origin: vendor
-Last-Update: 2016-05-04
+Bug: https://github.com/ledgersmb/LedgerSMB/issues/1498
+Last-Update: 2016-05-10
 --- a/LedgerSMB/DBObject.pm
 +++ b/LedgerSMB/DBObject.pm
 @@ -36,7 +36,7 @@
