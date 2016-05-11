@@ -1,4 +1,4 @@
-ledgersmb (1.4.28+ds-0~4) UNRELEASED; urgency=medium
+ledgersmb (1.4.28+ds-0~5) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Initial package update for v1.4.x versions. (Closes: #773363)
@@ -16,20 +16,21 @@ ledgersmb (1.4.28+ds-0~4) UNRELEASED; urgency=medium
       libcarp-always-perl, starman.
     - Drop dh-linktree,libjs-prototype,libjs-scriptaculous from Build-Depends.
     - Drop libio-stringy-perl & libhtml-parser-perl from Depends.
-    - Minor edit to long description pointing to README.Debian.
+    - Minor edit to long description, pointing to README.Debian.
   * Changes in debian/copyright:
-    - Update copyright years for the '*' Files stanza
+    - Update copyright years for the '*' Files stanza.
     - Remove references related to libjs-prototype & libjs-scriptaculous.
-    - Add 'Files-Excluded' section for embedded 'dojo' javascripts libraries.
-    - Update debian/copyright to reflect upstream changes to the following
-      files: locale/po/da.po, locale/po/ar_EG.po, and locale/po/et.po.
+    - Change Upstream-Contact to 'ledger-smb-devel@lists.sourceforge.net'.
+    - Add 'Files-Excluded' section for embedded 'dojo' javascript libraries.
+    - Remove the separate locale/po/*.po stanzas as no longer needed because they are now
+      being refreshed with each upstream release.
   * Changes in debian/rules:
    - Correct permissions of tools/*.psgi in override_dh_fixperms stanza.
    - Correct permissions of lsmb-request.pl in override_dh_fixperms stanza.
    - Correct permissions of UR/Reports/*.html in override_dh_fixperms stanza.
   * Changes in debian/ledgersmb.postinst:
    - Change where ledgersmb.conf is enabled for apache 2.4.
-   - Remove no longer unneeded references to /var/lib/ledgersmb.
+   - Remove no longer needed references to /var/lib/ledgersmb.
   * Changes in debian/ledgersmb.lintian-overrides:
    - Add entry for Lintian warning 'manpage-has-bad-whatis'.
    - Add entry for experimental Lintian result 'duplicate-files'.
@@ -43,7 +44,7 @@ ledgersmb (1.4.28+ds-0~4) UNRELEASED; urgency=medium
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
   * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 08 May 2016 15:06:43 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 11 May 2016 14:22:33 -0400
 
 ledgersmb (1.3.47-1) unstable; urgency=medium
 
