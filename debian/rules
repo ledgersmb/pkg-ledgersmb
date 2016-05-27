@@ -4,6 +4,7 @@
 	dh $@
 
 override_dh_auto_configure:
+	cp ledgersmb.conf.default ledgersmb.conf
 
 override_dh_auto_build:
 
