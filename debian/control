@@ -14,7 +14,8 @@ Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
 Package: ledgersmb
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.7.2)
-Depends: apache2 | httpd-cgi,
+Depends: adduser,
+         apache2 | httpd-cgi,
          libcarp-always-perl,
          libcgi-simple-perl,
          libconfig-inifiles-perl,
