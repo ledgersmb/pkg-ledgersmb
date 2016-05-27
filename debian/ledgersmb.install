@@ -2,7 +2,6 @@
 LedgerSMB/* usr/share/ledgersmb/LedgerSMB
 UI/* usr/share/ledgersmb/UI
 bin/*.pl usr/share/ledgersmb/bin
-blib/lib/* usr/share/ledgersmb
 contrib/* usr/share/ledgersmb/contrib
 css/* usr/share/ledgersmb/css
 debian/adm/config-lsmb-db-user.sh usr/share/ledgersmb/tools
