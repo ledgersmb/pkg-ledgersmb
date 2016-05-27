@@ -49,6 +49,8 @@ case "$1" in
         if [ -f "/etc/apache2/conf-available/ledgersmb.conf" ]; then
             rm -f /etc/apache2/conf-available/ledgersmb.conf
         fi
+        deluser --system --quiet ledgersmb
+        delgroup --system --quiet ledgersmb
     ;;
 
     remove)

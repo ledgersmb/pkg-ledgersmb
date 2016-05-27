@@ -33,7 +33,12 @@ case "$1" in
         /etc/apache2/conf.d/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb.conf 1.3.46-1~ ledgersmb -- "$@"
     ;;
 
-    install|abort-upgrade)
+    install)
+        # Configure the 'ledgersmb' system user.
+        getent passwd ledgersmb >/dev/null 2>&1 || adduser --system --group --quiet --disabled-password --home /var/run/ledgersmb --gecos "LedgerSMB" ledgersmb
+     ;;
+
+    abort-upgrade)
     ;;
 
     *)
