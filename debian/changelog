@@ -1,4 +1,4 @@
-ledgersmb (1.4.28+ds-0~5) UNRELEASED; urgency=medium
+ledgersmb (1.4.29+ds-0~1) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Initial package update for v1.4.x versions. (Closes: #773363)
@@ -38,13 +38,13 @@ ledgersmb (1.4.28+ds-0~5) UNRELEASED; urgency=medium
   * Remove debian/source.lintian-overrides as it is no longer necessary.
   * Update debian/README.Debian to reflect package changes for LedgerSMB v1.4.
   * Rewrite debian/README.source regarding repacking the 'orig' source archive.
-  * Remove references to pos.conf.pl as it is no longer being used.
+  * Remove references to pos.conf.pl as it is no longer in upstream.
   * Remove references to Net::TCLink in debian/README.Debian and debian/control
     as it is no longer being used.
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
   * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 11 May 2016 14:22:33 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 27 May 2016 09:31:22 -0400
 
 ledgersmb (1.3.47-1) unstable; urgency=medium
 
