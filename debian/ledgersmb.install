@@ -1,4 +1,5 @@
 *.conf etc/ledgersmb
+*.pl usr/share/ledgersmb
 LedgerSMB/* usr/share/ledgersmb/LedgerSMB
 UI/* usr/share/ledgersmb/UI
 bin/*.pl usr/share/ledgersmb/bin
