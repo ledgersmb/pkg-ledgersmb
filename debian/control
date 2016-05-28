@@ -54,7 +54,8 @@ Suggests: latex-cjk-all,
           libx12-parser-perl,
           libplack-perl,
           postgresql,
-          lpr
+          lpr,
+          starlet
 Replaces: ledgersmb
 Description: financial accounting and ERP program
  LedgerSMB is a double-entry financial accounting and Enterprise Resource
