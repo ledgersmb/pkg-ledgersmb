@@ -5,10 +5,4 @@ ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/LedgerSMB
 #
 # Override Lintian experimental reports
 ledgersmb binary: duplicate-files
-#
-# Some Perl Modules under the LedgerSMB directory are missing the short description
-# (and the 'dash' sign) after the "NAME" entry in the module documention (POD).
-# This shows up after the module POD has been converted to a man page.
-# Reference upstream issue https://github.com/ledgersmb/LedgerSMB/issues/1206
-ledgersmb binary: manpage-has-bad-whatis-entry
 
