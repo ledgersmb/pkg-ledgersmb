@@ -1,6 +1,7 @@
 BUGS
 CONTRIBUTORS
 README.plack
+README.Starlet
 README.translations
 UPGRADE
 debian/README.source
