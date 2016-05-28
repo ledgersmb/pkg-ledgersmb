@@ -1,4 +1,4 @@
-ledgersmb (1.4.29+ds-0~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.29+ds-0~2) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Initial package update for v1.4.x versions. (Closes: #773363)
@@ -7,10 +7,10 @@ ledgersmb (1.4.29+ds-0~1) UNRELEASED; urgency=medium
     - Refresh debian/patches/05_confdir.patch for new upstream release.
     - Corrected apache 2.4 related lines in debian/patches/10_httpdconf.patch.
     - Update 20_BashPath.patch for new upstream tools/regen_db_docs.sh script.
-    - Updated debian/patches/22_SpellingErrors.patch for 1.4.x upstream.
+    - Remove debian/patches/22_SpellingErrors.patch as it is no longer needed.
   * Changes in debian/control:
     - Added to Recommends: libtex-encode-perl.
-    - Added to Suggests: libx12-parser-perl.
+    - Added to Suggests: libx12-parser-perl, starlet.
     - Added to Depends: libjs-dojo-dojox, libjson-xs-perl | libjson-perl,
       libmoose-perl, libnumber-format-perl,libnamespace-autoclean-perl,
       libcarp-always-perl, starman, adduser.
@@ -18,19 +18,21 @@ ledgersmb (1.4.29+ds-0~1) UNRELEASED; urgency=medium
     - Drop libio-stringy-perl & libhtml-parser-perl from Depends.
     - Minor edit to long description, pointing to README.Debian.
   * Changes in debian/copyright:
-    - Update copyright years for the '*' Files stanza.
+    - Update copyright years for the '* Files' stanza.
     - Remove references related to libjs-prototype & libjs-scriptaculous.
     - Change Upstream-Contact to 'ledger-smb-devel@lists.sourceforge.net'.
     - Add 'Files-Excluded' section for embedded 'dojo' javascript libraries.
-    - Remove the separate locale/po/*.po stanzas as no longer needed because they are now
-      being refreshed with each upstream release.
+    - Remove the separate locale/po/*.po stanzas as they are no longer needed
+      because they are now being refreshed with each upstream release.
   * Changes in debian/rules:
    - Add override for dh_auto_build.
    - Make override_dh_auto_configure a bare target.
    - Correct permissions of tools/*.psgi in override_dh_fixperms stanza.
    - Correct permissions of lsmb-request.pl in override_dh_fixperms stanza.
-   - Correct permissions of *.html files as necessary in override_dh_fixperms stanza.
-   - Remove ownership changing for /var/lib/ledgersmb in override_dh_fixperms stanza.
+   - Correct permissions of *.html files as necessary in override_dh_fixperms
+     stanza.
+   - Remove changing ownership for /var/lib/ledgersmb in override_dh_fixperms
+     stanza.
   * Changes in debian/ledgersmb.postinst:
    - Change where ledgersmb.conf is enabled for apache 2.4.
    - Remove no longer needed references to /var/lib/ledgersmb.
@@ -40,7 +42,6 @@ ledgersmb (1.4.29+ds-0~1) UNRELEASED; urgency=medium
   * Changes in debian/ledgersmb.postrm:
    - Purge 'ledgersmb' system user and group as necessary.
   * Changes in debian/ledgersmb.lintian-overrides:
-   - Add entry for Lintian warning 'manpage-has-bad-whatis'.
    - Add entry for experimental Lintian result 'duplicate-files'.
   * Remove debian/source.lintian-overrides as it is no longer necessary.
   * Update debian/README.Debian to reflect package changes for LedgerSMB v1.4.
@@ -51,7 +52,7 @@ ledgersmb (1.4.29+ds-0~1) UNRELEASED; urgency=medium
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
   * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 27 May 2016 13:50:36 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 27 May 2016 22:34:56 -0400
 
 ledgersmb (1.3.47-1) unstable; urgency=medium
 
