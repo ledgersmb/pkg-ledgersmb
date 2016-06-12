@@ -50,7 +50,6 @@ case "$1" in
             rm -f /etc/apache2/conf-available/ledgersmb.conf
         fi
         deluser --system --quiet ledgersmb
-        delgroup --system --quiet ledgersmb
     ;;
 
     remove)
