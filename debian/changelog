@@ -1,4 +1,4 @@
-ledgersmb (1.4.29+ds-0~2) UNRELEASED; urgency=medium
+ledgersmb (1.4.29+ds-0~3) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Initial package update for v1.4.x versions. (Closes: #773363)
@@ -13,7 +13,7 @@ ledgersmb (1.4.29+ds-0~2) UNRELEASED; urgency=medium
     - Added to Suggests: libx12-parser-perl, starlet.
     - Added to Depends: libjs-dojo-dojox, libjson-xs-perl | libjson-perl,
       libmoose-perl, libnumber-format-perl,libnamespace-autoclean-perl,
-      libcarp-always-perl, starman, adduser.
+      libcarp-always-perl, starman, adduser, ucf.
     - Drop dh-linktree,libjs-prototype,libjs-scriptaculous from Build-Depends.
     - Drop libio-stringy-perl & libhtml-parser-perl from Depends.
     - Minor edit to long description, pointing to README.Debian.
@@ -23,7 +23,7 @@ ledgersmb (1.4.29+ds-0~2) UNRELEASED; urgency=medium
     - Change Upstream-Contact to 'ledger-smb-devel@lists.sourceforge.net'.
     - Add 'Files-Excluded' section for embedded 'dojo' javascript libraries.
     - Remove the separate locale/po/*.po stanzas as they are no longer needed
-      because they are now being refreshed with each upstream release.
+      because the files are now being refreshed with each upstream release.
   * Changes in debian/rules:
    - Add override for dh_auto_build.
    - Make override_dh_auto_configure a bare target.
@@ -36,11 +36,14 @@ ledgersmb (1.4.29+ds-0~2) UNRELEASED; urgency=medium
   * Changes in debian/ledgersmb.postinst:
    - Change where ledgersmb.conf is enabled for apache 2.4.
    - Remove no longer needed references to /var/lib/ledgersmb.
+   - Use 'ucf' to register the package apache configuration files as necesssary.
   * Changes in debian/ledgersmb.preinst:
    - Remove unnecessary v1.3.18-1 related stanza.
    - Add 'ledgersmb' system user as necessary.
   * Changes in debian/ledgersmb.postrm:
-   - Purge 'ledgersmb' system user and group as necessary.
+   - Purge 'ledgersmb' system user as necessary.
+   - Rewrite the comments for removing the package apache sym links.
+   - Purge and deregister the package apache configuration files.
   * Changes in debian/ledgersmb.lintian-overrides:
    - Add entry for experimental Lintian result 'duplicate-files'.
   * Remove debian/source.lintian-overrides as it is no longer necessary.
@@ -52,7 +55,7 @@ ledgersmb (1.4.29+ds-0~2) UNRELEASED; urgency=medium
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
   * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 27 May 2016 22:34:56 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 14 Jun 2016 15:28:56 -0400
 
 ledgersmb (1.3.47-1) unstable; urgency=medium
 
