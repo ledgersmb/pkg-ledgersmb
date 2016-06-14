@@ -37,17 +37,43 @@ case "$1" in
         if [ -h "/etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf" ]; then
             rm -f /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
         fi
-        # When being purged; if /etc/apache2/conf.d/ledgersmb.conf exists, remove it.
+        # When being purged; if /etc/apache2/conf.d/ledgersmb.conf exists, remove
+        # it and deregister it with ucf.
         if [ -f "/etc/apache2/conf.d/ledgersmb.conf" ]; then
+            # Remove the possible backup extensions of the configuration file.
+            for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
+                rm -f /etc/apache2/conf.d/ledgersmb.conf$ext
+            done
+            # Remove the configuration file itself
             rm -f /etc/apache2/conf.d/ledgersmb.conf
+            # Clear it out from the ucf database.
+            if which ucf >/dev/null 2>&1; then
+                ucf --purge /etc/apache2/conf.d/ledgersmb.conf
+            fi
+            if which ucfr >/dev/null 2>&1; then
+                ucfr --purge ledgersmb /etc/apache2/conf.d/ledgersmb.conf
+            fi
         fi
         # When being purged; if /etc/ledgersmb-httpd-2.4.conf exists, remove it.
         if [ -h "/etc/ledgersmb/ledgersmb-httpd-2.4.conf" ]; then
             rm -f /etc/ledgersmb/ledgersmb-httpd-2.4.conf
         fi
-        # When being purged; if /etc/apache2/conf-available/ledgersmb.conf exists, remove it.
+        # When being purged; if /etc/apache2/conf-available/ledgersmb.conf exists, remove
+        # it and deregister it with ucf.
         if [ -f "/etc/apache2/conf-available/ledgersmb.conf" ]; then
+            # Remove the possible backup extensions of the configuration file.
+            for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
+                rm -f /etc/apache2/conf-available/ledgersmb.conf$ext
+            done
+            # Remove the configuration file itself
             rm -f /etc/apache2/conf-available/ledgersmb.conf
+            # Clear it out from the ucf database.
+            if which ucf >/dev/null 2>&1; then
+                ucf --purge /etc/apache2/conf-available/ledgersmb.conf
+            fi
+            if which ucfr >/dev/null 2>&1; then
+                ucfr --purge ledgersmb /etc/apache2/conf-available/ledgersmb.conf
+            fi
         fi
         deluser --system --quiet ledgersmb
     ;;
