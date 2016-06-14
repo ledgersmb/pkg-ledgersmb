@@ -38,6 +38,7 @@ Depends: adduser,
          postgresql-client,
          postgresql-contrib,
          starman,
+         ucf,
          ${misc:Depends},
          ${perl:Depends}
 Recommends: default-mta | mail-transport-agent,
