@@ -31,3 +31,8 @@ override_dh_fixperms:
 	find debian/ledgersmb/usr/share/ledgersmb/utils -name '*.pl*' -exec chmod +x '{}' \;
 	find debian/ledgersmb/usr/share/ledgersmb/templates -type d -empty -delete
 
+get-orig-source:
+	uscan --force-download --rename --destdir .
+
+.PHONY: get-orig-source
+
