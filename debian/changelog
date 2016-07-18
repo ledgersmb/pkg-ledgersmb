@@ -1,4 +1,4 @@
-ledgersmb (1.4.29+ds-0~3) UNRELEASED; urgency=medium
+ledgersmb (1.4.30+ds-0~1) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Initial package update for v1.4.x versions. (Closes: #773363)
@@ -55,7 +55,7 @@ ledgersmb (1.4.29+ds-0~3) UNRELEASED; urgency=medium
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
   * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 14 Jun 2016 15:28:56 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 18 Jul 2016 05:59:28 -0400
 
 ledgersmb (1.3.47-1) unstable; urgency=medium
 
