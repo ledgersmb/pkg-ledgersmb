@@ -1,15 +1,27 @@
-ledgersmb (1.3.46-1) unstable; urgency=medium
+ledgersmb (1.4.30+ds-1) UNRELEASED; urgency=medium
 
-  The default for the experimental dbconfig/debconf for configuring LedgerSMB
-  during the package installation is to not use it; instead, the LedgerSMB
-  database super-user can be manually created and that can then be used on the
-  setup page at http://localhost/ledgersmb/setup.pl to create the company
-  databases for use. See README.Debian for further information.
+  This represents the first upload to Debian of a LedgerSMB v1.4.x series
+  package.
 
-  The default for the contrib_dir directive in /etc/ledgersmb/ledgersmb.conf is
-  now for PostgreSQL v9.4. The setting will need to be verified to be correct
-  for the actual installed version of PostgreSQL before using LedgerSMB.
+  The default is now to configure LedgerSMB during the package installation; 
+  this is especially true for the DB Superuser name and password, which can
+  also be redone at any time by running the doing the following at the command
+  line: 'dpkg-reconfigure ledgersmb'.
 
+  The /etc/ledgersmb/ledgersmb.conf and LedgerSMB Apache configuration file
+  are now tracked and updated as necessary with package upgrades. You can
+  view the differences between old and new configuration file versions and
+  even in the case of upgrading from a version previous to this; it should
+  allow you replace the old version with the new version and leave a copy
+  of the old version named like "ledgersmb.conf.ucf-old".
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 12 Apr 2015 12:52:15 -0400
+  If this is an upgrade install from a 1.3.x series package, the application
+  css directory is /var/lib/ledgersmb/css and defaults for the files were
+  installed there from the example files during the previous package install
+  and the configuration it set for them being there. If this is a new install,
+  then the application css directory is at /usr/share/ledgersmb/css and the
+  default configuration for the files is for them being there.
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 18 2016 11:33:46 -0400
+
 
