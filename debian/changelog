@@ -1,4 +1,4 @@
-ledgersmb (1.4.30+ds-0~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.30+ds-1) unstable; urgency=medium
 
   * New upstream release.
     - Initial package update for v1.4.x versions. (Closes: #773363)
@@ -26,6 +26,7 @@ ledgersmb (1.4.30+ds-0~1) UNRELEASED; urgency=medium
       because the files are now being refreshed with each upstream release.
   * Changes in debian/rules:
    - Add override for dh_auto_build.
+   - Add new target for 'get-orig-source'.
    - Make override_dh_auto_configure a bare target.
    - Correct permissions of tools/*.psgi in override_dh_fixperms stanza.
    - Correct permissions of lsmb-request.pl in override_dh_fixperms stanza.
@@ -38,15 +39,21 @@ ledgersmb (1.4.30+ds-0~1) UNRELEASED; urgency=medium
    - Remove no longer needed references to /var/lib/ledgersmb.
    - Use 'ucf' to register the package apache configuration files as necesssary.
   * Changes in debian/ledgersmb.preinst:
-   - Remove unnecessary v1.3.18-1 related stanza.
    - Add 'ledgersmb' system user as necessary.
+   - Remove unnecessary v1.3.18-1 related stanza.
+   - Correct the package version referenced for the apache config file rename
+     to 1.3.18-2.
   * Changes in debian/ledgersmb.postrm:
    - Purge 'ledgersmb' system user as necessary.
-   - Rewrite the comments for removing the package apache sym links.
    - Purge and deregister the package apache configuration files.
+   - Rewrite the comments for removing the package apache symbolic links.
+   - Correct the package version referenced for the apache config file rename
+     to 1.3.18-2.
   * Changes in debian/ledgersmb.lintian-overrides:
    - Add entry for experimental Lintian result 'duplicate-files'.
   * Remove debian/source.lintian-overrides as it is no longer necessary.
+  * Add symbolic link to the README.Debian file from the install directory to
+    debian/ledgersmb.links.
   * Update debian/README.Debian to reflect package changes for LedgerSMB v1.4.
   * Rewrite debian/README.source regarding repacking the 'orig' source archive.
   * Remove references to pos.conf.pl as it is no longer in upstream.
@@ -55,7 +62,7 @@ ledgersmb (1.4.30+ds-0~1) UNRELEASED; urgency=medium
   * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
   * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 18 Jul 2016 05:59:28 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 18 Jul 2016 14:51:49 -0400
 
 ledgersmb (1.3.47-1) unstable; urgency=medium
 
