@@ -27,13 +27,16 @@ LedgerSMB Configuration
 
     Configuration files for Apache 2.2 or 2.4 are installed as necessary, with
     an example Apache fastcgi configuration available at lsmb_13-fcgi.conf in
-    the /usr/share/ledgersmb/tools directory. Also; some information for use
-    with Plack is available in README.plack, and for use with nginx is in the
-    /usr/share/ledgersmb/contrib/nginx-fcgiwrap directory.
+    the /usr/share/ledgersmb/tools directory.
 
-    The application css directory is /var/lib/ledgersmb/css and defaults for the
-    files are installed there from the example files during an package install.
-    There is also a URL related configuration item in ledgersmb.conf, cssdir.
+    An alternate to using Apache is use Plack to run that application. Further
+    information regarding that can be found README.plack.
+
+    Upgrade installs from a 1.3.x series package will have the application css
+    directory as /var/lib/ledgersmb/css and the defaults for the files would
+    have been installed there from the example files during the previous package
+    install. New installs use only the /usr/lib/ledgersmb/css directory for the
+    files. In either case, the css related configuration is set as necessary.
 
     Language specific HTML, LaTeX, and Text templates can be edited online but
     the language specific directory (like /var/ledgersmb/templates/demo/en_US)
@@ -52,6 +55,7 @@ Optional Perl modules
     Parse::RecDescent        [Support for the *experimental* scripting engine]
     Image::Size              [Support for image size detection in templates]
     Plack                    [Support for using Plack to run LedgerSMB]
+    Starman                  [Support for using Starman to run LedgerSMB]
 
     The X12 EDI support is available as the package libx12-parser-perl if it is
     not already installed.
@@ -91,4 +95,4 @@ Company database removal
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 12 Apr 2015 12:07:18 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 18 Jul 2016 10:18:43 -0400
