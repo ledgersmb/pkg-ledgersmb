@@ -1,9 +1,9 @@
-ledgersmb (1.4.30+ds-1) UNRELEASED; urgency=medium
+ledgersmb (1.4.30+ds-1) unstable; urgency=medium
 
   This represents the first upload to Debian of a LedgerSMB v1.4.x series
   package.
 
-  The default is now to configure LedgerSMB during the package installation; 
+  The default is now to configure LedgerSMB during the package installation;
   this is especially true for the DB Superuser name and password, which can
   also be redone at any time by running the doing the following at the command
   line: 'dpkg-reconfigure ledgersmb'.
@@ -22,6 +22,4 @@ ledgersmb (1.4.30+ds-1) UNRELEASED; urgency=medium
   then the application css directory is at /usr/share/ledgersmb/css and the
   default configuration for the files is for them being there.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 18 2016 11:33:46 -0400
-
-
+ -- Robert James Clay <jame@rocasa.us>  Mon, 18 Jul 2016 14:51:49 -0400
