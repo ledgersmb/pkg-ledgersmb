@@ -1,22 +1,29 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: LedgerSMB
-Upstream-Contact:  Chris Travers <chris@metatrontech.com>
+Upstream-Contact: Development discussion for LedgerSMB <ledger-smb-devel@lists.sourceforge.net>
 Source: http://sourceforge.net/projects/ledger-smb
+ Repackaged, excluding embedded version of dojo Javascript library files.
+Files-Excluded:
+ ledgersmb/UI/lib/dojo/build-report.txt
+ ledgersmb/UI/lib/dojo/dijit
+ ledgersmb/UI/lib/dojo/dojo
+ ledgersmb/UI/lib/dojo/dojox
 Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
  derived in 2006. The fork was from SQL-Ledger 2.6.17. Note also that the
  'The LedgerSMB Core Team' consists of the following people: Chris Travers,
  Erik Huelsmann, Havard Sorli, John Locke, Pongracz Istvan, Herman Vierendeels,
  and Robert James Clay. For a full list including contact information of
  contributors, maintainers, and copyright holders, see the CONTRIBUTORS file.
-Copyright:  2006-2014, The LedgerSMB Core Team
+Copyright:  2006-2016, The LedgerSMB Core Team
             1999-2006, DWS Systems Inc.
 
 Files: *
-Copyright:  2006-2014, Chris Travers <chris@metatrontech.com>
-            2007-2014, Pongracz Istvan <pongracz.istvan@gmail.com>
-            2012-2013, Havard Sorli <havard@anix.no>
-            2011-2014, Erik Huelsmann <ehuels@gmail.com>
-            2011-2014, John Locke <john@freelock.com>
+Copyright:  2006-2016, Chris Travers <chris@metatrontech.com>
+            2007-2015, Pongracz Istvan <pongracz.istvan@gmail.com>
+            2012-2014, Havard Sorli <havard@anix.no>
+            2011-2016, Erik Huelsmann <ehuels@gmail.com>
+            2011-2015, John Locke <john@freelock.com>
+            2014-2016, Nick Prater <nick@npbroadcast.com>
             2013-2014, Herman Vierendeels <herman.vierendeels@gmail.com>
             2012-2013, Robert James Clay <jame@rocasa.us>
             2006-2011, Seneca Cunningham <tentra@gmail.com>
@@ -66,7 +73,7 @@ Comment: Copyright and License for debian directory files.
 Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
            2008-2009, Elizabeth Krumbach <lyz@princessleia.com>
              2008,    Roberto C. Sanchez <robert@debian.org>
-           2009-2014, Robert James Clay <jame@rocasa.us>
+           2009-2016, Robert James Clay <jame@rocasa.us>
 License: GPL
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -104,255 +111,6 @@ License: GPL
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Files: UI/ajax/scriptaculous/lib/prototype.js
-Comment: Licensing and copyright of the embedded Prototype Javascript library.
-Copyright: 2005-2008 Sam Stephenson
-License: MIT
-
-Files: UI/ajax/scriptaculous/src/*
-Comment: Licensing and copyright of the embedded Scriptaculous Javascript library.
-Copyright: 2005-2008 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
-License: MIT
-
-Files: locale/po/ar_EG.po
-Comment: Egypt Arabic texts
-Copyright:  2003, Omar BaheyEldin <o@ab2.com>
-            2003, Rania Tayel
-License: GPL-2+
-
-Files: locale/po/bg.po
-Comment: Bulgarian texts
-Copyright:  2006, Rosen Vladimirov <kondor_ltd@dir.bg>
-License: GPL-2+
-
-Files: locale/po/ca.po
-Comment: Catalan Translation
-Copyright:  2002, Jaume Teixi <teixi@rocacorbit.com>
-License: GPL-2+
-
-Files: locale/po/cs.po
-Comment: Czech texts
-Copyright:  2001, Tomas Fencl <tomas.fencl@centrum.cz>
-License: GPL-2+
-
-Files: locale/po/da.po
-Comment: Danish texts
-Copyright:  2001, Keld Jørn Simonsen <keld@dkuug.dk>
-            2001, Jonas Smedegaard <jonas@jones.dk>
-            2006, Mads Kiilerich <mads@kiilerich.com>
-License: GPL-2+
-
-Files: locale/po/de.po
-Comment: German texts
-Copyright:  2002, Thomas Bayen <tbayen@bayen.de>
-            2002, Gunter Ohrner <G.Ohrner@post.rwth-aachen.de>
-            2002, Jens Koerner <jens@kleinflintbek.net>
-            2002, Wolfgang Foerster <wf@inventronik.de>
-License: GPL-2+
-
-Files: locale/po/de_CH.po
-Comment: Swiss-German texts
-Copyright:  2006, Alain Haymoz <alain.haymoz@leanux.ch>
-            2006, Fabian Schiltknecht <fabian.schiltknecht@leanux.ch>
-            2006, Martin Elmer <martin.elmer@leanux.ch>
-License: GPL-2+
-
-Files: locale/po/el.po
-Comment: Greek texts
-Copyright:  2004, Dimitris Andavoglou <dimitrisand@nortech.gr>
-License: GPL-2+
-
-Files: locale/po/es.po
-Comment: Spanish texts
-Copyright:  2002, Maria Gabriela Fong <mgfong@maga.tzo.org>
-            2002, John Stoddart <jstypo@imagencolor.com.ve>
-            2002, Federico Montesino Pouzols <fedemp@arrok.com>
-            2002, Tomás Pereira <topec@percar.com>
-License: GPL-2+
-
-Files: locale/po/es_AR.po
-Comment: Spanish (Argentina) texts
-Copyright:  2012, Andres Basile <basile@gmail.com>
-License: GPL-2+
-
-Files: locale/po/es_CO.po
-Comment: Spanish (Columbia) texts. Adoption to Colombian Accounting Terms.
-Copyright:  2005, Dirk Enrique Seiffert <info@caribenet.com>
-            2005, Lourdes Mejía Martinez <lourdes@caribenet.com>
-            2005, Silfredo Godoy Chavez <silfredo@caribenet.com>
-License: GPL-2+
-
-Files: locale/po/es_EC.po
-Comment: Spanish (Ecuador) texts
-Copyright:  2004, Technical <tech@mundomovil.us>
-License: GPL-2+
-
-Files: locale/po/es_MX.po
-Comment: Spanish texts (Mexico)
-Copyright:  2001, Alberto Ladron <h@grupoh.com.mx>
-License: GPL-2+
-
-Files: locale/po/es_PA.po
-Comment: Spanish (Panama) texts
-Copyright:  2001, Maria Gabriela Fong <mgfong@maga.tzo.org>
-License: GPL-2+
-
-Files: locale/po/es_PY.po
-Comment: Spanish (Paraguay) texts
-Copyright:  2002-2004, Maria Gabriela Fong <mgfong@maga.tzo.org>
-            2002-2004, John Stoddart <jstypo@imagencolor.com.ve>
-            2002-2004, Federico Montesino Pouzols <fedemp@arrok.com>
-            2002-2004, Tomás Pereira <topec@percar.com>
-            2002-2004, Mario L. Epp <cosanzo@epp.name>
-License: GPL-2+
-
-Files: locale/po/es_SV.po
-Comment: Spanish (El Salvador) texts
-Copyright:  2004, Carlos López Linares <chlopezl@yahoo.com>
-License: GPL-2+
-
-Files: locale/po/es_VE.po
-Comment: Spanish Texts (Venezuela)
-Copyright:  2001, John Stoddart <jstypo@imagencolor.com.ve>
-License: GPL-2+
-
-Files: locale/po/et.po
-Comment: Estonian texts
-Copyright:  2006, Andrei Kolu <andrei.kolu@mail.ee>
-License: GPL-2+
-
-Files: locale/po/fi.po
-Comment: Finnish texts
-Copyright:  2002, 2006, Petri Leppänen <mpj@mail.htk.fi>
-License: GPL-2+
-
-Files: locale/po/fr.po
-Comment: French texts
-Copyright:  2003, Sèbastien Brassard <sbrassar.cgocable.ca>
-            2003, Oscar Buijten <oscar@elbie.com>
-            2003, Wolfgang Sourdeau <wolfgang@contre.com>
-            2003, Aguibou KONE <aguibou.kone@rocketmail.com>
-            2003, Jens-Ingo Brodesser <jens-ingo@all2all.org>
-            2003, Mathieu Chappuis <mathieu.chappuis@nchp.net>
-License: GPL-2+
-
-Files: locale/po/fr_BE.po
-Comment: French (Belgium) texts
-Copyright:  2003, Sèbastien Brassard <sbrassar.cgocable.ca>
-            2003, Oscar Buijten <oscar@elbie.com>
-            2003, Wolfgang Sourdeau <wolfgang@contre.com>
-            2003, Aguibou KONE <aguibou.kone@rocketmail.com>
-            2003, Jens-Ingo Brodesser <jens-ingo@all2all.org>
-            2003, Mathieu Chappuis <mathieu.chappuis@nchp.net>
-            2003, Olivier Cornet <ocornet@biz.tiscali.be>
-License: GPL-2+
-
-Files: locale/po/fr_CA.po
-Comment: French (Canada) texts
-Copyright:  2005, Mathieu Chappuis <mathieu.chappuis@nchp.net>
-            2005, Olivier Cornet <ocornet@biz.tiscali.be>
-License: GPL-2+
-
-Files: locale/po/hu.po
-Comment: Hungarian texts
-Copyright:  2013, Pongrácz István <pongracz.istvan@@startit.hu>
-License: GPL-2+
-
-Files: locale/po/id.po
-Comment: Indonesian texts
-Copyright:  2005, Akhmad Daniel Sembiring <daniel@vitraining.com>
-License: GPL-2+
-
-Files: locale/po/is.po
-Comment: Icelandic texts
-Copyright:  2003, Margeir Reynisson <margeir@met.is>
-License: GPL-2+
-
-Files: locale/po/it.po
-Comment: Italian texts
-Copyright:  2001-2003, Paolo Bizzarri <p.bizzarri@icube.it>
-            2001-2003, Luca Venturini <luca@yepa.com>
-            2001-2003, Alessandro Pasotti <apasotti@isoleborromee.it>
-            2003, Daniele Giacomini <daniele@swlibero.org>
-License: GPL-2+
-
-Files: locale/po/lv.po
-Comment: Latvian texts
-Copyright:  2003, Kaspars Melkis <info@isolis.lv>
-License: GPL-2+
-
-Files: locale/po/nb.po
-Comment: Norwegian Bokmål texts
-Copyright:  2001, 2004, 2012, Keld Jørn Simonsen <keld@dkuug.dk>
-            2001, 2004, 2012, Morten Pedersen <morten@workzone.no>
-            2001, 2004, 2012, Finn-Arne Johansen <faj@bzz.no>
-            2001, 2004, 2012, Petter Reinholdtsen <pere@hungry.com>
-            2001, 2004, 2012, Erik Inge Bolsø <knan@tvilsom.org>
-License: GPL-2+
-
-Files: locale/po/nl.po
-Comment: Dutch texts
-Copyright:  2001, 2006, AJ Hettema <Ignite@ecosse.net>
-            2001, 2006, Oscar Buijten <oscar@elbie.com>
-            2001, 2006, Bert Tijhuis <domino@dse.nl>
-            2001, 2006, Paul Tammes <ptammes@home.nl>
-            2001, 2006, Arno Peters <a.w.peters@ieee.org>
-License: GPL-2+
-
-Files: locale/po/pl.po
-Comment: Polish texts
-Copyright:  2001, Peter Dabrowski <meritage@mail.com>
-License: GPL-2+
-
-Files: locale/po/pt.po
-Comment: Portugese texts
-Copyright:  2001, Paulo Rodrigues <prodrigues@vianetworks.pt>
-License: GPL-2+
-
-Files: locale/po/pt_BR.po
-Comment: Brazilian texts
-Copyright:  2002, Andre Felipe Machado <andremachado@techforce.com.br>
-            2002, Miguel Koren O'Brien de Lacy <miguelk@konsultex.com.br>
-            2002, Marc A B Souza <marcoabs@msn.com>
-License: GPL-2+
-
-Files: locale/po/ru.po
-Comment: Russian texts. This localisation based on Khaimin Vladimir's KOI8-R
- localisation.
-Copyright: 2005, Alexey Cherepanov <alx@rdm.com.ru>
-License: GPL-2+
-
-Files: locale/po/sv.po
-Comment: Swedish texts
-Copyright:  2003, Jonny Larsson <jonny@lernbo.com>
-            2003, Daniel Andersson <daniel@addelei.nu>
-            2003, Johan Hambraeus <nahoj1976@users.sourceforge.net>
-License: GPL-2+
-
-Files: locale/po/tr.po
-Comment: Turkish texts
-Copyright:  2001, Mufit Eribol <meribol@deltagrup.com.tr>
-License: GPL-2+
-
-Files: locale/po/uk.po
-Comment: Ukrainian texts
-Copyright:  2003-2005, Ivan Petrouchtchak <impe@telus.net>
-License: GPL-2+
-
-Files: locale/po/zh_CN.po
-Comment:
- Simplified Chinese (UTF-8) texts. BIG5 translation by Carfield Yim.
- Converted to GB and then UTF-8 by Edmund Lian.
-Copyright:  2004, Carfield Yim <carfield@carfield.com.hk>
-            2004, Edmund Lian <elian@inbrief.net>
-License: GPL-2+
-
-Files: locale/po/zh_TW.po
-Comment: Traditional Chinese texts
-Copyright:  2004, Edmund Lian <elian@inbrief.net>
-            2004, Kent Tong <kent@cpttm.org.mo>
-License: GPL-2+
-
 License: GPL-2+
  This program is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public
@@ -374,24 +132,3 @@ License: GPL-2+
  On Debian systems, the full text of the GNU General Public
  License version 2 can be found in the file
  `/usr/share/common-licenses/GPL-2'.
-
-License: MIT
- Permission is hereby granted, free of charge, to any person obtaining
- a copy of this software and associated documentation files (the
- "Software"), to deal in the Software without restriction, including
- without limitation the rights to use, copy, modify, merge, publish,
- distribute, sublicense, and/or sell copies of the Software, and to
- permit persons to whom the Software is furnished to do so, subject to
- the following conditions:
- .
- The above copyright notice and this permission notice shall be
- included in all copies or substantial portions of the Software.
- .
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-

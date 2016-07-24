@@ -1,3 +1,101 @@
+ledgersmb (1.4.30+ds-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Initial package update for v1.4.x versions. (Closes: #773363)
+  * Update debhelper version from '8' to '9'.
+  * Changes to debian/patches:
+    - Refresh debian/patches/05_confdir.patch for new upstream release.
+    - Corrected apache 2.4 related lines in debian/patches/10_httpdconf.patch.
+    - Update 20_BashPath.patch for new upstream tools/regen_db_docs.sh script.
+    - Remove debian/patches/22_SpellingErrors.patch as it is no longer needed.
+  * Changes in debian/control:
+    - Added to Recommends: libtex-encode-perl.
+    - Added to Suggests: libx12-parser-perl, starlet.
+    - Added to Depends: libjs-dojo-dojox, libjson-xs-perl | libjson-perl,
+      libmoose-perl, libnumber-format-perl,libnamespace-autoclean-perl,
+      libcarp-always-perl, starman, adduser, ucf.
+    - Drop dh-linktree,libjs-prototype,libjs-scriptaculous from Build-Depends.
+    - Drop libio-stringy-perl & libhtml-parser-perl from Depends.
+    - Minor edit to long description, pointing to README.Debian.
+  * Changes in debian/copyright:
+    - Update copyright years for the '* Files' stanza.
+    - Remove references related to libjs-prototype & libjs-scriptaculous.
+    - Change Upstream-Contact to 'ledger-smb-devel@lists.sourceforge.net'.
+    - Add 'Files-Excluded' section for embedded 'dojo' javascript libraries.
+    - Remove the separate locale/po/*.po stanzas as they are no longer needed
+      because the files are now being refreshed with each upstream release.
+  * Changes in debian/rules:
+   - Add override for dh_auto_build.
+   - Add new target for 'get-orig-source'.
+   - Make override_dh_auto_configure a bare target.
+   - Correct permissions of tools/*.psgi in override_dh_fixperms stanza.
+   - Correct permissions of lsmb-request.pl in override_dh_fixperms stanza.
+   - Correct permissions of *.html files as necessary in override_dh_fixperms
+     stanza.
+   - Remove changing ownership for /var/lib/ledgersmb in override_dh_fixperms
+     stanza.
+  * Changes in debian/ledgersmb.postinst:
+   - Change where ledgersmb.conf is enabled for apache 2.4.
+   - Remove no longer needed references to /var/lib/ledgersmb.
+   - Use 'ucf' to register the package apache configuration files as necesssary.
+  * Changes in debian/ledgersmb.preinst:
+   - Add 'ledgersmb' system user as necessary.
+   - Remove unnecessary v1.3.18-1 related stanza.
+   - Correct the package version referenced for the apache config file rename
+     to 1.3.18-2.
+  * Changes in debian/ledgersmb.postrm:
+   - Purge 'ledgersmb' system user as necessary.
+   - Purge and deregister the package apache configuration files.
+   - Rewrite the comments for removing the package apache symbolic links.
+   - Correct the package version referenced for the apache config file rename
+     to 1.3.18-2.
+  * Changes in debian/ledgersmb.lintian-overrides:
+   - Add entry for experimental Lintian result 'duplicate-files'.
+  * Remove debian/source.lintian-overrides as it is no longer necessary.
+  * Add symbolic link to the README.Debian file from the install directory to
+    debian/ledgersmb.links.
+  * Update debian/README.Debian to reflect package changes for LedgerSMB v1.4.
+  * Rewrite debian/README.source regarding repacking the 'orig' source archive.
+  * Remove references to pos.conf.pl as it is no longer in upstream.
+  * Remove references to Net::TCLink in debian/README.Debian and debian/control
+    as it is no longer being used.
+  * Add debian/upstream/signing-key.asc for upstream gpg release signing key.
+  * Add pgpsigurlmangle, dversionmangle, & repacksuffix options to debian/watch.
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 18 Jul 2016 14:51:49 -0400
+
+ledgersmb (1.3.47-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Changes to debian/control:
+    - Set the Vcs-Browser URL to use 'https' instead of 'http'.
+    - Set Standards-Version to 3.9.8, no package changes required.
+    - Change texlive-xetex from 'Suggests' to 'Recommends' to work around issues
+      with using liblatex-driver-perl needed for printing.
+  * Changes to debian/copyright:
+    - Add 'Nick Prater' copyright information.
+    - Correct spelling of 'Portugese' to 'Portuguese'.
+    - Update end years in debian/copyright as necessary.
+  * Changes to debian/patches/*:
+    - Create debian/patches/22_SpellingErrors.patch.
+    - Add 'Origin: vendor' to the debian/patches/*.patch files.
+    - Remove unneeded line 5 in debian/patches/20_BashPath.patch.
+    - Refresh debian/patches/10_httpdconf.patch for updated package.
+    - Set default for the 'contrib_dir' setting in 05_confdir.patch to be for
+      v9.5 instead of v9.1.
+  * Correct spelling of 'authorative' as 'authoritative' in the file
+    debian/README.Debian.
+  * Default to 'true' in debian/templates to automatically configure package.
+  * Changes to debian/ledgersmb.preinst and debian/ledgersmb.postrm:
+    - Update the package version to v1.3.18-2 that is being checked for in the
+      ledgersmb apache config file renaming.
+  * Changes to debian/ledgersmb.postinst:
+    - Explicitly do 'db_stop' after operations with debconf have completed.
+    - Rewrite how apache 2.4 modules are enabled and how the apache v2.2 related
+      configuration files are handled. (Closes: #800036, #819481, LP#1513691)
+
+ -- Robert James Clay <jame@rocasa.us>  Fri, 08 Apr 2016 11:15:15 -0400
+
 ledgersmb (1.3.46-1~bpo8+1) jessie-backports; urgency=medium
 
   * Rebuild for jessie-backports.
