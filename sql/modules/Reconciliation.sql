@@ -11,6 +11,44 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
 
+CREATE OR REPLACE FUNCTION reconciliation__check(in_end_date date, in_chart_id int)
+RETURNS SETOF defaults
+LANGUAGE SQL AS
+$$
+WITH unapproved_tx as (
+     SELECT 'unapproved_transactions'::text, count(*)::text
+       FROM (select id::text from ar where approved is false and transdate < $1
+              UNION
+             select id::text from ap where approved is false and transdate < $1
+              UNION
+             select id::text from gl where approved is false and transdate < $1
+              UNION
+             SELECT distinct source from acc_trans
+              where approved is false and transdate < $1 and chart_id = $2
+            ) tx
+),
+     unapproved_cr as (
+     SELECT 'unapproved_reports'::text, count(*)::text
+       FROM cr_report
+      WHERE end_date < $1 AND approved is not true and chart_id = $2
+)
+SELECT * FROM unapproved_tx
+ UNION
+SELECT * FROM unapproved_cr;
+$$;
+
+CREATE OR REPLACE FUNCTION reconciliation__reject_set(in_report_id int)
+RETURNS bool language plpgsql as $$
+BEGIN
+     UPDATE cr_report set submitted = false 
+      WHERE id = in_report_id
+            AND approved is not true;
+     RETURN found;
+END;
+$$ SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION reconciliation__reject_set(in_report_id int) FROM public;
+
 COMMENT ON FUNCTION reconciliation__submit_set(
         in_report_id int, in_line_ids int[]) IS
 $$Submits a reconciliation report for approval. 
@@ -206,8 +244,8 @@ $$Marks the report approved and marks all cleared transactions in it cleared.$$;
 CREATE OR REPLACE FUNCTION reconciliation__new_report_id 
 (in_chart_id int, in_total numeric, in_end_date date, in_recon_fx bool) returns INT as $$
 
-    INSERT INTO cr_report(chart_id, their_total, end_date, recon_fx) 
-    values ($1, $2, $3, $4);
+    INSERT INTO cr_report(chart_id, their_total, end_date, recon_fx, approved) 
+    values ($1, $2, $3, $4, false);
     SELECT currval('cr_report_id_seq')::int;
 
 $$ language 'sql';
@@ -251,6 +289,7 @@ create or replace function reconciliation__add_entry(
 		t_scn := t_prefix || in_scn;
 	END IF;
 	IF t_scn IS NOT NULL THEN
+                -- could this be changed to update, if not found insert?
 		SELECT count(*) INTO in_count FROM cr_report_line
 		WHERE scn ilike t_scn AND report_id = in_report_id 
 			AND their_balance = 0 AND post_date = in_date;
@@ -373,15 +412,26 @@ that within each category, one submits in order of amount.  We should therefore
 wrap it in another function which can operate on a set, perhaps in 1.4....$$;
 
 
-create or replace function reconciliation__pending_transactions 
-(in_end_date DATE, in_chart_id int, in_report_id int, in_their_total numeric) 
-RETURNS int as $$
+DROP FUNCTION IF EXISTS
+  reconciliation__pending_transactions(in_end_date date,
+                                       in_chart_id integer,
+                                       in_report_id integer,
+                                       in_their_total numeric);
+CREATE OR REPLACE FUNCTION reconciliation__pending_transactions(
+                      in_report_id integer, in_their_total numeric)
+  RETURNS integer AS
+$$
     
     DECLARE
         gl_row RECORD;
         t_recon_fx BOOL;
+        t_chart_id integer;
+        t_end_date date;
     BEGIN
-                SELECT recon_fx INTO t_recon_fx FROM cr_report WHERE id = in_report_id;
+       SELECT end_date, recon_fx, chart_id
+         INTO t_end_date, t_recon_fx, t_chart_id
+         FROM cr_report
+        WHERE id = in_report_id;
  
 		INSERT INTO cr_report_line (report_id, scn, their_balance, 
 			our_balance, "user", voucher_id, ledger_id, post_date)
@@ -418,30 +468,34 @@ RETURNS int as $$
 			AND ((rl.ledger_id = ac.entry_id 
 				AND ac.voucher_id IS NULL) 
 				OR (rl.voucher_id = ac.voucher_id)))
+                LEFT JOIN cr_report r ON r.id = in_report_id
                 LEFT JOIN exchangerate ex ON gl.transdate = ex.transdate
 		WHERE ac.cleared IS FALSE
 			AND ac.approved IS TRUE
-			AND ac.chart_id = in_chart_id
-			AND ac.transdate <= in_end_date
+			AND ac.chart_id = t_chart_id
+			AND ac.transdate <= t_end_date
                         AND ((t_recon_fx is not true 
                                 and ac.fx_transaction is not true) 
                             OR (t_recon_fx is true 
                                 AND (gl.table <> 'gl' OR ac.fx_transaction
                                                       IS TRUE))) 
+                        AND (ac.entry_id > coalesce(r.max_ac_id, 0))
 		GROUP BY gl.ref, ac.source, ac.transdate,
 			ac.memo, ac.voucher_id, gl.table, 
                         case when gl.table = 'gl' then gl.id else 1 end
 		HAVING count(rl.id) = 0;
 
 		UPDATE cr_report set updated = now(),
-			their_total = coalesce(in_their_total, their_total)
+			their_total = coalesce(in_their_total, their_total),
+                        max_ac_id = (select max(entry_id) from acc_trans)
 		where id = in_report_id;
     RETURN in_report_id;
     END;
-$$ LANGUAGE plpgsql;
+$$
+  LANGUAGE plpgsql;
 
 COMMENT ON function reconciliation__pending_transactions
-(in_end_date DATE, in_chart_id int, in_report_id int, in_their_total numeric) IS
+  (in_report_id int, in_their_total numeric) IS
 $$Ensures that the list of pending transactions in the report is up to date. $$;
 
 CREATE OR REPLACE FUNCTION reconciliation__report_details (in_report_id INT) RETURNS setof cr_report_line as $$
@@ -503,7 +557,7 @@ $$ Retrieves all header info from the reconciliation report.$$;
 CREATE OR REPLACE FUNCTION reconciliation__search
 (in_date_from date, in_date_to date, 
 	in_balance_from numeric, in_balance_to numeric, 
-	in_chart_id int, in_submitted bool, in_approved bool) 
+	in_account_id int, in_submitted bool, in_approved bool) 
 returns setof cr_report AS
 $$
 DECLARE report cr_report;
@@ -518,7 +572,7 @@ BEGIN
 				or in_balance_from <= their_total ) AND
 			(in_balance_to IS NULL 
 				OR in_balance_to >= their_total) AND
-			(in_chart_id IS NULL OR in_chart_id = chart_id) AND
+			(in_account_id IS NULL OR in_account_id = chart_id) AND
 			(in_submitted IS NULL or in_submitted = submitted) AND
 			(in_approved IS NULL OR in_approved = approved) AND
 			(r.deleted IS FALSE)
@@ -594,7 +648,7 @@ account.  For asset and expense accounts this is the debit balance, for others
 this is the credit balance.$$;
 
 CREATE OR REPLACE VIEW recon_payee AS
- SELECT n.name AS payee, rr.id, rr.report_id, rr.scn, rr.their_balance, rr.our_balance, rr.errorcode, rr."user", rr.clear_time, rr.insert_time, rr.trans_type, rr.post_date, rr.ledger_id, rr.voucher_id, rr.overlook, rr.cleared
+ SELECT n.name AS payee, rr.id, rr.report_id, rr.scn, rr.their_balance, rr.our_balance, rr.errorcode, rr."user", rr.clear_time, rr.insert_time, rr.trans_type, rr.post_date, rr.ledger_id, ac.voucher_id, rr.overlook, rr.cleared
    FROM cr_report_line rr
    LEFT JOIN acc_trans ac ON rr.ledger_id = ac.entry_id
    LEFT JOIN gl ON ac.trans_id = gl.id
@@ -627,5 +681,7 @@ $$ language 'plpgsql';
 
 COMMENT ON FUNCTION reconciliation__report_details_payee (in_report_id INT) IS
 $$ Pulls the payee information for the reconciliation report.$$;
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
 
 COMMIT;

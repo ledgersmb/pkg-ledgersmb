@@ -36,7 +36,7 @@ the operation will not raise an exception in the event of a database error, and
 it will be up to the application to handle any exceptions.
 
 =item __validate__ is called on every new() invocation.  It is blank in this 
-module but can be overridden in decendant modules.
+module but can be overridden in descendant modules.
 
 =item _db_array_scalars(@elements) creates a db array from scalars.
 
@@ -48,7 +48,7 @@ module but can be overridden in decendant modules.
 package LedgerSMB::DBObject;
 use Scalar::Util;
 use base qw(LedgerSMB);
-use LedgerSMB::Log;
+use Log::Log4perl;
 use LedgerSMB::App_State;
 use strict;
 use warnings;
@@ -100,15 +100,18 @@ Sets the ordering used by default for specific functions called by exec_method
 
 sub set_ordering {
     my ($self, $args) = @_;
+    my $dbh = $LedgerSMB::App_State::DBH;
     $self->{_order_method}->{$args->{method}} = 
-		$self->{dbh}->quote_identifier($args->{column});
+		$dbh->quote_identifier($args->{column});
 }
 
 sub exec_method {
+    use DBD::Pg qw(:pg_types);
     my $self   = shift @_;
     my %args  = (ref($_[0]) eq 'HASH')? %{$_[0]}: @_;
     my $funcname = $args{funcname};
-    $self->{dbh} ||= $LedgerSMB::App_State::DBH;
+    my $dbh = $LedgerSMB::App_State::DBH;
+    die 'No Database Handle' unless $dbh;
     
     my $schema   = $args{schema} || $LedgerSMB::Sysconfig::db_namespace;
     
@@ -119,13 +122,13 @@ sub exec_method {
     my @call_args;
      
     my $query = "
-	SELECT proname, pronargs, proargnames FROM pg_proc 
+	SELECT proname, pronargs, proargnames, proargtypes FROM pg_proc 
 	 WHERE proname = ? 
 	       AND pronamespace = 
 	       coalesce((SELECT oid FROM pg_namespace WHERE nspname = ?), 
 	                pronamespace)
     ";
-    my $sth   = $self->{dbh}->prepare(
+    my $sth   = $dbh->prepare(
 		$query
     );
     $sth->execute($funcname, $schema) 
@@ -136,6 +139,7 @@ sub exec_method {
     
     my $pargs = $ref->{proargnames};
     my @proc_args;
+    my @proargtypes = split / /, $ref->{proargtypes} if $ref->{proargtypes};
 
     if ( !$ref->{proname} ) {    # no such function
         # If the function doesn't exist, $funcname gets zeroed?
@@ -148,18 +152,25 @@ sub exec_method {
         @proc_args = $self->_parse_array($pargs);
         if (@proc_args) {
             for my $arg (@proc_args) {
+                my $atype = shift @proargtypes;
                 #print STDERR "User Provided Args: $arg\n";
-                $arg =~ s/^in_//;
-                 if ( defined $self->{$arg} )
-                 {
-                    $logger->debug("exec_method pushing $arg = $self->{$arg}");
-                 }
-                 else
-                 {
-                    $logger->debug("exec_method pushing \$arg defined $arg | \$self->{\$arg} is undefined");
-                    #$self->{$arg} = undef; # Why was this being unset? --CT
-                 }
-                 push ( @call_args, $self->{$arg} );
+                if ( $arg =~ s/^in_// ) {
+                     if ( defined $self->{$arg} )
+                     {
+                        $logger->debug("exec_method pushing $arg = $self->{$arg}");
+                     }
+                     else
+                     {
+                        $logger->debug("exec_method pushing \$arg defined $arg | \$self->{\$arg} is undefined");
+                        #$self->{$arg} = undef; # Why was this being unset? --CT
+                     }
+                     if ($atype == 17){
+                         push ( @call_args, { value => $self->{$arg} ,
+                                               type => DBD::Pg::PG_BYTEA });
+                     } else {    
+                         push ( @call_args, $self->{$arg} );
+                     }
+                }
             }
         }
         for (@in_args) { push @call_args, $_ } ;
@@ -290,72 +301,21 @@ sub _parse_array {
     my ($self, $value) = @_;
     return @$value if ref $value eq 'ARRAY';
     return if !defined $value;
-    my $next;
-    my $separator;
-    my @return_array;
-
-    while ($value ne '{}') {
-        $next = "";
-        $separator = "";
-        if ($value =~ /^\{"/){
-            $value =~ s/^\{"(([^"]|\\")*[^\\])"/\{/;
-            $next = $1;
-            $next =~ /(.)$/;
-            $value =~ s/^{,/{/;
-
-        } elsif ($value =~ /^{({+)/){
-            my $open_braces = $1;
-            $next = [];
-            my $close_braces = $open_braces;
-            $close_braces =~ s/{/}/g;
-            $value =~ s/^{($open_braces[^}]*$close_braces),?/{/;
-            my $parse_next = $1;
-            @$next = $self->_parse_array($parse_next);
-        } else {
-            $value =~ s/^\{([^,]*)(,|\})/\{/;
-            $next = $1;
-            $separator = $2;
-        }
-        $value .= '}' if $separator eq '}';
-        $next =~ s/\\\\/\\/g;
-        $next =~ s/\\"/"/g;
-        push @return_array, $next;
-    }
-    return @return_array;
+    # No longer needed since we require DBD::Pg 2.x 
 }
 
 sub _db_array_scalars {
     my $self = shift @_;
     my @args = @_;
-    #print STDERR localtime()." DBObject.pm _db_array_scalars @args=".Data::Dumper::Dumper(\@args)."\n";
-    for my $arg (@args){
-        if(defined($arg))
-        {
-         $arg =~ s/(["{},])/\\$1/g;
-         if ($arg =~ /(\s|\\)/){$arg = qq|"$arg"|;}
-        }#defined
-        else
-        {
-         $arg=''; #dummy_to_avoid_msg_Use_of_uninitialized_value
-         #print STDERR localtime()." DBObject.pm _db_array_scalars setting dummy\n";
-        }
-    }
-    return $self->_db_array_literal(@args);
+    return \@args; 
+    # No longer needed since we require DBD::Pg 2.x
 }
 
 sub _db_array_literal {
     my $self = shift @_;
     my @args = @_;
-    my $return_string = '{}';
-    for my $arg (@args){
-        if ($return_string eq '{}'){
-            $return_string = "{$arg}";
-        }
-        else {
-            $return_string =~ s/\}$/,$arg\}/
-        }
-    }
-    return $return_string;
+    return \@args;
+    # No longer needed since we require DBD::Pg 2.x
 }
 
 1;

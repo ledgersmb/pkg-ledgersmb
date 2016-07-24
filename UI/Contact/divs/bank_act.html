@@ -1,0 +1,80 @@
+<div class="lsmbtab" id="bank_act_div" title="<?lsmb text('Bank Accounts') ?>">
+<div class="listtop"><?lsmb text('Bank Accounts') ?></div>
+<?lsmb 
+href_base = script _ '?&entity_id=' _ entity_id _ '&target_div=bank_act_div' _
+            '&form_id=' _ form_id _ '&credit_id=' _ credit_id _ '&id=';
+FOREACH ba IN bank_account;
+    ba.iban_href_suffix = '&bic=' _ ba.bic _ '&iban=' _ ba.iban _
+         '&action=edit' _ '&id=' _ ba.id;
+    ba.delete_href_suffix=ba.id _ '&action=delete_bank_account';
+    ba.delete = '[' _ text('Delete') _ ']';
+END;
+PROCESS dynatable 
+   attributes = { id = 'bank_account_list', width = '100%' }
+   tbody = {rows = bank_account}
+   columns = [
+     { col_id='bic', type='text', name=text('BIC/SWIFT Code') } #'
+     { col_id='iban', type='href', href_base=href_base, 
+         name=text('Account Number')}#'
+     { col_id='remark', type='text', name=text('Remark') }
+     { col_id='delete', type='href', href_base=href_base, name=' ' }
+   ];
+?>
+<form data-dojo-type="lsmb/lib/Form" name="bank_acct" action="<?lsmb script ?>" method="post">
+<?lsmb PROCESS input element_data = {
+		type = "hidden"
+		name = "form_id"
+		value = form_id
+	} ?>
+	<?lsmb PROCESS input element_data = {
+		type="hidden" 
+		name="entity_id" 
+		value=entity_id
+	} ?>
+	<?lsmb PROCESS input element_data = {
+		type="hidden" 
+		name="credit_id" 
+		value=credit_id
+	} ?>
+	<?lsmb PROCESS input element_data = {
+		type="hidden" 
+		name="bank_account_id" 
+		value=request.id
+	} ?><div class="tabular col-1">
+	<div>
+	<?lsmb INCLUDE input element_data = {
+		type="text" 
+		label = text('BIC/SWIFT Code')
+		name="bic" 
+		value=request.bic
+		size=20
+	} #' ?>
+	</div>
+	<div>
+	<?lsmb PROCESS input element_data = {
+		type="text" 
+		label = text('Bank Account')
+		name="iban" 
+		value=request.iban
+		size=20
+                required = 'true'
+	} #' ?>
+	</div></div>
+	<div>
+	<?lsmb PROCESS input element_data = {
+		type="text" 
+		label = text('Remark')
+		name="remark" 
+		value=request.remark
+		size=30
+	} # ?>
+	</div>
+	<div><?lsmb PROCESS button element_data = {
+		name="action" 
+		value="save_bank_account"
+		class="submit"
+		text = text('Save') 
+		} ?>
+	</div>
+</form>
+</div>

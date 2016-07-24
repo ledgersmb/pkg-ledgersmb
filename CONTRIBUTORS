@@ -21,6 +21,10 @@ Jeff Kowalczyk [email omitted] contributed the ledger-smb-smallgray.css and has 
 Herman Vierendeels <herman.vierendeels @ gmail.com> Contributed a number of 
 bugfixes.
 
+John Locke (Freelock Consulting) <john @ freelock.com> Contributed a number of 
+bug fixes and provided extensive feedback and assistance during the development
+cycles of 1.3 and 1.4.
+
 Christopher Murtagh <christopher.murtagh @ gmail.com>
 Wrote the session handling fix, has begun reformatting the files to fit the
 current coding standards, and other contributions.
@@ -73,9 +77,6 @@ numerous bug fixes.
 Alexey Klyukin (Command Prompt) has contributed code particularly to end of 
 year routines, and helped address scalability issues.
 
-John Locke (Freelock Consulting) <john @ freelock.com> Contributed a number of 
-bug fixes and provided extensive feedback and assistance.
-
 Louis B. Moore <lbmlist @ hethcote.com> has provided the documentation on the 
 command-line API and helped with upgrade scripts, both for 1.2 and 1.3.
 
@@ -98,6 +99,10 @@ the password change in the admin.pl.  He maintains the Gentoo Ebuilds packages.
 Frans van der Star <f.van.der.star @ gmail.com> provided additional 
 documentation regarding Ubuntu 11.10 installation.
 
+Bob Miller <bob @ computerisms.ca} has contributed DNS hosting and 
+documentation regarding integrating LedgerSMB with other corporate systems, for 
+example, authenticating LedgerSMB from LDAP.
+
 Victor Sterpu <victor @ ambra.ro> has contributed some bug fixes to COGS 
 handling.
 
@@ -113,6 +118,9 @@ documentation for Debian installations.
 Hilton Day < hilton.day @ gmail.com > has contributed a fix for the RPM build 
 process.
 
+Steven Marshall <steven.marshall @ tatylee.com> Contributed a bug fix for the 
+menu.
+
 Andres Basile < basile @ gmail.com > has contributed a number of bug fixes, as 
 well as Gnome.css, Argentina chart of accounts and i18n files as well.
 
@@ -123,10 +131,11 @@ Istvan Pongracz has contributed a number of bug fixes and some bug reports.
 Brian Wolf <  brian @ activustech.com > has contributed bug reports.
 
 Berend Tober < btober @ ieee.org > has contributed some to the 
-documentation.
+documentation and a number of bugfixes
 
 Ward Vandewege [email redacted] has contributed some bug fixes to LedgerSMB database management and migration scripts.
 
+Bill Appelbe < bappelbe @ gmail.com > has contributed some of our documentation.
 
 Original Authors of SQL-Ledger:
 ===================================

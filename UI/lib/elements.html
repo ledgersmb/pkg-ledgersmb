@@ -1,6 +1,7 @@
 <?lsmb 
   default_keys = ['id', 'class', 'title']  # Defaults for all attributes
-  input_keys = ['type', 'name', 'disabled', 'size', 'value']  # Defaults for input attributes 
+   # Defaults for input attributes 
+  input_keys = ['type', 'name', 'disabled', 'size', 'value', 'dojo_type', 'dojo_params', 'data-dojo-type','data-dojo-props', 'required']  
 
   # ELEMENT DEFAULTS
 
@@ -24,11 +25,24 @@
     size = '60',
     maxlength = '255'
   }
+
+  # default currency
+  currency_defaults = {
+    "data-dojo-type" = 'dijit/form/CurrencyTextBox',
+    "data-dojo-props" = "currency:'USD'"
+  }    
+
+  # date
+  date_defaults = {
+    "data-dojo-type" = 'lsmb/lib/DateTextBox',
+    'data-dojo-props' = "constraints: {datePattern: '$USER.dateformat'}"
+  }
   
   # textarea
   textarea_defaults = {
-    rows = '5',
-    cols = '60'
+    rows = '1',
+    cols = '60',
+    "data-dojo-type" = 'dijit/form/Textarea'
   }
   
   #button
@@ -41,9 +55,13 @@
 <?lsmb # INPUT ELEMENT ?>
 <?lsmb BLOCK input ?>
   <?lsmb IF label_pos != 1 and label_pos != -1; label_pos = -1; END ?>
-  <?lsmb IF element_data  # Only process element if one exists. ?>
+  <?lsmb IF element_data;  # Only process element if one exists.
+              IF !element_data.title.defined();
+                  element_data.title = element_data.label;
+              END; ?>
   	<?lsmb
 	    input_defaults = {}  # Some inputs have no defaults, so make sure everything is empty to start with.
+            
 	    element_type = 'input';
 	    PROCESS auto_id;
 	  ?>
@@ -64,6 +82,12 @@
 	      CASE 'text';
 	        input_type_keys = input_keys.merge(['maxlength', 'readonly']);
 	        input_defaults = text_defaults;
+	      CASE 'currency';
+	        input_type_keys = input_keys;
+		input_defaults = currency_defaults;
+ 	      CASE 'date';
+	        input_type_keys = input_keys;
+		input_defaults = date_defaults;
 	      CASE;
 	        input_type_keys = input_keys;
 	    END;
@@ -88,7 +112,10 @@
 
 <?lsmb # TEXTAREA ELEMENT ?>
 <?lsmb BLOCK textarea ?>
-  <?lsmb IF element_data  # Only process element if one exists. ?>
+  <?lsmb IF element_data;  # Only process element if one exists. 
+              IF !element_data.title.defined();
+                  element_data.title = element_data.label;
+              END; ?>
   	<?lsmb
 	    element_type = 'textarea';
 	    PROCESS auto_id;
@@ -96,7 +123,7 @@
 	  <?lsmb PROCESS attributes  # Process regular attributes.
 	    attribute_data=element_data 
 	    attribute_defaults = textarea_defaults
-	    element_keys = ['name', 'cols', 'rows', 'disabled', 'readonly', 'tabindex', 'accesskey', 'value']  # Attributes that apply to textareas.
+	    element_keys = ['name', 'cols', 'rows', 'disabled', 'readonly', 'tabindex', 'accesskey', 'value', 'data-dojo-type', 'data-dojo-props']  # Attributes that apply to textareas.
 	  ?>
 	  <?lsmb PROCESS custom_attributes  # Process custom attributes.
 	    custom_attribute_data=element_data.attributes 
@@ -138,7 +165,7 @@
           />
 	  <span class="indicator" id="<?lsmb attribute_data.id ?>-ac-indicator" style="display: none">Working...</span>
 	  <div id="<?lsmb attribute_data.id ?>-ac-choices" class="autocomplete"></div>
-	  <script language="javascript" type="text/javascript"><!--
+	  <script type="text/javascript"><!--
 	    new Ajax.Autocompleter('<?lsmb attribute_data.id ?>', 
                                    '<?lsmb attribute_data.id ?>-ac-choices', 
                                    '<?lsmb element_data.ajax_target ?>', 
@@ -159,7 +186,10 @@
 
 <?lsmb # SELECT ELEMENT ?>
 <?lsmb BLOCK select ?>
-  <?lsmb IF element_data  # Only process element if one exists. ?>
+  <?lsmb IF element_data;  # Only process element if one exists.
+              IF !element_data.title.defined();
+                  element_data.title = element_data.label;
+              END; ?>
     <?lsmb default_blank = element_data.default_blank;
            element_data.delete('default_blank'); ?>
     <?lsmb IF element_data.defined('text_attr') ?>
@@ -194,7 +224,7 @@
 	  <?lsmb PROCESS attributes  # Process regular attributes.
 	    attribute_data=element_data
 	    attribute_defaults = {}  # Make sure old defaults are cleared out.
-	    element_keys=['name', 'size', 'multiple', 'disabled', 'accesskey', 'tabindex']  # Attributes that apply to selects.
+	    element_keys=['name', 'size', 'multiple', 'disabled', 'accesskey', 'tabindex', 'required']  # Attributes that apply to selects.
 	  ?>
 	  <?lsmb PROCESS custom_attributes  # Process custom attributes.
 	    custom_attribute_data=element_data.attributes 
@@ -219,12 +249,8 @@
 
 <?lsmb # OPTION ELEMENT ?>
 <?lsmb BLOCK option ?>
-  <?lsmb IF element_data.defined('value_attr');
-	option_data.value = option_data.$value_attr;
-    END ?>
-  <?lsmb IF element_data.defined('text_attr');
-	option_data.text = option_data.$text_attr;
-    END ?>
+  <?lsmb option_data.value = option_data.$value_attr ?>
+  <?lsmb option_data.text = option_data.$text_attr ?>
   <?lsmb option_data.id = "${parent_id}-${optindex}" -?>
   <?lsmb  # Selected is a special case -- no attribute key, so it is handled here by looking for the option value in the default_values list.
     option_data.selected = "";
@@ -291,7 +317,11 @@
   ?>
   <?lsmb FOREACH element_attribute IN all_keys  # Loop through each allowed attribute. ?>
     <?lsmb 
-      IF attribute_data.defined(element_attribute) and (attribute_data.${element_attribute} != "");  # Add the attribute to the element if it's been set.
+      IF element_attribute == 'dojo_type' and (attribute_data.dojo_type != "");
+        all_attributes = all_attributes _ " " _ 'data-dojo-type="' _ attribute_data.${element_attribute} _ '"';
+      ELSIF element_attribute == 'dojo_params' and (attribute_data.dojo_params != "");
+        all_attributes = all_attributes _ " " _ 'data-dojo-props="' _ attribute_data.${element_attribute} _ '"';
+      ELSIF attribute_data.defined(element_attribute) and (attribute_data.${element_attribute} != "");  # Add the attribute to the element if it's been set.
         all_attributes = all_attributes _ " " _ element_attribute _ '="' _ attribute_data.${element_attribute} _ '"';
       ELSIF attribute_defaults.defined(element_attribute);  # Fall back to default value if one is supplied.
         all_attributes = all_attributes _ " " _ element_attribute _ '="' _ attribute_defaults.${element_attribute} _ '"';
@@ -313,7 +343,7 @@
 <?lsmb BLOCK auto_id  # Automatically builds the id tag for the element if possible. ?>
   <?lsmb UNLESS element_data.defined('id') # id attribute should always be set, so auto-set it if it's not defined. ?>
     <?lsmb element_id = "" ?>
-    <?lsmb  # Labal id's default to [for]-label.
+    <?lsmb  # Label id's default to [for]-label.
       IF element_type == 'label' AND element_data.defined('for');
         element_id = element_data.for _ "-label";
       ELSIF ((element_type == 'input' AND element_data.type == 'radio') OR element_type == 'button') AND element_data.defined('name') AND element_data.defined('value');
@@ -359,7 +389,7 @@
    ELSIF id; 
        CLASS = 'saved';
    END;
-?><div id='statusdiv' class='<?lsmb CLASS ?>'>
+?><div id="statusdiv" class="<?lsmb CLASS ?>">
 <div id="history"><?lsmb text('Action: [_1], ID: [_2]', action, id); ?></div>
 <?lsmb END ?>
 

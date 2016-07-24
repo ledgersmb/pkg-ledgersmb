@@ -1,10 +1,8 @@
-
+BEGIN;
 -- Copyright (C) 2011 LedgerSMB Core Team.  Licensed under the GNU General 
 -- Public License v 2 or at your option any later version.
 
 -- Docstrings already added to this file.
-
-BEGIN;
 
 CREATE OR REPLACE FUNCTION date_get_all_years() returns setof INT AS
 $$
@@ -147,4 +145,7 @@ $$ language sql;
 
 COMMENT ON FUNCTION periods_get() IS
 $$ Returns dates for year to date, and last year.$$;
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
+
 COMMIT;

@@ -1,7 +1,7 @@
 # RPM spec written for and tested on CentOS 4 and CentOS 5 
 Summary: LedgerSMB - Open Source accounting software
 Name: ledgersmb
-Version: 1.3.46
+Version: 1.4.30
 Release: 1
 License: GPL
 URL: http://www.ledgersmb.org/
@@ -15,11 +15,13 @@ Requires: perl-version, perl-Smart-Comments
 Requires: perl-HTML-Parser, perl-Template-Toolkit, 
 Requires: perl-Error, perl-CGI-Simple
 Requires: perl-File-MimeInfo, perl-IO-stringy
-Requires: perl-MIME-Lite
+Requires: perl-MIME-Lite, perl-Class-Std >= 0.0.8
 Requires: perl-Locale-Maketext-Lexicon >= 0.62
 Requires: perl-IO-String 
 Requires: perl-Math-BigInt-GMP
-Requires: perl-Log-Log4perl perl-DateTime
+Requires: perl-Log-Log4perl perl-DateTime perl-DateTime-Format-Strptime
+Requires: perl-Config-IniFiles perl-Moose perl-Number-Format
+Requires: dojo
 BuildRequires: perl
 # avoid bogus autodetection of perl modules:
 AutoReqProv: no
@@ -138,6 +140,8 @@ ln -s ../../..%{_localstatedir}/spool/%{name} \
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d
 install -m 644 rpm-ledgersmb-httpd.conf \
   $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ledgersmb.conf
+
+ln -s /usr/share/dojo $RPM_BUILD_ROOT%{_datadir}/%{name}/UI/lib/dojo
 
 %clean
 rm -rf $RPM_BUILD_ROOT

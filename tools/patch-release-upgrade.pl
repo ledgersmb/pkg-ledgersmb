@@ -36,23 +36,24 @@ sub rebuild_modules {
         {
             username => $ENV{PGUSER},
             company_name => $ENV{PGDATABASE},
-            password => $ENV{PGPASSWORD}
-        });
+            password => $ENV{PGPASSWORD},
+        })
+        or die "No database connection.";
+    my $temp = $database->loader_log_filename();
 
-    $database->load_modules('LOADORDER');
-    $database->process_roles('Roles.sql');
+    $database->load_modules('LOADORDER', {
+	log     => $temp . "_stdout",
+	errlog  => $temp . "_stderr"
+			    })
+        or die "modules not loaded.";
 
-    my $dbh = DBI->connect(
-        "dbi:Pg:dbname=$ENV{PGDATABASE}", 
-         $ENV{PGUSER}, $ENV{PGPASSWORD}, 
-         { AutoCommit => 0, }
-    );
-    my $sth = $dbh->prepare(
+    my $sth = $database->dbh->prepare(
           "UPDATE defaults SET value = ? WHERE setting_key = 'version'"
     );
-    $sth->execute($LedgerSMB::VERSION);
-    $dbh->commit;
-
+    $sth->execute($LedgerSMB::VERSION)
+        or die "Version not updated.";
+#     $sth->finish;
+    $database->dbh->commit;
 
 #### end of copied code
     

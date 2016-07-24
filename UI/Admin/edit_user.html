@@ -8,17 +8,16 @@
                        action = 'save_user';
                 ELSIF user.user.username;
                       text('Editing User');
-                      action = 'save_user';
+                      action = 'edit_user';
                 ELSE;
                       text('New User');
                       action = 'save_user';
                 END ?>
         </div>
     
-    <form method="POST" action="admin.pl">
+    <form data-dojo-type="lsmb/lib/Form" method="POST" action="admin.pl">
         <input type="hidden" name="action" value="<?lsmb action ?>"/>
         <input type="hidden" name="entity_id" value="<?lsmb user.employee.entity_id ?>"/>
-        <input type="hidden" name="user_id" value="<?lsmb user.user.id ?>" />
         <table>
 
             <?lsmb IF user.user.username?>
@@ -81,7 +80,6 @@
             <tr><td>&nbsp;</td>
                 <td>
                     <select name="salutation">
-                            <option></option>
                         <?lsmb FOREACH sal = salutations ?>
                             <option value="<?lsmb sal.id?>"><?lsmb sal.salutation?></option>
                         <?lsmb END?>
@@ -150,12 +148,12 @@
         </button>
     <?lsmb IF user.employee.entity_id;
               e_id = user.employee.entity_id ?>
-       <a href="employee.pl?action=edit&entity_id=<?lsmb e_id ?>">[<?lsmb text('Edit') 
+       <a href="<?lsmb script ?>?action=edit&entity_id=<?lsmb e_id ?>">[<?lsmb text('Edit') 
        ?>]</a>
     <?lsmb END ?> 
     </form>
     <?lsmb IF user.user.username AND user.user.import != 1 ?>
-        <form name="groups" method="POST" action="admin.pl">
+        <form data-dojo-type="lsmb/lib/Form" name="groups" method="POST" action="admin.pl">
             <?lsmb PROCESS input element_data = {
                type="hidden"
                name="user_id"
@@ -169,7 +167,7 @@
                 </tr>
                 <tr>
                 <?lsmb END?>
-                    <td>
+                    <td><div class="input">
                         <?lsmb rolcheck = undef; 
                            IF user.roles.grep(role.name).size;
                               rolcheck = "checked";
@@ -180,7 +178,7 @@
                                value = 1
                                name = role.name
                                checked = rolcheck
-                         }, label_pos = 1 ?>
+                         }, label_pos = 1 ?></div>
                     </td>
                 <?lsmb END?>
                 </tr>

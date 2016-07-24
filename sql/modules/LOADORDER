@@ -1,21 +1,29 @@
-# This is a simple list of files to be loaded from sql/modules in the order
-# they shall be loaded.
+# This is a simple list of files to be loaded from sql/modules
+# in the order they shall be loaded.
+#
+# Note: These files all adhere to the protocol where
+#  they change the value of the setting_key 'module_load_ok'
+#  from 'no' to 'yes' on success.
 Fixes.sql
+Settings.sql
+Util.sql
+App_Module.sql
+Menu.sql
 Drafts.sql
-chart.sql
 Account.sql
 Session.sql
 Business_type.sql
+Business_Unit.sql
 Location.sql
 Company.sql
-Customer.sql 
+Customer.sql
 Date.sql
-Defaults.sql
-Settings.sql
 Employee.sql
 Entity.sql
 Payment.sql
 Person.sql
+PNL.sql
+trial_balance.sql
 Report.sql
 Voucher.sql
 admin.sql
@@ -23,8 +31,18 @@ Reconciliation.sql
 TaxForm.sql
 1099_reports.sql
 EndOfYear.sql
-Util.sql
 Assets.sql
 Files.sql
 Parts.sql
-
+COGS.sql
+Budgetting.sql
+Inventory.sql
+Inventory_Report.sql
+Payroll.sql
+Transaction_Templates.sql
+OrderEntry.sql
+Goods.sql
+Roles.sql
+Templates.sql
+Timecards.sql
+Fixes.sql

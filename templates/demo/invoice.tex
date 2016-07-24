@@ -33,7 +33,7 @@
   }
 }
 
-<?lsmb INCLUDE letterhead.tex ?>
+<?lsmb LETTERHEAD ?>
 
 \markboth{<?lsmb company ?>\hfill <?lsmb invnumber ?>}{<?lsmb company ?>\hfill <?lsmb invnumber ?>}
 
@@ -138,13 +138,14 @@ Fax: <?lsmb shiptofax ?>
   & \textbf{<?lsmb text('Unit') ?>} 
   & \textbf{<?lsmb text('Price') ?>} 
   &  \textbf{<?lsmb text('Disc %') ?>} 
-  & \textbf{<?lsmb text('Amount') ?>} 
+  & \textbf{<?lsmb text('Amount') ?>} \\
+\hline
 \endhead
 <?lsmb FOREACH number ?>
 <?lsmb lc = loop.count - 1 ?>
   <?lsmb runningnumber.${lc} ?> & 
   <?lsmb number.${lc} ?> & 
-  <?lsmb INCLUDE multiline string = description.${lc} ?> & 
+  <?lsmb INCLUDE multiline string = item_description.${lc} ?> & 
   <?lsmb deliverydate.${lc} ?> &
   <?lsmb qty.${lc} ?> & 
   <?lsmb unit.${lc} ?> &

@@ -1,0 +1,42 @@
+<?lsmb INCLUDE "ui-header.html";
+ PROCESS "elements.html" ?>
+<body class="<?lsmb dojo_theme ?>">
+<div class="listtop"><?lsmb template_name ?>.<?lsmb format ?><?lsmb
+ IF language_code; "($language_code)"; ELSE; "(" _ text("No language") _ ")";
+ END; ?></div>
+<form data-dojo-type="lsmb/lib/Form" action="template.pl" method="post">
+<textarea class="template-body <?lsmb format ?> editor" 
+    cols="80" name="template" rows="30"><?lsmb UNESCAPE(content) ?></textarea><br/>
+<?lsmb 
+PROCESS input element_data = {
+    type = 'hidden'
+    name = 'template_name'
+   value = template_name
+};
+PROCESS input element_data = {
+    type = 'hidden'
+    name = "format"
+   value = format
+};
+PROCESS select element_data = {
+           name = 'language_code'
+        options = languages
+  default_blank = 1
+ default_values = [language_code]
+      text_attr = 'description'
+     value_attr = 'code'
+};
+PROCESS button element_data = {
+    type = 'submit'
+    name = 'action'
+   value = 'save'
+    text = text('Save')
+}; 
+PROCESS button element_data = {
+    type = 'submit'
+    name = 'action'
+   value = 'get'
+    text = text('Retrieve')
+} ?>
+</body>
+</html>

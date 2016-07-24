@@ -42,14 +42,14 @@ BEGIN;
 
 -- Basic setup
 INSERT INTO account_heading(id, accno ) VALUES (-255, '-billion');
-INSERT INTO account (id, accno, category, heading ) VALUES (-255, '-billion', 'T', -255);
-INSERT INTO account (id, accno, category, heading ) VALUES (-256, '-billiontest', 'T', -255);
+INSERT INTO account (id, accno, category, heading ) VALUES (-255, '-billion', 'L', -255);
+INSERT INTO account (id, accno, category, heading ) VALUES (-256, '-billiontest', 'L', -255);
 
 
 INSERT INTO country_tax_form (country_id, form_name, id) VALUES (232, 'Testing Form', -511);
 
-INSERT INTO parts (id, partnumber, description) values (-255, 'test1', 'test 1');
-INSERT INTO parts (id, partnumber, description) values (-256, 'test2', 'test 2');
+INSERT INTO parts (id, partnumber, description) values (-255, '-test1', 'test 1');
+INSERT INTO parts (id, partnumber, description) values (-256, '-test2', 'test 2');
 
 -- Set up an ECAs, for AP.
 
@@ -191,8 +191,8 @@ INSERT INTO acc_trans(trans_id, chart_id, transdate, amount, approved, entry_id)
 -- partially paid ($500) in current year -1035
 
 INSERT INTO ar (id, transdate, amount, netamount, curr, entity_credit_account,
-                approved, invoice)
-      values(-1035, date1(), 1010, 1010, 'USD', -255, true, true);
+                approved, invoice, invnumber)
+      values(-1035, date1(), 1010, 1010, 'USD', -255, true, true, 'test1');
 
 INSERT INTO acc_trans(trans_id, chart_id, transdate, amount, approved, entry_id)
      VALUES (-1035, -1000, date1(), 1010, true, -221);
@@ -222,8 +222,8 @@ insert into invoice(trans_id, id, parts_id, description, qty, sellprice)
 -- paid $500 currnet year, $500 in future year -1036
 
 INSERT INTO ar (id, transdate, amount, netamount, curr, entity_credit_account,
-                approved, invoice)
-      values(-1036, date1(), 1010, 1010, 'USD', -255, true, true);
+                approved, invoice, invnumber)
+      values(-1036, date1(), 1010, 1010, 'USD', -255, true, true, 'test2');
 
 INSERT INTO acc_trans(trans_id, chart_id, transdate, amount, approved, entry_id)
      VALUES (-1036, -1000, date1(), 1010, true, -231);
@@ -260,8 +260,8 @@ insert into invoice(trans_id, id, parts_id, description, qty, sellprice)
 
 
 INSERT INTO ar (id, transdate, amount, netamount, curr, entity_credit_account,
-                approved, invoice)
-      values(-1037, date1(), 1010, 1010, 'USD', -256, true, true);
+                approved, invoice, invnumber)
+      values(-1037, date1(), 1010, 1010, 'USD', -256, true, true, 'test3');
 
 INSERT INTO acc_trans(trans_id, chart_id, transdate, amount, approved, entry_id)
      VALUES (-1037, -1000, date1(), 1010, true, -241);
@@ -296,13 +296,31 @@ SELECT '2 rows on current summary report', count(*) = 2
                                   (date1() + '1 day'::interval)::date);
 
 INSERT INTO test_result(test_name, success)
+SELECT '2 rows on current accrual summary report', count(*) = 2
+  FROM tax_form_summary_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date);
+
+INSERT INTO test_result(test_name, success)
 SELECT '1 row on future summary report', count(*) = 1
   FROM tax_form_summary_report(-511, (date2() - '1 day'::interval)::date, 
                                   (date2() + '1 day'::interval)::date);
 
 INSERT INTO test_result(test_name, success)
-SELECT 'inv_sum for test vendor 1, current report is $2000', invoice_sum = 1000
+SELECT '0 rows on future summary accrual report', count(*) = 0
+  FROM tax_form_summary_report_accrual(-511, (date2() - '1 day'::interval)::date, 
+                                  (date2() + '1 day'::interval)::date);
+
+
+
+INSERT INTO test_result(test_name, success)
+SELECT 'inv_sum for test vendor 1, current report is $1000', invoice_sum = 1000
   FROM tax_form_summary_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date)
+ where meta_number = 'Test account 1';
+
+INSERT INTO test_result(test_name, success)
+SELECT 'inv_sum for test vendor 1, current accrual report is $2000', invoice_sum = 2000
+  FROM tax_form_summary_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date)
  where meta_number = 'Test account 1';
 
@@ -318,10 +336,22 @@ SELECT 'inv_sum for test vendor 2, current report is $1000', invoice_sum = 1000
                                   (date1() + '1 day'::interval)::date)
  where meta_number = 'Test account 2';
 
+INSERT INTO test_result(test_name, success)
+SELECT 'inv_sum for test vendor 2, current accrual report is $1000', invoice_sum = 1000
+  FROM tax_form_summary_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date)
+ where meta_number = 'Test account 2';
+
 
 INSERT INTO test_result(test_name, success)
-SELECT 'total_sum for test vendor 1, current report is $4000', total_sum = 3000
+SELECT 'total_sum for test vendor 1, current report is $3000', total_sum = 3000
   FROM tax_form_summary_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date)
+ where meta_number = 'Test account 1';
+
+INSERT INTO test_result(test_name, success)
+SELECT 'total_sum for test vendor 1, current accrual report is $5000', total_sum = 5000
+  FROM tax_form_summary_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date)
  where meta_number = 'Test account 1';
 
@@ -337,10 +367,21 @@ SELECT 'total_sum for test vendor 2, current report is $2000', total_sum = 2000
                                   (date1() + '1 day'::interval)::date)
  where meta_number = 'Test account 2';
 
+INSERT INTO test_result(test_name, success)
+SELECT 'total_sum for test vendor 2, current accrual report is $2000', total_sum = 2000
+  FROM tax_form_summary_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date)
+ where meta_number = 'Test account 2';
 
 INSERT INTO test_result(test_name, success)
 SELECT 'ac_sum for test vendor 1, current report is $2000', acc_sum = 2000
   FROM tax_form_summary_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date)
+ where meta_number = 'Test account 1';
+
+INSERT INTO test_result(test_name, success)
+SELECT 'ac_sum for test vendor 1, current accrual report is $3000', acc_sum = 3000
+  FROM tax_form_summary_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date)
  where meta_number = 'Test account 1';
 
@@ -357,8 +398,20 @@ SELECT 'ac_sum for test vendor 2, current report is $1000', acc_sum = 1000
  where meta_number = 'Test account 2';
 
 INSERT INTO test_result(test_name, success)
+SELECT 'ac_sum for test vendor 2, current accrual report is $1000', acc_sum = 1000
+  FROM tax_form_summary_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date)
+ where meta_number = 'Test account 2';
+
+INSERT INTO test_result(test_name, success)
     SELECT '6 in detail report for current report, vendor 1', count(*) = 5
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1');
+
+INSERT INTO test_result(test_name, success)
+    SELECT '6 in detail report for current accrual report, vendor 1', count(*) = 5
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 1');
 
@@ -367,6 +420,12 @@ INSERT INTO test_result(test_name, success)
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 2');
+INSERT INTO test_result(test_name, success)
+    SELECT '2 in detail report for current accrual report, vendor 2', count(*) = 2
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 2');
+
 
 INSERT INTO test_result(test_name, success)
     SELECT '2 in detail report for future report, vendor 1', count(*) = 2
@@ -388,8 +447,22 @@ INSERT INTO test_result(test_name, success)
     WHERE invoice_id = -1024;
 
 INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1024, acc $1000', acc_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1024;
+
+INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1025, acc $500', acc_sum= 500
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1025;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current report, invoice -1025, acc $1000', acc_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 1')
     WHERE invoice_id = -1025;
@@ -402,8 +475,22 @@ INSERT INTO test_result(test_name, success)
     WHERE invoice_id = -1026;
 
 INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1026, acc $1000', acc_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1026;
+
+INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1027, acc $1000', acc_sum= 1000
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 2')
+    WHERE invoice_id = -1027;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current report, invoice -1027, acc $1000', acc_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 2')
     WHERE invoice_id = -1027;
@@ -417,8 +504,22 @@ INSERT INTO test_result(test_name, success)
     WHERE invoice_id = -1024;
 
 INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1024, total $1000', total_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1024;
+
+INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1025, total $500', total_sum= 500
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1025;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1025, total $1000', total_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 1')
     WHERE invoice_id = -1025;
@@ -431,8 +532,22 @@ INSERT INTO test_result(test_name, success)
     WHERE invoice_id = -1026;
 
 INSERT INTO test_result(test_name, success)
+   SELECT 'current report, invoice -1026, total $1000', total_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1026;
+
+INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1027, total $1000', total_sum= 1000
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 2')
+    WHERE invoice_id = -1027;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1027, total $1000', total_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 2')
     WHERE invoice_id = -1027;
@@ -447,8 +562,22 @@ INSERT INTO test_result(test_name, success)
     WHERE invoice_id = -1024;
 
 INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1024, inv_total 0', invoice_sum= 0
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1024;
+
+INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1025, inv 0', invoice_sum= 0
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1025;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1025, inv 0', invoice_sum= 0
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 1')
     WHERE invoice_id = -1025;
@@ -461,8 +590,22 @@ INSERT INTO test_result(test_name, success)
     WHERE invoice_id = -1026;
 
 INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1026, inv 0', invoice_sum = 0
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1026;
+
+INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1027, inv 0', invoice_sum= 0
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 2')
+    WHERE invoice_id = -1027;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1027, inv 0', invoice_sum= 0
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 2')
     WHERE invoice_id = -1027;
@@ -477,6 +620,13 @@ INSERT INTO test_result(test_name, success)
     WHERE invoice_id = -1035;
 
 INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1035, inv $1000', invoice_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1035;
+
+INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1036, inv $500', invoice_sum= 500
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
@@ -484,8 +634,22 @@ INSERT INTO test_result(test_name, success)
     WHERE invoice_id = -1036;
 
 INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1036, inv $1000', invoice_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1036;
+
+INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1037, inv $1000', invoice_sum= 1000
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 2')
+    WHERE invoice_id = -1037;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1037, inv $1000', invoice_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 2')
     WHERE invoice_id = -1037;
@@ -513,6 +677,27 @@ INSERT INTO test_result(test_name, success)
                                 'Test account 2')
     WHERE invoice_id = -1037;
 
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1035, total $1000', total_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1035;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1036, total $1000', total_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1036;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1037, total $1000', total_sum= 1000
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 2')
+    WHERE invoice_id = -1037;
+
    
 
 
@@ -533,6 +718,27 @@ INSERT INTO test_result(test_name, success)
 INSERT INTO test_result(test_name, success)
    SELECT 'current report, invoice -1037, acc 0', acc_sum = 0
     FROM tax_form_details_report(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 2')
+    WHERE invoice_id = -1037;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1035, acc 0', acc_sum = 0
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1035;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1036, acc 0',  acc_sum = 0
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
+                                  (date1() + '1 day'::interval)::date, 
+                                'Test account 1')
+    WHERE invoice_id = -1036;
+
+INSERT INTO test_result(test_name, success)
+   SELECT 'current accrual report, invoice -1037, acc 0', acc_sum = 0
+    FROM tax_form_details_report_accrual(-511, (date1() - '1 day'::interval)::date, 
                                   (date1() + '1 day'::interval)::date, 
                                 'Test account 2')
     WHERE invoice_id = -1037;

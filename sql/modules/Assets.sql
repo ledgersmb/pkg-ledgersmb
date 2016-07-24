@@ -272,7 +272,8 @@ DECLARE out_var asset_class_result;
 BEGIN
 	FOR out_var IN
 		SELECT ac.id, ac.asset_account_id, aa.accno, aa.description, 
-			ad.accno, ad.description, m.method, ac.method,
+			ac.dep_account_id, ad.accno, ad.description, 
+                        m.method, ac.method,
 			ac.label
 		FROM asset_class ac
 		JOIN account aa ON (aa.id = ac.asset_account_id)
@@ -374,7 +375,7 @@ BEGIN
 			or asset_class_id = in_asset_class)
 			AND (in_description is null or description 
 				LIKE '%' || in_description || '%')
-			and (in_tag is not null or tag like '%'||in_tag||'%')
+			and (in_tag is null or tag like '%'||in_tag||'%')
 			AND (in_purchase_date is null 
 				or purchase_date = in_purchase_date)
 			AND (in_purchase_value is null
@@ -685,7 +686,7 @@ $$
                                            ai.start_depreciation,
                                            ai.purchase_date))/ 12,
           ai.purchase_value - ai.salvage_value, ai.salvage_value, max(r.report_date),
-          sum(rl.amount), ai.purchase_value - sum(rl.amount) 
+          sum(rl.amount), ai.purchase_value - coalesce(sum(rl.amount), 0)
      FROM asset_item ai
      JOIN asset_class ac ON (ai.asset_class_id = ac.id)
      JOIN asset_dep_method adm ON (adm.id = ac.method)
@@ -1315,5 +1316,7 @@ api's.$$; --'
 -- needed to go here because dependent on other functions in other modules. --CT
 alter table asset_report alter column entered_by 
 set default person__get_my_entity_id();
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
 
 COMMIT;

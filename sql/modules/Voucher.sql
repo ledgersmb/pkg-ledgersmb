@@ -1,4 +1,19 @@
 BEGIN;
+
+CREATE OR REPLACE FUNCTION batch__lock_for_update (in_batch_id integer)
+RETURNS batch LANGUAGE SQL 
+SECURITY DEFINER AS
+$$
+SELECT * FROM batch WHERE id = $1 FOR UPDATE;
+$$;
+
+REVOKE EXECUTE ON FUNCTION batch__lock_for_update(int) FROM PUBLIC;
+
+COMMENT ON FUNCTION batch__lock_for_update(in_batch_id integer) is
+$$ Locks a batch for the duration of the running transaction.
+To be used when adding vouchers to the batch to prevent others
+from hitting the batch for other purposes (e.g. approval) $$;
+
 CREATE OR REPLACE FUNCTION voucher_get_batch (in_batch_id integer) 
 RETURNS batch AS 
 $$
@@ -16,26 +31,28 @@ $$ Retrieves basic batch information based on batch_id.$$;
 DROP TYPE IF EXISTS voucher_list CASCADE;
 CREATE TYPE voucher_list AS (
 	id int,
+        invoice bool,
 	reference text,
 	description text,
 	batch_id int,
 	transaction_id integer,
 	amount numeric,
 	transaction_date date,
-        batch_class text
+        batch_class text,
+        batch_class_id int
 );
 
 -- voucher_list could use refactoring
 
-CREATE OR REPLACE FUNCTION voucher_list (in_batch_id integer)
+CREATE OR REPLACE FUNCTION voucher__list (in_batch_id integer)
 RETURNS SETOF voucher_list AS
 $$
 declare voucher_item record;
 BEGIN
     	FOR voucher_item IN
-		SELECT v.id, a.invnumber, e.name, 
+		SELECT v.id, a.invoice, a.invnumber, e.name, 
 			v.batch_id, v.trans_id, 
-			a.amount, a.transdate, 'Payable'
+			a.amount, a.transdate, 'Payable', v.batch_class
 		FROM voucher v
 		JOIN ap a ON (v.trans_id = a.id)
 		JOIN entity_credit_account eca 
@@ -45,9 +62,9 @@ BEGIN
 			AND v.batch_class = (select id from batch_class 
 					WHERE class = 'ap')
 		UNION
-		SELECT v.id, a.invnumber, e.name, 
+		SELECT v.id, a.invoice, a.invnumber, e.name, 
 			v.batch_id, v.trans_id, 
-			a.amount, a.transdate, 'Receivable'
+			a.amount, a.transdate, 'Receivable', v.batch_class
 		FROM voucher v
 		JOIN ar a ON (v.trans_id = a.id)
 		JOIN entity_credit_account eca 
@@ -58,7 +75,7 @@ BEGIN
 					WHERE class = 'ar')
 		UNION ALL
 		-- TODO:  Add the class labels to the class table.
-		SELECT v.id, a.source, 
+		SELECT v.id, false, a.source, 
 			cr.meta_number || '--'  || co.legal_name , 
 			v.batch_id, v.trans_id, 
 			sum(CASE WHEN bc.class LIKE 'payment%' THEN a.amount * -1
@@ -66,7 +83,7 @@ BEGIN
 			CASE WHEN bc.class = 'payment' THEN 'Payment'
 			     WHEN bc.class = 'payment_reversal' 
 			     THEN 'Payment Reversal'
-			END
+			END, v.batch_class
 		FROM voucher v
 		JOIN acc_trans a ON (v.id = a.voucher_id)
                 JOIN batch_class bc ON (bc.id = v.batch_class)
@@ -82,15 +99,14 @@ BEGIN
                         v.batch_id, v.trans_id, a.transdate, bc.class
 
 		UNION ALL
-		SELECT v.id, a.source,
-                        cr.meta_number || '--'  || co.legal_name ,
+		SELECT v.id, false, a.source, a.memo, 
 			v.batch_id, v.trans_id, 
 			CASE WHEN bc.class LIKE 'receipt%' THEN sum(a.amount) * -1
 			     ELSE sum(a.amount)  END, a.transdate, 
 			CASE WHEN bc.class = 'receipt' THEN 'Receipt'
 			     WHEN bc.class = 'receipt_reversal' 
 			     THEN 'Receipt Reversal'
-			END
+			END, v.batch_class
 		FROM voucher v
 		JOIN acc_trans a ON (v.id = a.voucher_id)
                 JOIN batch_class bc ON (bc.id = v.batch_class)
@@ -105,9 +121,9 @@ BEGIN
 		GROUP BY v.id, a.source, cr.meta_number, co.legal_name ,
                         a.memo, v.batch_id, v.trans_id, a.transdate, bc.class
 		UNION ALL
-		SELECT v.id, g.reference, g.description, 
+		SELECT v.id, false, g.reference, g.description, 
 			v.batch_id, v.trans_id,
-			sum(a.amount), g.transdate, 'GL'
+			sum(a.amount), g.transdate, 'GL', v.batch_class
 		FROM voucher v
 		JOIN gl g ON (g.id = v.trans_id)
 		JOIN acc_trans a ON (v.trans_id = a.trans_id)
@@ -124,7 +140,7 @@ BEGIN
 END;
 $$ language plpgsql;
 
-COMMENT ON FUNCTION voucher_list (in_batch_id integer) IS
+COMMENT ON FUNCTION voucher__list (in_batch_id integer) IS
 $$ Retrieves a list of vouchers and amounts attached to the batch.$$;
 
 DROP TYPE IF EXISTS batch_list_item CASCADE;
@@ -171,7 +187,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION 
-batch_search(in_class_id int, in_description text, in_created_by_eid int, 
+batch__search(in_class_id int, in_description text, in_created_by_eid int, 
 	in_date_from date, in_date_to date,
 	in_amount_gt numeric, 
 	in_amount_lt numeric, in_approved bool) 
@@ -188,7 +204,7 @@ BEGIN
 				     WHEN vc.id  = 1
 				     THEN ap.amount 
 				     WHEN vc.id = 2
-                                     THEN ap.amount
+                                     THEN ar.amount
 				     ELSE 0
                                 END) AS transaction_total,
 			sum(
@@ -247,7 +263,7 @@ END;
 $$ LANGUAGE PLPGSQL;
 
 COMMENT ON FUNCTION
-batch_search(in_class_id int, in_description text, in_created_by_eid int,
+batch__search(in_class_id int, in_description text, in_created_by_eid int,
         in_date_from date, in_date_to date,
         in_amount_gt numeric,
         in_amount_lt numeric, in_approved bool) IS
@@ -490,19 +506,21 @@ BEGIN
 	-- transactions, vouchers, and batches, and jobs which are in progress.
 	-- -CT
 	SELECT as_array(trans_id) INTO t_transaction_ids
-	FROM voucher WHERE batch_id = in_batch_id AND batch_class IN (1, 2, 5);
+	FROM voucher WHERE batch_id = in_batch_id AND batch_class IN (1, 2, 5, 8, 9);
 
         DELETE FROM ac_tax_form WHERE entry_id in
                (select entry_id from acc_trans 
                  where trans_id = any(t_transaction_ids));
+        DELETE FROM invoice_tax_form WHERE invoice_id in
+               (select id from invoice
+                 where trans_id = any(t_transaction_ids));
 
+        DELETE FROM invoice WHERE trans_id = ANY(t_transaction_ids);
 	DELETE FROM acc_trans WHERE trans_id = ANY(t_transaction_ids);
-	DELETE FROM ap WHERE id = ANY(t_transaction_ids);
 	DELETE FROM ar WHERE id = ANY(t_transaction_ids);
+	DELETE FROM ap WHERE id = ANY(t_transaction_ids);
 	DELETE FROM gl WHERE id = ANY(t_transaction_ids);
 	DELETE FROM voucher WHERE batch_id = in_batch_id;
-	DELETE FROM payments_queue WHERE batch_id = in_batch_id;
-	DELETE FROM pending_job WHERE batch_id = in_batch_id;
 	DELETE FROM batch WHERE id = in_batch_id;
 	DELETE FROM transactions WHERE id = ANY(t_transaction_ids);
 
@@ -566,5 +584,7 @@ REVOKE ALL ON FUNCTION voucher__delete(int) FROM public;
 
 COMMENT ON FUNCTION voucher__delete(in_voucher_id int) IS
 $$ Deletes the specified voucher from the batch.$$;
+
+update defaults set value = 'yes' where setting_key = 'module_load_ok';
 
 COMMIT;

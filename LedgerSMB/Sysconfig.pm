@@ -9,7 +9,7 @@ no strict qw(refs);
 use Cwd;
 
 # use LedgerSMB::Form;
-use Config::Std;
+use Config::IniFiles;
 use DBI qw(:sql_types);
 binmode STDOUT, ':utf8';
 binmode STDERR, ':utf8';
@@ -18,10 +18,10 @@ binmode STDERR, ':utf8';
 our $pathsep = ':';
 
 our $auth = 'DB';
-our $logging = 0;      # No logging on by default
 our $images = getcwd() . '/images'; 
 our $cssdir = 'css/';
 our $fs_cssdir = 'css/';
+our $dojo_theme = 'claro';
 
 our $force_username_case = undef; # don't force case
 
@@ -30,29 +30,27 @@ our @io_lineitem_columns = qw(unit onhand sellprice discount linetotal);
 # Whitelist for redirect destination
 #
 our @newscripts = qw(
-     account.pl  customer.pl  inventory.pl  payment.pl  user.pl
-admin.pl    drafts.pl    journal.pl    recon.pl    vendor.pl
-asset.pl    employee.pl  login.pl      setup.pl    vouchers.pl
-file.pl      menu.pl       taxform.pl);
+   account.pl admin.pl asset.pl budget_reports.pl budgets.pl business_unit.pl
+   configuration.pl contact.pl contact_reports.pl document_series.pl drafts.pl
+   file.pl goods.pl import_csv.pl inventory.pl invoice.pl inv_reports.pl
+   journal.pl login.pl lreports_co.pl menu.pl order.pl payment.pl payroll.pl
+   pnl.pl recon.pl report_aging.pl reports.pl setup.pl taxform.pl template.pl
+   timecard.pl transtemplate.pl trial_balance.pl user.pl vouchers.pl
+);
 
 our @scripts = (
     'aa.pl', 'am.pl',      'ap.pl',
-    'ar.pl', 'arap.pl',  'arapprn.pl', 'bp.pl',
-    'ca.pl', 'gl.pl',
+    'ar.pl', 'arap.pl',  'arapprn.pl', 'bp.pl',   'gl.pl',
     'ic.pl',  'ir.pl',
-    'is.pl', 'jc.pl',    'login.pl',   'menu.pl',
-    'oe.pl', 'pe.pl',    'pos.pl',     'ps.pl',
-    'pw.pl', 'rc.pl',    'rp.pl', 	'initiate.pl'
+    'is.pl', 'jc.pl',    'oe.pl',       'pe.pl',  'pos.pl',     'ps.pl',
+    'pw.pl',
 );
 
 # if you have latex installed set to 1
-our $latex = 1;
+our $latex = eval {require Template::Plugin::Latex}; 
 
 # Defaults to 1 megabyte
 our $max_post_size = 1024 * 1024;
-
-# defaults to 2-- default number of places to round amounts to
-our $decimal_places = 2;
 
 # defaults to LedgerSMB-1.3 - default spelling of cookie
 our $cookie_name = "LedgerSMB-1.3";
@@ -82,9 +80,10 @@ our $smtptimout = 60;
 our $smtpuser   = '';
 our $smtppass   = '';
 our $smtpauthmethod = '';
+our $zip = 'zip -r %dir %dir';
 
 # set language for login and admin
-our $language = "";
+our $language = "en";
 
 # Maximum number of invoices that can be printed on a check
 our $check_max_invoices = 5;
@@ -101,59 +100,56 @@ our $DBI_TRACE=0;
 # available printers
 our %printer;
 
-our %config;
-read_config( 'ledgersmb.conf' => %config ) or die;
+my $cfg = Config::IniFiles->new( -file => "ledgersmb.conf" ) || die @Config::IniFiles::errors;
+
 # Root variables
 for my $var (
-    qw(pathsep logging log_level DBI_TRACE check_max_invoices language auth latex
-    db_autoupdate force_username_case max_post_size decimal_places cookie_name
-    return_accno no_db_str tempdir cache_templates cssdir fs_cssdir)
+    qw(pathsep log_level cssdir DBI_TRACE check_max_invoices language auth
+    db_autoupdate force_username_case max_post_size cookie_name
+    return_accno no_db_str tempdir cache_templates fs_cssdir dojo_theme)
   )
 {
-    ${$var} = $config{''}{$var} if $config{''}{$var};
+    ${$var} = $cfg->val('main', $var) if $cfg->val('main', $var);
 }
+
 
 if ($cssdir !~ m|/$|){
     $cssdir = "$cssdir/";
 }
 $fs_cssdir =~ s|/$||;
 
-%printer = %{ $config{printers} } if $config{printers};
+for ($cfg->Parameters('printers')){
+     $printer{$_} = $cfg->val('printers', $_);   
+}
 
 # ENV Paths
 for my $var (qw(PATH PERL5LIB)) {
-    if (ref $config{environment}{$var} eq 'ARRAY') {
-        $ENV{$var} .= $pathsep . ( join $pathsep, @{ $config{environment}{$var} } );
-    } elsif ($config{environment}{$var}) {
-        $ENV{$var} .= $pathsep . $config{environment}{$var};
-    }
+     $ENV{$var} .= $pathsep . ( join $pathsep, $cfg->val('environment', $var));
 }
 
 # Application-specific paths
 for my $var (qw(localepath spool templates images)) {
-    ${$var} = $config{paths}{$var} if $config{paths}{$var};
+    ${$var} = $cfg->val('paths', $var) if $cfg->val('paths', $var);
 }
 
 # Programs
-for my $var (qw(gzip)) {
-    ${$var} = $config{programs}{$var} if $config{programs}{$var};
+for my $var (qw(gzip zip)) {
+    ${$var} = $cfg->val('programs', $var) if $cfg->val('programs', $var);
 }
 
 # mail configuration
 for my $var (qw(sendmail smtphost smtptimeout smtpuser 
              smtppass smtpauthmethod backup_email_from)) 
 {
-    ${$var} = $config{mail}{$var} if $config{mail}{$var};
+    ${$var} = $cfg->val('mail', $var) if $cfg->val('mail', $var);
 }
 
 my $modules_loglevel_overrides='';
-my %tmp=%{$config{log4perl_config_modules_loglevel}} if $config{log4perl_config_modules_loglevel};
-for(sort keys %tmp)
-{
- #print STDERR "Sysconfig key=$_ value=$tmp{$_}\n";
- $modules_loglevel_overrides=$modules_loglevel_overrides.'log4perl.logger.'.$_.'='.$tmp{$_}."\n";
+
+for (sort $cfg->Parameters('log4perl_config_modules_loglevel')){
+  $modules_loglevel_overrides.='log4perl.logger.'.$_.'='.
+        $cfg->val('log4perl_config_modules_loglevel', $_)."\n";
 }
-#print STDERR localtime()." Sysconfig \$modules_loglevel_overrides=$modules_loglevel_overrides\n";
 # Log4perl configuration
 our $log4perl_config = qq(
     log4perl.rootlogger = $log_level, Basic, Debug
@@ -196,12 +192,15 @@ our $log4perl_config = qq(
 #log4perl.logger.LedgerSMB.ScriptLib.Company=TRACE
 #print STDERR localtime()." Sysconfig log4perl_config=$log4perl_config\n";
 
-$ENV{PGHOST} = $config{database}{host};
-$ENV{PGPORT} = $config{database}{port};
-our $default_db = $config{database}{default_db};
-our $db_namespace = $config{database}{db_namespace} || 'public';
-$ENV{PGSSLMODE} = $config{database}{sslmode} if $config{database}{sslmode};
-$ENV{PG_CONTRIB_DIR} = $config{database}{contrib_dir};
+our $db_host = $cfg->val('database', 'host');
+our $db_port = $cfg->val('database', 'port');
+
+$ENV{PGHOST} = $db_host;
+$ENV{PGPORT} = $db_port;
+our $default_db = $cfg->val('database', 'default_db');
+our $db_namespace = $cfg->val('database', 'db_namespace') || 'public';
+$ENV{PGSSLMODE} = $cfg->val('database', 'sslmode') 
+    if $cfg->val('database', 'sslmode');
 
 $ENV{HOME} = $tempdir;
 
@@ -217,6 +216,6 @@ if(!(-d "$tempdir")){
          $rc=system("mkdir -p $tempdir");#TODO what if error?
      #$logger->info("created tempdir \$tempdir rc=\$rc"); log4perl not initialised yet!
      }
- print STDERR localtime()." Sysconfig.pm created tempdir $tempdir rc=$rc\n";
 }
+
 1;

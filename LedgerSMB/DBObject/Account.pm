@@ -22,6 +22,23 @@ and accounts).
 use strict;
 package LedgerSMB::DBObject::Account;
 use base qw(LedgerSMB::DBObject);
+use Data::Dumper;
+
+sub _get_translations {
+    my ($self) = @_;
+    my $trans_func = 'account__list_translations';
+    if ($self->{charttype} and $self->{charttype} eq 'H'){
+      $trans_func = 'account_heading__list_translations';
+    }
+
+    $self->{translations} = {};
+    my @translations = $self->exec_method(funcname => $trans_func,
+                                          args => [ $self->{id} ]);
+    for my $trans (@translations) {
+        $self->{translations}->{$trans->{language_code}} = $trans;
+    }
+}
+
 
 =over
 
@@ -54,10 +71,18 @@ sub save {
     if (!defined $self->{tax}) {
 	$self->{tax} = '0';
     }
+    if ($self->{category} eq 'Qt'){
+       $self->{is_temp} = '1';
+       $self->{category} = 'Q';
+    }
     $self->generate_links;
-    my $func = 'account_save';
+    my $func = 'account__save';
+    my $trans_save_func = 'account__save_translation';
+    my $trans_del_func = 'account__delete_translation';
     if ($self->{charttype} and $self->{charttype} eq 'H') {
         $func = 'account_heading_save';
+        $trans_save_func = 'account_heading__save_translation';
+        $trans_del_func = 'account_heading__delete_translation';
     }
     my ($id_ref) = $self->exec_method(funcname => $func,
                              continue_on_error => 1);
@@ -78,7 +103,19 @@ sub save {
     if (defined $self->{recon}){
         $self->call_procedure(procname => 'cr_coa_to_account_save', args =>[ $self->{accno}, $self->{description}]);
     }
-    $self->{dbh}->commit;
+
+    for my $lang_code (keys %{$self->{translations}}) {
+        if ($self->{translations}->{$lang_code} eq '') {
+            $self->exec_method(funcname => $trans_del_func,
+                               args => [ $self->{id}, $lang_code ]);
+        }
+        else {
+            $self->exec_method(funcname => $trans_save_func,
+                               args => [ $self->{id}, $lang_code,
+                                         $self->{translations}->{$lang_code}]);
+        }
+    }
+    $self->_get_translations;
 }
 
 =item get()
@@ -99,6 +136,11 @@ sub get {
     for my $ref (@accounts){
         bless $ref, 'LedgerSMB::DBObject::Account';
         $ref->merge($self, keys => ['_user', '_locale', 'stylesheet', 'dbh', '_roles', '_request']);
+        if ($ref->{is_temp} and ($ref->{category} eq 'Q')){
+            $ref->{category} = 'Qt';
+        }
+
+        $ref->_get_translations;
         push (@{$self->{account_list}}, $ref);
     }
     return @{$self->{account_list}};
@@ -134,17 +176,24 @@ sub is_recon {
 
 =item delete()
 
-Attempts to delete the account.  This will NOT succeed if the account is
-referenced in any way by any transactions, credit accounts, etc.
+Attempts to delete the account or heading.  This will NOT succeed if the
+account is referenced in any way by any transactions, credit accounts, etc.
+or in case of a heading where the heading is referenced by accounts or
+child-headings.
 
-$account->{id} must be set.
+$account->{id} and $account->{charttype} must be set.
 
 =cut
 
 sub delete {
     my $self = shift @_;
-    $self->exec_method(funcname => 'account__delete');
-    $self->{dbh}->commit;
+    if ($self->{charttype} eq 'A') {
+	$self->exec_method(funcname => 'account__delete');
+    } elsif ($self->{charttype} eq 'H') {
+	$self->exec_method(funcname => 'account_heading__delete');
+    } else {
+	die "Unknown charttype."
+    }
 }
 
 =item list()
@@ -157,6 +206,18 @@ sub list {
     my $self = shift @_;
     @{$self->{account_list}} =  $self->exec_method(funcname => 'chart__list_all');
     return @{$self->{account_list}};
+}
+
+=item gifi_list()
+
+Returns a list of all gifi codes and descriptions.
+
+=cut
+
+sub gifi_list {
+    my $self = shift @_;
+    @{$self->{gifi_list}} = $self->exec_method(funcname => 'gifi__list');
+    return @{$self->{gifi_list}};
 }
 
 =item generate_links()

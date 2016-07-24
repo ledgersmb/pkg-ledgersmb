@@ -28,9 +28,11 @@ replacement is available.
 
 package AA;
 use LedgerSMB::Sysconfig;
-use LedgerSMB::Log;
+use LedgerSMB::App_State;
+use Log::Log4perl;
 use LedgerSMB::File;
 use Math::BigFloat;
+use LedgerSMB::Setting;
 
 my $logger = Log::Log4perl->get_logger("AA");
 
@@ -60,6 +62,7 @@ sub post_transaction {
 	use strict;
 
     my ( $self, $myconfig, $form ) = @_;
+    $form->all_business_units;
 
     my $exchangerate;
     my $batch_class;
@@ -76,8 +79,10 @@ sub post_transaction {
         $form->{"amount_$_"} *= -1 if $form->{reverse};
     }
 
+    $form->{crdate} ||= 'now';
+
     # connect to database
-    my $dbh = $form->{dbh};
+    my $dbh = $LedgerSMB::App_State::DBH;
 
     my $query;
     my $sth;
@@ -101,7 +106,7 @@ sub post_transaction {
         $invnumber = "vinumber";
     }
     $form->{invnumber} = $form->update_defaults( $myconfig, $invnumber )
-      unless $form->{invnumber};
+      if $form->should_update_defaults('invnumber');
 
     if ( $form->{currency} eq $form->{defaultcurrency} ) {
         $form->{exchangerate} = 1;
@@ -206,6 +211,7 @@ sub post_transaction {
 
             push @{ $form->{acc_trans}{lineitems} },
               {
+                row_num        => $i,
                 accno          => $accno,
                 amount         => $amount{fxamount}{$i},
                 project_id     => $project_id,
@@ -219,6 +225,7 @@ sub post_transaction {
                 $amount = $amount{amount}{$i} - $amount{fxamount}{$i};
                 push @{ $form->{acc_trans}{lineitems} },
                   {
+                    row_num        => $i,
                     accno          => $accno,
                     amount         => $amount,
                     project_id     => $project_id,
@@ -292,7 +299,9 @@ sub post_transaction {
 
     my ( $fxgain_accno_id, $fxloss_accno_id ) = $dbh->selectrow_array($query);
 
-    ( $null, $form->{employee_id} ) = split /--/, $form->{employee};
+    #tshvr4 trunk svn-revison 6589,$form->login seems to contain id instead of name or '',so person_id not found,thus reports with join on person_id not working,quick fix,use employee_name
+    #( $null, $form->{employee_id} ) = split /--/, $form->{employee};
+    ( $form->{employee_name}, $form->{employee_id} ) = split /--/, $form->{employee};
     unless ( $form->{employee_id} ) {
         ( $form->{employee}, $form->{employee_id} ) = $form->get_employee($dbh);
     }
@@ -343,6 +352,8 @@ sub post_transaction {
         # are using the current username as the "person" inserting the new 
         # AR/AP Transaction.
         # ~A
+
+    #tshvr4 trunk svn-revison 6589,$form->login seems to contain id instead of name or '',so person_id not found,thus reports with join on person_id not working,quick fix,use employee_name
     $query = qq|
 			INSERT INTO $table (invnumber, person_id, 
 				entity_credit_account)
@@ -354,7 +365,8 @@ sub post_transaction {
         # attributes to pass to $dbh->prepare. This is not used here.
         # ~A
         
-    $dbh->do($query,undef,$uid,$form->{login}, $form->{"$form->{vc}_id"}) || $form->dberror($query);
+    #$dbh->do($query,undef,$uid,$form->{login}, $form->{"$form->{vc}_id"}) || $form->dberror($query);
+    $dbh->do($query,undef,$uid,$form->{employee_name}, $form->{"$form->{vc}_id"}) || $form->dberror($query);
 
     $query = qq|
 			SELECT id FROM $table
@@ -366,56 +378,18 @@ sub post_transaction {
     $form->{datepaid} = $form->{transdate} unless $form->{datepaid};
     my $datepaid = ($paid) ? qq|'$form->{datepaid}'| : undef;
 
-
-    $query = qq|
-		UPDATE $table 
-		SET invnumber = ?,
-			ordnumber = ?,
-			transdate = ?,
-			taxincluded = ?,
-			amount = ?,
-			duedate = ?,
-			paid = ?,
-			datepaid = ?,
-			netamount = ?,
-			curr = ?,
-			notes = ?,
-			intnotes = ?,
-			department_id = ?,
-			ponumber = ?,
-			crdate = ?,
-                        reverse = ?
-		WHERE id = ?
-	|;
-    
-    my @queryargs = (
-        $form->{invnumber},     $form->{ordnumber},
-        $form->{transdate},     
-        $form->{taxincluded},   $invamount,
-        $form->{duedate},       $paid,
-        $datepaid,              $invnetamount,
-        $form->{currency},      $form->{notes},
-        $form->{intnotes},      $form->{department_id},
-        $form->{ponumber},      $form->{crdate},
-	$form->{reverse},        $form->{id}
-    );
-
-    $dbh->prepare($query)->execute(@queryargs) || $form->dberror($query);
     if (defined $form->{approved}) {
 
         $query = qq| UPDATE $table SET approved = ? WHERE id = ?|;
         $dbh->prepare($query)->execute($form->{approved}, $form->{id}) ||
             $form->dberror($query);
         if (!$form->{approved} && $form->{batch_id}){
-           if ($form->{arap} eq 'ar'){
+           if ($form->{ARAP} eq 'AR'){
                $batch_class = 'ar';
            } else {
                $batch_class = 'ap';
            }
-           my $vqh = $dbh->prepare(
-              'SELECT * FROM batch 
-               WHERE id = ? FOR UPDATE'
-           );
+           my $vqh = $dbh->prepare('SELECT * FROM batch__lock_for_update(?)');
            $vqh->execute($form->{batch_id});
            my $bref = $vqh->fetchrow_hashref('NAME_lc');
            # Change the below to die with localization in 1.4
@@ -429,6 +403,49 @@ sub post_transaction {
         }
         
     }
+    if ($table eq 'ar' and $form->{setting_sequence}){
+       my $seqsth = $dbh->prepare(
+            'UPDATE ar SET setting_sequence = ? WHERE id = ?'
+       );
+       $seqsth->execute($form->{setting_sequence}, $form->{id});
+       $seqsth->finish;
+    }
+
+    $query = qq|
+		UPDATE $table 
+		SET invnumber = ?,
+                    description = ?,
+			ordnumber = ?,
+			transdate = ?,
+			taxincluded = ?,
+			amount = ?,
+			duedate = ?,
+			paid = ?,
+			datepaid = ?,
+			netamount = ?,
+			curr = ?,
+			notes = ?,
+			intnotes = ?,
+			ponumber = ?,
+			crdate = ?,
+                        reverse = ?
+		WHERE id = ?
+	|;
+
+    $form->{invnumber} = undef if $form->{invnumber} eq '';
+    
+    my @queryargs = (
+        $form->{invnumber},     $form->{description},    
+        $form->{ordnumber},     $form->{transdate},     
+        $form->{taxincluded},   $invamount,
+        $form->{duedate},       $paid,
+        $datepaid,              $invnetamount,
+        $form->{currency},      $form->{notes},
+        $form->{intnotes},
+        $form->{ponumber},      $form->{crdate},
+	$form->{reverse},        $form->{id}
+    );
+    $dbh->prepare($query)->execute(@queryargs) || $form->dberror($query);
     @queries = $form->run_custom_queries( $table, 'INSERT' );
 
     # update exchangerate
@@ -450,26 +467,40 @@ sub post_transaction {
 
     my $taxformfound=AA->taxform_exist($form,$form->{"$form->{vc}_id"});
 
+
+    my $b_unit_sth = $dbh->prepare(
+         "INSERT INTO business_unit_ac (entry_id, class_id, bu_id)
+          VALUES (currval('acc_trans_entry_id_seq'), ?, ?)"
+    );
+
     foreach $ref ( @{ $form->{acc_trans}{lineitems} } ) {
         # insert detail records in acc_trans
         if ( $ref->{amount} ) {
             $query = qq|
 				INSERT INTO acc_trans 
 				            (trans_id, chart_id, amount, 
-				            transdate, project_id, memo, 
+				            transdate, memo, 
 				            fx_transaction, cleared)
-				    VALUES  (?, (SELECT id FROM chart
+				    VALUES  (?, (SELECT id FROM account
 				                  WHERE accno = ?), 
-				            ?, ?, ?, ?, ?, ?)|;
+				            ?, ?, ?, ?, ?)|;
 
             @queryargs = (
                 $form->{id},            $ref->{accno},
                 $ref->{amount} * $ml,   $form->{transdate},
-                $ref->{project_id},     $ref->{description},
+                $ref->{description},
                 $ref->{fx_transaction}, $ref->{cleared}
             );
            $dbh->prepare($query)->execute(@queryargs)
               || $form->dberror($query);
+           if ($ref->{row_num} and !$ref->{fx_transaction}){
+              my $i = $ref->{row_num};
+              for my $cls(@{$form->{bu_class}}){
+                  if ($form->{"b_unit_$cls->{id}_$i"}){
+                     $b_unit_sth->execute($cls->{id}, $form->{"b_unit_$cls->{id}_$i"});
+                  }
+              }
+           }
 
            if($taxformfound)
            {
@@ -494,7 +525,7 @@ sub post_transaction {
 				INSERT INTO acc_trans 
 				            (trans_id, chart_id, amount,
 				            transdate, fx_transaction)
-				     VALUES (?, (SELECT id FROM chart
+				     VALUES (?, (SELECT id FROM account
 					          WHERE accno = ?),
 				            ?, ?, ?)|;
 
@@ -516,14 +547,21 @@ sub post_transaction {
         $query = qq|
 			INSERT INTO acc_trans 
 			            (trans_id, chart_id, amount, transdate)
-			     VALUES (?, (SELECT id FROM chart
+			     VALUES (?, (SELECT id FROM account
 			                  WHERE accno = ?), 
 			                  ?, ?)|;
         @queryargs =
-          ( $form->{id}, $accno, $invamount * -1 * $ml, $form->{transdate} );
+          ( $form->{id}, $accno, $invamount * -1 * $ml / $form->{exchangerate}, 
+            $form->{transdate} );
 
         $dbh->prepare($query)->execute(@queryargs)
           || $form->dberror($query);
+        if ($form->{exchangerate} != 1){
+           $dbh->prepare($query)->execute($form->{id}, $accno,
+                  ($invamount * -1 * $ml) - 
+                  ($invamount * -1 * $ml / $form->{exchangerate}),
+                  $form->{transdate} );
+        }
     }
 
     # if there is no amount force ar/ap
@@ -571,7 +609,7 @@ sub post_transaction {
 					INSERT INTO acc_trans 
 					            (trans_id, chart_id, 
 					            amount,transdate)
-					     VALUES (?, (SELECT id FROM chart
+					     VALUES (?, (SELECT id FROM account
 					                  WHERE accno = ?),
 					            ?, ?)|;
 
@@ -599,7 +637,7 @@ sub post_transaction {
 					            (trans_id, chart_id, amount,
 					            transdate, source, memo, 
 					            cleared)
-					     VALUES (?, (SELECT id FROM chart
+					     VALUES (?, (SELECT id FROM account
 						          WHERE accno = ?),
 					            ?, ?, ?, ?, ?)|;
 
@@ -663,7 +701,7 @@ sub post_transaction {
 						            fx_transaction, 
 						            cleared, source)
 						     VALUES (?, (SELECT id 
-						                   FROM chart
+						                   FROM account
 						                  WHERE accno 
 						                        = ?),
 						            ?, ?, 
@@ -713,13 +751,7 @@ sub post_transaction {
         id        => $form->{id}
     );
 
-    #$form->audittrail( $dbh, "", \%audittrail );
-
-    $form->save_recurring( $dbh, $myconfig );
-
-    my $rc = $dbh->commit;
-
-    $rc;
+    return 1 unless $DBI::errstr;
 
 }
 
@@ -735,82 +767,12 @@ rewritten
 sub get_files {
      my ($self, $form, $locale) = @_;
      return if !$form->{id};
-     my $file = LedgerSMB::File->new();
-     $file->new_dbobject({base => $form, locale => $locale});
+     my $file = LedgerSMB::File->new(%$form);
      @{$form->{files}} = $file->list({ref_key => $form->{id}, file_class => 1});
      @{$form->{file_links}} = $file->list_links(
                   {ref_key => $form->{id}, file_class => 1}
      );
 
-}
-
-=item delete_transaction(\%myconfig, $form)
-
-Deletes a transaction identified by $form->{id}, whether it is an ar or ap
-transaction is identified by $form->{vc}.  $form->{invnumber} used for the 
-audittrail routine.
-
-=cut
-
-sub delete_transaction {
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database, turn AutoCommit off
-    my $dbh = $form->{dbh};
-
-    my $table = ( $form->{vc} eq 'customer' ) ? 'ar' : 'ap';
-
-    my %audittrail = (
-        tablename => $table,
-        reference => $form->{invnumber},
-        formname  => 'transaction',
-        action    => 'deleted',
-        id        => $form->{id}
-    );
-
-    $form->audittrail( $dbh, "", \%audittrail );
-    my $query = qq|DELETE FROM ac_tax_form WHERE entry_id IN
-                   (SELECT entry_id FROM acc_trans WHERE trans_id = ?)|;
-    $dbh->prepare($query)->execute($form->{id}) || $form->dberror($query);
-
-    $query = qq|DELETE FROM $table WHERE id = ?|;
-    $dbh->prepare($query)->execute($form->{id}) || $form->dberror($query);
-
-    $query = qq|DELETE FROM acc_trans WHERE trans_id = ?|;
-    $dbh->prepare($query)->execute( $form->{id} ) || $form->dberror($query);
-
-    # get spool files
-    $query = qq|SELECT spoolfile 
-				  FROM status
-				 WHERE trans_id = ?
-				   AND spoolfile IS NOT NULL|;
-
-    $logger->debug("query: $query");
-    my $sth = $dbh->prepare($query);
-    $sth->execute( $form->{id} ) || $form->dberror($query);
-
-    my $spoolfile;
-    my @spoolfiles = ();
-
-    while ( ($spoolfile) = $sth->fetchrow_array ) {
-        push @spoolfiles, $spoolfile;
-    }
-
-    $sth->finish;
-
-    $query = qq|DELETE FROM status WHERE trans_id = ?|;
-    $dbh->prepare($query)->execute( $form->{id} ) || $form->dberror($query);
-
-    # commit
-    my $rc = $dbh->commit;
-
-    if ($rc) {
-        foreach $spoolfile (@spoolfiles) {
-            unlink "${LedgerSMB::Sysconfig::spool}/$spoolfile" if $spoolfile;
-        }
-    }
-
-    $rc;
 }
 
 =item transactions(\%myconfig, $form)
@@ -846,423 +808,6 @@ The transaction list is stored at:
 
 =cut
 
-# This is going to get a little awkward because it involves delving into the 
-# acc_trans table in order to avoid catching unapproved payment vouchers.
-sub transactions {
-    my ( $self, $myconfig, $form ) = @_;
-
-    # connect to database
-    my $dbh = $form->{dbh};
-    my $null;
-    my $var;
-    my $paid    = "a.paid";
-    my $ml      = 1;
-    my $ARAP    = 'AR';
-    my $table   = 'ar';
-    my $buysell = 'buy';
-    my $acc_trans_join;
-    my $acc_trans_flds;
-    my $approved = ($form->{approved}) ? 'TRUE' : 'FALSE';
-
-    #print STDERR localtime()." AA.pm transactions \$approved=$approved\n";
-
-    if ( $form->{vc} eq 'vendor' ) {
-        $ml      = -1;
-        $ARAP    = 'AP';
-        $table   = 'ap';
-        $buysell = 'sell';
-    }
-    $form->{db_dateformat} = $myconfig->{dateformat};
-
-    ( $form->{transdatefrom}, $form->{transdateto} ) =
-      $form->from_to( $form->{year}, $form->{month}, $form->{interval} )
-      if (($form->{year} && $form->{month}) && 
-          (!$form->{transdatefrom} && !$form->{transdateto}));
-
-    my @paidargs = ();
-    if ( $form->{outstanding} ) {
-        if ( $form->{transdateto} ) {
-            $paid .= qq|
-			       AND ac.transdate <= ?|;
-       #     push @paidargs, $form->{transdateto};
-        }
-    }
-
-    if ( !$form->{summary} and !$form->{outstanding} ) {
-        $acc_trans_flds = qq|
-			, c.accno, 
-			p.projectnumber, 
-                        ((1 - i.discount) * i.qty * i.sellprice) as linetotal, 
-			i.description AS linedescription|;
-        $group_by_fields = qq|, c.accno, p.projectnumber,
-                              i.discount, i.qty, i.sellprice, i.description |;
-
-        $acc_trans_join = qq| 
-			     JOIN acc_trans ac ON (a.id = ac.trans_id)
-			     JOIN chart c ON (c.id = ac.chart_id 
-                                              AND charttype = 'A')
-			LEFT JOIN invoice i ON (i.id = ac.invoice_id)|;
-    }
-    #print STDERR localtime()." AA.pm transactions summary=$form->{summary} outstanding=$form->{outstanding} group_by_fields=$group_by_fields\n";
-    my $query;
-    if ($form->{outstanding}){
-        # $form->{ARAP} is safe since it is set in calling scripts and not passed from the UA
-        #
-        # Refactoring code here entirely.  This is done because the outstanding
-        # summary report (as of 1.3.36) is not delivering correct answers.
-        # 
-        # I really don't like this code but it is going away in 1.4, and this
-        # seems like the best way to make this more maintainable now.
-        #
-        # The result is going to be a refactoring of the queries so that the
-        # detail report query can be inlined in the summary report query. -CT
-        my $p = $LedgerSMB::Sysconfig::decimal_places;
-
-        my $cols = qq|a.id, a.invnumber, a.ordnumber, a.transdate, 
-		          a.duedate, a.netamount, a.amount::numeric(20,$p), 
-		          a.amount::numeric(20,$p) - (sum(acs.amount::numeric(20,$p)) * CASE WHEN '$table' = 'ar' THEN -1 ELSE 1 END) AS paid,
-		          a.invoice, a.datepaid, a.terms, a.notes,
-		          a.shipvia, a.shippingpoint, 
-		          vce.name, vc.meta_number,
-		          a.entity_credit_account, a.till, 
-		          ex.$buysell AS exchangerate, 
-		          d.description AS department, 
-		          as_array(p.projectnumber) as ac_projects,
-		          a.ponumber $acc_trans_flds
-        |;
-        delete $form->{transdateto} unless $form->{transdateto};
-        my $detail_query = qq| SELECT $cols 
-		     FROM $table a
-		     JOIN entity_credit_account vc ON (a.entity_credit_account = vc.id)
-		LEFT JOIN acc_trans acs ON (acs.trans_id = a.id)
-		     JOIN entity vce ON (vc.entity_id = vce.id)
-		     JOIN chart c ON (acs.chart_id = c.id
-                                      AND charttype='A')
-		LEFT JOIN exchangerate ex ON (ex.curr = a.curr
-		          AND ex.transdate = a.transdate)
-		LEFT JOIN department d ON (a.department_id = d.id)
-                LEFT JOIN project p ON acs.project_id = p.id 
-		$acc_trans_join
-		    WHERE c.link = '$ARAP' AND 
-		          (|.$dbh->quote($form->{transdateto}) . qq| IS NULL OR 
-		           |.$dbh->quote($form->{transdateto}) . qq| >= acs.transdate)
-			AND a.approved IS TRUE AND acs.approved IS TRUE
-			AND a.force_closed IS NOT TRUE
-		 GROUP BY a.id, a.invnumber, a.ordnumber, a.transdate, a.duedate, a.netamount,
-		          a.amount, a.terms, a.notes, a.shipvia, a.shippingpoint, vce.name,
-		          vc.meta_number, a.entity_credit_account, a.till, ex.$buysell, d.description, vce.name,
-		          a.ponumber, a.invoice, a.datepaid $acc_trans_flds
-		   HAVING abs(sum(acs.amount::numeric(20,$p))) > 0 |;
-        if ($form->{transdateto} eq ''){
-            delete $form->{transdateto};
-        }
-        if ($form->{summary}){
-            $cols =~ s/\w+\.invnumber/count(*) as invnumber/;
-            $cols =~ s/\w+\.transdate/min(transdate) as transdate/;
-            $cols =~ s/\w+\.duedate/min(duedate) as duedate/;
-            $cols =~ s/\w+\.netamount/sum(netamount) as netamount/;
-            $cols =~ s/\w+\.duedate/min(duedate) as duedate/;
-            $cols =~ s/.*paid,/sum(paid) as paid,/;
-            $cols =~ s/.*exchangerate,//;
-            $cols =~ s/.*ac_projects,//;
-            $cols =~ s/\w+\.amount::numeric\(20,$p\)/sum(amount::numeric(20,$p)) as amount/;
-            $cols =~ s/\w+\.(invoice|datepaid|terms|invoice|crdate|id),//g;
-            $cols =~ s/\w+\.(ordnumber|notes|shipvia|shippingpoint|till),//g;
-            $cols =~ s/a\.ponumber//;
-            $cols =~ s/d.description AS department,/department/ ;
-            $cols =~ s/(vc|vce|d|a)\.//g;
-
-            $query = qq|
-		   SELECT $cols
-                     FROM ($detail_query) d
-		 GROUP BY 
-		          meta_number, entity_credit_account, name, 
-                          department|;
-        } else {
-            #HV typo error a.ponumber $acc_trans_fields -> a.ponumber $acc_trans_flds
-            $query = $detail_query;
-       } 
-    } else {
-        $query = qq|
-		   SELECT a.id, a.invnumber, a.ordnumber, a.transdate, 
-		          a.duedate, a.netamount, a.amount, 
-                          (a.amount - pd.due) AS paid,
-		          a.invoice, a.datepaid, a.terms, a.notes,
-		          a.shipvia, a.shippingpoint, ee.name AS employee, 
-		          vce.name, vc.meta_number,
-		          vc.entity_id, a.till, me.name AS manager, a.curr,
-		          ex.$buysell AS exchangerate, 
-		          d.description AS department, 
-		          a.ponumber, as_array(p.projectnumber) as ac_projects,
-                          as_array(ip.projectnumber) as inv_projects
-                          $acc_trans_flds
-		     FROM $table a
-		     JOIN entity_credit_account vc ON (a.entity_credit_account = vc.id)
-                     JOIN acc_trans ac ON (a.id = ac.trans_id)
-                     JOIN chart c ON (c.id = ac.chart_id)
-                LEFT JOIN (SELECT acc_trans.trans_id,
-                                sum(CASE WHEN '$table' = 'ap' THEN amount
-                                         WHEN '$table' = 'ar'
-                                         THEN amount * -1
-                                    END) AS due
-                           FROM acc_trans
-                           JOIN account coa ON (coa.id = acc_trans.chart_id)
-                           JOIN account_link al ON (al.account_id = coa.id)
-                          WHERE ((al.description = 'AP' AND '$table' = 'ap')
-                                OR (al.description = 'AR' AND '$table' = 'ar'))
-                          AND (approved IS TRUE)
-                       GROUP BY acc_trans.trans_id) pd ON (a.id = pd.trans_id)
-		LEFT JOIN entity_employee e ON (a.person_id = e.entity_id)
-		LEFT JOIN entity_employee m ON (e.manager_id = m.entity_id)
-		LEFT JOIN entity ee ON (e.entity_id = ee.id)
-                LEFT JOIN entity me ON (m.entity_id = me.id)
-		     JOIN entity vce ON (vc.entity_id = vce.id)
-		LEFT JOIN exchangerate ex ON (ex.curr = a.curr
-		          AND ex.transdate = a.transdate)
-		LEFT JOIN department d ON (a.department_id = d.id) 
-                LEFT JOIN invoice i ON (i.trans_id = a.id)
-                LEFT JOIN project ip ON (i.project_id = ip.id)
-                LEFT JOIN project p ON ac.project_id = p.id |;
-        $group_by = qq| 
-                GROUP BY  a.id, a.invnumber, a.ordnumber, a.transdate, 
-                          a.duedate, a.netamount, a.amount,
-                          a.invoice, a.datepaid, a.terms, a.notes,
-                          a.shipvia, a.shippingpoint, ee.name , 
-                          vce.name, vc.meta_number, a.amount, pd.due,
-                          vc.entity_id, a.till, me.name, a.curr,
-                          ex.$buysell, a.ponumber,
-                          d.description $group_by_fields|;
-    }
-
-    my %ordinal = (
-        id            => 1,
-        invnumber     => 2,
-        ordnumber     => 3,
-        transdate     => 4,
-        crdate        => 5,
-        duedate       => 6,
-        datepaid      => 10,
-        shipvia       => 13,
-        shippingpoint => 14,
-        employee      => 15,
-        name          => 16,
-        manager       => 20,
-        curr          => 21,
-        department    => 23,
-        ponumber      => 24,
-        accno         => 25,
-        source        => 26,
-        project       => 27,
-        description   => 28
-    );
-
-    my @a = qw( transdate invnumber name );
-    push @a, "employee" if $form->{l_employee};
-    push @a, "manager"  if $form->{l_manager};
-    my $sortorder = $form->sort_order( \@a, \%ordinal );
-
-    my $where = "";
-    if (!$form->{outstanding}){
-        $where = "1 = 1";
-    }
-    if ($form->{"meta_number"}){
-        $where .= " AND vc.meta_number = " . $dbh->quote($form->{meta_number});
-    }
-    if ( $form->{"$form->{vc}_id"} ) {
-        # This was looking at entity_id (a.entity_id = $form->{entity_id}...)
-        # but on a 1.3.30 database, both ar.entity_id and ap.entity_id colums are NULL
-        # so it seems that entity_credit_account is what we actually want
-        # fix for bug 806
-        $form->{entity_credit_account} = $form->{$form->{vc}."_id"};
-        $where .= qq| AND a.entity_credit_account = $form->{entity_credit_account}|;
-    }
-    else {
-        if ( $form->{ $form->{vc} } ) {
-            $var = $dbh->quote( $form->like( lc $form->{ $form->{vc} } ) );
-            $where .= " AND lower(vce.name) LIKE $var";
-        }
-    }
-
-    for (qw(department_id)) {
-        if ( $form->{$_} ) {
-            ( $null, $var ) = split /--/, $form->{$_};
-            $var = $dbh->quote($var);
-            $where .= " AND a.$_ = $var";
-        }
-    }
-
-    for (qw(invnumber ordnumber)) {
-        if ( $form->{$_} ) {
-            $var = $dbh->quote( $form->like( lc $form->{$_} ) );
-            $where .= " AND lower(a.$_) LIKE $var";
-            $form->{open} = $form->{closed} = 0;
-        }
-    }
-    if ( $form->{partsid} ) {
-        my $partsid = $dbh->quote( $form->{partsid} );
-        $where .= " AND a.id IN (select trans_id FROM invoice
-			WHERE parts_id = $partsid)";
-    }
-
-    for (qw(ponumber shipvia notes)) {
-        if ( $form->{$_} ) {
-            $var = $dbh->quote( $form->like( lc $form->{$_} ) );
-            $where .= " AND lower(a.$_) LIKE $var";
-        }
-    }
-
-    if ( $form->{description} ) {
-        if ($acc_trans_flds) {
-            $var = $dbh->quote( $form->like( lc $form->{description} ) );
-            $where .= " AND lower(ac.memo) LIKE $var
-			OR lower(i.description) LIKE $var";
-        }
-        else {
-            $where .= " AND a.id = 0";
-        }
-    }
-
-    if ( $form->{source} ) {
-        if ($acc_trans_flds) {
-            $var = $dbh->quote( $form->like( lc $form->{source} ) );
-            $where .= " AND lower(ac.source) LIKE $var";
-        }
-        else {
-            $where .= " AND a.id = 0";
-        }
-    }
-
-    my $transdatefrom = $dbh->quote( $form->{transdatefrom} );
-    $where .= " AND a.transdate >= $transdatefrom"
-      if $form->{transdatefrom};
-
-    my $transdateto = $dbh->quote( $form->{transdateto} );
-    $where .= " AND a.transdate <= $transdateto" if $form->{transdateto};
-
-    if ( $form->{open} || $form->{closed} ) {
-        unless ( $form->{open} && $form->{closed} ) {
-            $where .= " AND abs(pd.due) >= 0.01" if ( $form->{open} );
-            $where .= " AND abs(pd.due) < 0.01"  if ( $form->{closed} );
-        }
-    }
-
-    if ( $form->{till} ne "" ) {
-	$form->{till} = $dbh->quote($form->{till});
-        $where .= " AND a.invoice = '1'
-					AND a.till = $form->{till}";
-
-        if ( $myconfig->{role} eq 'user' ) {
-            my $login = $dbh->quote( $form->{login} );
-            $where .= " AND e.entity_id = (select entity_id from users where username = $login";
-        }
-    }
-
-    if ( $form->{$ARAP} ) {
-        my ($accno) = split /--/, $form->{$ARAP};
-        $accno = $dbh->quote($accno);
-        $where .= qq|
-			AND a.id IN (SELECT ac.trans_id
-			               FROM acc_trans ac
-			               JOIN chart c ON (c.id = ac.chart_id AND charttype = 'A')
-			              WHERE a.id = ac.trans_id
-			                    AND c.accno = $accno)|;
-    }
-
-    if ( $form->{description} ) {
-        $var = $dbh->quote( $form->like( lc $form->{description} ) );
-        $where .= qq|
-			AND (a.id IN (SELECT DISTINCT trans_id
-			                FROM acc_trans
-			               WHERE lower(memo) LIKE $var)
-			                     OR a.id IN 
-			                     (SELECT DISTINCT trans_id
-			                                 FROM invoice
-			                                WHERE lower(description)
-			                                      LIKE $var))|;
-    }
-    
-    if ($form->{invoice_type}) {
-        
-        if ( $form->{invoice_type} == 2 ) {
-        
-            $where .= qq|
-                AND a.on_hold = 'f'        
-            |;
-        }
-    
-        if ($form->{invoice_type} == 3) {
-        
-            $where .= qq|
-                AND a.on_hold = 't'
-            |;
-        }
-    }
-    
-    # the third state, all invoices, sets no explicit toggles. It just selects them all, as normal. 
-    # $approved is safe as it is set to either "TRUE" or "FALSE"
-    if ($form->{outstanding}){
-        if ($where ne ""){
-            $query =~ s/GROUP BY / $where \n GROUP BY /;
-        }
-	if ($form->{summary}){
-		$sortorder = "meta_number";
-	}
-        $query .= "\n ORDER BY $sortorder";
-    } else {
-        $query .= "WHERE ($approved OR a.approved) AND $where
-                   $group_by
-			ORDER BY $sortorder";
-    }
-    #print STDERR localtime()." AA.pm transactions query=$query\n";
-    my $sth = $dbh->prepare($query);
-    $sth->execute(@paidargs) || $form->dberror($query);
-
-    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-	$form->db_parse_numeric(sth => $sth, hashref => $ref);
-        $ref->{exchangerate} = 1 unless $ref->{exchangerate};
-
-        if ( $ref->{linetotal} <= 0 ) {
-            $ref->{debit}  = $ref->{linetotal} * -1;
-            $ref->{credit} = 0;
-        }
-        else {
-            $ref->{debit}  = 0;
-            $ref->{credit} = $ref->{linetotal};
-        }
-
-        if ( $ref->{invoice} ) {
-            $ref->{description} ||= $ref->{linedescription};
-        }
-
-        #print STDERR localtime()." AA.pm transactions row=".Data::Dumper::Dumper($ref)."\n";
-        push @{ $form->{transactions} }, $ref;
-    }
-
-    $sth->finish;
-    $dbh->commit;
-}
-
-# this is used in IS, IR to retrieve the name
-
-=item get_name(\%myconfig, $form)
-
-Retrieves the last account used.  Also retrieves tax accounts,
-departments, and a few other things.
-
-Form variables used:
-vc: customer or vendor
-${vc}_id:  id of vendor/customemr
-transdate:  Transaction date desired
-
-Sets the following form variables
-currency
-exchangerate
-forex
-taxaccounts
-
-
-=cut
-
 sub get_name {
 
     my ( $self, $myconfig, $form ) = @_;
@@ -1289,6 +834,10 @@ sub get_name {
         $dateformat = 'yyyymmdd';
     }
 
+    if ( $form->{transdate} =~ m/\d\d\d\d-\d\d-\d\d/ ) {
+        $dateformat = 'yyyy-mm-dd';
+    }
+
     my $duedate;
 
     $dateformat = $dbh->quote($dateformat);
@@ -1312,9 +861,11 @@ sub get_name {
 		          b.description AS business, 
 			  entity.control_code AS entity_control_code,
                           co.tax_id AS tax_id,
-			  c.meta_number, ecl.*, ctf.default_reportable,
+			  c.meta_number, ctf.default_reportable,
                           c.cash_account_id, ca.accno as cash_accno,
-                          c.id as eca_id
+                          c.id as eca_id,
+                          coalesce(ecl.address, el.address) as address,
+                          coalesce(ecl.city, el.city) as city
 		     FROM entity_credit_account c
 		     JOIN entity ON (entity.id = c.entity_id)
                 LEFT JOIN account ca ON c.cash_account_id = ca.id
@@ -1328,8 +879,14 @@ sub get_name {
                           JOIN location l ON etl.location_id = l.id
                           WHERE etl.location_class = 1) ecl
                         ON (c.id = ecl.credit_id)
+                LEFT JOIN (SELECT coalesce(line_one, '')
+                               || ' ' || coalesce(line_two, '') as address,
+                               l.city, etl.entity_id
+                          FROM entity_to_location etl
+                          JOIN location l ON etl.location_id = l.id
+                          WHERE etl.location_class = 1) el
+                        ON (c.entity_id = el.entity_id)
 		    WHERE c.id = ?/;
-    # TODO:  Add location join
 
     @queryargs = ( $form->{"$form->{vc}_id"} );
     my $sth = $dbh->prepare($query);
@@ -1410,11 +967,14 @@ sub get_name {
     my $arap = ( $form->{vc} eq 'customer' ) ? 'ar' : 'ap';
     my $ARAP = uc $arap;
 
-    $form->{creditremaining} = $form->{creditlimit};
-    # acc_trans.approved is only false in the case of batch payments which 
-    # have not yet been approved.  Unapproved transactions set approved on the
-    # ar or ap record level.  --CT
-    $query = qq|
+    if (LedgerSMB::Setting->get('show_creditlimit')){
+        $form->{creditlimit} = LedgerSMB::PGNumber->from_input('0') unless
+          $form->{creditlimit} > 0;
+        $form->{creditremaining} = $form->{creditlimit};
+        # acc_trans.approved is only false in the case of batch payments which 
+        # have not yet been approved.  Unapproved transactions set approved on 
+        # the ar or ap record level.  --CT
+        $query = qq|
                 SELECT sum(used) FROM (
 		SELECT SUM(ac.amount) 
                        * CASE WHEN '$arap' = 'ar' THEN -1 ELSE 1 END as used
@@ -1431,20 +991,21 @@ sub get_name {
                  WHERE not closed and oe_class_id in (1, 2)
                        and entity_credit_account = ?) s|;
 
-    $sth = $dbh->prepare($query);
-    $sth->execute( $form->{"$form->{vc}_id"}, $form->{"$form->{vc}_id"})
-      || $form->dberror($query);
-    my ($credit_rem) = $sth->fetchrow_array;
-    ( $form->{creditremaining} ) -= Math::BigFloat->new($credit_rem);
+        $sth = $dbh->prepare($query);
+        $sth->execute( $form->{"$form->{vc}_id"}, $form->{"$form->{vc}_id"})
+           || $form->dberror($query);
+        my ($credit_rem) = $sth->fetchrow_array;
+        ( $form->{creditremaining} ) -= Math::BigFloat->new($credit_rem);
 
-    $sth->finish;
+        $sth->finish;
+    }
 
     # get taxes
     $query = qq|
 		SELECT c.accno
-		  FROM chart c
-		  JOIN $form->{vc}tax ct ON (ct.chart_id = c.id)
-		 WHERE c.charttype = 'A' AND ct.$form->{vc}_id = ?|;
+		  FROM account c
+		  JOIN eca_tax ct ON (ct.chart_id = c.id)
+		 WHERE ct.eca_id = ? AND NOT obsolete |;
 
     $sth = $dbh->prepare($query);
     $sth->execute( $form->{"$form->{vc}_id"} ) || $form->dberror($query);
@@ -1463,7 +1024,7 @@ sub get_name {
     # get tax rates and description
     $query = qq|
 		   SELECT c.accno, c.description, t.rate, t.taxnumber
-		     FROM chart c
+		     FROM account c
 		     JOIN tax t ON (c.id = t.chart_id)
 		    WHERE true
 		          $where
@@ -1566,8 +1127,6 @@ sub update_ac_tax_form
           my $sth = $dbh->prepare($query);
           $sth->execute($entry_id,$report) || $form->dberror("Sada $query");
    }
-
-   $dbh->commit();
 
 
 }

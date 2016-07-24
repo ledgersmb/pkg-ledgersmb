@@ -1,4 +1,3 @@
-
 =head1 NAME
 
 LedgerSMB::Template - Template support module for LedgerSMB 
@@ -153,14 +152,13 @@ use warnings;
 use strict;
 use Carp;
 
-use Error qw(:try);
-use LedgerSMB::CancelFurtherProcessing;
 use LedgerSMB::Sysconfig;
 use LedgerSMB::Mailer;
 use LedgerSMB::Company_Config;
 use LedgerSMB::Locale;
+use LedgerSMB::App_State;
+use Log::Log4perl;
 use File::Copy "cp";
-use File::Copy;
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB::Template');
 
@@ -221,18 +219,21 @@ sub new {
         } elsif (lc $self->{format} eq 'XML'){
                 $self->{format} = 'XML';
                 $self->{format_args}{filetype} = 'xml';
+        } elsif ($self->{format} =~ /edi$/i){
+                $self->{format_args}{extension} = lc $self->{format};
+                $self->{format} = 'TXT';
         }
 	bless $self, $class;
 
 	if ($self->{format} !~ /^\p{IsAlnum}+$/) {
-		throw Error::Simple "Invalid format";
+		die "Invalid format";
 	}
 	if (!$self->{include_path}){
 		$self->{include_path} = $self->{'myconfig'}->{'templates'};
 		$self->{include_path} ||= 'templates/demo';
 		if (defined $self->{language}){
 			if (!$self->_valid_language){
-				throw Error::Simple 'Invalid language';
+				die 'Invalid language';
 				return undef;
 			}
 			$self->{include_path_lang} = "$self->{'include_path'}"
@@ -285,9 +286,31 @@ sub render {
 	my $self = shift;
 	my $vars = shift;
         $vars->{LIST_FORMATS} = sub { return $self->available_formats} ;
+        $vars->{ENVARS} = \%ENV;
+        $vars->{USER} = $LedgerSMB::App_State::User;
+        $vars->{USER} ||= {dateformat => 'yyyy-mm-dd'};
         $vars->{CSSDIR} = $LedgerSMB::Sysconfig::cssdir;
+        $vars->{DBNAME} = $LedgerSMB::App_State::DBName;
+        $vars->{LETTERHEAD} = sub { $self->_include('letterhead', $vars) };
+        my @stdformats = ();
+        for (qw(HTML PDF PS)){
+           if (scalar(grep {/^$_$/} $self->available_formats)){
+               push @stdformats, $_;
+           }
+        }
+        $vars->{STDFORMATS} = \@stdformats;
+        eval {
+             $vars->{PRINTERS} = [
+                   {text => $LedgerSMB::App_State::Locale->text('Screen'),
+                   value => 'screen'},
+             ]; 
+        };
+        for (keys %LedgerSMB::Sysconfig::printers){
+            push @{$vars->{PRINTERS}}, { text => $_, value => $_ };
+        }
+
 	if ($self->{format} !~ /^\p{IsAlnum}+$/) {
-		throw Error::Simple "Invalid format";
+		die "Invalid format";
 	}
 	my $format = "LedgerSMB::Template::$self->{format}";
 
@@ -296,7 +319,7 @@ sub render {
 #	}
 	eval "require $format";
 	if ($@) {
-		throw Error::Simple $@;
+		die $@;
 	}
 
 	my $cleanvars;
@@ -308,7 +331,9 @@ sub render {
 	}
         $cleanvars->{escape} = sub { return $format->escape(@_)};
 	if (UNIVERSAL::isa($self->{locale}, 'LedgerSMB::Locale')){
-		$cleanvars->{text} = sub { return $self->escape($self->{locale}->text(@_))};
+		$cleanvars->{text} = sub { 
+                    return $self->escape($self->{locale}->text(@_)) 
+                        if defined $_[0]};
 	} 
 	else {
             $cleanvars->{text} = sub { return $self->escape(shift @_) };
@@ -322,9 +347,10 @@ sub render {
                return $str;
         };
 
+           
 	$format->can('process')->($self, $cleanvars);
 	#return $format->can('postprocess')->($self);
-	my $post = $format->can('postprocess')->($self);
+	my $post = $format->can('postprocess')->($self) unless $self->{_no_postprocess};
         #$logger->debug("\$format=$format \$self->{'noauto'}=$self->{'noauto'} \$self->{rendered}=$self->{rendered}");
 	if (!$self->{'noauto'}) {
 		# Clean up
@@ -332,8 +358,7 @@ sub render {
 		$self->output(%$vars);
                 $logger->debug("after self output,but does not seem to return here!");
 		if ($self->{rendered}) {
-			unlink($self->{rendered}) or
-				throw Error::Simple 'Unable to delete output file';
+			unlink($self->{rendered}); 
 		}
 	}
 	return $post;
@@ -357,15 +382,16 @@ sub output {
 
 	my $method = $self->{method} || $args{method} || $args{media};
         $method = '' if !defined $method;
+
 	if ('email' eq lc $method) {
 		$self->_email_output;
         } elsif (defined $args{OUT} and $args{printmode} eq '>'){ # To file
                 cp($self->{rendered}, $args{OUT}); 
+                return if "zip" eq lc($method);
 	} elsif ('print' eq lc $method) {
 		$self->_lpr_output;
 	} elsif (defined $self->{output} or lc $method eq 'screen') {
 		$self->_http_output;
-		throw CancelFurtherProcessing();
 	} elsif (defined $method and $method ne '' ) {
 		$self->_lpr_output;
 	} else {
@@ -379,6 +405,7 @@ sub output {
 
 sub _http_output {
 	my ($self, $data) = @_;
+        LedgerSMB::App_State::cleanup();
 	$data ||= $self->{output};
         my $cache = 1; # default
         if ($LedgerSMB::App_State::DBH){
@@ -388,9 +415,8 @@ sub _http_output {
         }
         
 	if ($self->{format} !~ /^\p{IsAlnum}+$/) {
-		throw Error::Simple "Invalid format";
+		die "Invalid format";
 	}
-
 	if (!defined $data and defined $self->{rendered}){
 		$data = "";
                 $logger->trace("begin DATA < self->{rendered}=$self->{rendered} \$self->{format}=$self->{format}");
@@ -400,12 +426,14 @@ sub _http_output {
 			$data .= $line;
 		}
                 $logger->trace("end DATA < self->{rendered}");
-	        unlink($self->{rendered}) or throw Error::Simple 'Unable to delete output file';
+	        unlink($self->{rendered}) or die 'Unable to delete output file';
 	}
 
 	my $format = "LedgerSMB::Template::$self->{format}";
 	my $disposition = "";
-	my $name = $format->can('postprocess')->($self) || $self->{rendered};
+	my $name;
+        $name = $format->can('postprocess')->($self) if $format->can('postprocess');
+        $name ||= $self->{rendered};
 	if ($name) {
 		$name =~ s#^.*/##;
 		$disposition .= qq|\nContent-Disposition: attachment; filename="$name"|;
@@ -429,10 +457,11 @@ sub _http_output {
 
 sub _http_output_file {
 	my $self = shift;
+        LedgerSMB::App_State::cleanup();
 	my $FH;
 
 	open($FH, '<:bytes', $self->{rendered}) or
-		throw Error::Simple 'Unable to open rendered file';
+		die 'Unable to open rendered file';
 	my $data;
 	{
 		local $/;
@@ -443,8 +472,7 @@ sub _http_output_file {
 	$self->_http_output($data);
 	
 	unlink($self->{rendered}) or
-		throw Error::Simple 'Unable to delete output file';
-	throw CancelFurtherProcessing();
+		die 'Unable to delete output file';
 }
 
 sub _email_output {
@@ -502,7 +530,7 @@ sub _lpr_output {
 	my ($self, $in_args) = shift;
 	my $args = $self->{output_args};
 	if ($self->{format} ne 'LaTeX') {
-		throw Error::Simple "Invalid Format";
+		die "Invalid Format";
 	}
 	my $lpr = $LedgerSMB::Sysconfig::printer{$args->{media}};
 
@@ -553,6 +581,40 @@ sub column_heading {
 	}
 	
 	return $names;
+}
+
+# $self->_include($templatename, $vars)
+#
+# This is a private method used to handle things like including files that are
+# db templates.  It is not performance-optimal for frequently used operations
+# like user-interface templates.  It returns processed but not post-processed 
+# content.
+
+sub _include {
+    my ($self, $templatename, $vars) = @_;
+    die 'No Template Name in _include' unless $templatename;
+    my $template = LedgerSMB::Template->new(
+                  user => $self->{myconfig}, 
+              template => $templatename,
+                locale => $self->{locale},
+        no_auto_output => 1,
+                format => $self->{format},
+                  path => $self->{include_path}
+    );
+    my $data;
+    $template->{outputfile} = \$data;
+    $template->{_no_postprocess} = 1;
+    $template->render($vars);
+    if (!defined $data and defined $self->{rendered}){
+       	$data = "";
+        open (DATA, '<', $self->{rendered});
+        binmode DATA, $self->{binmode};
+        while (my $line = <DATA>){
+            $data .= $line;
+        }
+        unlink($self->{rendered}) or die 'Unable to delete output file';
+    }
+    return $data;
 }
 
 1;

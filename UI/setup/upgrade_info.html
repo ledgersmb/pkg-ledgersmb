@@ -2,10 +2,11 @@
 stylesheet="ledgersmb.css"
 include_stylesheet=["UI/setup/stylesheet.css"] ?>
 <?lsmb PROCESS elements.html ?>
-<body>
+<body class="<?lsmb dojo_theme ?>">
+<div class="setupconsole">
 <h2><?lsmb text('Database Management Console') ?></h2>
 <div class="listtop"><?lsmb text('Upgrade Info') ?></div>
-<form action="setup.pl" method="POST" name="upgrade_info">
+<form data-dojo-type="lsmb/lib/Form" action="setup.pl" method="POST" name="upgrade_info">
 <?lsmb INCLUDE input element_data = {
     name = 'database'
     type = 'hidden'
@@ -74,11 +75,12 @@ your database is in an inconsistent state and needs to be fixed first.
 <?lsmb INCLUDE button element_data = {
     text = text('Upgrade') 
     name = 'action'
-   value = 'run_upgrade'
+   value = upgrade_action
     type = 'submit'
    class = 'submit'
 } ?>
 </div>
 </form>
+</div>
 </body>
 </html>

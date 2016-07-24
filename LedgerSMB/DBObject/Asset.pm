@@ -105,11 +105,7 @@ sub save {
     my ($self) = @_;
     my ($ref) = $self->exec_method(funcname => 'asset__save');
     $self->merge($ref);
-    $self->{dbh}->commit || $self->error(
-                  $self->{_locale}->text("Unable to save [_1] object", 
-                          $self->{_locale}->text('Asset'))
-    );
-    return $ref if $self->{dbh}->commit;
+    return $ref;
 }
 
 =item import_file
@@ -150,7 +146,7 @@ sub import_file {
         push @{$self->{import_entries}}, \@fields;
     }     
                    # get rid of header line
-    @{$self->{import_header}} = unshift @{$self->{import_entries}}; 
+    @{$self->{import_header}} = shift @{$self->{import_entries}}; 
     return @{$self->{import_entries}};
 }
 
@@ -213,7 +209,6 @@ Saves a note.  Uses the following properties:
 sub save_note {
     my ($self) = @_;
     my ($ref) = $self->exec_method(funcname => 'asset_item__add_note');
-    $self->{dbh}->commit;
 }
 
 =item get_metadata
@@ -233,7 +228,7 @@ sub get_metadata {
     my ($self) = @_;
     @{$self->{asset_classes}} = $self->exec_method(funcname => 'asset_class__list');
    @{$self->{locations}} = $self->exec_method(funcname => 'warehouse__list_all');
-   @{$self->{departments}} = $self->exec_method(funcname => 'department__list_all');
+   @{$self->{departments}} = $self->call_procedure(procname => 'business_unit__list_by_class', args => [1, undef, undef, undef]);
     @{$self->{asset_accounts}} = $self->exec_method(funcname => 'asset_class__get_asset_accounts');
     @{$self->{dep_accounts}} = $self->exec_method(funcname => 'asset_class__get_dep_accounts');
     @{$self->{exp_accounts}} = $self->exec_method(
@@ -271,7 +266,6 @@ sub get_next_tag {
           args     => ['asset_tag']
     );
     $self->{tag} = $ref->{setting_increment};
-    $self->{dbh}->commit;
 }
 
 =item import_asset

@@ -181,16 +181,6 @@ my $is_v9_1plus_aref = $dbh->selectcol_arrayref("SELECT version();");
 if ($progress) {
 	print "$$is_v9_1plus_aref[0]\n";
 }
-unless ($$is_v9_1plus_aref[0] =~ /PostgreSQL 9\.[1-9]/) {
-	unless ($pgsql_contrib_dir) {
-		print "\n\nYou must specify a contrib directory!\n\n";
-		exit;
-	}
-	$ENV{PG_CONTRIB_DIR} = $pgsql_contrib_dir;
-	if ($progress) {
-		print "PostgreSQL < 9.1.x\n";
-	}
-}
 my $admin_user_ok = $dbh->do("CREATE ROLE $creds->{login} WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD '$creds->{password}';");
 my $database = LedgerSMB::Database->new(
 					{username => $creds->{login},
@@ -210,7 +200,6 @@ if ($progress) {
 	print "\$mc = $mc\n";
 }
 $logger->info("load modules mc=$mc");
-$database->process_roles('Roles.sql');
 
   # Load a chart of accounts
 $dbh->disconnect;

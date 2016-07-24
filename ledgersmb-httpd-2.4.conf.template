@@ -11,13 +11,14 @@ Alias /ledgersmb WORKING_DIR/
   # Redirect the /ledgersmb and /ledgersmb/ URL paths to
   # the true login script: /ledgersmb/login.pl
   RewriteRule ^/ledgersmb/?$ /ledgersmb/login.pl [R]
+  RewriteRule rest/(.*) /ledgersmb/rest-handler.pl/$1 
 
   # Indicate that the HTTP Authorization data should be passed
   # to the CGI scripts running from this directory
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
 
 
-  Options +ExecCGI
+  Options +ExecCGI 
   AllowOverride All
   AddHandler cgi-script .pl
 
@@ -33,6 +34,10 @@ Alias /ledgersmb WORKING_DIR/
   <Files ~ "\.conf$">
     Require all denied
   </Files>
+</Directory>
+
+<Directory WORKING_DIR/users>
+  Require all denied
 </Directory>
 
 <Directory WORKING_DIR/bin>

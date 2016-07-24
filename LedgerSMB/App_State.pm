@@ -1,6 +1,6 @@
 =head1 NAME
 
-LedgerSMB::App_State
+LedgerSMB::App_State - Non-web application global state
 
 =cut
 package LedgerSMB::App_State;
@@ -40,6 +40,7 @@ Stores a LedgerSMB::User object for the currently logged in user.
 
 =cut
 
+
 our $Company_Settings;
 
 =item Company_Settings
@@ -53,7 +54,6 @@ Database handle for current connection
 =cut
 
 our $DBH;
-
 
 =item Roles
 
@@ -81,33 +81,93 @@ our $DBName;
 
 =back
 
-=head1 METHODS 
+Each of the above has an accessor function fo the same name which reads the 
+data, and a set_... function which writes it.  The set_ function should be 
+used sparingly.
 
-=over
-
-=item zero()
-
-zeroes out all majro parts.
+The direct access approach is deprecated and is likely to go away in 1.5 with 
+the variables above given a "my" scope instead of an "our" one.
 
 =cut
 
-sub zero() {
-    $User = undef;
-    $Locale = undef;
-    $DBH = undef;
-    @Roles = ();
-    $DBName = undef;
-    $Role_Prefix = undef;
+sub _set_n {
+    no strict 'refs';
+    my ($att) = shift @_;
+    for (@_){
+        if ($_ ne __PACKAGE__){
+            $$att = $_;
+            return $_;
+        }
+    }
 }
 
-=item cleanup
+sub DBName {
+    return $DBName;
+}
+
+sub set_DBName {
+    return _set_n('DBName', @_);
+}
+
+sub User {
+    return $User;
+}
+
+sub set_User {
+    return _set_n('User', @_);
+}
+
+sub Locale {
+    return $Locale;
+}
+
+sub set_Locale {
+    return _set_n('Locale', @_);
+}
+
+sub Roles {
+    return @Roles;
+}
+
+sub set_Roles {
+    shift @_ if $_[0] eq __PACKAGE__;
+    @Roles = @_;
+    return @Roles;
+}
+
+sub Company_Settings {
+    return $Company_Settings;
+}
+
+sub set_Company_Settings {
+    return _set_n('Company_Settings', @_);
+}
+
+sub DBH {
+    return $DBH;
+}
+
+sub set_DBH {
+    return _set_n('DBH', @_);
+}
+
+sub Role_Prefix {
+    return $Role_Prefix;
+}
+
+sub set_Role_Prefix {
+    return _set_n('Role_Prefix', @_);
+}
+
+=head1 METHODS 
+
+=head2 cleanup
 
 Deletes all objects attached here.
 
 =cut
 
 sub cleanup {
-
     if ($DBH){
         $DBH->commit;
         $DBH->disconnect;
@@ -121,11 +181,12 @@ sub cleanup {
     $DBName = undef;
     @Roles = ();
     $Role_Prefix = undef;
+    delete $ENV{LSMB_ALWAYS_MONEY} if $ENV{LSMB_ALWAYS_MONEY};
 }
 
 1;
 
-=item get_url
+=head2 get_url
 
 Returns URL of get request or undef
 
@@ -138,7 +199,16 @@ sub get_url {
     return "$ENV{SCRIPT_NAME}?$ENV{QUERY_STRING}";
 }
 
-=item all_months(is_short $bool)
+sub get_relative_url {
+    if ($ENV{REQUEST_METHOD} ne 'GET') {
+       return undef;
+    }
+    my $script = $ENV{SCRIPT_NAME};
+    $script =~ s#.*/([^/]+)$#$1#;
+    return "$script?$ENV{QUERY_STRING}";
+}
+
+=head2 all_months(is_short $bool)
 
 Returns hashref of localized date data with following members:
 
@@ -194,8 +264,6 @@ sub all_months {
     return { as_hashref => $as_hashref, dropdown=> $for_dropdown };
 }
 
-=back
-
 
 =head1 COPYRIGHT
 
@@ -203,6 +271,3 @@ Copyright (C) 2009 LedgerSMB Core Team.  This file is licensed under the GNU
 General Public License version 2, or at your option any later version.  Please
 see the included License.txt for details.
 
-=cut
-
-1;

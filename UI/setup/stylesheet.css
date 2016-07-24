@@ -1,4 +1,4 @@
-div.login {
+div.setupconsole {
     background-color: white;
     margin-right: auto;
     margin-left: auto;
@@ -43,6 +43,11 @@ input {
 #yesno input {
     width: 1em;
     margin-right: 3em;
+}
+
+#yesno span {
+    float: left;
+    display: block;
 }
 
 img.logo {

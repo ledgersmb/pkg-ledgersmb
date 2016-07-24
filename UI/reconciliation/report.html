@@ -2,8 +2,14 @@
 		include_stylesheet = ['UI/reconciliation/report.css']
 ?>
 <?lsmb PROCESS 'elements.html' ?>
+<body class="<?lsmb dojo_theme ?>">
+<?lsmb IF check.unapproved_transactions 
+?><div class="warning"><?lsmb text('There are unapproved transactions before the end date of this report.') ?></div>
+<?lsmb END; IF check.unapproved_reports
+?><div class="warning"><?lsmb text('There are unapproved reconciliations before the end date of this report.') ?></div>
+<?lsmb END ?>
 
-<form action="recon.pl" method="post" enctype="multipart/form-data">
+<form data-dojo-type="lsmb/lib/Form" action="recon.pl" method="post" enctype="multipart/form-data">
 <div class="listtop" id="title"><?lsmb text('Reconciliation Report') ?></div>
 <table class="info">
 <tr>
@@ -278,7 +284,13 @@
 <?lsmb INCLUDE button element_data = {
 	name = "action",
 	text = text('Approve'),
-	value = 'Approve',
+	value = 'approve',
+	class = "submit"
+};
+INCLUDE button element_data = {
+	name = "action",
+	text = text('Reject'),
+	value = 'reject',
 	class = "submit"
 } ?>
 <?lsmb END ?>

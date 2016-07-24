@@ -90,7 +90,6 @@ sub submit {
     my $self = shift @_;
     $self->_pre_save;
     $self->exec_method(funcname=>'reconciliation__submit_set');
-    $self->{dbh}->commit; 
 }
 
 
@@ -105,7 +104,6 @@ sub save {
     my $self = shift @_;
     $self->_pre_save;
     $self->exec_method(funcname=>'reconciliation__save_set');
-    $self->{dbh}->commit; 
 }
 
 =item import_file
@@ -125,6 +123,24 @@ sub import_file {
     
     return $self->{import_entries};
 }
+
+=item unapproved_checks
+
+Checks for unapproved
+
+ * transactions (generally, since these could change)
+ * payments against the account
+ * reconciliation reports
+
+Sets $self->{check} with the name of the test and the number of failures
+
+=cut
+
+sub unapproved_checks {
+    my $self = shift @_;
+    $self->{check} = { map { $_->{setting_key} => $_->{value} } $self->exec_method(funcname=>'reconciliation__check') };
+}
+    
 
 =item approve($self,$reportid)
 
@@ -154,7 +170,6 @@ sub approve {
         
         $self->error("User $self->{user}->{name} cannot approve report, must be a different user.");
     }
-    $self->{dbh}->commit;
 }
 
 =item new_report
@@ -180,7 +195,6 @@ sub new_report {
     # Now that we have this, we need to create the internal report representation.
     # Ideally, we OUGHT to not return anything here, save the report number.
    
-    $self->{dbh}->commit;
     
     return ($report_id, $entries); # returns the report ID.
 }
@@ -215,13 +229,23 @@ sub delete {
                                args => [$report_id]);
         
     }
-    $self->{dbh}->commit;
     if ($found){
         $retval = '0';
     } else {
         $retval = '1';
     }
     return $retval;
+}
+
+=item reject
+
+This rejects a submitted but not approved report.
+
+=cut
+
+sub reject {
+    my ($self) = @_;
+    $self->exec_method(funcname => 'reconciliation__reject_set');
 }
 
 =item add_entries
@@ -260,27 +284,6 @@ sub add_entries {
         );
         $entry{report_id} = $report_id;        
     }
-    $self->{dbh}->commit;
-}
-
-=item search
-
-Searches for reconciliation reports.  No inputs mandatory.
-
-date_from and date_to specify ranges.
-balance_from and balance_to specify ranges
-chart_id specifies an account
-submitted and approved are exact matches to status.
-
-=cut
-
-sub search {
-    
-    my $self = shift @_;
-    my $type = shift @_;
-    return $self->exec_method(
-        funcname=>'reconciliation__search',
-    );
 }
 
 =item get
@@ -333,7 +336,6 @@ sub get {
         $self->exec_method(
 		funcname=>'reconciliation__pending_transactions'
         );
-        $self->{dbh}->commit;
     }
     @{$self->{report_lines}} = $self->exec_method(
 		funcname=>'reconciliation__report_details_payee'

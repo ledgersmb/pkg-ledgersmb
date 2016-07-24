@@ -2,7 +2,7 @@ package LedgerSMB::PSGI;
 
 =head1 NAME
 
-PSGI wrapper functionality for LedgerSMB
+LedgerSMB::PSGI - PSGI application routines for LedgerSMB
 
 =head1 SYNOPSIS
 
@@ -16,11 +16,12 @@ use LedgerSMB;
 use LedgerSMB::Form;
 use LedgerSMB::Sysconfig;
 use LedgerSMB::Template;
-use LedgerSMB::Template::LaTeX;
+eval { require LedgerSMB::Template::LaTeX; };
 use LedgerSMB::Template::HTML;
 use LedgerSMB::Locale;
 use LedgerSMB::DBObject;
 use LedgerSMB::File;
+use LedgerSMB::Scripts::login;
 use Try::Tiny;
 
 use CGI::Emulate::PSGI;
@@ -34,10 +35,17 @@ sub app {
        $ENV{SCRIPT_NAME} =~ s/\?.*//; 
        $script =~ s/.*[\\\/]([^\\\/\?=]+\.pl).*/$1/;
 
-       if (-f "scripts/$script"){
-         {
-         package main; 
-         do 'lsmb-request.pl'; 
+       my $nscript = $script;
+       $nscript =~ s/l$/m/;
+       if ($uri =~ m|/rest/|){
+         do 'rest-handler.pl';
+       } elsif (-f "LedgerSMB/Scripts/$nscript"){
+         try {
+           do 'lsmb-request.pl'; 
+         }
+         catch {
+           die $_
+               unless $_ eq 'exit';
          }
        } else {
           _run_old($script);
@@ -61,9 +69,7 @@ sub _run_old {
        wait;
     } else {
        &$pre_dispatch() if $pre_dispatch;
-       { package main;
        do 'old-handler.pl';
-       }
        &$post_dispatch() if $post_dispatch;
        exit;
     }

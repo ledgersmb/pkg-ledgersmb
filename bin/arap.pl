@@ -38,6 +38,7 @@
 # common routines for gl, ar, ap, is, ir, oe
 #
 
+package lsmb_legacy;
 use LedgerSMB::AA;
 
 # any custom scripts for this one
@@ -89,7 +90,7 @@ sub check_name {
         # check name, combine name and id
         #HV $form->{$name} , form->vendor or form->customer , should be at least ' ' for comparison 'ne' to work.('' ne undef) returns undef.(' ' ne undef) returns 1
         if(! $form->{$name}){$form->{$name}=' ';}
-        if ( $form->{"old$name"} ne qq|$form->{$name}--$form->{"${name}_id"}| 
+        if ( $form->{"old$name"} ne qq|$form->{$name}--$form->{"${name}_id"}|
              or !$form->{"${name}_id"}
         )
         {
@@ -138,6 +139,8 @@ sub check_name {
                   if $form->{employee_id};
 
             }
+            elsif ( $rv > 1 ) {#tshvr4 we got more than one name, NO error, may disappear if finalize_request() does not return
+            }
             else {
 
                 # name is not on file
@@ -157,24 +160,22 @@ sub check_name {
 sub select_name {
     my ($table) = @_;
 
-    @column_index = qw(ndx name control_code meta_number description address city);
+    @column_index = qw(ndx name control_code meta_number address city);
 
     $label = ucfirst $table;
     %column_data = (ndx => qq|<th>&nbsp;</th>|,
-                   name => qq|<th class=listheading>| . 
+                   name => qq|<th class=listheading>| .
                                $locale->text('Name') . qq|</th>|,
            control_code => qq|<th class=listheading>| .
                                $locale->text('Control Code') . qq|</th>|,
             meta_number => qq|<th class=listheading>| .
                                $locale->text('[_1] Number', $label) . qq|</th>|,
-            description => qq|<th class=listheading>| .
-                               $locale->text('Description') . '</th>',
             address => qq|<th class=listheading>| .
                                $locale->text('Address') . '</th>',
             city => qq|<th class=listheading>| .
 	                       $locale->text('City') . '</th>',
     );
-    
+
 
     # list items with radio button on a form
     $form->header;
@@ -182,7 +183,7 @@ sub select_name {
     $title = $locale->text('Select from one of the names below');
 
     print qq|
-<body>
+<body class="$form->{dojo_theme}">
 
 <form method=post action=$form->{script}>
 
@@ -218,7 +219,6 @@ qq|<td><input name="new_name_$i" type=hidden value="$ref->{name}">$ref->{name}</
 qq|<td><input name="new_control_code_$i" type=hidden value="$ref->{control_code}">$ref->{control_code}</td>|;
         $column_data{meta_number} =
 qq|<td><input name="new_meta_number_$i" type=hidden value="$ref->{meta_number}">$ref->{meta_number}</td>|;
-        $column_data{description} = qq|<td>$ref->{description}</td>|;
         $column_data{address} = qq|<td>$ref->{address}</td>|;
         for (qw(city state zipcode country)) {
             $column_data{$_} = qq|<td>$ref->{$_}&nbsp;</td>|;
@@ -316,13 +316,6 @@ sub rebuild_vc {
           qq|<option value="$_->{name}--$_->{id}">$_->{name}\n|;
     }
     $form->{selectprojectnumber} = "";
-    if ( @{ $form->{all_project} } ) {
-        $form->{selectprojectnumber} = "<option>\n";
-        for ( @{ $form->{all_project} } ) {
-            $form->{selectprojectnumber} .=
-qq|<option value="$_->{projectnumber}--$_->{id}">$_->{projectnumber}\n|;
-        }
-    }
 
     1;
 }
@@ -344,172 +337,6 @@ sub add_transaction {
 
 }
 
-sub check_project {
-
-    for $i ( 1 .. $form->{rowcount} ) {
-        $form->{"project_id_$i"} = "" unless $form->{"projectnumber_$i"};
-        if ( $form->{"projectnumber_$i"} ne $form->{"oldprojectnumber_$i"} ) {
-            if ( $form->{"projectnumber_$i"} ) {
-
-                # get new project
-                $form->{projectnumber} = $form->{"projectnumber_$i"};
-                if ( ( $rows = PE->projects( \%myconfig, $form ) ) > 1 ) {
-
-                    # check form->{project_list} how many there are
-                    $form->{rownumber} = $i;
-                    &select_project;
-                    $form->finalize_request();
-                }
-
-                if ( $rows == 1 ) {
-                    $form->{"project_id_$i"} = $form->{project_list}->[0]->{id};
-                    $form->{"projectnumber_$i"} =
-                      $form->{project_list}->[0]->{projectnumber};
-                    $form->{"oldprojectnumber_$i"} =
-                      $form->{project_list}->[0]->{projectnumber};
-                }
-                else {
-
-                    # not on file
-                    $form->error( $locale->text('Project not on file!') );
-                }
-            }
-            else {
-                $form->{"oldprojectnumber_$i"} = "";
-            }
-        }
-    }
-
-}
-
-sub select_project {
-
-    @column_index = qw(ndx projectnumber description);
-
-    $column_data{ndx} = qq|<th>&nbsp;</th>|;
-    $column_data{projectnumber} =
-      qq|<th>| . $locale->text('Number') . qq|</th>|;
-    $column_data{description} =
-      qq|<th>| . $locale->text('Description') . qq|</th>|;
-
-    # list items with radio button on a form
-    $form->header;
-
-    $title = $locale->text('Select from one of the projects below');
-
-    print qq|
-<body>
-
-<form method=post action=$form->{script}>
-
-<input type=hidden name=rownumber value=$form->{rownumber}>
-
-<table width=100%>
-  <tr>
-    <th class=listtop>$title</th>
-  </tr>
-  <tr space=5></tr>
-  <tr>
-    <td>
-      <table width=100%>
-	<tr class=listheading>|;
-
-    for (@column_index) { print "\n$column_data{$_}" }
-
-    print qq|
-        </tr>
-|;
-
-    my $i = 0;
-    foreach $ref ( @{ $form->{project_list} } ) {
-        $checked = ( $i++ ) ? "" : "checked";
-
-        $ref->{name} = $form->quote( $ref->{name} );
-
-        $column_data{ndx} =
-qq|<td><input name=ndx class=radio type=radio value=$i $checked></td>|;
-        $column_data{projectnumber} =
-qq|<td><input name="new_projectnumber_$i" type=hidden value="$ref->{projectnumber}">$ref->{projectnumber}</td>|;
-        $column_data{description} = qq|<td>$ref->{description}</td>|;
-
-        $j++;
-        $j %= 2;
-        print qq|
-        <tr class=listrow$j>|;
-
-        for (@column_index) { print "\n$column_data{$_}" }
-
-        print qq|
-        </tr>
-
-<input name="new_id_$i" type=hidden value=$ref->{id}>
-
-|;
-
-    }
-
-    print qq|
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td><hr size=3 noshade></td>
-  </tr>
-</table>
-
-<input name=lastndx type=hidden value=$i>
-
-|;
-
-    # delete list variable
-    for (qw(nextsub project_list)) { delete $form->{$_} }
-
-    $form->{action} = "project_selected";
-
-    $form->hide_form;
-
-    print qq|
-<input type=hidden name=nextsub value=project_selected>
-<br>
-<button class="submit" type="submit" name="action" value="continue">|
-      . $locale->text('Continue')
-      . qq|</button>
-</form>
-
-</body>
-</html>
-|;
-
-}
-
-sub project_selected {
-
-    # replace the variable with the one checked
-
-    # index for new item
-    $i = $form->{ndx};
-
-    $form->{"projectnumber_$form->{rownumber}"} =
-      $form->{"new_projectnumber_$i"};
-    $form->{"oldprojectnumber_$form->{rownumber}"} =
-      $form->{"new_projectnumber_$i"};
-    $form->{"project_id_$form->{rownumber}"} = $form->{"new_id_$i"};
-
-    # delete all the new_ variables
-    for $i ( 1 .. $form->{lastndx} ) {
-        for (qw(id projectnumber description)) { delete $form->{"new_${_}_$i"} }
-    }
-
-    for (qw(ndx lastndx nextsub)) { delete $form->{$_} }
-
-    if ( $form->{update} ) {
-        &{ $form->{update} };
-    }
-    else {
-        &update;
-    }
-
-}
 
 sub post_as_new {
 
@@ -526,70 +353,7 @@ sub print_and_post_as_new {
 }
 
 sub repost {
-
-    if ( $form->{type} =~ /_order/ ) {
-        if ( $form->{print_and_save} ) {
-            $form->{nextsub} = "print_and_save";
-            $msg =
-              $locale->text('You are printing and saving an existing order');
-        }
-        else {
-            $form->{nextsub} = "save";
-            $msg = $locale->text('You are saving an existing order');
-        }
-    }
-    elsif ( $form->{type} =~ /_quotation/ ) {
-        if ( $form->{print_and_save} ) {
-            $form->{nextsub} = "print_and_save";
-            $msg =
-              $locale->text(
-                'You are printing and saving an existing quotation');
-        }
-        else {
-            $form->{nextsub} = "save";
-            $msg = $locale->text('You are saving an existing quotation');
-        }
-    }
-    else {
-        if ( $form->{print_and_post} ) {
-            $form->{nextsub} = "print_and_post";
-            $msg =
-              $locale->text(
-                'You are printing and posting an existing transaction!');
-        }
-        else {
-            $form->{nextsub} = "post";
-            $msg = $locale->text('You are posting an existing transaction!');
-        }
-    }
-
-    delete $form->{action};
-    $form->{repost} = 1;
-
-    $form->header;
-
-    print qq|
-<body>
-
-<form method=post action=$form->{script}>
-|;
-
-    $form->hide_form;
-
-    print qq|
-<h2 class=confirm>| . $locale->text('Warning!') . qq|</h2>
-
-<h4>$msg</h4>
-
-<button name="action" class="submit" type="submit" value="continue">|
-      . $locale->text('Continue')
-      . qq|</button>
-</form>
-
-</body>
-</html>
-|;
-
+    $form->error($locale->text('Reposting Not Allowed'));
 }
 
 sub schedule {
@@ -614,7 +378,7 @@ sub schedule {
         $postpayment = qq|
  	<tr>
 	  <th align=right nowrap>| . $locale->text('Include Payment') . qq|</th>
-	  <td><input name=recurringpayment type=checkbox class=checkbox value=1 $recurringpayment></td>
+	  <td><input id="recurringpayment" name=recurringpayment type=checkbox class=checkbox value=1 $recurringpayment></td>
 	</tr>
 |;
     }
@@ -623,7 +387,7 @@ sub schedule {
         $nextdate = qq|
 	      <tr>
 		<th align=right nowrap>| . $locale->text('Next Date') . qq|</th>
-		<td><input class="date" name=recurringnextdate size=11 title="($myconfig{'dateformat'})" value=$form->{recurringnextdate}></td>
+		<td><input class="date" id="recurringnextdate" name=recurringnextdate size=11 title="($myconfig{'dateformat'})" value=$form->{recurringnextdate}></td>
 	      </tr>
 |;
     }
@@ -637,8 +401,6 @@ sub schedule {
         $a[$i] =~ />(.*)/;
         $formname{$v} = $1;
     }
-    for (qw(check receipt)) { delete $formname{$_} }
-
     $selectformat = $form->unescape( $form->{selectformat} );
 
     if ( $form->{type} !~ /transaction/ && %formname ) {
@@ -647,7 +409,7 @@ sub schedule {
 	  <tr>
 	    <th colspan=2 class=listheading>| . $locale->text('E-mail') . qq|</th>
 	  </tr>
-	  
+
 	  <tr>
 	    <td>
 	      <table>
@@ -670,9 +432,9 @@ sub schedule {
 
             $email .= qq|
 		<tr>
-		  <td><input name="email$item" type=checkbox class=checkbox value=1 $checked></td>
+		  <td><input id="email$item" name="email$item" type=checkbox class=checkbox value=1 $checked></td>
 		  <th align=left>$formname{$item}</th>
-		  <td><select name="emailformat$item">$selectformat</select></td>
+		  <td><select id="emailformat$item" name="emailformat$item">$selectformat</select></td>
 		</tr>
 |;
         }
@@ -691,7 +453,7 @@ sub schedule {
 	  </tr>
 
 	  <tr>
-	    <td><textarea name="recurringmessage" rows=10 cols=60 wrap=soft>$form->{recurringmessage}</textarea></td>
+	    <td><textarea id="recurringmessage" name="recurringmessage" rows=10 cols=60 wrap=soft>$form->{recurringmessage}</textarea></td>
 	  </tr>
 	</table>
 |;
@@ -744,10 +506,10 @@ sub schedule {
 
             $print .= qq|
 		<tr>
-		  <td><input name="print$item" type=checkbox class=checkbox value=1 $checked></td>
+		  <td><input id="print$item" name="print$item" type=checkbox class=checkbox value=1 $checked></td>
 		  <th align=left>$formname{$item}</th>
-		  <td><select name="printprinter$item">$selectprinter</select></td>
-		  <td><select name="printformat$item">$selectformat</select></td>
+		  <td><select id="printprinter$item" name="printprinter$item">$selectprinter</select></td>
+		  <td><select id="printformat$item" name="printformat$item">$selectformat</select></td>
 		</tr>
 |;
         }
@@ -805,7 +567,7 @@ sub schedule {
     $form->header;
 
     print qq|
-<body>
+<body class="$form->{dojo_theme}">
 
 <form method=post action=$form->{script}>
 
@@ -822,11 +584,11 @@ sub schedule {
 	    <table>
 	      <tr>
 		<th align=right nowrap>| . $locale->text('Reference') . qq|</th>
-		<td><input name=recurringreference size=20 value="$form->{recurringreference}"></td>
+		<td><input id="recurringreference" name=recurringreference size=20 value="$form->{recurringreference}"></td>
 	      </tr>
 	      <tr>
 		<th align=right nowrap>| . $locale->text('Startdate') . qq|</th>
-		<td><input class="date" name=recurringstartdate size=11 title="($myconfig{'dateformat'})" value=$form->{recurringstartdate}></td>
+		<td><input class="date" id="recurringstartdate" name=recurringstartdate size=11 title="($myconfig{'dateformat'})" value=$form->{recurringstartdate}></td>
 	      </tr>
 	      $nextdate
 	    </table>
@@ -843,7 +605,7 @@ sub schedule {
       </table>
     </td>
   </tr>
-	
+
   <tr>
     <td>
       <table>
@@ -851,7 +613,7 @@ sub schedule {
 	  <td>$repeat</td>
 	  <td>$print</td>
 	</tr>
-	<tr valign=top>  
+	<tr valign=top>
 	  <td>$email</td>
 	  <td>$message</td>
 	</tr>
@@ -1054,7 +816,7 @@ sub reprint {
 
 
 
-sub continue        {&{ $form->{nextsub} }; }
+sub continue        { &{ $form->{nextsub} }; }
 sub continuenew     {$form->{rowcount}--; &setlocation_id;  &{ $form->{nextsub} }; }
 sub updatenew       {&createlocations;}
 sub gl_transaction  { &add }
