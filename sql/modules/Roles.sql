@@ -214,6 +214,7 @@ SELECT lsmb__grant_perms(role, 'file_incoming', 'DELETE'),
 
 \echo Contact Management
 SELECT lsmb__create_role('contact_read');
+SELECT lsmb__grant_role('contact_read', 'file_read');
 SELECT lsmb__grant_perms('contact_read', 'partsvendor', 'SELECT');
 SELECT lsmb__grant_perms('contact_read', 'partscustomer', 'SELECT');
 SELECT lsmb__grant_perms('contact_read', 'taxcategory', 'SELECT');
@@ -324,6 +325,13 @@ SELECT lsmb__grant_perms('contact_delete', obj, 'DELETE')
                     'entity_bank_account', 'person_to_company']) obj;
 
 SELECT lsmb__create_role('contact_all_rights');
+SELECT lsmb__grant_role('contact_all_rights', 'contact_class_customer');
+SELECT lsmb__grant_role('contact_all_rights', 'contact_class_employee');
+SELECT lsmb__grant_role('contact_all_rights', 'contact_class_contact');
+SELECT lsmb__grant_role('contact_all_rights', 'contact_class_referral');
+SELECT lsmb__grant_role('contact_all_rights', 'contact_class_lead');
+SELECT lsmb__grant_role('contact_all_rights', 'contact_class_hot_lead');
+SELECT lsmb__grant_role('contact_all_rights', 'contact_class_cold_lead');
 SELECT lsmb__grant_role('contact_all_rights', 'contact_create');
 SELECT lsmb__grant_role('contact_all_rights', 'contact_edit');
 SELECT lsmb__grant_role('contact_all_rights', 'contact_read');
