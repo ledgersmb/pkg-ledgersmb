@@ -300,6 +300,7 @@ SELECT lsmb__grant_menu('employees_manage', 49, 'allow');
 
 SELECT lsmb__create_role('contact_edit');
 SELECT lsmb__grant_role('contact_edit', 'contact_read');
+SELECT lsmb__grant_role('contact_create', 'contact_edit');
 SELECT lsmb__grant_perms('contact_edit', 'entity', 'UPDATE');
 SELECT lsmb__grant_perms('contact_edit', 'company', 'UPDATE');
 SELECT lsmb__grant_perms('contact_edit', 'location', 'UPDATE');
@@ -860,6 +861,14 @@ SELECT lsmb__grant_perms('yearend_run', obj, ptype)
        unnest(array['SELECT'::text, 'INSERT']) ptype;
 SELECT lsmb__grant_perms('yearend_run', 'account_checkpoint_id_seq','ALL');
 SELECT lsmb__grant_menu('yearend_run', 132, 'allow');
+
+SELECT lsmb__create_role('yearend_reopen');
+SELECT lsmb__grant_perms('yearend_reopen', obj, ptype)
+  FROM unnest(array['account_checkpoint'::text]) obj,
+       unnest(array['DELETE'::text]) ptype;
+SELECT lsmb__grant_perms('yearend_reopen', obj, ptype)
+  FROM unnest(array['yearend'::text]) obj,
+       unnest(array['UPDATE'::text]) ptype;
 
 SELECT lsmb__create_role('batch_list');
 SELECT lsmb__grant_role('batch_list', 'gl_reports');
