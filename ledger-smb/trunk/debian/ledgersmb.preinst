@@ -18,15 +18,6 @@ old_version=$2
 
 case "$1" in
     upgrade)
-        if dpkg --compare-versions $old_version lt 1.3.18-1; then
-            # If /etc/ledgersmb/templates exists, move it to /var/lib/ledgersmb
-            # if that directory does not already exist.
-            if [ ! -d "/var/lib/ledgersmb/templates" ]; then
-                if [ -d "/etc/ledgersmb/templates" ]; then
-                    mv -f /etc/ledgersmb/templates /var/lib/ledgersmb
-                fi
-            fi
-        fi
         if dpkg --compare-versions $old_version lt 1.3.21-1; then
             # If symbolic links for css and templates directories to the
             # /var/lib/ledgersmb exist, then remove them.
@@ -42,7 +33,12 @@ case "$1" in
         /etc/apache2/conf.d/ledgersmb-httpd.conf /etc/apache2/conf.d/ledgersmb.conf 1.3.18-2~ ledgersmb -- "$@"
     ;;
 
-    install|abort-upgrade)
+    install)
+        # Configure the 'ledgersmb' system user.
+        getent passwd ledgersmb >/dev/null 2>&1 || adduser --system --group --quiet --disabled-password --home /var/run/ledgersmb --gecos "LedgerSMB" ledgersmb
+     ;;
+
+    abort-upgrade)
     ;;
 
     *)
