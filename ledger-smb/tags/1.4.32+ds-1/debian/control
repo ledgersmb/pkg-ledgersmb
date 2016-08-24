@@ -1,0 +1,67 @@
+Source: ledgersmb
+Section: web
+Priority: extra
+Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
+Uploaders: Robert James Clay <jame@rocasa.us>
+Build-Depends: debhelper (>= 9),
+               po-debconf,
+               libmodule-install-perl
+Standards-Version: 3.9.8
+Homepage: http://www.ledgersmb.org/
+Vcs-Svn: svn://anonscm.debian.org/pkg-sql-ledger/ledger-smb/trunk
+Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-sql-ledger/ledger-smb/trunk/
+
+Package: ledgersmb
+Architecture: all
+Pre-Depends: dpkg (>= 1.15.7.2)
+Depends: adduser,
+         apache2 | httpd-cgi,
+         libcarp-always-perl,
+         libcgi-simple-perl,
+         libconfig-inifiles-perl,
+         libdatetime-perl,
+         libdatetime-format-strptime-perl,
+         libdbd-pg-perl,
+         libdbi-perl,
+         liberror-perl,
+         libfile-mimeinfo-perl,
+         libjs-dojo-dojox,
+         liblocale-maketext-lexicon-perl (>= 0.62-1),
+         liblog-log4perl-perl,
+         libnamespace-autoclean-perl,
+         libmime-lite-perl,
+         libmoose-perl,
+         libnumber-format-perl,
+         libjson-xs-perl | libjson-perl,
+         libtemplate-perl (>=2.14-1),
+         perl (>= 5.8.1-1),
+         postgresql-client,
+         postgresql-contrib,
+         starman,
+         ucf,
+         ${misc:Depends},
+         ${perl:Depends}
+Recommends: default-mta | mail-transport-agent,
+            libmath-bigint-gmp-perl,
+            libparse-recdescent-perl,
+            libtemplate-plugin-latex-perl,
+            libtex-encode-perl,
+            texlive-latex-recommended,
+            texlive-xetex
+Suggests: latex-cjk-all,
+          libcgi-emulate-psgi-perl,
+          libimage-size-perl,
+          libopenoffice-oodoc-perl,
+          libx12-parser-perl,
+          libplack-perl,
+          postgresql,
+          lpr,
+          starlet
+Description: financial accounting and ERP program
+ LedgerSMB is a double-entry financial accounting and Enterprise Resource
+ Planning system which offers "Accounts Receivable", "Accounts Payable" and
+ "General Ledger" tracking as well as inventory control and fixed assets
+ handling. The LedgerSMB client can be a web browser or a programmed API call.
+ The goal of the LedgerSMB project is to bring high quality ERP and accounting
+ capabilities to Small and Midsize Businesses. For more information, please
+ see /usr/share/doc/ledgersmb/README.Debian.

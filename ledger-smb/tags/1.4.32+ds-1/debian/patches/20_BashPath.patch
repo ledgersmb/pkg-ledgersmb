@@ -1,0 +1,28 @@
+Author: Robert James Clay <jame@rocasa.us>
+Description: Correct path for Bash in tools scripts.
+Origin: vendor
+Last-Update: 2016-01-02
+--- a/tools/system/lsmbstart
++++ b/tools/system/lsmbstart
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/bin/bash
+ 
+ cd /usr/share/ledgersmb
+ plackup -s FCGI -D --listen /var/run/httpd/fastcgi/lsmb.sock
+--- a/tools/system/lsmbstop
++++ b/tools/system/lsmbstop
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/bin/bash
+ 
+ killall perl-fcgi-pm
+ 
+--- a/tools/regen_db_docs.sh
++++ b/tools/regen_db_docs.sh
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/bin/bash
+ 
+ #  PostgreSQL Autodoc - http://www.rbt.ca/autodoc/
+ 
