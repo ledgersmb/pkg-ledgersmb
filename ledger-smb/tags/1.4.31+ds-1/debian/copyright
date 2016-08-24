@@ -1,0 +1,134 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: LedgerSMB
+Upstream-Contact: Development discussion for LedgerSMB <ledger-smb-devel@lists.sourceforge.net>
+Source: http://sourceforge.net/projects/ledger-smb
+ Repackaged, excluding embedded version of dojo Javascript library files.
+Files-Excluded:
+ ledgersmb/UI/lib/dojo/build-report.txt
+ ledgersmb/UI/lib/dojo/dijit
+ ledgersmb/UI/lib/dojo/dojo
+ ledgersmb/UI/lib/dojo/dojox
+Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
+ derived in 2006. The fork was from SQL-Ledger 2.6.17. Note also that the
+ 'The LedgerSMB Core Team' consists of the following people: Chris Travers,
+ Erik Huelsmann, Havard Sorli, John Locke, Pongracz Istvan, Herman Vierendeels,
+ and Robert James Clay. For a full list including contact information of
+ contributors, maintainers, and copyright holders, see the CONTRIBUTORS file.
+Copyright:  2006-2016, The LedgerSMB Core Team
+            1999-2006, DWS Systems Inc.
+
+Files: *
+Copyright:  2006-2016, Chris Travers <chris@metatrontech.com>
+            2007-2015, Pongracz Istvan <pongracz.istvan@gmail.com>
+            2012-2014, Havard Sorli <havard@anix.no>
+            2011-2016, Erik Huelsmann <ehuels@gmail.com>
+            2011-2015, John Locke <john@freelock.com>
+            2014-2016, Nick Prater <nick@npbroadcast.com>
+            2013-2014, Herman Vierendeels <herman.vierendeels@gmail.com>
+            2012-2013, Robert James Clay <jame@rocasa.us>
+            2006-2011, Seneca Cunningham <tentra@gmail.com>
+            2006-2011, Jason Rodrigues <jasonjayr+ledgersmb@gmail.com>
+            2006-2007, Christopher Murtagh <christopher.murtagh@gmail.com>
+            2006-2007, Joshua Drake <jd@commandprompt.com>
+License: GPL-2+
+
+Files: bin/*
+Copyright:  2006-2014, The LedgerSMB Core Team
+            1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
+License: GPL-2+
+
+Files: tools/prepare-company-database.*
+Copyright: 2012, The LedgerSMB Core Team
+License: BSD-2-clause
+ All rights reserved.
+ .
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ .
+ Redistributions in binary form must reproduce the above copyright notice, this
+ list of conditions and the following disclaimer in the documentation and/or
+ other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE LEDGERSMB CORE TEAM AND CONTRIBUTORS "AS
+ IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL LEDGERSMB CORE TEAM OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+
+Files: utils/notify_short/*.pl utils/notify_short/README
+Copyright:  2006-2011, Chris Travers <chris@metatrontech.com>
+License: GPL-2+
+
+Files: debian/*
+Comment: Copyright and License for debian directory files.
+Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
+           2008-2009, Elizabeth Krumbach <lyz@princessleia.com>
+             2008,    Roberto C. Sanchez <robert@debian.org>
+           2009-2016, Robert James Clay <jame@rocasa.us>
+License: GPL
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ Redistribution and use in source (LaTeX) and 'compiled' forms (SGML,
+ HTML, PDF, PostScript, RTF and so forth) with or without modification, are
+ permitted provided that the following conditions are met:
+ .
+ Redistributions of source code (LaTeX) must retain the above copyright notice,
+ this list of conditions and the following disclaimer as the first lines of this
+ file unmodified.
+ .
+ Redistributions in compiled form (converted to PDF, PostScript, RTF and other
+ formats) must reproduce the above copyright  notice, this list of conditions
+ and the following disclaimer in the documentation and/or other materials
+ provided with the distribution.
+ .
+ THIS DOCUMENTATION IS PROVIDED BY THE LEDGERSMB PROJECT "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE LEDGERSMB PROJECT BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+License: GPL-2+
+ This program is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later
+ version.
+ .
+ This program is distributed in the hope that it will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied
+ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ You should have received a copy of the GNU General Public
+ License along with this package; if not, write to the Free
+ Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/GPL-2'.
