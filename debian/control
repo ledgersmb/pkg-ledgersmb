@@ -1,6 +1,6 @@
 Source: ledgersmb
 Section: web
-Priority: optional
+Priority: extra
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 9),
@@ -57,7 +57,6 @@ Suggests: latex-cjk-all,
           postgresql,
           lpr,
           starlet
-Replaces: ledgersmb
 Description: financial accounting and ERP program
  LedgerSMB is a double-entry financial accounting and Enterprise Resource
  Planning system which offers "Accounts Receivable", "Accounts Payable" and
