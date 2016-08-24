@@ -1,0 +1,8 @@
+# Upstream includes empty directory intentionally, as standard locations for custom scripts
+ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/bin/custom/
+ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/scripts/custom/
+ledgersmb binary: package-contains-empty-directory usr/share/ledgersmb/LedgerSMB/Reconciliation/CSV/Formats/
+#
+# Override Lintian experimental reports
+ledgersmb binary: duplicate-files
+
