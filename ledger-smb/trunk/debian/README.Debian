@@ -42,10 +42,6 @@ LedgerSMB Configuration
     the language specific directory (like /var/ledgersmb/templates/demo/en_US)
     first needs to be manually created and the template file copied there.
 
-    Language specific HTML, LaTeX, and Text templates can be edited online but
-    the language specific directory (like /var/ledgersmb/templates/demo/en_US)
-    first needs to be manually created and the template file copied there.
-
     The PDF/Postscript support for the 'xedemo' LaTex templates is available as
     the package texlive-xetex if it is not already installed.
 
