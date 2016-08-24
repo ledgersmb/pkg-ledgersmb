@@ -1,0 +1,116 @@
+Author: Robert James Clay <jame@rocasa.us>
+Description: Changing paths in Apache config for use on Debian.
+Origin: vendor
+Last-Update: 2016-04-11
+--- a/ledgersmb-httpd-2.0-2.2.conf.template
++++ b/ledgersmb-httpd-2.0-2.2.conf.template
+@@ -1,8 +1,8 @@
+ # This file must be edited to substitute the current path with WORKING_DIR
+ 
+-Alias /ledgersmb WORKING_DIR/
++Alias /ledgersmb /usr/share/ledgersmb/
+ 
+-<Directory WORKING_DIR>
++<Directory /usr/share/ledgersmb>
+ 
+   # Rewrite rule to allow HTTP Authorization information to the scripts only
+   # from this directory.
+@@ -37,44 +37,44 @@
+   </Files>
+ </Directory>
+ 
+-<Directory WORKING_DIR/rest>
++<Directory /usr/share/ledgersmb/rest>
+    RewriteEngine On
+    RewriteBase /ledgersmb/rest/
+    RewriteRule .* ../rest-handler.pl
+ </Directory>
+ 
+-<Directory WORKING_DIR/users>
++<Directory /usr/share/ledgersmb/users>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/bin>
++<Directory /usr/share/ledgersmb/bin>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/utils>
++<Directory /usr/share/ledgersmb/utils>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/spool>
++<Directory /usr/share/ledgersmb/spool>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/templates>
++<Directory /usr/share/ledgersmb/templates>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+-<Directory WORKING_DIR/LedgerSMB>
++<Directory /usr/share/ledgersmb/LedgerSMB>
+   Order Deny,Allow
+   Deny from All
+ </Directory>
+ 
+ #to avoid 'Directory index forbidden by Options directive' , i had to code follwoing with trailing slash ,tshvr4
+-<Directory WORKING_DIR/css/>
++<Directory /usr/share/ledgersmb/css/>
+    Options Indexes FollowSymLinks
+    Order Deny,Allow
+    Allow from All
+--- a/ledgersmb-httpd-2.4.conf.template
++++ b/ledgersmb-httpd-2.4.conf.template
+@@ -1,8 +1,8 @@
+ # This file must be edited to substitute the current path with WORKING_DIR
+ 
+-Alias /ledgersmb WORKING_DIR/
++Alias /ledgersmb /usr/share/ledgersmb/
+ 
+-<Directory WORKING_DIR>
++<Directory /usr/share/ledgersmb>
+ 
+   # Rewrite rule to allow HTTP Authorization information to the scripts only
+   # from this directory.
+@@ -36,26 +36,26 @@
+   </Files>
+ </Directory>
+ 
+-<Directory WORKING_DIR/users>
++<Directory /usr/share/ledgersmb/users>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/bin>
++<Directory /usr/share/ledgersmb/bin>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/utils>
++<Directory /usr/share/ledgersmb/utils>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/spool>
++<Directory /usr/share/ledgersmb/spool>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/templates>
++<Directory /usr/share/ledgersmb/templates>
+   Require all denied
+ </Directory>
+ 
+-<Directory WORKING_DIR/LedgerSMB>
++<Directory /usr/share/ledgersmb/LedgerSMB>
+   Require all denied
+ </Directory>
