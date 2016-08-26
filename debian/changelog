@@ -1,8 +1,25 @@
-ledgersmb (1.4.30+ds-1~bpo8+1) jessie-backports; urgency=medium
+ledgersmb (1.4.33+ds-1) unstable; urgency=medium
 
-  * Rebuild for jessie-backports.
+  * New Upstream Release
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 24 Jul 2016 20:42:18 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 20 Aug 2016 12:40:38 -0400
+
+ledgersmb (1.4.32+ds-1) unstable; urgency=medium
+
+  * New Upstream Release.
+  * Changes in debian/control:
+    - Remove 'Replaces: ledgersmb' from the binary stanza as it is no longer
+      necessary.
+    - Change the package Priority from 'optional' to 'extra' to comply with
+      policy section 2.5.
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 08 Aug 2016 13:01:00 -0400
+
+ledgersmb (1.4.31+ds-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 30 Jul 2016 23:11:08 -0400
 
 ledgersmb (1.4.30+ds-1) unstable; urgency=medium
 
