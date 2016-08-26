@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: LedgerSMB\n"
 "Report-Msgid-Bugs-To: ledger-smb-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2016-07-18 07:51+0000\n"
-"PO-Revision-Date: 2016-05-24 09:24+0000\n"
+"POT-Creation-Date: 2016-08-20 12:54+0000\n"
+"PO-Revision-Date: 2016-08-09 12:06+0000\n"
 "Last-Translator: Erik Huelsmann <ehuels@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/ledgersmb/ledgersmb/language/"
 "nl/)\n"
@@ -200,13 +200,13 @@ msgstr "Debiteuren/Crediteuren/Grootboek Bedrag"
 
 #: sql/Pg-database.sql:3789
 msgid "Abandonment"
-msgstr ""
+msgstr "Afschrijving"
 
 #: LedgerSMB/Report/Taxform/Detail.pm:90 LedgerSMB/Report/Taxform/Summary.pm:87
 msgid "Acc_trans Sum"
 msgstr ""
 
-#: LedgerSMB.pm:752 LedgerSMB.pm:753 LedgerSMB/Scripts/configuration.pm:324
+#: LedgerSMB.pm:753 LedgerSMB.pm:754 LedgerSMB/Scripts/configuration.pm:324
 #: LedgerSMB/Scripts/setup.pm:795
 msgid "Access Denied"
 msgstr "Geen toegang"
@@ -348,7 +348,7 @@ msgstr "Aangroeibasis:"
 msgid "Accum. Depreciation"
 msgstr "Cum. Afschrijving"
 
-#: lsmb-request.pl:113
+#: lsmb-request.pl:115
 msgid "Action Not Defined: "
 msgstr "aktie niet gedefinieerd!"
 
@@ -1751,7 +1751,7 @@ msgstr "Vergelijk met"
 #: UI/Reports/filters/balance_sheet.html:120
 #: UI/Reports/filters/income_statement.html:176
 msgid "Comparison Periods"
-msgstr ""
+msgstr "Vergelijking periode"
 
 #: UI/Reports/filters/balance_sheet.html:88
 #: UI/Reports/filters/income_statement.html:143
@@ -1774,7 +1774,7 @@ msgstr "Bevestig bewerking"
 msgid "Confirm!"
 msgstr "Bevestig!"
 
-#: LedgerSMB.pm:758
+#: LedgerSMB.pm:759
 msgid "Conflict with Existing Data.  Perhaps you already entered this?"
 msgstr "Conflicteert met bestaande gegevens. Misschien heeft u het al ingevoerd"
 
@@ -1972,7 +1972,7 @@ msgstr "Land:"
 
 #: UI/setup/credentials.html:61
 msgid "Create"
-msgstr ""
+msgstr "Aanmaken"
 
 #: UI/create_batch.html:2
 msgid "Create Batch"
@@ -2208,7 +2208,7 @@ msgstr "Database bestaat niet."
 
 #: LedgerSMB/Scripts/setup.pm:757
 msgid "Database exists."
-msgstr ""
+msgstr "Database bestaat al."
 
 #: UI/am-company-logo.html:16
 msgid "Dataset"
@@ -2352,7 +2352,7 @@ msgstr "Datum: [_1]"
 #: UI/Reports/filters/balance_sheet.html:113
 #: UI/Reports/filters/income_statement.html:167
 msgid "Dates"
-msgstr ""
+msgstr "Data"
 
 #: bin/am.pl:822 UI/timecards/entry_filter.html:23
 msgid "Day"
@@ -2463,7 +2463,7 @@ msgstr "Standaard Taal "
 
 #: LedgerSMB/Report/Taxform/List.pm:56
 msgid "Default Reportable"
-msgstr ""
+msgstr "Standaard rapportage"
 
 #: UI/payroll/income.html:85
 msgid "Default amount"
@@ -2762,9 +2762,9 @@ msgstr "Korting:"
 
 #: LedgerSMB/Scripts/asset.pm:698
 msgid "Disp. Aquired Value"
-msgstr ""
+msgstr "Verkregen restwaarde afschrijving"
 
-#: UI/templates/preview.html:53
+#: UI/templates/preview.html:62
 msgid "Display"
 msgstr "Tonen"
 
@@ -2785,7 +2785,7 @@ msgstr "Verwijderingsmethode"
 msgid "Disposal Report [_1] on date [_2]"
 msgstr "Verwijderingsrapport [_1] op datum [_2]"
 
-#: LedgerSMB.pm:755
+#: LedgerSMB.pm:756
 msgid "Division by 0 error"
 msgstr "Delen door 0 kan niet! Onmodelijk!"
 
@@ -2932,7 +2932,7 @@ msgstr "EDI Interchange ID"
 #: bin/aa.pl:147 LedgerSMB/Report/COA.pm:122 LedgerSMB/Report/COA.pm:192
 #: t/data/04-complex_template.html:506 UI/Admin/edit_user.html:151
 #: UI/Contact/divs/address.html:47 UI/Contact/divs/contact_info.html:6
-#: UI/templates/preview.html:59
+#: UI/templates/preview.html:68
 msgid "Edit"
 msgstr "Tonen"
 
@@ -3270,7 +3270,7 @@ msgstr "Fout in aanmaken backup bestand"
 msgid "Error creating batch.  Please try again."
 msgstr "Fout in aanmaken groep. Probeer opniew."
 
-#: LedgerSMB.pm:759
+#: LedgerSMB.pm:760
 msgid "Error from Function:"
 msgstr "Functionele fout"
 
@@ -3360,7 +3360,7 @@ msgstr "Totaal"
 
 #: UI/timecards/timecard-week.html:105
 msgid "Extra Used"
-msgstr ""
+msgstr "Extra gebruikt"
 
 #: UI/budgetting/budget_entry.html:64 UI/journal/journal_entry.html:115
 msgid "FX"
@@ -3950,7 +3950,7 @@ msgstr "Gebruiker importeren"
 #: templates/demo_with_images/timecard.tex:29 templates/xedemo/timecard.html:52
 #: templates/xedemo/timecard.tex:29
 msgid "In"
-msgstr ""
+msgstr "In"
 
 #: LedgerSMB/Report/Assets/Net_Book_Value.pm:80
 msgid "In Svc"
@@ -4044,7 +4044,7 @@ msgstr ""
 "[_1] totdat er volledig is betaald. Voor geretourneerde items wordt 10% "
 "terugnamekosten in rekening gebracht."
 
-#: LedgerSMB.pm:751
+#: LedgerSMB.pm:752
 msgid "Internal Database Error"
 msgstr "Interne databasefout"
 
@@ -4069,7 +4069,7 @@ msgstr "Geen geldige rapportage basis"
 msgid "Invalid backup request"
 msgstr "Ongeldige backup verzoek"
 
-#: LedgerSMB.pm:754
+#: LedgerSMB.pm:755
 msgid "Invalid date/time entered"
 msgstr "Ongeldige datum/tijd ingevoerd"
 
@@ -4325,7 +4325,7 @@ msgstr "Dit onderdeel is niet in de database gevonden!"
 
 #: UI/Reports/filters/search_goods.html:123
 msgid "Items Found In"
-msgstr ""
+msgstr "Items gevonden in"
 
 #: templates/demo/packing_list.tex:21
 #: templates/demo_with_images/packing_list.tex:21
@@ -4638,13 +4638,13 @@ msgstr "Uitgelogd door inactiviteit"
 msgid "Logging in.  Please wait."
 msgstr "Inloggen..."
 
-#: old-handler.pl:190 UI/login.html:69 UI/setup/credentials.html:54
+#: old-handler.pl:192 UI/login.html:69 UI/setup/credentials.html:54
 msgid "Login"
 msgstr "Aanmelden"
 
 #: LedgerSMB/Scripts/setup.pm:759
 msgid "Login?"
-msgstr ""
+msgstr "Inloggen?"
 
 #: sql/Pg-database.sql:2928
 msgid "Logout"
@@ -4851,7 +4851,7 @@ msgstr "Maand(en)"
 msgid "Months"
 msgstr "Maanden"
 
-#: LedgerSMB.pm:767
+#: LedgerSMB.pm:768
 msgid "More information has been reported in the error logs"
 msgstr "Meer informatie is te zien in de \"error logs\""
 
@@ -5012,7 +5012,7 @@ msgstr "Geen dubbele meta nummers"
 msgid "No file uploaded"
 msgstr "Geen bestand uploaded"
 
-#: UI/templates/edit.html:5 UI/templates/preview.html:35
+#: UI/templates/edit.html:5 UI/templates/preview.html:44
 msgid "No language"
 msgstr "Geen taal"
 
@@ -5040,7 +5040,7 @@ msgstr "Geen belastingformulier geselecteerd"
 msgid "No unassigned amounts in Transactions"
 msgstr "Geen niet-toegewezen bedragen in transacties"
 
-#: lsmb-request.pl:82
+#: lsmb-request.pl:84
 msgid "No workflow script specified"
 msgstr "Geen proces voortgang script gespecificeerd"
 
@@ -5605,7 +5605,7 @@ msgstr "Gedeeltelijk"
 
 #: LedgerSMB/Scripts/asset.pm:689
 msgid "Partial Disposal Report [_1] on date [_2]"
-msgstr ""
+msgstr "Gedeeltelijk afschrijvingsrapportage [_1] op datum [_2]"
 
 #: LedgerSMB/Report/Inventory/Activity.pm:76
 #: LedgerSMB/Report/Inventory/Activity.pm:130 LedgerSMB/Report/Timecards.pm:114
@@ -5776,7 +5776,7 @@ msgstr "Periode"
 #: UI/Reports/filters/balance_sheet.html:105
 #: UI/Reports/filters/income_statement.html:159
 msgid "Periods"
-msgstr ""
+msgstr "Perioden"
 
 #: LedgerSMB/Scripts/contact.pm:165 UI/Contact/divs/person.html:1
 msgid "Person"
@@ -5810,6 +5810,8 @@ msgstr "Uitsorteerbon"
 msgid ""
 "Please fix the pricegroup data in your partscustomer table (no UI available)"
 msgstr ""
+"Corrigeer a.u.b. de prijsgroepdata in the \"partscustomer\" tabel (helaas "
+"geen gebruikersinterface aanwezig voor deze actie)."
 
 #: LedgerSMB/Upgrade_Tests.pm:642
 msgid "Please make all AR invoice numbers unique"
@@ -5859,6 +5861,10 @@ msgstr "Kies een geldig groepshoofd"
 #: UI/payments/use_overpayment1.html:16
 msgid "Please select a vendor with unused overpayments"
 msgstr "Kies een leverancier met beschikbare vooruitbetaalde bedragen"
+
+#: LedgerSMB/Scripts/timecard.pm:148
+msgid "Please submit a start/end time or a qty"
+msgstr ""
 
 #: LedgerSMB/Upgrade_Tests.pm:373
 msgid "Please use the 1.2 UI to add the GIFI accounts"
@@ -6580,14 +6586,14 @@ msgstr "Noodzakelijk attribuut niet ingevoerd: [_1]"
 msgid "Required by"
 msgstr "Nodig voor"
 
-#: LedgerSMB.pm:756 LedgerSMB.pm:757
+#: LedgerSMB.pm:757 LedgerSMB.pm:758
 msgid "Required input not provided"
 msgstr "Niet voorzien van de benodigde input"
 
 #: LedgerSMB/Report/Balance_Sheet.pm:92
 #: LedgerSMB/Report/PNL/Income_Statement.pm:103
 msgid "Required period type"
-msgstr ""
+msgstr "Vereist periodetype"
 
 #: UI/Contact/divs/user.html:81 UI/setup/edit_user.html:86
 msgid "Reset Password"
@@ -7669,7 +7675,7 @@ msgstr "Systeem"
 msgid "System Defaults"
 msgstr "Standaardinstellingen"
 
-#: old-handler.pl:176
+#: old-handler.pl:178
 msgid "System currently down for maintenance!"
 msgstr "Systeem momenteel niet beschikbaar vanwege onderhoud!"
 
@@ -8469,7 +8475,7 @@ msgstr "Type:"
 msgid "UPDATE"
 msgstr "Verversen"
 
-#: lsmb-request.pl:110
+#: lsmb-request.pl:112
 msgid "Unable to open script"
 msgstr "Kan script niet openen"
 
@@ -8590,7 +8596,7 @@ msgstr "Upgrade"
 msgid "Upgrade Info"
 msgstr "Upgrade Info"
 
-#: UI/file/attachment_screen.html:48 UI/templates/preview.html:28
+#: UI/file/attachment_screen.html:48 UI/templates/preview.html:37
 msgid "Upload"
 msgstr "Upload"
 
@@ -8757,7 +8763,7 @@ msgstr "Leverancier ontbreekt!"
 msgid "Vendor not on file!"
 msgstr "Leverancier bestaat niet!"
 
-#: old-handler.pl:234
+#: old-handler.pl:236
 msgid "Version"
 msgstr "Versie"
 
@@ -8917,7 +8923,7 @@ msgstr "jaren"
 msgid "Yes"
 msgstr "Ja"
 
-#: old-handler.pl:189
+#: old-handler.pl:191
 msgid "You are logged out!"
 msgstr "U bent afgemeld!"
 
@@ -8955,6 +8961,8 @@ msgid ""
 "[_1]\n"
 "[_2]"
 msgstr ""
+"[_1]\n"
+"[_2]"
 
 #: bin/gl.pl:207
 msgid "[_1] Cash Transfer Transaction"
@@ -8988,7 +8996,7 @@ msgstr "[_1]: Klant bestaat niet!"
 msgid "[_1]: Vendor not on file!"
 msgstr "[_1]: Leverancier bestaat niet!"
 
-#: old-handler.pl:243
+#: old-handler.pl:245
 msgid "action not defined!"
 msgstr "aktie niet gedefinieerd!"
 
