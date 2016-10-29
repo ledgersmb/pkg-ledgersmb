@@ -1,8 +1,8 @@
-ledgersmb (1.4.34+ds-0~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.34+ds-1) unstable; urgency=medium
 
-  * Remove 'libmodule-install-perl' from in Build-Depends of debian/control.
+  * Remove 'libmodule-install-perl' from 'Build-Depends' in debian/control.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 15 Oct 2016 09:19:27 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 29 Oct 2016 13:50:23 -0400
 
 ledgersmb (1.4.33+ds-1) unstable; urgency=medium
 
