@@ -1,8 +1,8 @@
-ledgersmb (1.4.34+ds-2~0) UNRELEASED; urgency=medium
+ledgersmb (1.4.34+ds-2) unstable; urgency=medium
 
   * Move libjson-xs-perl from 'Depends' to 'Recommends' in debian/control.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 04 Nov 2016 22:01:53 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 10 Nov 2016 05:29:29 -0500
 
 ledgersmb (1.4.34+ds-1) unstable; urgency=medium
 
