@@ -174,8 +174,8 @@ sub new {
     #menubar will be deprecated, replaced with below
     $self->{lynx} = 1 if ( ( defined $self->{path} ) && ( $self->{path} =~ /lynx/i ) );
 
-    $self->{version}   = "1.4.35-dev";
-    $self->{dbversion} = "1.4.35-dev";
+    $self->{version}   = "1.4.37";
+    $self->{dbversion} = "1.4.37";
 
     bless $self, $type;
 
@@ -2793,6 +2793,8 @@ sub update_status {
     $sth->execute( $self->{formname}, $self->{id} ) || $self->dberror($query);
 
     $sth->finish;
+
+    return unless $self->{printed} || $self->{emailed} || $spoolfile;
 
     my $printed = ( $self->{printed} =~ /$self->{formname}/ ) ? "1" : "0";
     my $emailed = ( $self->{emailed} =~ /$self->{formname}/ ) ? "1" : "0";

@@ -865,7 +865,15 @@ BEGIN
                         in_source[out_count], in_memo[out_count]);
                 INSERT INTO payment_links 
                 VALUES (var_payment_id, currval('acc_trans_entry_id_seq'), 1);
+                IF (in_ovp_payment_id IS NOT NULL
+                    AND in_ovp_payment_id[out_count] IS NOT NULL) THEN
+                   INSERT INTO payment_links
+                   VALUES (in_ovp_payment_id[out_count],
+                           currval('acc_trans_entry_id_seq'), 0);
+                END IF;
 
+
+                IF current_exchangerate <> 1 THEN
                 INSERT INTO acc_trans (chart_id, amount, fx_transaction,
                                        trans_id, transdate, approved, source, memo)
                 VALUES (in_cash_account_id[out_count], 
@@ -876,13 +884,15 @@ BEGIN
                         in_source[out_count], in_memo[out_count]);
                 INSERT INTO payment_links 
                 VALUES (var_payment_id, currval('acc_trans_entry_id_seq'), 1);
-
-
-                IF (in_ovp_payment_id IS NOT NULL AND in_ovp_payment_id[out_count] IS NOT NULL) THEN
+                   IF (in_ovp_payment_id IS NOT NULL
+                       AND in_ovp_payment_id[out_count] IS NOT NULL) THEN
                         INSERT INTO payment_links
-                        VALUES (in_ovp_payment_id[out_count], currval('acc_trans_entry_id_seq'), 0);
+                      VALUES (in_ovp_payment_id[out_count],
+                              currval('acc_trans_entry_id_seq'), 0);
+                   END IF;
                 END IF;
                 
+
         END LOOP;
         -- NOW LETS HANDLE THE AR/AP ACCOUNTS
         -- WE RECEIVED THE TRANSACTIONS_ID AND WE CAN OBTAIN THE ACCOUNT FROM THERE
@@ -1207,13 +1217,12 @@ BEGIN
                 JOIN entity e ON (c.entity_id = e.id)
                 LEFT JOIN voucher v ON (v.id = a.voucher_id)
                 LEFT JOIN batch b ON (b.id = v.batch_id)
-                WHERE (ch.accno = in_cash_accno OR ch.id IN (select account_id 
+                WHERE ((ch.accno = in_cash_accno
+                        OR (in_cash_accno IS NULL
+                            AND ch.id IN (select account_id
                                                                FROM account_link
-                                                              WHERE description
-                                                                    IN(
-                                                                     'AR_paid',
-                                                                     'AP_paid'
-                                                                    )))
+                                           WHERE description IN('AR_paid',
+                                                                'AP_paid')))))
                         AND (in_currency IS NULL OR in_currency = arap.curr)
                         AND (c.id = in_credit_id OR in_credit_id IS NULL)
                         AND (a.transdate >= in_from_date
