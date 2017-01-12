@@ -1,11 +1,11 @@
-ledgersmb (1.4.35+ds-0~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.37+ds-0~1) UNRELEASED; urgency=medium
 
   * New Upstream Release
   * Add note regarding experimental use of 'starman' to debian/README.Debian.
   * Make correction to debian/changelog entry for v1.4.34+ds-1, adding that it
     was for a new upstream release.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 24 Nov 2016 05:25:19 -0500
+ -- Robert James Clay <jame@rocasa.us>  Thu, 12 Jan 2017 07:35:25 -0500
 
 ledgersmb (1.4.34+ds-2) unstable; urgency=medium
 
