@@ -111,6 +111,11 @@ License: GPL
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+Files: debian/ledgersmb.starman-ledgersmb.service
+Copyright: 2016-2017, Erik Huelsmann <ehuels@gmail.com>
+           2017, Robert James Clay <jame@rocasa.us>
+License: GPL-2+
+
 License: GPL-2+
  This program is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public
