@@ -1,12 +1,13 @@
-ledgersmb (1.4.37+ds-0~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.37+ds-0~2) UNRELEASED; urgency=medium
 
   * New Upstream Release
   * Add installation of a apache-vhost.conf file.
   * Add installation of a starman-ledgersmb.service file.
+  * Add '--with systemd' to dh invocation line in debian/rules.
   * Make correction to debian/changelog entry for v1.4.34+ds-1, adding that it
     was for a new upstream release.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 15 Jan 2017 17:00:47 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sun, 15 Jan 2017 21:30:47 -0500
 
 ledgersmb (1.4.34+ds-2) unstable; urgency=medium
 
