@@ -1,14 +1,15 @@
-ledgersmb (1.4.39+ds-0~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.40+ds-0~1) UNRELEASED; urgency=medium
 
   * New Upstream Release
-    - Resolves issue regarding 'current directory' in INC. (Closes: #844276)
+    - Resolves Perl related issue regarding 'current directory' no longer being
+      in the include path ("INC"). (Closes: #844276)
   * Add installation of a apache-vhost.conf file.
   * Add installation of a starman-ledgersmb.service file.
   * Add '--with systemd' to dh invocation line in debian/rules.
   * Make correction to debian/changelog entry for v1.4.34+ds-1, adding that it
     was for a new upstream release.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 13 Mar 2017 22:37:45 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 17 Mar 2017 13:49:22 -0400
 
 ledgersmb (1.4.34+ds-2) unstable; urgency=medium
 
