@@ -4,6 +4,7 @@ Priority: extra
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 9),
+               dh-systemd,
                po-debconf
 Standards-Version: 3.9.8
 Homepage: http://www.ledgersmb.org/
