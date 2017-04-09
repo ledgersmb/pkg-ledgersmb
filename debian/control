@@ -43,6 +43,7 @@ Depends: adduser,
          ${perl:Depends}
 Recommends: default-mta | mail-transport-agent,
             libjson-xs-perl,
+            liblatex-driver-perl (>= 0.300.2),
             libmath-bigint-gmp-perl,
             libparse-recdescent-perl,
             libtemplate-plugin-latex-perl,
