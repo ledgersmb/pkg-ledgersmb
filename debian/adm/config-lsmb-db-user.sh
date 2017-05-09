@@ -26,8 +26,8 @@ DECLARE num_users integer;
 BEGIN
     SELECT count(*)
         into num_users
-    FROM pg_user
-    WHERE usename = '$LSMBDBUSER';
+    FROM pg_roles
+    WHERE rolname = '$LSMBDBUSER';
 
     IF num_users = 0 THEN
         CREATE ROLE $LSMBDBUSER WITH SUPERUSER LOGIN NOINHERIT ENCRYPTED PASSWORD '$LSMBDBPW';
