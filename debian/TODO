@@ -1,88 +1,31 @@
-debian/TODO for LedgerSMB v1.4
+debian/TODO for packaging LedgerSMB v1.4
 
 
-====================================================================================================
-
-Update debian/Readme.Debian
-Update debian/Readme.sources
-
-review locale/po/* files for updating debian/copyright as necessary
-
-- Add a get-orig-source target added to debian rules ?
-
-----------------------------------------------------
-- some apache configs (mpm?)  use cgid instead of cgi;  change postinst to 
-  do the test for which is already enabled depending on if mpm is enabled?
-
-----------------------------------------------------
-
-Now running lintian... ( v1.4.27+ds-0jessie1 )
-    - These seem to be missing the short description and the 'dash' sign after the "NAME" entry
-    in source Perl file.
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::App_State.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Budget.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Business_Unit_Class.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::DBObject::Journal_Entry.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::PGDate.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::PGNumber.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::PSGI.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::account.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::admin.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::asset.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::budgets.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::business_unit.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::drafts.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::file.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::import_csv.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::login.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::recon.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::setup.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::user.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::vouchers.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Session.3pm.gz
-
-N: 
-N:    Each manual page should start with a "NAME" section, which lists the
-N:    name and a brief description of the page separated by "\-". The "NAME"
-N:    section is parsed by lexgrog and used to generate a database that's
-N:    queried by commands like apropos and whatis. This tag indicates that
-N:    lexgrog was unable to parse the NAME section of this manual page.
-N:    
-N:    For manual pages that document multiple programs, functions, files, or
-N:    other things, the part before "\-" should list each separated by a comma
-N:    and a space. Each thing listed must not contain spaces; a man page for a
-N:    two-part command like "fs listacl" must use something like "fs_listacl"
-N:    in the "NAME" section so that it can be parsed by lexgrog.
-N:    
-N:    Refer to the lexgrog(1) manual page, the groff_man(7) manual page, and
-N:    the groff_mdoc(7) manual page for details.
-N:    
-N:    Severity: normal, Certainty: certain
-N:    
-N:    Check: manpages, Type: binary
-N: 
+================================================================================
 
 -----------------------------------------------------------------------------------
-- debian/watch: expand the uversionmangle regular expression to exclude the v1.2
-and v1.3 versions.
+- LedgerSMB package for Debian Stretch, which will be Debian v9 when it is released,
+is not currently available because it was removed due to depending on the 'dojo'
+package which had been removed from Debian Testing ("Stretch") because of an RC
+(Release Critical) bug.
+Reference; https://github.com/ledgersmb/LedgerSMB/issues/2704
 
 -----------------------------------------------------------------------------------
-- Instead of (or along with?) having the package install symlinks for accessing the
-dojo libraries, use Aliases in the Apache config, something like this?
-
-    Alias /ledgersmb/UI/lib/dojo/dojo /usr/share/javascript/dojo
-    Alias /ledgersmb/UI/lib/dojo/dojox /usr/share/javascript/dojox
-    Alias /ledgersmb/UI/lib/dojo/dijit /usr/share/javascript/dijir
-
-It would only be useful for those installs using Apache directly, not as a proxy,
-but that is currently the default.
-
+- Investigate again not using the Debian packaged dojo libraries.
 
 -----------------------------------------------------------------------------------
 
-    - google search:  debconf preload
+- debian/watch: expand the uversionmangle regular expression to exclude v1.2,
+v1.3, and v1.5 versions.
 
-http://blog.delgurth.com/2009/01/19/pre-loading-debconf-values-for-easy-installation/
+-----------------------------------------------------------------------------------
+- As per discussions in IRC, serveral in upstream do not think that the password
+for the LSMB DB Admin user should be capable of getting changed after the package has
+initially been installed, much less that it can happen each time the package is
+upgraded as is currently the case. Note that functionality for being able to do
+such a password update using the upstream 'setup.pl' is being looked at,
+reference https://github.com/ledgersmb/LedgerSMB/issues/2717.
+
 -----------------------------------------------------------------------------------
 
 - A debian/po debconf Japanese translation has been provided. Currently,
@@ -92,6 +35,8 @@ listed as an available language when editing templates, and presumably
 those lists come from the same source. It can be added manually using
 System|Language|Add Language. 
 
+-----------------------------------------------------------------------------------
+
 - Upstream uses pdflatex to create the distribution LedgerSMB-manual.pdf from
 the source file doc/manual/LedgerSMB-manual.tex. Use the same source file to
 create an HTML version?
@@ -99,13 +44,15 @@ create an HTML version?
 - Create an HTML and/or PDF file of templateing/templating-guide.tex? And
 then register it with doc-base?
 
+-----------------------------------------------------------------------------------
+
 - Review the tools/* shell and perl scripts to determine what patches may be
 necessary to make them usable on a Debian installation. 
 
 - Instead of a sym link to point to the /etc/ledgersmb config file(s), 
-patch config file to add '/etc/' to the config file setting. (Would
+patch config file to add '/etc/' to the config file setting? (Would
 the apache config also need to be updated to allow that?)
 
 
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 11 Apr 2016 08:30 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 11 May 2017 11:31 -0400
