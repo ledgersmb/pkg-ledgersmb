@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 %:
-	dh $@
+	dh $@ --with systemd
 
 override_dh_auto_configure:
 	cp ledgersmb.conf.default ledgersmb.conf
@@ -14,6 +14,9 @@ override_dh_auto_install:
 
 override_dh_install:
 	dh_install -XMIT-LICENSE -XGPL.txt -Xinstall_interactive.pl
+
+override_dh_systemd_enable:
+	dh_systemd_enable --name starman-ledgersmb starman-ledgersmb.service 
 
 override_dh_fixperms:
 	dh_fixperms

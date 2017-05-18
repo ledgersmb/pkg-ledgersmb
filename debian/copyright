@@ -14,19 +14,19 @@ Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
  Erik Huelsmann, Havard Sorli, John Locke, Pongracz Istvan, Herman Vierendeels,
  and Robert James Clay. For a full list including contact information of
  contributors, maintainers, and copyright holders, see the CONTRIBUTORS file.
-Copyright:  2006-2016, The LedgerSMB Core Team
+Copyright:  2006-2017, The LedgerSMB Core Team
             1999-2006, DWS Systems Inc.
 
 Files: *
-Copyright:  2006-2016, Chris Travers <chris@metatrontech.com>
+Copyright:  2006-2017, Chris Travers <chris@metatrontech.com>
             2007-2015, Pongracz Istvan <pongracz.istvan@gmail.com>
             2012-2014, Havard Sorli <havard@anix.no>
-            2011-2016, Erik Huelsmann <ehuels@gmail.com>
+            2011-2017, Erik Huelsmann <ehuels@gmail.com>
             2011-2015, John Locke <john@freelock.com>
             2014-2016, Nick Prater <nick@npbroadcast.com>
             2013-2014, Herman Vierendeels <herman.vierendeels@gmail.com>
-            2012-2013, Robert James Clay <jame@rocasa.us>
-            2006-2011, Seneca Cunningham <tentra@gmail.com>
+            2012-2013, Robert James Clay <jame@rocasa.us>u
+            2006-2011, Seneca Cunningham <tentra@gmail.com>p
             2006-2011, Jason Rodrigues <jasonjayr+ledgersmb@gmail.com>
             2006-2007, Christopher Murtagh <christopher.murtagh@gmail.com>
             2006-2007, Joshua Drake <jd@commandprompt.com>
@@ -34,6 +34,16 @@ License: GPL-2+
 
 Files: bin/*
 Copyright:  2006-2014, The LedgerSMB Core Team
+            1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
+License: GPL-2+
+
+Files: bin/ir.pl
+Copyright:  2006-2017, The LedgerSMB Core Team
+            1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
+License: GPL-2+
+
+Files: bin/is.pl
+Copyright:  2006-2017, The LedgerSMB Core Team
             1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
 License: GPL-2+
 
@@ -110,6 +120,16 @@ License: GPL
  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Files: debian/ledgersmb.starman-ledgersmb.service
+Copyright: 2016-2017, Erik Huelsmann <ehuels@gmail.com>
+           2017, Robert James Clay <jame@rocasa.us>
+License: GPL-2+
+
+Files: debian/adm/apache-vhost.conf
+Copyright: 2016-2017, Erik Huelsmann <ehuels@gmail.com>
+           2017, Robert James Clay <jame@rocasa.us>
+License: GPL-2+
 
 License: GPL-2+
  This program is free software; you can redistribute it

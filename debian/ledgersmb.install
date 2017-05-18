@@ -7,6 +7,7 @@ bin/*.pl usr/share/ledgersmb/bin
 contrib/* usr/share/ledgersmb/contrib
 css/* usr/share/ledgersmb/css
 debian/adm/config-lsmb-db-user.sh usr/share/ledgersmb/tools
+debian/adm/apache-vhost.conf usr/share/ledgersmb
 favicon.ico usr/share/ledgersmb
 images/*.gif usr/share/ledgersmb/images
 images/*.png usr/share/ledgersmb/images

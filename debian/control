@@ -4,8 +4,8 @@ Priority: extra
 Maintainer: Debian LedgerSMB Team <pkg-sql-ledger-discussion@lists.alioth.debian.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 9),
-               po-debconf,
-               libmodule-install-perl
+               dh-systemd (>= 1.5),
+               po-debconf
 Standards-Version: 3.9.8
 Homepage: http://www.ledgersmb.org/
 Vcs-Svn: svn://anonscm.debian.org/pkg-sql-ledger/ledger-smb/trunk
@@ -26,13 +26,13 @@ Depends: adduser,
          liberror-perl,
          libfile-mimeinfo-perl,
          libjs-dojo-dojox,
+         libjson-perl,
          liblocale-maketext-lexicon-perl (>= 0.62-1),
          liblog-log4perl-perl,
          libnamespace-autoclean-perl,
          libmime-lite-perl,
          libmoose-perl,
          libnumber-format-perl,
-         libjson-xs-perl | libjson-perl,
          libtemplate-perl (>=2.14-1),
          perl (>= 5.8.1-1),
          postgresql-client,
@@ -42,6 +42,8 @@ Depends: adduser,
          ${misc:Depends},
          ${perl:Depends}
 Recommends: default-mta | mail-transport-agent,
+            libjson-xs-perl,
+            liblatex-driver-perl (>= 0.300.2),
             libmath-bigint-gmp-perl,
             libparse-recdescent-perl,
             libtemplate-plugin-latex-perl,

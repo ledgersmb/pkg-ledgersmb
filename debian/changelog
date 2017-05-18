@@ -1,3 +1,29 @@
+ledgersmb (1.4.41+ds-0~1) UNRELEASED; urgency=medium
+
+  * New Upstream Release
+    - Resolves Perl related issue regarding 'current directory' no longer being
+      in the include path ("INC"). (Closes: #844276)
+  * Add installation of a apache-vhost.conf file.
+  * Add installation of a starman-ledgersmb.service file.
+  * Add '--with systemd' to dh invocation line in debian/rules.
+  * Make correction to debian/changelog entry for v1.4.34+ds-1, adding that it
+    was for a new upstream release.
+
+ -- Robert James Clay <jame@rocasa.us>  Mon, 10 Mar 2017 23:07:49 -0400
+
+ledgersmb (1.4.34+ds-2) unstable; urgency=medium
+
+  * Move libjson-xs-perl from 'Depends' to 'Recommends' in debian/control.
+
+ -- Robert James Clay <jame@rocasa.us>  Thu, 10 Nov 2016 05:29:29 -0500
+
+ledgersmb (1.4.34+ds-1) unstable; urgency=medium
+
+  * New Upstream Release
+  * Remove 'libmodule-install-perl' from 'Build-Depends' in debian/control.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 29 Oct 2016 13:50:23 -0400
+
 ledgersmb (1.4.33+ds-1) unstable; urgency=medium
 
   * New Upstream Release
