@@ -1,15 +1,30 @@
-ledgersmb (1.4.41+ds-0~1) UNRELEASED; urgency=medium
+ledgersmb (1.5.6+ds-0~1) UNRELEASED; urgency=low
+
+  * TODO:
+    - Adapt package to the new series 1.5.x upstream.
+  * New Upstream Release
+    - Along with a requirement for liblatex-driver-perl >= 0.300.2, resolves the
+      issue with printing to PDF or Postscript. (Closes: # 821251)
+  * Add '--with systemd' to dh invocation line in debian/rules.
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 21 May 2017 20:53:23 -0400
+
+ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
   * New Upstream Release
     - Resolves Perl related issue regarding 'current directory' no longer being
       in the include path ("INC"). (Closes: #844276)
   * Add installation of a apache-vhost.conf file.
+  * Add an 'Vcs-Git' entry to the debian/control file.
   * Add installation of a starman-ledgersmb.service file.
-  * Add '--with systemd' to dh invocation line in debian/rules.
-  * Make correction to debian/changelog entry for v1.4.34+ds-1, adding that it
-    was for a new upstream release.
+  * Correct parameter quoting in the debian/adm/config-lsmb-db-user.sh file.
+  * Add note regarding experimental use of 'starman' to debian/README.Debian.
+  * Use 'pg_roles/rolname' instead of the 'pg_user/usename' database/field in
+    the config-lsmb-db-user.sh file,
+  * Correct the debian/changelog entry for v1.4.34+ds-1, adding that it was
+    for a new upstream release.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 10 Mar 2017 23:07:49 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 11 May 2017 14:35:11 -0400
 
 ledgersmb (1.4.34+ds-2) unstable; urgency=medium
 
@@ -23,6 +38,12 @@ ledgersmb (1.4.34+ds-1) unstable; urgency=medium
   * Remove 'libmodule-install-perl' from 'Build-Depends' in debian/control.
 
  -- Robert James Clay <jame@rocasa.us>  Sat, 29 Oct 2016 13:50:23 -0400
+
+ledgersmb (1.4.33+ds-1~bpo8+1) jessie-backports; urgency=medium
+
+  * Rebuild for jessie-backports.
+
+ -- Robert James Clay <jame@rocasa.us>  Fri, 26 Aug 2016 12:04:28 -0400
 
 ledgersmb (1.4.33+ds-1) unstable; urgency=medium
 
