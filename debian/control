@@ -16,6 +16,7 @@ Architecture: all
 Pre-Depends: dpkg (>= 1.15.7.2)
 Depends: adduser,
          libcarp-always-perl,
+         libcgi-emulate-psgi-perl,
          libcgi-simple-perl,
          libconfig-inifiles-perl,
          libdatetime-perl,
