@@ -15,7 +15,6 @@ Package: ledgersmb
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.7.2)
 Depends: adduser,
-         apache2 | httpd-cgi,
          libcarp-always-perl,
          libcgi-simple-perl,
          libconfig-inifiles-perl,
@@ -50,7 +49,8 @@ Recommends: default-mta | mail-transport-agent,
             libtex-encode-perl,
             texlive-latex-recommended,
             texlive-xetex
-Suggests: latex-cjk-all,
+Suggests: apache2 | httpd-cgi,
+          latex-cjk-all,
           libcgi-emulate-psgi-perl,
           libimage-size-perl,
           libopenoffice-oodoc-perl,
