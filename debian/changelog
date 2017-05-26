@@ -1,13 +1,30 @@
 ledgersmb (1.5.6+ds-0~1) UNRELEASED; urgency=low
 
   * TODO:
-    - Adapt package to the new series 1.5.x upstream.
+    - Adapt package to the new 1.5.x series upstream.
+      * Update installation of a apache-vhost.conf file.
+      * Update installation of a starman-ledgersmb.service file.
   * New Upstream Release
     - Along with a requirement for liblatex-driver-perl >= 0.300.2, resolves the
       issue with printing to PDF or Postscript. (Closes: # 821251)
-  * Add '--with systemd' to dh invocation line in debian/rules.
+  * Add '--with systemd' to dh invocation line in debian/rules
+  * Update the links in debian/ledgesrmb.links related to embedded dojo files.
+  * Update 'Files-Excluded' in debian/copyright related to embedded dojo files.
+  * Changes in debian/control:
+    - Include 'libmoosex-nonmoose-perl' as a Depends
+    - Include 'libcgi-emulate-psgi-perl' as a 'Depends'.
+    - Move web server requirement from 'Depends' to 'Suggests'.
+    - Update dojo requirement from libjs-dojo-dojox to libjs-dojo-dijit.
+    - Drop explicit 'Depends' on 'liberror-perl' in as not being necessary.
+    - Drop the version being required for the Perl requirement in 'Depends'.
+    - Explicitly add 'liblatex-driver-perl (>= 0.300.2)' to Recommends section.
+    - Include the PGObject* Perl modules required for the new 1.5.x series
+      upstream: libpgobject-perl, libpgobject-simple-perl,
+      libpgobject-simple-role-perl, libpgobject-type-bigfloat-perl,
+      libpgobject-type-bytestring-perl, libpgobject-type-datetime-perl,
+      libpgobject-util-dbmethod-perl, and libpgobject-util-dbadmin-perl.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 21 May 2017 20:53:23 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 26 May 2017 15:59:08 -0400
 
 ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
