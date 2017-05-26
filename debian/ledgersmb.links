@@ -1,5 +1,4 @@
 /etc/ledgersmb/ledgersmb.conf  /usr/share/ledgersmb/ledgersmb.conf
 /usr/share/doc/ledgersmb/README.Debian  /usr/share/ledgersmb/README.Debian
-/usr/share/javascript/dojo  /usr/share/ledgersmb/UI/lib/dojo/dojo
-/usr/share/javascript/dijit  /usr/share/ledgersmb/UI/lib/dojo/dijit
-/usr/share/javascript/dojox  /usr/share/ledgersmb/UI/lib/dojo/dojox
+/usr/share/javascript/dojo  /usr/share/ledgersmb/UI/js/dojo
+/usr/share/javascript/dijit  /usr/share/ledgersmb/UI/js/dijit
