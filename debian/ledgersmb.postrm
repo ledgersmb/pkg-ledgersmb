@@ -52,7 +52,7 @@ case "$1" in
                 ucf --purge /etc/apache2/conf-available/ledgersmb-proxy.conf
             fi
             if which ucfr >/dev/null 2>&1; then
-                ucfr --purge ledgersmb-proxy /etc/apache2/conf-available/ledgersmb-proxy.conf
+                ucfr --purge ledgersmb /etc/apache2/conf-available/ledgersmb-proxy.conf
             fi
         fi
         deluser --system --quiet ledgersmb
