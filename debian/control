@@ -61,7 +61,7 @@ Recommends: default-mta | mail-transport-agent,
             libtex-encode-perl,
             texlive-latex-recommended,
             texlive-xetex
-Suggests: apache2 | httpd-cgi,
+Suggests: ledgersmb-1.5-apache | ledgersmb-1.5-nginx,
           latex-cjk-all,
           libcgi-emulate-psgi-perl,
           libimage-size-perl,
@@ -77,5 +77,49 @@ Description: financial accounting and ERP program
  "General Ledger" tracking as well as inventory control and fixed assets
  handling. The LedgerSMB client can be a web browser or a programmed API call.
  The goal of the LedgerSMB project is to bring high quality ERP and accounting
+ capabilities to Small and Midsize Businesses.
+ .
+ The application now defaults to being made available on port 5762 and being
+ run directly by Starman instead of by Apache. If other access is also needed,
+ a Reverse Proxy can be configured locally using Nginx or Apache, using the
+ packages ledgersmb-apache or ledgersmb-nginx to select which. For more
+ information, please see /usr/share/doc/ledgersmb/README.Debian.
+
+Package: ledgersmb-apache
+Architecture: all
+Depends: ledgersmb,
+         apache2,
+         ucf
+Description: financial accounting and ERP program - Apache Web Proxy
+ LedgerSMB is a double-entry financial accounting and Enterprise Resource
+ Planning system which offers "Accounts Receivable", "Accounts Payable" and
+ "General Ledger" tracking as well as inventory control and fixed assets
+ handling. The LedgerSMB client can be a web browser or a programmed API call.
+ The goal of the LedgerSMB project is to bring high quality ERP and accounting
  capabilities to Small and Midsize Businesses. For more information, please
  see /usr/share/doc/ledgersmb/README.Debian.
+ .
+ The application now defaults to being made available on port 5762 and being
+ run directly by Starman instead of by Apache. If other access is also needed,
+ a Reverse Proxy can be configured locally using Nginx or Apache, and this
+ package provides the local proxy configuration using Apache.
+
+Package: ledgersmb-nginx
+Architecture: all
+Depends: ledgersmb,
+         nginx-light | nginx-full | nginx-extra,
+         ucf
+Description: financial accounting and ERP program - Nginx Web Proxy
+ LedgerSMB is a double-entry financial accounting and Enterprise Resource
+ Planning system which offers "Accounts Receivable", "Accounts Payable" and
+ "General Ledger" tracking as well as inventory control and fixed assets
+ handling. The LedgerSMB client can be a web browser or a programmed API call.
+ The goal of the LedgerSMB project is to bring high quality ERP and accounting
+ capabilities to Small and Midsize Businesses. For more information, please
+ see /usr/share/doc/ledgersmb/README.Debian.
+ .
+ The application now defaults to being made available on port 5762 and being
+ run directly by Starman instead of by Apache. If other access is also needed,
+ a Reverse Proxy can be configured locally using Nginx or Apache, and this
+ package provides the local proxy configuration using Nginx.
+
