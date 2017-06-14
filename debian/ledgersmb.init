@@ -1,0 +1,110 @@
+#!/bin/sh
+# kFreeBSD do not accept scripts as interpreters, using #!/bin/sh and sourcing.
+if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
+    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script
+fi
+### BEGIN INIT INFO
+# Provides:          starman-ledgersmb
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: LedgerSMB 1.5 running under Starman
+# Description:       This file should be used to construct scripts to be
+#                    placed in /etc/init.d.  This example start a
+#                    single forking daemon capable of writing a pid
+#                    file.  To get other behavoirs, implement
+#                    do_start(), do_stop() or other functions to
+#                    override the defaults in /lib/init/init-d-script.
+### END INIT INFO
+
+# Author: Robert james Clay <jame@rocasa.us>
+#
+
+DESC="Run LedgerSMB via Starman"
+
+# app settings
+APP_HOME=/usr/share/legdersmb-1.5
+APP=$APP_HOME/tools/starman.psgi
+APP_NAME=$(basename $(readlink -f $0))
+STARMAN=/usr/bin/starman
+PORT=5762
+USER=ledgersmb15
+GROUP=ledgersmb15
+
+PID_FILE=/var/run/$APP_NAME.pid
+STATUS_FILE=/var/run/$APP_NAME.status
+LOGDIR=/var/log/$APP_NAME
+
+# configure app perl
+export $APP_PATH=/usr/share/ledgersmb-1.5:/sbin:/bin:/usr/bin:/usr/sbin
+
+RETVAL=0
+
+start(){
+    echo -n $"Starting $APP_NAME: "
+
+    mkdir -p $LOGDIR
+
+    daemon --pidfile $PID_FILE \
+      $START_SERVER \
+        --interval=5 \
+        --port=$PORT \
+        --signal-on-hup=QUIT \
+        --signal-on-term=QUIT \
+        --pid-file=$PID_FILE \
+        --status-file=$STATUS_FILE \
+        --backlog=1024 \
+        -- \
+        $STARMAN \
+          --preload-app \
+          --workers $WORKERS \
+          --user $USER \
+          --group $GROUP \
+          --error-log $LOGDIR/error.log \
+          --access-log $LOGDIR/access.log \
+          $APP \
+          &
+
+    RETVAL=$?
+    echo
+    touch $LOCK_FILE
+    return $RETVAL
+}
+
+stop(){
+    echo -n $"Stopping $APP_NAME: "
+    killproc -p $PID_FILE $APP_NAME
+    RETVAL=$?
+    echo
+    rm -f $LOCK_FILE
+    return $RETVAL
+}
+
+restart(){
+    stop
+    start
+}
+
+# See how we were called.
+case "$1" in
+    start)
+ start
+ ;;
+    stop)
+ stop
+ ;;
+    status)
+ status -p $PID_FILE $APP_NAME
+ ;;
+    restart)
+ restart
+ ;;
+    *)
+ echo $"Usage: $0 {start|stop|status|graceful|restart|condrestart|reload}"
+ RETVAL=1
+esac
+
+exit $RETVAL
+
+
