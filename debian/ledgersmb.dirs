@@ -1,7 +1,4 @@
 usr/share/ledgersmb/bin/custom
-usr/share/ledgersmb/scripts/custom
-usr/share/ledgersmb/LedgerSMB/Reconciliation/CSV/Formats
-usr/share/ledgersmb/UI/lib/dojo
-var/lib/ledgersmb/spool
-var/lib/ledgersmb/users
+usr/share/ledgersmb/lib/LedgerSMB/Scripts/custom
+usr/share/ledgersmb/lib/LedgerSMB/Reconciliation/CSV/Formats
 
