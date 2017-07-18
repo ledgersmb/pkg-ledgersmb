@@ -1,111 +1,137 @@
-debian/TODO for LedgerSMB v1.4
+debian/TODO for ledgersmb
+
+See also:  https://github.com/ledgersmb/pkg-ledgersmb/issues as well as
+https://bugs.debian.org/cgi-bin/pkgreport.cgi?src=ledgersmb and
+https://qa.debian.org/debcheck.php?dist=unstable&package=ledgersmb
+https://github.com/ledgersmb/pkg-ledgersmb/issues/1
+===================================================================================================
+===================================================================================================
+- The ledgersmb.org site has v1.5 screen shots at https://ledgersmb.org/content/screenshots-15;
+ update debian for them, at least after I get the ledgersmb pkg updated and uploaded
+ at http://screenshots.debian.net/package/ledgersmb.  (And get the old 1.3 
+ screenshots removed.)
+
+----------------------------------------------------------------------------------------------------
+	- Looks like an Lighttpd configuration example is going to be added.  If/when
+	it's also added the 1.5, add another binary stanza for it to go along with
+	the ones for nginx and apache.
+Add Lighttpd configuration example #2993
+https://github.com/ledgersmb/LedgerSMB/pull/2993
+https://github.com/ledgersmb/LedgerSMB/issues/3007
+https://github.com/ledgersmb/LedgerSMB/issues/3008
+-------------------------------------------------------------------------------
+	- Discussed in IRC some of the permission fix issues.  Erik took care of
+	fixing many of them in both master & 1.5 so when the next release comes out
+	will need to run a build of both ledgresmb & ledgersmb-1.5 without the 
+	fixes enabled in order to check how the fix permissions stanza in d/rules
+	can be updated for that.
+
+  - Referance also https://github.com/ledgersmb/LedgerSMB/issues/2899 which 
+  for the creation of a test in upstream that checks for such permission issues.
+
+- As of the packageing for 1.5.8, this is what is in the override_dh_fixperms
+  stanza
+<-->dh_fixperms
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/sql/modules/reload_modules.sh
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/dbsetup.pl
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/drop-roles.pl
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/install_interactive.pl
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/pre-release-tests.sh
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/starman.psgi
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/notify_short/config.pl
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/notify_short/listener.pl
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/process_queue/config.pl.default
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/process_queue/process_queue.pl
+<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/replication/configure-replication.sh
+<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/locale/html/splash.html
+<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/lib/LedgerSMB/Template/TXT.pm
+<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/lib/LedgerSMB/Template/HTML.pm
+<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/lib/LedgerSMB/Template/CSV.pm
+<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/lib/LedgerSMB/Template/LaTeX.pm
+
+-------------------------------------------------------------------------------
+https://github.com/ledgersmb/LedgerSMB/issues/2900
+Although Debian (and others) do now use systemd by default, it does still support sysvinit
+init.d scripts as well, so providing at least an example init.d sysvinit startup script
+ for starman-ledgersmb would be quite useful.
+
+- In the mean time, added an initial version of a possible one:
+(In order to test how that works, would have to use something that has been
+changed to use sysv instead of systemd.)
 
 
-====================================================================================================
-
-Update debian/Readme.Debian
-Update debian/Readme.sources
-
-review locale/po/* files for updating debian/copyright as necessary
-
-- Add a get-orig-source target added to debian rules ?
-
-----------------------------------------------------
-- some apache configs (mpm?)  use cgid instead of cgi;  change postinst to 
-  do the test for which is already enabled depending on if mpm is enabled?
-
-----------------------------------------------------
-
-Now running lintian... ( v1.4.27+ds-0jessie1 )
-    - These seem to be missing the short description and the 'dash' sign after the "NAME" entry
-    in source Perl file.
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::App_State.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Budget.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Business_Unit_Class.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::DBObject::Journal_Entry.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::PGDate.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::PGNumber.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::PSGI.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::account.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::admin.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::asset.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::budgets.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::business_unit.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::drafts.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::file.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::import_csv.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::login.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::recon.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::setup.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::user.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Scripts::vouchers.3pm.gz
-W: ledgersmb: manpage-has-bad-whatis-entry usr/share/man/man3/LedgerSMB::Session.3pm.gz
-
-N: 
-N:    Each manual page should start with a "NAME" section, which lists the
-N:    name and a brief description of the page separated by "\-". The "NAME"
-N:    section is parsed by lexgrog and used to generate a database that's
-N:    queried by commands like apropos and whatis. This tag indicates that
-N:    lexgrog was unable to parse the NAME section of this manual page.
-N:    
-N:    For manual pages that document multiple programs, functions, files, or
-N:    other things, the part before "\-" should list each separated by a comma
-N:    and a space. Each thing listed must not contain spaces; a man page for a
-N:    two-part command like "fs listacl" must use something like "fs_listacl"
-N:    in the "NAME" section so that it can be parsed by lexgrog.
-N:    
-N:    Refer to the lexgrog(1) manual page, the groff_man(7) manual page, and
-N:    the groff_mdoc(7) manual page for details.
-N:    
-N:    Severity: normal, Certainty: certain
-N:    
-N:    Check: manpages, Type: binary
-N: 
+-------------------------------------------------------------------------------
+    - debian/adm/config-lsmb-db-user.sh
+- Use 'pg_roles' and 'rolname' rather than 'pg_users' and 'usename', as I 
+found that one can actually create two roles with the same name, one with the
+login attribute and one without.
+- Use only the postgresql tools, like createuser, to set the user name and 
+password for the LSMB DB Admin user.  David G pointed out that using SQL
+can allow the unencrypted password to prehaps show up in logs, etc, which
+is a security concern.
+- Take out defaulting for doing the SQL 'ALTER' instead of a 'CREATE'
+if the LSMB DBAdmin user already exits.  It was pointed out by both David
+and Erik that they really don't think it's a good idea to reset that password
+by default when, for instance, upgradeing the package;  which is what it did
+if doing the configure was enabled.  Add option to reset the password if the
+user ID already exists, but not by default; would have to explicitly agree
+to it, each time, and that agreement isn't saved so the question gets asked
+each time and by default is not to do the reset.
 
 -----------------------------------------------------------------------------------
-- debian/watch: expand the uversionmangle regular expression to exclude the v1.2
-and v1.3 versions.
+
+I: ledgersmb: systemd-service-file-missing-documentation-key lib/systemd/system/starman-ledgersmb.service
+
+------------------------------------------------------------------------------
+	- These are needed, or at least would be useful to have, in Debian
+	
+Weasel is needed for at least developer testing.  (Started that...)
+Pherkin::Extension::Weasel  is needed for at least developer testing.
+
+	- Need to check the rest of the 'develop' type requirements to see which
+	are already in the Debian and perhaps pkg the (other) ones that are not.
+
+- while checking for the Build-Depends-Indep;  found that I don't even have it
+in the pkg for ledgersmb-1.5 or ledgesrmb-1.4. Although that may simply be that
+it's not needed. 
+  
 
 -----------------------------------------------------------------------------------
-- Instead of (or along with?) having the package install symlinks for accessing the
-dojo libraries, use Aliases in the Apache config, something like this?
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=868724
+`- Project has totally moved from SourceForge.net, so debian/watch needs to be
+`updated for the new locations of the distribution archive and its detached
+gpg file for verifiction.
 
-    Alias /ledgersmb/UI/lib/dojo/dojo /usr/share/javascript/dojo
-    Alias /ledgersmb/UI/lib/dojo/dojox /usr/share/javascript/dojox
-    Alias /ledgersmb/UI/lib/dojo/dijit /usr/share/javascript/dijir
+- An update for gettting the new archive itself appears to have been successful
+but the *.asc associated with it useed for the gpg verification does not seem
+to get refereneced properly has that step fails.
 
-It would only be useful for those installs using Apache directly, not as a proxy,
-but that is currently the default.
-
+- debian/watch: expand the uversionmangle regular expression to exclude the v1.2,
+1.3, and 1.5 versions.
 
 -----------------------------------------------------------------------------------
-
-    - google search:  debconf preload
-
-http://blog.delgurth.com/2009/01/19/pre-loading-debconf-values-for-easy-installation/
+	- updating debconf po
+https://www.debian.org/doc/manuals/developers-reference/ch06.html#s6.5.2.2
 -----------------------------------------------------------------------------------
-
 - A debian/po debconf Japanese translation has been provided. Currently,
 there is no LSMB locale/po/ja.po file. Checked System|Lanaguage|List
 Languages in LSMB 1.3.40: "ja" is not in the default list. It's also not
 listed as an available language when editing templates, and presumably
 those lists come from the same source. It can be added manually using
-System|Language|Add Language. 
+System|Language|Add Language. Debian bug # 831688.
+-----------------------------------------------------------------------------------
 
 - Upstream uses pdflatex to create the distribution LedgerSMB-manual.pdf from
 the source file doc/manual/LedgerSMB-manual.tex. Use the same source file to
 create an HTML version?
-
-- Create an HTML and/or PDF file of templateing/templating-guide.tex? And
+-----------------------------------------------------------------------------------
+- Create an HTML and/or PDF file of doc/templateing/templating-guide.tex? And
 then register it with doc-base?
 
-- Review the tools/* shell and perl scripts to determine what patches may be
-necessary to make them usable on a Debian installation. 
-
 - Instead of a sym link to point to the /etc/ledgersmb config file(s), 
-patch config file to add '/etc/' to the config file setting. (Would
+patch config file to add '/etc/' to the config file setting? (Would
 the apache config also need to be updated to allow that?)
+-----------------------------------------------------------------------------------
 
 
-
- -- Robert James Clay <jame@rocasa.us>  Mon, 11 Apr 2016 08:30 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 18 Jul 2017 16:53 -0400
