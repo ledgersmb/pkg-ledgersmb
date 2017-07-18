@@ -49,7 +49,6 @@ start(){
     daemon --pidfile $PID_FILE \
       $START_SERVER \
         --interval=5 \
-        --port=$PORT \
         --signal-on-hup=QUIT \
         --signal-on-term=QUIT \
         --pid-file=$PID_FILE \
@@ -58,6 +57,7 @@ start(){
         -- \
         $STARMAN \
           --preload-app \
+          --listen "localhost:$PORT" \
           --workers $WORKERS \
           --user $USER \
           --group $GROUP \
