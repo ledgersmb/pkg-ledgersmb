@@ -1,9 +1,14 @@
 # LedgerSMB debian/watch control file for uscan
 
 # Compulsory line, this is a version 3 file
-version=3
+version=4
 
-# Check against upstream release key. Exclude development snapshots.
-opts="pgpsigurlmangle=s/$/.asc/,dversionmangle=s/\+ds[\d]?//,repacksuffix=+ds,uversionmangle=s/^1\.4\.99\d*/0/" \
-http://sf.net/ledger-smb/ledgersmb-([\d\.\d\.]+)\.tar\.gz
+# Check against upstream release key. Exclude development snapshots. \
+opts="filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/ledgersmb-$1\.tar\.gz/, \
+dversionmangle=s/\+ds[\d]?//, \
+repacksuffix=+ds, \
+uversionmangle=s/^1\.5\.99\d*/0/, \
+pgpsigurlmangle=s/archive\/(\d\S+)\.tar\.gz/releases\/download\/$1\/ledgersmb-$1\.tar\.gz\.asc/" \
+https://github.com/ledgersmb/LedgerSMB/tags .*/v?(\d\S+)\.tar\.gz
+
 
