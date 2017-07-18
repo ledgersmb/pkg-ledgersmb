@@ -1,7 +1,7 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: LedgerSMB
-Upstream-Contact: Development discussion for LedgerSMB <ledger-smb-devel@lists.sourceforge.net>
-Source: http://sourceforge.net/projects/ledger-smb
+Upstream-Contact: Development discussion for LedgerSMB <devel@lists.ledgersmb.org>
+Source: https://github.com/ledgersmb/LedgerSMB
  Repackaged, excluding embedded version of dojo Javascript library files.
 Files-Excluded:
  ledgersmb/UI/js/build-report.txt
@@ -18,13 +18,15 @@ Copyright:  2006-2017, The LedgerSMB Core Team
 
 Files: *
 Copyright:  2006-2017, Chris Travers <chris@metatrontech.com>
+            2011-2017, Erik Huelsmann <ehuels@gmail.com>
+            2016-2017, David Godfrey <info@sbts.com.au>
+            2016-2017, Yves Lavoie <ylavoie@yveslavoie.com>
+            2011-2017, John Locke <john@freelock.com>
+            2014-2017, Nick Prater <nick@npbroadcast.com>
+            2012-2017, Robert James Clay <jame@rocasa.us>u
             2007-2015, Pongracz Istvan <pongracz.istvan@gmail.com>
             2012-2014, Havard Sorli <havard@anix.no>
-            2011-2017, Erik Huelsmann <ehuels@gmail.com>
-            2011-2015, John Locke <john@freelock.com>
-            2014-2016, Nick Prater <nick@npbroadcast.com>
             2013-2014, Herman Vierendeels <herman.vierendeels@gmail.com>
-            2012-2013, Robert James Clay <jame@rocasa.us>u
             2006-2011, Seneca Cunningham <tentra@gmail.com>p
             2006-2011, Jason Rodrigues <jasonjayr+ledgersmb@gmail.com>
             2006-2007, Christopher Murtagh <christopher.murtagh@gmail.com>
@@ -32,22 +34,12 @@ Copyright:  2006-2017, Chris Travers <chris@metatrontech.com>
 License: GPL-2+
 
 Files: bin/*
-Copyright:  2006-2014, The LedgerSMB Core Team
-            1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
-License: GPL-2+
-
-Files: bin/ir.pl
-Copyright:  2006-2017, The LedgerSMB Core Team
-            1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
-License: GPL-2+
-
-Files: bin/is.pl
 Copyright:  2006-2017, The LedgerSMB Core Team
             1999-2005, DWS Systems Inc. and Dieter Simader <dsimader@sql-ledger.org>
 License: GPL-2+
 
 Files: tools/prepare-company-database.*
-Copyright: 2012, The LedgerSMB Core Team
+Copyright: 2012-2013, The LedgerSMB Core Team
 License: BSD-2-clause
  All rights reserved.
  .
@@ -74,15 +66,15 @@ License: BSD-2-clause
  POSSIBILITY OF SUCH DAMAGE.
 
 Files: utils/notify_short/*.pl utils/notify_short/README
-Copyright:  2006-2011, Chris Travers <chris@metatrontech.com>
+Copyright:  2006-2007, Chris Travers <chris@metatrontech.com>
 License: GPL-2+
 
 Files: debian/*
 Comment: Copyright and License for debian directory files.
-Copyright: 2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
+Copyright: 2009-2017, Robert James Clay <jame@rocasa.us>
            2008-2009, Elizabeth Krumbach <lyz@princessleia.com>
+           2006-2007, Seneca Cunningham <tetragon@ledgersmb.org>
              2008,    Roberto C. Sanchez <robert@debian.org>
-           2009-2016, Robert James Clay <jame@rocasa.us>
 License: GPL
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -119,16 +111,6 @@ License: GPL
  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-Files: debian/ledgersmb.starman-ledgersmb.service
-Copyright: 2016-2017, Erik Huelsmann <ehuels@gmail.com>
-           2017, Robert James Clay <jame@rocasa.us>
-License: GPL-2+
-
-Files: debian/adm/apache-vhost.conf
-Copyright: 2016-2017, Erik Huelsmann <ehuels@gmail.com>
-           2017, Robert James Clay <jame@rocasa.us>
-License: GPL-2+
 
 License: GPL-2+
  This program is free software; you can redistribute it
