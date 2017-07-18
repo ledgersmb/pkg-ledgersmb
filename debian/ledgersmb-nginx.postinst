@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for ledgersmb
+# postinst script for ledgersmb-1.5
 #
 # see: dh_installdeb(1)
 
@@ -17,27 +17,23 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-#  Set old_version variable for use later in the script.
-old_version=$2
+##  Set old_version variable for use later in the script.
+#old_version=$2
 
 case "$1" in
     configure)
-        ##  Need to convert this for nginx
-        ## Do Apache related processing if it is present.
-        #if [ -d "/etc/apache2" ]; then
-        #    if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
-        #        [ -d /etc/apache2/conf-available/ ] && [ ! -e /etc/apache2/conf-available/ledgersmb-proxy.conf ] && ucf --debconf-ok /usr/share/ledgersmb/conf/apache-proxy.copy /etc/apache2/conf-available/ledgersmb-proxy.conf
-        #        . /usr/share/apache2/apache2-maintscript-helper
-        #        if ! a2query -qm cgi ; then
-        #            apache2_invoke enmod cgi || exit $?
-        #        fi
-        #        if ! a2query -qm rewrite ; then
-        #            apache2_invoke enmod rewrite || exit $?
-        #        fi
-        #        apache2_invoke enconf ledgersmb--proxy.conf
-        #        [ ! -h /etc/ledgersmb/apache-proxy.conf ] && ln -s /etc/apache2/conf-available/ledgersmb-proxy.conf /etc/ledgersmb/apache-proxy.conf
-        #    fi
-        #fi
+        # Do Nginx related processing if it is present.
+        if [ -d "/etc/nginx" ]; then
+            [ -d /etc/nginx/sites-available/ ] && [ ! -e /etc/nginx/sites-available/ledgersmb-proxy.conf ] && ucf /usr/share/ledgersmb/conf/nginx-proxy.conf /etc/nginx/sites-available/ledgersmb-proxy.conf
+            # Enable nginx proxy configuration 
+            if [ ! -h /etc/nginx/sites-enabled/ledgersmb-proxy.conf ] ; then
+                ln -s /etc/nginx/sites-available/ledgersmb-proxy.conf /etc/nginx/sites-enabled/ledgersmb-proxy.conf
+                if which nginx >/dev/null 2>&1; then
+                    nginx -s reload
+                fi
+            fi
+            [ ! -h /etc/ledgersmb/nginx-proxy.conf ] && ln -s /etc/nginx/sites-available/ledgersmb-proxy.conf /etc/ledgersmb/ngnix-proxy.conf
+        fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
