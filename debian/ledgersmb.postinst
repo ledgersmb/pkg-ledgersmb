@@ -27,25 +27,6 @@ fi
 
 case "$1" in
     configure)
-        # Do Apache related processing if it is selected and present.
-        if [ -d "/etc/apache2" ]; then
-            if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
-                [ -d /etc/apache2/conf-available/ ] && ucf --debconf-ok /usr/share/ledgersmb/conf/apache-proxy.conf /etc/apache2/conf-available/ledgersmb-proxy.conf && ucfr ledgersmb /etc/apache2/conf-available/ledgersmb-proxy.conf
-                . /usr/share/apache2/apache2-maintscript-helper
-                if ! a2query -qm cgi ; then
-                    apache2_invoke enmod cgi || exit $?
-                fi
-                if ! a2query -qm rewrite ; then
-                    apache2_invoke enmod rewrite || exit $?
-                fi
-                apache2_invoke enconf ledgersmb-proxy.conf
-                [ ! -h /etc/ledgersmb/apache-proxy.conf ] && ln -s /etc/apache2/conf-available/ledgersmb-proxy.conf /etc/ledgersmb/apache-proxy.conf
-                # Restart apache
-                if [ -x "/etc/init.d/apache2" ]; then
-                    invoke-rc.d apache2 restart 3>/dev/null || true
-                fi
-            fi
-        fi
         # If enabled, do the debconf supported configuration
         db_get ledgersmb/debconf_install
         if [ "$RET" = true ]; then 
