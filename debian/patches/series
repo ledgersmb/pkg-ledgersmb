@@ -1,5 +1,3 @@
-05_confdir.patch
-10_httpdconf.patch
-15_UI-setup-credentials.patch
-20_BashPath.patch
-21_lsmb_13-fcgi-conf.patch
+10_lsmb-config.patch
+15_lsmb-service.patch
+20_http-proxies.patch

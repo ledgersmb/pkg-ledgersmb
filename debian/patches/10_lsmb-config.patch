@@ -1,0 +1,41 @@
+Author: Robert James Clay <jame@rocasa.us>
+Description: Make needed updates for ledgesmb.config.default for use by package.
+Origin: vendor
+Last-Update: 2017-07-18
+--- a/conf/ledgersmb.conf.default
++++ b/conf/ledgersmb.conf.default
+@@ -4,7 +4,7 @@
+ # of an alternative location
+ #
+ # e.g.
+-# LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf
++# LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf
+ 
+ [main]
+ auth = DB
+@@ -16,7 +16,7 @@
+ # Note tempdir is used as the basename of the dir, the real dirname is equivalent to....
+ #    /tmp/ledgersmb-$EUID/
+ #  If you specify a different dir to /tmp/ledgersmb ensure it's parent is writable by the running user.
+-tempdir = /tmp/ledgersmb
++tempdir = /tmp/ledgersmb
+ 
+ # This is the logical CSS directory.  I.e. it is what comes before the 
+ # ledgersmb.css in the url.  Example might be /my_css_dir/ or 
+@@ -75,7 +75,7 @@
+ images  = UI/images
+ 
+ # location we write backup files to on the server
+backupdir = /tmp/ledgersmb-backups
+ 
+ 
+ localepath = locale/po
+@@ -119,7 +119,7 @@
+ # Sets database connection parameters.  Note that default_db can be left blank
+ # if you want to force people to enter a company name at login.
+ port = 5432
+-default_db = lsmb13
++default_db = lsmb15
+ host = localhost
+ db_namespace = public
+ # sslmode can be require, allow, prefer, or disable.  Defaults to prefer.

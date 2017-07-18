@@ -2,7 +2,7 @@ Author: Robert James Clay <jame@rocasa.us>
 Description: Set working directory in the optional apache-vhost.conf
  and nginx-vhost.conf http proxy configuration files.
 Origin: vendor
-Last-Update: 2017-06-06
+Last-Update: 2017-06-18
 --- a/conf/apache-vhost.conf
 +++ b/conf/apache-vhost.conf
 @@ -18,9 +18,9 @@
