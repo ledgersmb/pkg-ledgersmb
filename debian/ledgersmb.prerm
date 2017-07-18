@@ -18,17 +18,7 @@ set -e
 
 
 case "$1" in
-    deconfigure)
-        # If Apache 2.4 in use, disable use of ledgersmb.conf.
-        if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
-            if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
-              /usr/share/apache2/apache2-maintscript-helper
-              apache2_invoke disconf ledgersmb-proxy.conf || exit $?
-            fi
-        fi
-    ;;
-
-    remove|upgrade|failed-upgrade)
+    remove|upgrade|failed-upgrade|deconfigure)
     ;;
 
     *)
