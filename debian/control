@@ -91,7 +91,8 @@ Package: ledgersmb-apache
 Architecture: all
 Depends: ledgersmb,
          apache2,
-         ucf
+         ucf,
+         ${misc:Depends}
 Enhances: ledgersmb
 Description: financial accounting and ERP program - Apache Web Proxy
  LedgerSMB is a full featured double-entry financial accounting and Enterprise
@@ -111,7 +112,8 @@ Package: ledgersmb-nginx
 Architecture: all
 Depends: ledgersmb,
          nginx-light | nginx-full | nginx-extra,
-         ucf
+         ucf,
+         ${misc:Depends}
 Enhances: ledgersmb
 Description: financial accounting and ERP program - Nginx Web Proxy
  LedgerSMB is a full featured double-entry financial accounting and Enterprise
