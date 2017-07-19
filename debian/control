@@ -1,7 +1,7 @@
 Source: ledgersmb
 Section: web
 Priority: extra
-Maintainer: Development discussion for LedgerSMB <ledger-smb-devel@lists.sourceforge.net>
+Maintainer: Development discussion for LedgerSMB <devel@lists.ledgersmb.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 9),
                dh-systemd (>= 1.5),
