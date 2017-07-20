@@ -21,8 +21,6 @@ override_dh_fixperms:
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/sql/modules/reload_modules.sh
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/dbsetup.pl
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/drop-roles.pl
-	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/install_interactive.pl
-	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/pre-release-tests.sh
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/starman.psgi
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/config.pl
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/listener.pl
