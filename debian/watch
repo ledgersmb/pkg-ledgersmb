@@ -5,7 +5,7 @@ version=4
 
 # Check against upstream release key. Exclude development snapshots. \
 opts="filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/ledgersmb-$1\.tar\.gz/, \
-dversionmangle=s/\+ds[\d]?//, \
+dversionmangle=s/\+ds//, \
 repacksuffix=+ds, \
 uversionmangle=s/^1\.5\.99\d*/0/, \
 pgpsigurlmangle=s/archive\/(\d\S+)\.tar\.gz/releases\/download\/$1\/ledgersmb-$1\.tar\.gz\.asc/" \
