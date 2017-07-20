@@ -4,7 +4,8 @@
 	dh $@ --with systemd
 
 override_dh_auto_configure:
-	cp ledgersmb.conf.default ledgersmb.conf
+	cp conf/ledgersmb.conf.default ledgersmb.conf
+	cp conf/systemd/starman-ledgersmb.service debian/ledgersmb.service
 
 override_dh_auto_build:
 
