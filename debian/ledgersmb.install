@@ -1,4 +1,4 @@
-edgersmb.conf etc/ledgersmb
+ledgersmb.conf etc/ledgersmb
 bin/*.pl usr/share/ledgersmb/bin
 conf/*.conf usr/share/ledgersmb/conf
 lib/* usr/share/ledgersmb/lib
