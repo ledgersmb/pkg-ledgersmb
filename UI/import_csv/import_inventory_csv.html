@@ -1,13 +1,13 @@
 <?lsmb INCLUDE 'ui-header.html'
       stylesheet = stylesheet
-      include_stylesheet = ["UI/asset/asset.css"] 
-      include_script = ["UI/asset/asset.js"] 
+      include_stylesheet = ["asset/asset.css"] 
+      include_script = ["asset/asset.js"] 
 ?>
 <?lsmb PROCESS 'elements.html' ?>
-<body onLoad="init()" class="<?lsmb dojo_theme ?>">
+<body onLoad="init()" class="lsmb <?lsmb dojo_theme ?>">
 <div class="listtop"><?lsmb title ?></div>
 <div class="info"><?lsmb info ?></div>
-<form data-dojo-type="lsmb/lib/Form" action="<?lsmb script ?>" method="post" enctype="multipart/form-data">
+<form data-dojo-type="lsmb/Form" action="<?lsmb request.script ?>" method="post" enctype="multipart/form-data">
 <div class="inputrow" id="ar-account-row">
 <?lsmb PROCESS select element_data = {
      label = text("AR account")
@@ -39,12 +39,14 @@
 <div class="inputrow" id="typerow">
 <?lsmb PROCESS input element_data = {
        name = "stock_type"
+       id   = 'stock_type-absolute'
        type = "radio"
        value = "absolute"
        label = text("Onhand amount")
 } ?> <br />
 <?lsmb PROCESS input element_data = {
        name = "stock_type"
+       id   = 'stock_type-relative'
        type = "radio"
        value = "relative"
        label = text("Onhand delta")
@@ -53,12 +55,14 @@
 <div class="inputrow" id="typerow">
 <?lsmb PROCESS input element_data = {
        name = "type"
+       id   = 'type-single'
        type = "radio"
        value = "inventory"
        label = text("Single date")
 } ?> <br />
 <?lsmb PROCESS input element_data = {
        name = "type"
+       id   = 'type-multiple'
        type = "radio"
        value = "inventory_multi"
        label = text("Multiple dates")

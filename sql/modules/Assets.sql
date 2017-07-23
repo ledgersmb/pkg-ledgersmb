@@ -1,10 +1,14 @@
+
+set client_min_messages = 'warning';
+
+
 BEGIN;
 
 CREATE OR REPLACE FUNCTION asset_dep__straight_line_base
-(in_base_life numeric, in_life numeric, in_used numeric, in_basis numeric, 
+(in_base_life numeric, in_life numeric, in_used numeric, in_basis numeric,
 in_dep_to_date numeric)
 returns numeric as $$
-SELECT CASE WHEN $3/$1 * $4 < $4 - $5 THEN $3/$1 * $4 
+SELECT CASE WHEN $3/$1 * $4 < $4 - $5 THEN $3/$1 * $4
             ELSE $4 - $5
             END;
 $$ language sql;
@@ -12,14 +16,14 @@ $$ language sql;
 COMMENT ON FUNCTION asset_dep__straight_line_base
 (in_base_life numeric, in_life numeric, in_used numeric, in_basis numeric,
 in_dep_to_date numeric) IS
-$$ This function is a basic function which does the actual calculation for 
+$$ This function is a basic function which does the actual calculation for
 straight line depreciation.$$;
 
 CREATE OR REPLACE FUNCTION asset_dep__used_months
 (in_last_dep date, in_dep_date date, in_usable_life numeric)
 RETURNS numeric AS
 $$
-select CASE WHEN extract('MONTHS' FROM (date_trunc('day', $2) - date_trunc('day', $1))) 
+select CASE WHEN extract('MONTHS' FROM (date_trunc('day', $2) - date_trunc('day', $1)))
                  > $3
             THEN $3
             ELSE extract('MONTHS' FROM (date_trunc('day', $2) - date_trunc('day', $1)))::numeric
@@ -28,8 +32,8 @@ $$ language sql;
 
 COMMENT ON FUNCTION asset_dep__used_months
 (in_last_dep date, in_dep_date date, in_usable_life numeric) IS
-$$ This checks the interval between the two dates, and if longer than the 
-usable life, returns the months in that interval.  Otherwise returns the 
+$$ This checks the interval between the two dates, and if longer than the
+usable life, returns the months in that interval.  Otherwise returns the
 usable life.$$;
 
 
@@ -37,7 +41,7 @@ CREATE OR REPLACE FUNCTION asset_dep_get_usable_life_yr
 (in_usable_life numeric, in_start_date date, in_dep_date date)
 returns numeric as
 $$
-   SELECT CASE WHEN $3 IS NULL or get_fractional_year($2, $3) > $1 
+   SELECT CASE WHEN $3 IS NULL or get_fractional_year($2, $3) > $1
                then $1
                WHEN get_fractional_year($2, $3) < 0
                THEN 0
@@ -47,8 +51,8 @@ $$ language sql;
 
 COMMENT ON FUNCTION asset_dep_get_usable_life_yr
 (in_usable_life numeric, in_start_date date, in_dep_date date) IS
-$$If the interval is less than 0 then 0.  If the interval is greater than the 
-usable life, then the usable life.  Otherwise, return the interval as a 
+$$If the interval is less than 0 then 0.  If the interval is greater than the
+usable life, then the usable life.  Otherwise, return the interval as a
 fractional year.$$;
 
 CREATE OR REPLACE FUNCTION months_passed (in_start timestamp, in_end timestamp)
@@ -69,12 +73,12 @@ CREATE OR REPLACE FUNCTION asset_dep_straight_line_yr_d
 (in_asset_ids int[],  in_report_date date, in_report_id int)
 RETURNS bool AS
 $$
-     INSERT INTO asset_report_line (asset_id, report_id, amount, department_id, 
+     INSERT INTO asset_report_line (asset_id, report_id, amount, department_id,
                                    warehouse_id)
-     SELECT ai.id, $3, 
+     SELECT ai.id, $3,
             asset_dep__straight_line_base(
                   ai.usable_life, -- years
-                  ai.usable_life - 
+                  ai.usable_life -
                   get_fractional_year(coalesce(max(report_date),
                                          start_depreciation,
                                          purchase_date),
@@ -85,29 +89,29 @@ $$
                                          purchase_date),
                                 $2),
                   purchase_value - salvage_value,
-                  coalesce(sum(l.amount), 0)), 
+                  coalesce(sum(l.amount), 0)),
             ai.department_id, ai.location_id
        FROM asset_item ai
   LEFT JOIN asset_report_line l ON (l.asset_id = ai.id)
   LEFT JOIN asset_report r ON (l.report_id = r.id)
-      WHERE ai.id = ANY($1) 
+      WHERE ai.id = ANY($1)
    GROUP BY ai.id, ai.start_depreciation, ai.purchase_date, ai.purchase_value,
             ai.salvage_value, ai.department_id, ai.location_id, ai.usable_life;
-                                                      
+
     UPDATE asset_report SET report_class = 1 WHERE id = $3;
 
     select true;
 $$ language sql;
-     
+
 
 
 CREATE OR REPLACE FUNCTION asset_dep_straight_line_yr_m
 (in_asset_ids int[],  in_report_date date, in_report_id int)
 RETURNS bool AS
 $$
-     INSERT INTO asset_report_line (asset_id, report_id, amount, department_id, 
+     INSERT INTO asset_report_line (asset_id, report_id, amount, department_id,
                                    warehouse_id)
-     SELECT ai.id, $3, 
+     SELECT ai.id, $3,
             asset_dep__straight_line_base(
                   ai.usable_life * 12,
                   ai.usable_life * 12 --months
@@ -120,15 +124,15 @@ $$
                                          purchase_date),
                                 $2),
                   purchase_value - salvage_value,
-                  coalesce(sum(l.amount), 0)), 
+                  coalesce(sum(l.amount), 0)),
             ai.department_id, ai.location_id
        FROM asset_item ai
   LEFT JOIN asset_report_line l ON (l.asset_id = ai.id)
   LEFT JOIN asset_report r ON (l.report_id = r.id)
-      WHERE ai.id = ANY($1) 
+      WHERE ai.id = ANY($1)
    GROUP BY ai.id, ai.start_depreciation, ai.purchase_date, ai.purchase_value,
             ai.salvage_value, ai.department_id, ai.location_id, ai.usable_life;
-                                                      
+
     UPDATE asset_report SET report_class = 1 WHERE id = $3;
 
     select true;
@@ -146,9 +150,9 @@ CREATE OR REPLACE FUNCTION asset_dep_straight_line_month
 (in_asset_ids int[],  in_report_date date, in_report_id int)
 RETURNS bool AS
 $$
-     INSERT INTO asset_report_line (asset_id, report_id, amount, department_id, 
+     INSERT INTO asset_report_line (asset_id, report_id, amount, department_id,
                                    warehouse_id)
-     SELECT ai.id, $3, 
+     SELECT ai.id, $3,
             asset_dep__straight_line_base(
                   ai.usable_life,
                   ai.usable_life --months
@@ -161,15 +165,15 @@ $$
                                          purchase_date),
                                 $2),
                   purchase_value - salvage_value,
-                  coalesce(sum(l.amount), 0)), 
+                  coalesce(sum(l.amount), 0)),
             ai.department_id, ai.location_id
        FROM asset_item ai
   LEFT JOIN asset_report_line l ON (l.asset_id = ai.id)
   LEFT JOIN asset_report r ON (l.report_id = r.id)
-      WHERE ai.id = ANY($1) 
+      WHERE ai.id = ANY($1)
    GROUP BY ai.id, ai.start_depreciation, ai.purchase_date, ai.purchase_value,
             ai.salvage_value, ai.department_id, ai.location_id, ai.usable_life;
-                                                      
+
     UPDATE asset_report SET report_class = 1 WHERE id = $3;
 
     select true;
@@ -177,48 +181,48 @@ $$ language sql;
 
 COMMENT ON FUNCTION asset_dep_straight_line_month
 (in_asset_ids int[],  in_report_date date, in_report_id int) IS
-$$ Performs straight line depreciation, selecting depreciation amounts, etc. 
+$$ Performs straight line depreciation, selecting depreciation amounts, etc.
 into a report for further review and approval.  Usable life is in months, and
 depreciation is an equal amount every month.$$;
 
 CREATE OR REPLACE FUNCTION asset_report__generate_gl(in_report_id int, in_accum_account_id int)
 RETURNS INT AS
 $$
-DECLARE 
-	t_report_dept record;
-	t_dep_amount numeric;
+DECLARE
+        t_report_dept record;
+        t_dep_amount numeric;
 
 Begin
-	INSERT INTO gl (reference, description, transdate, approved)
-	SELECT setting_increment('glnumber'), 'Asset Report ' || asset_report.id,
-		report_date, false
-	FROM asset_report 
-	JOIN asset_report_line 
-		ON (asset_report.id = asset_report_line.report_id)
-	JOIN asset_item 
-		ON (asset_report_line.asset_id = asset_item.id)
-	WHERE asset_report.id = in_report_id
-	GROUP BY asset_report.id, asset_report.report_date;
+        INSERT INTO gl (reference, description, transdate, approved)
+        SELECT setting_increment('glnumber'), 'Asset Report ' || asset_report.id,
+                report_date, false
+        FROM asset_report
+        JOIN asset_report_line
+                ON (asset_report.id = asset_report_line.report_id)
+        JOIN asset_item
+                ON (asset_report_line.asset_id = asset_item.id)
+        WHERE asset_report.id = in_report_id
+        GROUP BY asset_report.id, asset_report.report_date;
 
-	INSERT INTO acc_trans (trans_id, chart_id, transdate, approved, amount)
-	SELECT gl.id, a.exp_account_id, r.report_date, true, sum(amount) * -1
-	FROM asset_report r
-	JOIN asset_report_line l ON (r.id = l.report_id)
-	JOIN asset_item a ON (l.asset_id = a.id)
-	JOIN gl ON (gl.description = 'Asset Report ' || l.report_id)
-	WHERE r.id = in_report_id
-	GROUP BY gl.id, r.report_date, a.exp_account_id;
+        INSERT INTO acc_trans (trans_id, chart_id, transdate, approved, amount)
+        SELECT gl.id, a.exp_account_id, r.report_date, true, sum(amount) * -1
+        FROM asset_report r
+        JOIN asset_report_line l ON (r.id = l.report_id)
+        JOIN asset_item a ON (l.asset_id = a.id)
+        JOIN gl ON (gl.description = 'Asset Report ' || l.report_id)
+        WHERE r.id = in_report_id
+        GROUP BY gl.id, r.report_date, a.exp_account_id;
 
-	INSERT INTO acc_trans (trans_id, chart_id, transdate, approved, amount)
-	SELECT gl.id, a.dep_account_id, r.report_date, true, sum(amount)
-	FROM asset_report r
-	JOIN asset_report_line l ON (r.id = l.report_id)
-	JOIN asset_item a ON (l.asset_id = a.id)
-	JOIN gl ON (gl.description = 'Asset Report ' || l.report_id) 
-	WHERE r.id = in_report_id
-	GROUP BY gl.id, a.dep_account_id, r.report_date, a.tag, a.description;
+        INSERT INTO acc_trans (trans_id, chart_id, transdate, approved, amount)
+        SELECT gl.id, a.dep_account_id, r.report_date, true, sum(amount)
+        FROM asset_report r
+        JOIN asset_report_line l ON (r.id = l.report_id)
+        JOIN asset_item a ON (l.asset_id = a.id)
+        JOIN gl ON (gl.description = 'Asset Report ' || l.report_id)
+        WHERE r.id = in_report_id
+        GROUP BY gl.id, a.dep_account_id, r.report_date, a.tag, a.description;
 
-	RETURN in_report_id;
+        RETURN in_report_id;
 END;
 $$ language plpgsql;
 
@@ -231,12 +235,8 @@ $$;
 
 CREATE OR REPLACE FUNCTION asset_class__get (in_id int) RETURNS asset_class AS
 $$
-DECLARE ret_val asset_class;
-BEGIN 
-	SELECT * INTO ret_val FROM asset_class WHERE id = in_id;
-	RETURN ret_val;
-END;
-$$ language plpgsql;
+        SELECT * FROM asset_class WHERE id = in_id;
+$$ language sql;
 
 COMMENT ON FUNCTION asset_class__get (in_id int) IS
 $$ returns the row from asset_class identified by in_id.$$;
@@ -251,48 +251,41 @@ $$ Returns an alphabetical list of asset classes.$$;
 
 DROP TYPE IF EXISTS asset_class_result CASCADE;
 CREATE TYPE asset_class_result AS (
-	id int,
-	asset_account_id int,
-	asset_accno text,
-	asset_description text,
-	dep_account_id int,
-	dep_accno text,
-	dep_description text,
-	method text, 
-	method_id int, 
-	label text
+        id int,
+        asset_account_id int,
+        asset_accno text,
+        asset_description text,
+        dep_account_id int,
+        dep_accno text,
+        dep_description text,
+        method text,
+        method_id int,
+        label text
 );
 
 CREATE OR REPLACE FUNCTION asset_class__search
-(in_asset_account_id int, in_dep_account_id int, 
+(in_asset_account_id int, in_dep_account_id int,
 in_method int, in_label text)
 RETURNS SETOF asset_class_result AS
 $$
-DECLARE out_var asset_class_result;
-BEGIN
-	FOR out_var IN
-		SELECT ac.id, ac.asset_account_id, aa.accno, aa.description, 
-			ac.dep_account_id, ad.accno, ad.description, 
+                SELECT ac.id, ac.asset_account_id, aa.accno, aa.description,
+                        ac.dep_account_id, ad.accno, ad.description,
                         m.method, ac.method,
-			ac.label
-		FROM asset_class ac
-		JOIN account aa ON (aa.id = ac.asset_account_id)
-		JOIN account ad ON (ad.id = ac.dep_account_id)
-		JOIN asset_dep_method m ON (ac.method = m.id)
-		WHERE 
-			(in_asset_account_id is null 
-				or in_asset_account_id = ac.asset_account_id)
-			AND (in_dep_account_id is null OR
-				in_dep_account_id = ac.dep_account_id)
-			AND (in_method is null OR in_method = ac.method)
-			AND (in_label IS NULL OR ac.label LIKE 
-				'%' || in_label || '%')
+                        ac.label
+                FROM asset_class ac
+                JOIN account aa ON (aa.id = ac.asset_account_id)
+                JOIN account ad ON (ad.id = ac.dep_account_id)
+                JOIN asset_dep_method m ON (ac.method = m.id)
+                WHERE
+                        (in_asset_account_id is null
+                                or in_asset_account_id = ac.asset_account_id)
+                        AND (in_dep_account_id is null OR
+                                in_dep_account_id = ac.dep_account_id)
+                        AND (in_method is null OR in_method = ac.method)
+                        AND (in_label IS NULL OR ac.label LIKE
+                                '%' || in_label || '%')
                ORDER BY label
-	LOOP
-		RETURN NEXT out_var;
-	END LOOP;
-END;
-$$ language plpgsql;
+$$ language sql;
 
 COMMENT ON FUNCTION asset_class__search
 (in_asset_account_id int, in_dep_account_id int,
@@ -301,7 +294,7 @@ $$ Returns a list of matching asset classes.  The account id's are exact matches
 as is the method, but the label is a partial match.  NULL's match all.$$;
 
 
-CREATE OR REPLACE FUNCTION asset_class__get_dep_methods() 
+CREATE OR REPLACE FUNCTION asset_class__get_dep_methods()
 RETURNS SETOF asset_dep_method as $$
 SELECT * FROM asset_dep_method ORDER BY method;
 $$ LANGUAGE sql;
@@ -310,33 +303,33 @@ COMMENT ON FUNCTION asset_class__get_dep_methods() IS
 $$ Returns a set of asset_dep_methods ordered by the method label.$$;
 
 CREATE OR REPLACE FUNCTION asset_class__save
-(in_id int, in_asset_account_id int, in_dep_account_id int, 
+(in_id int, in_asset_account_id int, in_dep_account_id int,
 in_method int, in_label text, in_unit_label text)
 RETURNS asset_class AS
 $$
 DECLARE ret_val asset_class;
 BEGIN
-	UPDATE asset_class 
-	SET asset_account_id = in_asset_account_id,
-		dep_account_id = in_dep_account_id,
-		method = in_method,
-		label = in_label
-	WHERE id = in_id;
+        UPDATE asset_class
+        SET asset_account_id = in_asset_account_id,
+                dep_account_id = in_dep_account_id,
+                method = in_method,
+                label = in_label
+        WHERE id = in_id;
 
-	IF FOUND THEN
-		SELECT * INTO ret_val FROM asset_class where id = in_id;
-		RETURN ret_val;
-	END IF;
+        IF FOUND THEN
+                SELECT * INTO ret_val FROM asset_class where id = in_id;
+                RETURN ret_val;
+        END IF;
 
-	INSERT INTO asset_class (asset_account_id, dep_account_id, method,
-		label)
-	VALUES (in_asset_account_id, in_dep_account_id, in_method, 
-		in_label);
+        INSERT INTO asset_class (asset_account_id, dep_account_id, method,
+                label)
+        VALUES (in_asset_account_id, in_dep_account_id, in_method,
+                in_label);
 
-	SELECT * INTO ret_val FROM asset_class 
-	WHERE id = currval('asset_class_id_seq');
+        SELECT * INTO ret_val FROM asset_class
+        WHERE id = currval('asset_class_id_seq');
 
-	RETURN ret_val;
+        RETURN ret_val;
 END;
 $$ language plpgsql;
 
@@ -349,13 +342,9 @@ in the table, inserts a new row.  Returns the row saved.$$;
 CREATE OR REPLACE FUNCTION asset__get (in_id int, in_tag text)
 RETURNS asset_item AS
 $$
-DECLARE ret_val asset_item;
-BEGIN
-	SELECT * into ret_val from asset_item WHERE id = in_id OR in_tag = tag
+        SELECT * from asset_item WHERE id = in_id OR in_tag = tag
         ORDER BY id desc limit 1;
-	return ret_val;
-END;
-$$ language plpgsql;
+$$ language sql;
 
 COMMENT ON FUNCTION asset__get (in_id int, in_tag text) IS
 $$ Retrieves a given asset either by id or tag.  Both are complete matches.
@@ -363,32 +352,25 @@ $$ Retrieves a given asset either by id or tag.  Both are complete matches.
 Note that the behavior is undefined if both id and tag are provided.$$;
 
 CREATE OR REPLACE FUNCTION asset__search
-(in_asset_class int, in_description text, in_tag text, 
+(in_asset_class int, in_description text, in_tag text,
 in_purchase_date date, in_purchase_value numeric,
 in_usable_life numeric, in_salvage_value numeric)
 RETURNS SETOF asset_item AS $$
-DECLARE out_val asset_item;
-BEGIN
-	FOR out_val IN
-		SELECT * FROM asset_item
-		WHERE (in_asset_class is null 
-			or asset_class_id = in_asset_class)
-			AND (in_description is null or description 
-				LIKE '%' || in_description || '%')
-			and (in_tag is null or tag like '%'||in_tag||'%')
-			AND (in_purchase_date is null 
-				or purchase_date = in_purchase_date)
-			AND (in_purchase_value is null
-				or in_purchase_value = purchase_value)
-			AND (in_usable_life is null
-				or in_usable_life = usable_life)
-			AND (in_salvage_value is null
-				OR in_salvage_value = salvage_value)
-	LOOP
-		RETURN NEXT out_val;
-	END LOOP;
-END;
-$$ LANGUAGE PLPGSQL;
+                SELECT * FROM asset_item
+                WHERE (in_asset_class is null
+                        or asset_class_id = in_asset_class)
+                        AND (in_description is null or description
+                                LIKE '%' || in_description || '%')
+                        and (in_tag is null or tag like '%'||in_tag||'%')
+                        AND (in_purchase_date is null
+                                or purchase_date = in_purchase_date)
+                        AND (in_purchase_value is null
+                                or in_purchase_value = purchase_value)
+                        AND (in_usable_life is null
+                                or in_usable_life = usable_life)
+                        AND (in_salvage_value is null
+                                OR in_salvage_value = salvage_value);
+$$ LANGUAGE SQL;
 
 COMMENT ON FUNCTION asset__search
 (in_asset_class int, in_description text, in_tag text,
@@ -401,9 +383,9 @@ are partial matches.$$;
 
 CREATE OR REPLACE FUNCTION asset_class__get_asset_accounts()
 RETURNS SETOF account AS $$
-SELECT * FROM account 
-WHERE id IN 
-	(select account_id from account_link where description = 'Fixed_Asset')
+SELECT * FROM account
+WHERE id IN
+        (select account_id from account_link where description = 'Fixed_Asset')
 ORDER BY accno;
 $$ LANGUAGE SQL;
 
@@ -413,9 +395,9 @@ $$ Returns a list of fixed asset accounts, ordered by account number$$;
 
 CREATE OR REPLACE FUNCTION asset_class__get_dep_accounts()
 RETURNS SETOF account AS $$
-SELECT * FROM account 
-WHERE id IN 
-	(select account_id from account_link where description = 'Asset_Dep')
+SELECT * FROM account
+WHERE id IN
+        (select account_id from account_link where description = 'Asset_Dep')
 ORDER BY accno;
 $$ LANGUAGE SQL;
 
@@ -425,52 +407,52 @@ $$ Returns a list of asset depreciation accounts, ordered by account number$$;
 
 
 CREATE OR REPLACE FUNCTION asset__save
-(in_id int, in_asset_class int, in_description text, in_tag text, 
+(in_id int, in_asset_class int, in_description text, in_tag text,
 in_purchase_date date, in_purchase_value numeric,
-in_usable_life numeric, in_salvage_value numeric, 
-in_start_depreciation date, in_warehouse_id int, 
-in_department_id int, in_invoice_id int, 
+in_usable_life numeric, in_salvage_value numeric,
+in_start_depreciation date, in_warehouse_id int,
+in_department_id int, in_invoice_id int,
 in_asset_account_id int, in_dep_account_id int, in_exp_account_id int)
 returns asset_item AS
 $$
 DECLARE ret_val asset_item;
 BEGIN
-	UPDATE asset_item
-	SET asset_class_id = in_asset_class,
-		description = in_description,
-		tag = in_tag,
-		purchase_date = in_purchase_date,
-		purchase_value = in_purchase_value,
-		usable_life = in_usable_life,
-		location_id = in_warehouse_id,
-		department_id = in_department_id,
-		invoice_id = in_invoice_id,
-		salvage_value = in_salvage_value,
+        UPDATE asset_item
+        SET asset_class_id = in_asset_class,
+                description = in_description,
+                tag = in_tag,
+                purchase_date = in_purchase_date,
+                purchase_value = in_purchase_value,
+                usable_life = in_usable_life,
+                location_id = in_warehouse_id,
+                department_id = in_department_id,
+                invoice_id = in_invoice_id,
+                salvage_value = in_salvage_value,
                 asset_account_id = in_asset_account_id,
                 exp_account_id = in_exp_account_id,
-                start_depreciation = 
+                start_depreciation =
                          coalesce(in_start_depreciation, in_purchase_date),
                 dep_account_id = in_dep_account_id
-	WHERE id = in_id;
-	IF FOUND THEN
-		SELECT * INTO ret_val FROM asset_item WHERE id = in_id;
-		return ret_val;
-	END IF;
+        WHERE id = in_id;
+        IF FOUND THEN
+                SELECT * INTO ret_val FROM asset_item WHERE id = in_id;
+                return ret_val;
+        END IF;
 
-	INSERT INTO asset_item (asset_class_id, description, tag, purchase_date,
-		purchase_value, usable_life, salvage_value, department_id,
-		location_id, invoice_id, asset_account_id, dep_account_id,
+        INSERT INTO asset_item (asset_class_id, description, tag, purchase_date,
+                purchase_value, usable_life, salvage_value, department_id,
+                location_id, invoice_id, asset_account_id, dep_account_id,
                 start_depreciation, exp_account_id)
-	VALUES (in_asset_class, in_description, in_tag, in_purchase_date,
-		in_purchase_value, in_usable_life, in_salvage_value,
-		in_department_id, in_warehouse_id, in_invoice_id,
+        VALUES (in_asset_class, in_description, in_tag, in_purchase_date,
+                in_purchase_value, in_usable_life, in_salvage_value,
+                in_department_id, in_warehouse_id, in_invoice_id,
                 in_asset_account_id, in_dep_account_id,
                 coalesce(in_start_depreciation, in_purchase_date),
                 in_exp_account_id);
 
-	SELECT * INTO ret_val FROM asset_item 
-	WHERE id = currval('asset_item_id_seq');
-	RETURN ret_val;
+        SELECT * INTO ret_val FROM asset_item
+        WHERE id = currval('asset_item_id_seq');
+        RETURN ret_val;
 END;
 $$ language plpgsql;
 
@@ -481,48 +463,41 @@ in_usable_life numeric, in_salvage_value numeric,
 in_start_depreciation date, in_warehouse_id int,
 in_department_id int, in_invoice_id int,
 in_asset_account_id int, in_dep_account_id int, in_exp_account_id int) IS
-$$ Saves the asset with the information provided.  If the id is provided, 
+$$ Saves the asset with the information provided.  If the id is provided,
 overwrites the record with the id.  Otherwise, or if that record is not found,
 inserts.  Returns the row inserted or updated.
 $$;
 
 CREATE OR REPLACE FUNCTION asset_item__search
-(in_id int, in_asset_class int, in_description text, in_tag text, 
+(in_id int, in_asset_class int, in_description text, in_tag text,
 in_purchase_date date, in_purchase_value numeric,
-in_usable_life numeric, in_salvage_value numeric, 
-in_start_depreciation date, in_warehouse_id int, 
-in_department_id int, in_invoice_id int, 
+in_usable_life numeric, in_salvage_value numeric,
+in_start_depreciation date, in_warehouse_id int,
+in_department_id int, in_invoice_id int,
 in_asset_account_id int, in_dep_account_id int)
 returns setof asset_item as
 $$
-DECLARE retval asset_item;
-BEGIN
-    FOR retval IN
          SELECT * FROM asset_item
           WHERE (id = in_id or in_id is null)
                 and (asset_class_id = in_asset_class or in_asset_class is null)
                 and (description like '%'||in_description||'%'
                      or in_description is null)
                 and (tag like '%' || in_tag || '%' or in_tag is null)
-                and (purchase_value = in_purchase_value 
+                and (purchase_value = in_purchase_value
                     or in_purchase_value is null)
-                and (in_purchase_date = purchase_date 
+                and (in_purchase_date = purchase_date
                     or in_purchase_date is null)
                 and (start_depreciation = in_start_depreciation
                     or in_start_depreciation is null)
                 and (in_warehouse_id = location_id OR in_warehouse_id is null)
-                and (department_id = in_department_id 
+                and (department_id = in_department_id
                     or in_department_id is null)
                 and (in_invoice_id = invoice_id OR in_invoice_id IS NULL)
                 and (asset_account_id = in_asset_account_id
                     or in_asset_account_id is null)
                 and (dep_account_id = in_dep_account_id
-                    or in_dep_account_id is null)
-   LOOP
-       return next retval;
-   end loop;
-END;
-$$ language plpgsql;
+                    or in_dep_account_id is null);
+$$ language sql;
 
 COMMENT ON FUNCTION asset_item__search
 (in_id int, in_asset_class int, in_description text, in_tag text,
@@ -534,9 +509,9 @@ in_asset_account_id int, in_dep_account_id int) IS
 $$ Returns a list of matching asset items.  Nulls match all records.
 Tag and description allow for partial match.  All other matches are exact.$$;
 
-CREATE OR REPLACE FUNCTION asset_class__get_dep_method (in_asset_class int) 
+CREATE OR REPLACE FUNCTION asset_class__get_dep_method (in_asset_class int)
 RETURNS asset_dep_method AS $$
-SELECT * from asset_dep_method 
+SELECT * from asset_dep_method
 WHERE id = (select method from asset_class where id = $1);
 $$ language sql;
 
@@ -548,30 +523,30 @@ CREATE OR REPLACE FUNCTION asset_report__save
 in_submit bool)
 RETURNS asset_report AS
 $$
-DECLARE 
-	ret_val asset_report;
-	item record;
-	method_text text;
+DECLARE
+        ret_val asset_report;
+        item record;
+        method_text text;
 BEGIN
-	UPDATE asset_report 
-	set asset_class = in_asset_class,
-		report_class = in_report_class,
-		report_date = in_report_date,
-		submitted = (in_submit or submitted)
-	WHERE id = in_id;
+        UPDATE asset_report
+        set asset_class = in_asset_class,
+                report_class = in_report_class,
+                report_date = in_report_date,
+                submitted = (in_submit or submitted)
+        WHERE id = in_id;
 
-	IF FOUND THEN
-		SELECT * INTO ret_val FROM asset_report WHERE id = in_id;
-	ELSE 
-		INSERT INTO asset_report(report_class, asset_class, report_date,
-			submitted)
-		values (in_report_class, in_asset_class, in_report_date, 
-			coalesce(in_submit, true));
+        IF FOUND THEN
+                SELECT * INTO ret_val FROM asset_report WHERE id = in_id;
+        ELSE
+                INSERT INTO asset_report(report_class, asset_class, report_date,
+                        submitted)
+                values (in_report_class, in_asset_class, in_report_date,
+                        coalesce(in_submit, true));
 
-		SELECT * INTO ret_val FROM asset_report 
-		WHERE id = currval('asset_report_id_seq');
-                
-	END IF;
+                SELECT * INTO ret_val FROM asset_report
+                WHERE id = currval('asset_report_id_seq');
+
+        END IF;
         RETURN ret_val;
 
 END;
@@ -585,17 +560,17 @@ approval values are not set here, and that one cannot unsubmit a report though
 this function.$$;
 
 CREATE OR REPLACE FUNCTION asset_report__dispose
-(in_id int, in_asset_id int, in_amount numeric, in_dm int, 
+(in_id int, in_asset_id int, in_amount numeric, in_dm int,
 in_percent_disposed numeric)
 returns bool AS
 $$
 BEGIN
-    INSERT 
+    INSERT
       INTO asset_report_line (report_id, asset_id, amount)
     values (in_id, in_asset_id, in_amount);
 
-    INSERT 
-      INTO asset_rl_to_disposal_method 
+    INSERT
+      INTO asset_rl_to_disposal_method
            (report_id, asset_id, disposal_method_id, percent_disposed)
     VALUES (in_id, in_asset_id, in_dm, in_percent_disposed);
 
@@ -609,7 +584,7 @@ in_percent_disposed numeric) IS
 $$ Disposes of an asset.  in_dm is the disposal method id.$$;
 
 DROP TYPE IF EXISTS asset_disposal_report_line CASCADE;
-CREATE TYPE asset_disposal_report_line 
+CREATE TYPE asset_disposal_report_line
 AS (
        id int,
        tag text,
@@ -628,26 +603,26 @@ CREATE OR REPLACE FUNCTION asset_report__get_disposal (in_id int)
 returns setof asset_disposal_report_line AS
 $$
    SELECT ai.id, ai.tag, ai.description, ai.start_depreciation, r.report_date,
-          dm.short_label, ai.purchase_value, 
-          sum (CASE WHEN pr.report_class in (1,3) THEN prl.amount ELSE 0 END) 
+          dm.short_label, ai.purchase_value,
+          sum (CASE WHEN pr.report_class in (1,3) THEN prl.amount ELSE 0 END)
           as accum_dep,
-          l.amount, 
-          ai.purchase_value - sum(CASE WHEN pr.report_class in (1,3) 
-                                       THEN prl.amount 
-                                       ELSE 0 
+          l.amount,
+          ai.purchase_value - sum(CASE WHEN pr.report_class in (1,3)
+                                       THEN prl.amount
+                                       ELSE 0
                                    END) as adjusted_basis,
           l.amount - ai.purchase_value + sum(CASE WHEN pr.report_class in (1,3)
-                                                  THEN prl.amount 
-                                                  ELSE 0 
+                                                  THEN prl.amount
+                                                  ELSE 0
                                               END) as gain_loss
      FROM asset_item ai
      JOIN asset_report_line l   ON (l.report_id = $1 AND ai.id = l.asset_id)
      JOIN asset_report r        ON (l.report_id = r.id)
-LEFT JOIN asset_rl_to_disposal_method adm 
+LEFT JOIN asset_rl_to_disposal_method adm
                              USING (report_id, asset_id)
      JOIN asset_disposal_method dm
                                 ON (adm.disposal_method_id = dm.id)
-LEFT JOIN asset_report_line prl ON (prl.report_id <> $1 
+LEFT JOIN asset_report_line prl ON (prl.report_id <> $1
                                    AND ai.id = prl.asset_id)
 LEFT JOIN asset_report pr       ON (prl.report_id = pr.id)
  GROUP BY ai.id, ai.tag, ai.description, ai.start_depreciation, r.report_date,
@@ -662,7 +637,7 @@ by the report id.$$;
 DROP TYPE IF EXISTS asset_nbv_line CASCADE;
 
 CREATE TYPE asset_nbv_line AS (
-    id int, 
+    id int,
     tag text,
     description text,
     begin_depreciation date,
@@ -676,11 +651,11 @@ CREATE TYPE asset_nbv_line AS (
 );
 
 
-CREATE OR REPLACE FUNCTION asset_nbv_report () 
+CREATE OR REPLACE FUNCTION asset_nbv_report ()
 returns setof asset_nbv_line AS
 $$
    SELECT ai.id, ai.tag, ai.description, coalesce(ai.start_depreciation, ai.purchase_date),
-          adm.short_name, ai.usable_life 
+          adm.short_name, ai.usable_life
            - months_passed(coalesce(ai.start_depreciation, ai.purchase_date),
                                   coalesce(max(r.report_date),
                                            ai.start_depreciation,
@@ -695,7 +670,7 @@ LEFT JOIN asset_report r on (rl.report_id = r.id)
     WHERE r.id IS NULL OR r.approved_at IS NOT NULL
  GROUP BY ai.id, ai.tag, ai.description, ai.start_depreciation, ai.purchase_date,
           adm.short_name, ai.usable_life, ai.purchase_value, salvage_value
-   HAVING (NOT 2 = ANY(as_array(r.report_class))) 
+   HAVING (NOT 2 = ANY(as_array(r.report_class)))
           AND (NOT 4 = ANY(as_array(r.report_class)))
           OR max(r.report_class) IS NULL
  ORDER BY ai.id, ai.tag, ai.description;
@@ -704,7 +679,7 @@ $$ language sql;
 COMMENT ON FUNCTION asset_nbv_report () IS
 $$ Returns the current net book value report.$$;
 
-DROP TYPE IF EXISTS partial_disposal_line CASCADE;      
+DROP TYPE IF EXISTS partial_disposal_line CASCADE;
 CREATE TYPE partial_disposal_line AS (
 id int,
 tag text,
@@ -722,8 +697,8 @@ CREATE OR REPLACE FUNCTION asset_report_partial_disposal_details(in_id int)
 RETURNS SETOF PARTIAL_DISPOSAL_LINE AS
 $$
 SELECT ai.id, ai.tag, ai.start_depreciation, ai.purchase_value, ai.description,
-       ar.report_date, arld.percent_disposed, 
-       (arld.percent_disposed / 100) * ai.purchase_value, 
+       ar.report_date, arld.percent_disposed,
+       (arld.percent_disposed / 100) * ai.purchase_value,
        100 - arld.percent_disposed,
        ((100 - arld.percent_disposed)/100) * ai.purchase_value
   FROM asset_item ai
@@ -743,26 +718,26 @@ RETURNS asset_report AS
 $$
 DECLARE ret_val asset_report;
 BEGIN
-        UPDATE asset_report 
+        UPDATE asset_report
            SET approved_at = now(),
                approved_by = person__get_my_entity_id()
          where id = in_id;
-	SELECT * INTO ret_val FROM asset_report WHERE id = in_id;
-        if ret_val.dont_approve is not true then 
+        SELECT * INTO ret_val FROM asset_report WHERE id = in_id;
+        if ret_val.dont_approve is not true then
                 if ret_val.report_class = 1 THEN
                     PERFORM asset_report__generate_gl(in_id, in_expense_acct);
                 ELSIF ret_val.report_class = 2 THEN
                     PERFORM asset_report__disposal_gl(
                                  in_id, in_gain_acct, in_loss_acct);
                 ELSIF ret_val.report_class = 4 THEN
-                    PERFORM asset_disposal__approve(in_id, in_gain_acct, in_loss_acct, (select asset_account_id from asset_class 
+                    PERFORM asset_disposal__approve(in_id, in_gain_acct, in_loss_acct, (select asset_account_id from asset_class
                                                                                          where id = ret_val.asset_class)
                                                    );
                 ELSE RAISE EXCEPTION 'Invalid report class';
                 END IF;
         end if;
-	SELECT * INTO ret_val FROM asset_report WHERE id = in_id;
-	RETURN ret_val;
+        SELECT * INTO ret_val FROM asset_report WHERE id = in_id;
+        RETURN ret_val;
 end;
 $$ language plpgsql;
 revoke execute on function asset_report__approve(int, int, int, int) from public;
@@ -775,11 +750,11 @@ CREATE OR REPLACE FUNCTION asset_report__disposal_gl
 (in_id int, in_gain_acct int, in_loss_acct int)
 RETURNS bool AS
 $$
-  INSERT 
+  INSERT
     INTO gl (reference, description, transdate, approved)
   SELECT setting_increment('glnumber'), 'Asset Report ' || asset_report.id,
-		report_date, false
-    FROM asset_report 
+                report_date, false
+    FROM asset_report
     JOIN asset_report_line ON (asset_report.id = asset_report_line.report_id)
     JOIN asset_item        ON (asset_report_line.asset_id = asset_item.id)
    WHERE asset_report.id = $1
@@ -827,7 +802,7 @@ INSERT INTO asset_note (ref_key, subject, note) values ($1, $2, $3);
 SELECT * FROM asset_note WHERE id = currval('note_id_seq');
 $$ language sql;
 
-COMMENT ON FUNCTION asset_item__add_note(in_id int, in_subject text, 
+COMMENT ON FUNCTION asset_item__add_note(in_id int, in_subject text,
 in_note text) IS $$ Adds a note to an asset item$$;
 
 CREATE OR REPLACE FUNCTION asset_report__get_expense_accts()
@@ -837,7 +812,7 @@ AS $$
 $$ language sql;
 
 COMMENT ON FUNCTION asset_report__get_expense_accts() IS
-$$ Lists all asset expense reports.$$; 
+$$ Lists all asset expense reports.$$;
 
 CREATE OR REPLACE FUNCTION asset_report__get_gain_accts()
 RETURNS SETOF account
@@ -889,20 +864,20 @@ CREATE TYPE asset_report_line_result AS(
 CREATE OR REPLACE FUNCTION asset_report__get_lines(in_id int)
 RETURNS SETOF asset_report_line_result
 as $$
-   select ai.tag, coalesce(ai.start_depreciation, ai.purchase_date), ai.purchase_value, m.short_name, 
-          ai.usable_life, 
+   select ai.tag, coalesce(ai.start_depreciation, ai.purchase_date), ai.purchase_value, m.short_name,
+          ai.usable_life,
           ai.purchase_value - ai.salvage_value, max(pr.report_date),
           sum(case when pr.report_date < r.report_date then prl.amount
                    else 0
-                end), 
-          rl.amount, 
+                end),
+          rl.amount,
           sum (case when extract(year from pr.report_date)
                          = extract(year from r.report_date)
                          AND pr.report_date < r.report_date
                     then prl.amount
                     else 0
-                end), 
-          sum(prl.amount), 
+                end),
+          sum(prl.amount),
           ai.description, ai.purchase_date
      FROM asset_item ai
      JOIN asset_class c ON (ai.asset_class_id = c.id)
@@ -942,15 +917,15 @@ CREATE OR REPLACE FUNCTION asset_report__search
  in_entered_by int)
 returns setof asset_report_result AS $$
 
-  SELECT r.id, r.report_date, r.gl_id, r.asset_class, r.report_class, 
-         r.entered_by, r.approved_by, r.entered_at, r.approved_at, 
+  SELECT r.id, r.report_date, r.gl_id, r.asset_class, r.report_class,
+         r.entered_by, r.approved_by, r.entered_at, r.approved_at,
          r.depreciated_qty, r.dont_approve, r.submitted, sum(l.amount)
     FROM asset_report r
     JOIN asset_report_line l ON (l.report_id = r.id)
    where ($1 is null or $1 <= report_date)
          and ($2 is null or $2 >= report_date)
          and ($3 is null or $3 = asset_class)
-         and ($4 is null 
+         and ($4 is null
               or ($4 is true and approved_by is not null)
               or ($4 is false and approved_by is null))
          and ($5 is null or $5 = entered_by)
@@ -962,12 +937,12 @@ $$ language sql;
 COMMENT ON FUNCTION asset_report__search
 (in_start_date date, in_end_date date, in_asset_class int, in_approved bool,
  in_entered_by int) IS
-$$ Searches for asset reports.  Nulls match all rows.  Approved, asset class, 
+$$ Searches for asset reports.  Nulls match all rows.  Approved, asset class,
 and entered_by are exact matches.  Start_date and end_date define the beginning
 and end of the search date. $$;
 
 CREATE OR REPLACE FUNCTION asset_report__generate
-(in_depreciation bool, in_asset_class int, in_report_date date) 
+(in_depreciation bool, in_asset_class int, in_report_date date)
 RETURNS SETOF asset_item AS
 $$
    SELECT ai.*
@@ -981,10 +956,10 @@ LEFT JOIN asset_report ar ON (arl.report_id = ar.id)
           ai.purchase_date, ai.location_id, ai.invoice_id, ai.asset_account_id,
           ai.dep_account_id, ai.asset_class_id, ai.start_depreciation,
           ai.salvage_value, ai.department_id, ai.exp_account_id, ai.obsolete_by
-   HAVING (count(ar.report_class) = 0 OR    
-          (2 <> ALL(as_array(ar.report_class)) 
+   HAVING (count(ar.report_class) = 0 OR
+          (2 <> ALL(as_array(ar.report_class))
           and 4 <> ALL(as_array(ar.report_class))))
-          AND ((ai.purchase_value - coalesce(sum(arl.amount), 0) 
+          AND ((ai.purchase_value - coalesce(sum(arl.amount), 0)
                > ai.salvage_value) and ai.obsolete_by is null)
                OR $1 is not true;
 $$ language sql;
@@ -994,13 +969,13 @@ COMMENT ON FUNCTION asset_report__generate
 $$ Generates lines to select/deselect for the asset report (depreciation or
 disposal).$$;
 
-CREATE OR REPLACE FUNCTION asset_report__begin_import 
+CREATE OR REPLACE FUNCTION asset_report__begin_import
 (in_asset_class int, in_report_date date)
 returns asset_report as
 $$
-INSERT INTO asset_report (asset_class, report_date, entered_at, entered_by, 
+INSERT INTO asset_report (asset_class, report_date, entered_at, entered_by,
             report_class, dont_approve)
-     VALUES ($1, $2, now(), person__get_my_entity_id(), 
+     VALUES ($1, $2, now(), person__get_my_entity_id(),
             3, true);
 
 SELECT * FROM asset_report where id = currval('asset_report_id_seq');
@@ -1012,19 +987,19 @@ COMMENT ON FUNCTION asset_report__begin_import
 $$Creates the outline of an asset import report$$;
 
 CREATE OR REPLACE FUNCTION asset_report__import(
-	in_description text,
-	in_tag text,
-	in_purchase_value numeric,
-	in_salvage_value numeric,
-	in_usable_life numeric,
-	in_purchase_date date,
+        in_description text,
+        in_tag text,
+        in_purchase_value numeric,
+        in_salvage_value numeric,
+        in_usable_life numeric,
+        in_purchase_date date,
         in_start_depreciation date,
-	in_location_id int,
-	in_department_id int,
-	in_asset_account_id int,
-	in_dep_account_id int,
-	in_exp_account_id int,
-	in_asset_class_id int,
+        in_location_id int,
+        in_department_id int,
+        in_asset_account_id int,
+        in_dep_account_id int,
+        in_exp_account_id int,
+        in_asset_class_id int,
         in_invoice_id int,
         in_dep_report_id int,
         in_accum_dep numeric,
@@ -1035,21 +1010,21 @@ $$
 
 SET CONSTRAINTS asset_item_obsolete_by_fkey DEFERRED;
 -- This fails a deferrable fkey constraint but avoids a partial unique index
--- so in this case, the foreign key is deferred for the duration of this 
+-- so in this case, the foreign key is deferred for the duration of this
 -- specific stored proc call.
 
 UPDATE asset_item
-   SET obsolete_by = -1 
+   SET obsolete_by = -1
  WHERE tag = $2 and $17 is true;
 
-INSERT 
-  INTO asset_report_line 
+INSERT
+  INTO asset_report_line
        (report_id, asset_id, amount, department_id, warehouse_id)
 select $15, id, $16, department_id, location_id
   from asset__save
        (NULL, $13, $1, $2, $6, $3, $5, coalesce($4, 0), $7, $8, $9, $14, $10, $11, $12);
 
-UPDATE asset_item 
+UPDATE asset_item
    SET obsolete_by = currval('asset_item_id_seq')
  WHERE obsolete_by = -1;
 
@@ -1078,7 +1053,7 @@ COMMENT ON FUNCTION asset_report__import(
         in_obsolete_other bool
 ) IS
 $$ Imports an asset with the supplied information.  If in_obsolete_other is
-false, this creates a new depreciable asset.  If it is true, it sets up the 
+false, this creates a new depreciable asset.  If it is true, it sets up the
 other asset as obsolete.  This is the way partial disposal reports are handled.
 $$;
 
@@ -1089,9 +1064,9 @@ DECLARE retval asset_report;
 
 begin
 
-INSERT INTO asset_report (asset_class, report_date, entered_at, entered_by, 
+INSERT INTO asset_report (asset_class, report_date, entered_at, entered_by,
             report_class)
-     VALUES (in_asset_class, in_report_date, now(), person__get_my_entity_id(), 
+     VALUES (in_asset_class, in_report_date, now(), person__get_my_entity_id(),
             in_report_class);
 
 SELECT * INTO retval FROM asset_report where id = currval('asset_report_id_seq');
@@ -1103,13 +1078,13 @@ end;
 $$ language plpgsql;
 
 COMMENT ON FUNCTION asset_report__begin_disposal
-(in_asset_class int, in_report_date date, in_report_class int) IS 
+(in_asset_class int, in_report_date date, in_report_class int) IS
 $$ Creates the asset report recofd for the asset disposal report.$$;
 
 create or replace function asset_report__record_approve(in_id int)
 returns asset_report
 as $$
-UPDATE asset_report 
+UPDATE asset_report
    set approved_by = person__get_my_entity_id(),
        approved_at = now()
  where id = $1;
@@ -1143,7 +1118,7 @@ SELECT l.amount, a.dep_account_id, r.report_date, true, currval('id')
  WHERE r.id = in_id;
 
 INSERT INTO acc_trans (amount, chart_id, transdate, approved, trans_id)
-SELECT sum(l.amount) * -1, in_expense_acct, r.report_date, approved, 
+SELECT sum(l.amount) * -1, in_expense_acct, r.report_date, approved,
        currval('id')
   FROM asset_report r
   JOIN asset_report_line l ON (r.id = l.report_id)
@@ -1174,14 +1149,14 @@ CREATE OR REPLACE FUNCTION asset_disposal__approve
 (in_id int, in_gain_acct int, in_loss_acct int, in_asset_acct int)
 returns asset_report
 as $$
-DECLARE 
+DECLARE
    retval asset_report;
    iter record;
    t_disposed_percent numeric;
 begin
--- this code is fairly opaque and needs more documentation that would be 
+-- this code is fairly opaque and needs more documentation that would be
 -- otherwise optimal. This is mostly due to the fact that we have fairly
--- repetitive insert/select routines and the fact that the accounting 
+-- repetitive insert/select routines and the fact that the accounting
 -- requirements are not immediately intuitive.  Inserts marked functionally along
 -- with typical debit/credit designations.  Note debits are always negative.
 
@@ -1198,30 +1173,30 @@ select 'Asset Report ' || in_id, 'Asset Disposal Report for ' || report_date,
 
 -- REMOVING ASSETS FROM ACCOUNT (Credit)
 insert into acc_trans (trans_id, chart_id, amount, approved, transdate)
-SELECT currval('id'), a.asset_account_id, 
-       a.purchase_value 
-       * (coalesce(t_disposed_percent, m.percent_disposed)/100), 
+SELECT currval('id'), a.asset_account_id,
+       a.purchase_value
+       * (coalesce(t_disposed_percent, m.percent_disposed)/100),
        true, r.report_date
  FROM  asset_item a
  JOIN  asset_report_line l ON (l.asset_id = a.id)
  JOIN  asset_report r ON (r.id = l.report_id)
- JOIN  asset_rl_to_disposal_method m 
+ JOIN  asset_rl_to_disposal_method m
         ON (l.report_id = m.report_id and l.asset_id = m.asset_id)
  WHERE r.id = in_id;
 
 -- REMOVING ACCUM DEP. (Debit)
 INSERT into acc_trans (trans_id, chart_id, amount, approved, transdate)
-SELECT currval('id'), a.dep_account_id, 
-       sum(dl.amount) * -1 
-       * (coalesce(t_disposed_percent, m.percent_disposed)/100), 
+SELECT currval('id'), a.dep_account_id,
+       sum(dl.amount) * -1
+       * (coalesce(t_disposed_percent, m.percent_disposed)/100),
        true, r.report_date
  FROM  asset_item a
  JOIN  asset_report_line l ON (l.asset_id = a.id)
  JOIN  asset_report r ON (r.id = l.report_id)
  JOIN  asset_report_line dl ON (l.asset_id = dl.asset_id)
- JOIN  asset_rl_to_disposal_method m 
+ JOIN  asset_rl_to_disposal_method m
         ON (l.report_id = m.report_id and l.asset_id = m.asset_id)
- JOIN  asset_report dr ON (dl.report_id = dr.id 
+ JOIN  asset_report dr ON (dl.report_id = dr.id
                            and dr.report_class = 1
                            and dr.approved_at is not null)
  WHERE r.id = in_id
@@ -1233,17 +1208,17 @@ SELECT currval('id'), in_asset_acct, coalesce(l.amount, 0) * -1, true, r.report_
  FROM  asset_item a
  JOIN  asset_report_line l ON (l.asset_id = a.id)
  JOIN  asset_report r ON (r.id = l.report_id)
- JOIN  asset_rl_to_disposal_method m 
+ JOIN  asset_rl_to_disposal_method m
         ON (l.report_id = m.report_id and l.asset_id = m.asset_id)
  WHERE r.id = in_id;
 
 -- INSERT GAIN/LOSS (Credit for gain, debit for loss)
 INSERT INTO acc_trans(trans_id, chart_id, amount, approved, transdate)
-select currval('id'), 
+select currval('id'),
             CASE WHEN sum(amount) > 0 THEN in_loss_acct
             else in_gain_acct
         END,
-        sum(amount) * -1 , true, 
+        sum(amount) * -1 , true,
         retval.report_date
   FROM acc_trans
   WHERE trans_id = currval('id');
@@ -1275,25 +1250,25 @@ BEGIN
     if t_report.report_class <> 4 THEN RETURN FALSE;
     END IF;
 
-    SELECT * 
-      INTO t_import 
-      FROM  asset_report__begin_import 
+    SELECT *
+      INTO t_import
+      FROM  asset_report__begin_import
             (t_report.asset_class::int, t_report.report_date);
 
     PERFORM asset_report__import(
-	ai.description,
-	ai.tag,
-	ai.purchase_value * rld.percent_disposed / 100,
-	ai.salvage_value * rld.percent_disposed / 100,
-	ai.usable_life,
-	ai.purchase_date,
+        ai.description,
+        ai.tag,
+        ai.purchase_value * rld.percent_disposed / 100,
+        ai.salvage_value * rld.percent_disposed / 100,
+        ai.usable_life,
+        ai.purchase_date,
         ai.start_depreciation,
-	ai.location_id,
-	ai.department_id,
-	ai.asset_account_id,
-	ai.dep_account_id,
-	ai.exp_account_id,
-	ai.asset_class_id,
+        ai.location_id,
+        ai.department_id,
+        ai.asset_account_id,
+        ai.dep_account_id,
+        ai.exp_account_id,
+        ai.asset_class_id,
         ai.invoice_id,
         t_import.id,
         r.accum_depreciation * rld.percent_disposed / 100,
@@ -1301,7 +1276,7 @@ BEGIN
     FROM asset_item ai
     JOIN asset_report__get_disposal(t_report.id) r  ON (ai.id = r.id)
     JOIN asset_report_line rl ON (rl.asset_id = ai.id AND rl.report_id = in_id)
-    join asset_rl_to_disposal_method rld 
+    join asset_rl_to_disposal_method rld
          ON (rl.report_id = rld.report_id and ai.id = rld.asset_id)
    where rld.percent_disposed is null or percent_disposed < 100;
    RETURN TRUE;
@@ -1314,7 +1289,7 @@ called dirctly by programmers but rather through the other disposal approval
 api's.$$; --'
 
 -- needed to go here because dependent on other functions in other modules. --CT
-alter table asset_report alter column entered_by 
+alter table asset_report alter column entered_by
 set default person__get_my_entity_id();
 
 update defaults set value = 'yes' where setting_key = 'module_load_ok';

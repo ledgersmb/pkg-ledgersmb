@@ -1,12 +1,12 @@
 <?lsmb INCLUDE "ui-header.html" 
        stylesheet = stylesheet
-       # include_stylesheet = ['UI/Contact/history.css'] ?>
+       # include_stylesheet = ['Contact/history.css'] ?>
 <?lsmb PROCESS 'elements.html';
        PROCESS 'report_base.html'; ?>
  
-<body class="<?lsmb dojo_theme ?>"> 
+<body class="lsmb <?lsmb dojo_theme ?>"> 
  
-<form data-dojo-type="lsmb/lib/Form" method="get" action="contact_reports.pl"> 
+<form data-dojo-type="lsmb/Form" method="get" action="contact_reports.pl">
 <table width=100%> 
   <tr> 
    <th class=listtop><?lsmb text('Purchase History') ?></th> 
@@ -167,6 +167,7 @@
                          <?lsmb INCLUDE input element_data = {
                                 checked = 'CHECKED',
                                 name    = 'type',
+                                id      = 'type-i',
                                 type    = 'radio',
                                 class   = 'radio',
                                 value   = 'i'
@@ -175,6 +176,7 @@
 		    <td> 
                          <?lsmb INCLUDE input element_data = {
                                 name    = 'type',
+                                id      = 'type-o',
                                 type    = 'radio',
                                 class   = 'radio',
                                 value   = 'o'
@@ -183,6 +185,7 @@
                     <td> 
                          <?lsmb INCLUDE input element_data = {
                                 name    = 'type',
+                                id      = 'type-q',
                                 type    = 'radio',
                                 class   = 'radio',
                                 value   = 'q'
@@ -216,7 +219,8 @@
 		<td><?lsmb
                      INCLUDE input element_data= {
                              label = text('Summary'),
-                             name  = 'is_summary'
+                             name  = 'is_summary',
+                             id    = 'is_summary-1',
                              type  = 'radio',
                              value = '1',
                              class = 'radio',
@@ -226,6 +230,7 @@
                      INCLUDE input element_data= {
                              label = text('Detail'),
                              name  = 'is_summary',
+                             id    = 'is_summary-0',
                              type  = 'radio',
                              value = '0',
                              class = 'radio',

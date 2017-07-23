@@ -1,6 +1,10 @@
+
+set client_min_messages = 'warning';
+
+
 --
 
--- Copyright (C) 2011 LedgerSMB Core Team.  Licensed under the GNU General 
+-- Copyright (C) 2011 LedgerSMB Core Team.  Licensed under the GNU General
 -- Public License v 2 or at your option any later version.
 
 -- Docstrings already added to this file.
@@ -14,13 +18,13 @@ CREATE OR REPLACE FUNCTION entity_save(
     DECLARE
         e entity;
         e_id int;
-        
+
     BEGIN
-    
+
         select * into e from entity where id = in_entity_id;
-        
-        update 
-            entity 
+
+        update
+            entity
         SET
             name = in_name,
             entity_class = in_entity_class
@@ -29,7 +33,7 @@ CREATE OR REPLACE FUNCTION entity_save(
         IF NOT FOUND THEN
             -- do the insert magic.
             e_id = nextval('entity_id_seq');
-            insert into entity (id, name, entity_class) values 
+            insert into entity (id, name, entity_class) values
                 (e_id,
                 in_name,
                 in_entity_class
@@ -37,7 +41,7 @@ CREATE OR REPLACE FUNCTION entity_save(
             return e_id;
         END IF;
         return in_entity_id;
-            
+
     END;
 
 $$ language 'plpgsql';
@@ -47,26 +51,24 @@ COMMENT ON FUNCTION entity_save(
 )  IS
 $$ Currently unused.  Left in because it is believed it may be helpful.
 
-This saves an entity, with the control code being the next available via the 
+This saves an entity, with the control code being the next available via the
 defaults table.$$;
 
 CREATE OR REPLACE FUNCTION entity__list_classes ()
 RETURNS SETOF entity_class AS $$
 DECLARE out_row entity_class;
 BEGIN
-	FOR out_row IN 
-		SELECT * FROM entity_class
-             LEFT JOIN defaults ON setting_key = 'roll_prefix'
-		WHERE active and pg_has_role(SESSION_USER, 
-                                     coalesce(defaults.value, 
-                                     lsmb__role_prefix() ||
-                                     'contact_class_' ||
-                                     lower(regexp_replace(class, ' ', '_'))), 
-                                     'USAGE')
-		ORDER BY id
-	LOOP
-		RETURN NEXT out_row;
-	END LOOP;
+        FOR out_row IN
+                SELECT * FROM entity_class
+                WHERE active and pg_has_role(SESSION_USER,
+                                   lsmb__role_prefix()
+                                   || 'contact_class_'
+                                   || lower(regexp_replace(class, '( |\-)', '_')),
+                                   'USAGE')
+                ORDER BY id
+        LOOP
+                RETURN NEXT out_row;
+        END LOOP;
 END;
 $$ LANGUAGE PLPGSQL;
 
@@ -76,20 +78,8 @@ $$ Returns a list of entity classes, ordered by assigned ids$$;
 CREATE OR REPLACE FUNCTION entity__get (
     in_entity_id int
 ) RETURNS setof entity AS $$
-
-declare
-    v_row entity;
-BEGIN
-    -- Removing the exception when not found handling.  Applications are
-    -- perfectly capable of handling whether an entity was not found.  No need
-    -- for a database-level exception here. Moreover such results may be useful
-    -- --CT
-
-    SELECT * INTO v_row FROM entity WHERE id = in_entity_id;
-    return next v_row;
-END;
-
-$$ language plpgsql;
+    SELECT * FROM entity WHERE id = in_entity_id;
+$$ language sql;
 
 COMMENT ON FUNCTION entity__get (
     in_entity_id int
@@ -101,24 +91,18 @@ CREATE OR REPLACE FUNCTION eca__get_entity (
     in_credit_id int
 ) RETURNS setof entity AS $$
 
-declare
-    v_row entity;
-BEGIN
-    SELECT entity.* INTO v_row FROM entity_credit_account JOIN entity ON entity_credit_account.entity_id = entity.id WHERE entity_credit_account.id = in_credit_id;
-    IF NOT FOUND THEN
-        raise exception 'Could not find entity with ID %', in_credit_id;
-    ELSE
-        return next v_row;
-    END IF;
-END;
+    SELECT entity.*
+      FROM entity_credit_account
+      JOIN entity ON entity_credit_account.entity_id = entity.id
+     WHERE entity_credit_account.id = in_credit_id;
 
-$$ language plpgsql;
+$$ language sql;
 
 COMMENT ON FUNCTION eca__get_entity (
     in_credit_id int
 )  IS
 $$ Returns a set of (only one) entity to which the entity credit account is
-attached.$$; 
+attached.$$;
 
 CREATE OR REPLACE FUNCTION entity__get_bank_account(in_id int)
 RETURNS entity_bank_account

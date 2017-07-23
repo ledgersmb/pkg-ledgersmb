@@ -1,73 +1,80 @@
-<div class="lsmbtab" id="person_div" title="<?lsmb text('Person') ?>">
+<div id="person_div"
+     title="<?lsmb text('Person') ?>"
+     data-dojo-type="dijit/layout/ContentPane"
+     <?lsmb IF request.target_div == 'person_div' ?>data-dojo-props="selected:true"<?lsmb END ?>
+     >
 <?lsmb SWITCH entity_class
-	?><?lsmb CASE 1 ?><?lsmb entity_classname = "Vendor" 
-	?><?lsmb CASE 2 ?><?lsmb entity_classname = "Customer" 
-	?><?lsmb END ?>
-	<div class="listtop"><strong><?lsmb text("$operation $entity_classname") ?></strong></div>
-<form data-dojo-type="lsmb/lib/Form" name="customer" method="post" action="<?lsmb script ?>">
+        ?><?lsmb CASE 1 ?><?lsmb entity_classname = "Vendor" 
+        ?><?lsmb CASE 2 ?><?lsmb entity_classname = "Customer" 
+        ?><?lsmb END ?>
+        <div class="listtop"><strong><?lsmb text("$operation $entity_classname") ?></strong></div>
+<form data-dojo-type="lsmb/Form" name="customer" method="post" action="<?lsmb request.script ?>">
 <?lsmb PROCESS input element_data = { # Only for generate_control_code
                   id = 'person-target-div'
-		type = "hidden"
-		name = "target_div"
-		value = 'person_div'
-	} ?>
-	<?lsmb PROCESS input element_data = {
+                type = "hidden"
+                name = "target_div"
+                value = 'person_div'
+        } ?>
+        <?lsmb PROCESS input element_data = {
                   id = 'person-entity-id'
-		type = "hidden"
-		name = "entity_id"
-		value = entity_id
-	} ?>	
-	<?lsmb PROCESS input element_data = {
+                type = "hidden"
+                name = "entity_id"
+                value = entity_id
+        } ?>    
+        <?lsmb PROCESS input element_data = {
                   id = 'person-id'
-		type = "hidden"
-		name = "id"
-		value = person.id
-	} ?>	
+                type = "hidden"
+                name = "id"
+                value = person.id
+        } ?>    
 <?lsmb PROCESS input element_data = {
                   id = 'person-form-id'
-		type = "hidden"
-		name = "form_id"
-		value = form_id
-	} ?>
-	<?lsmb PROCESS input element_data = {
+                type = "hidden"
+                name = "form_id"
+                value = form_id
+        } ?>
+        <?lsmb PROCESS input element_data = {
                   id = 'person-account-class'
-		type = "hidden"
-		name = "account_class"
-		value = account_class
-	} ?>	
-<div class="tabular col-1">
+                type = "hidden"
+                name = "account_class"
+                value = account_class
+        } ?>    
+<div data-dojo-type="lsmb/TabularForm" data-dojo-props="cols:1">
 <div class="input_line">
 <div class="input_group1">
-	<?lsmb PROCESS input element_data = {
+        <?lsmb PROCESS input element_data = {
                   id = 'person-control-code'
-		label = text('Control Code') #'
-		type= "text"
-		name = "control_code"
-		value = person.control_code
-		size = "20"
-	} ?>
-	<?lsmb IF !created_as_class;
-		created_as_class = entity_class;
-	END; # IF !created_as_class ?> 
+                title = text('Control Code') #'
+                label = "_none_"
+                type= "text"
+                name = "control_code"
+                value = person.control_code
+                size = "20"
+        } ?>
+        <?lsmb IF !created_as_class;
+                created_as_class = entity_class;
+        END; # IF !created_as_class ?> 
 </div>
 <div class="input_group2">
         <?lsmb 
         PROCESS select element_data = {
                 id = 'person-entity-class'
-		name = "entity_class"
-		options = entity_classes
-		default_values = [entity_class]
-		text_attr = 'class'
-		value_attr = 'id'
-		label = text('Class')
-	} ?>
+                name = "entity_class"
+                options = entity_classes
+                default_values = [entity_class]
+                text_attr = 'class'
+                value_attr = 'id'
+                title = text('Class')
+                label = "_none_"
+        } ?>
 </div>
 </div>
 <div class="input_line">
 <div class="input_group1">
      <?lsmb 
         PROCESS select element_data = {
-                  label = text('Salutation')
+                  title = text('Salutation')
+                  label = "_none_"
                    name = 'salutation_id'
          default_values = [person.salutation_id]
           default_blank = 1
@@ -81,20 +88,22 @@
 </div>
 <div class="input_line">
 <div class="input_group1">
-	<?lsmb PROCESS input element_data = {
-		label = text('Given Name') #'
-		type= "text"
-		name = "first_name"
-		value = person.first_name
-		size = "20"
+        <?lsmb PROCESS input element_data = {
+                title = text('Given Name') #'
+                label = "_none_"
+                type= "text"
+                name = "first_name"
+                value = person.first_name
+                size = "20"
             required = 'true'
-	} ?>
+        } ?>
 </div>
 </div>
 <div class="input_line">
 <div class="input_group1">
         <?lsmb PROCESS input element_data = {
-                label = text('Middle Name') #'
+                title = text('Middle Name') #'
+                label = "_none_"
                 type= "text"
                 name = "middle_name"
                 value = person.middle_name
@@ -105,7 +114,8 @@
 <div class="input_line">
 <div class="input_group1">
         <?lsmb PROCESS input element_data = {
-                label = text('Surname') 
+                title = text('Surname') 
+                label = "_none_"
                 type= "text"
                 name = "last_name"
                 value = person.last_name
@@ -121,16 +131,17 @@
                 IF !person_country_id; 
                           person_country_id = default_country;
                 END;
-		INCLUDE select element_data = {
+                INCLUDE select element_data = {
                         id = 'person-country-id'
-			text_attr = "name"
-			value_attr = "id"
-			default_values = [person_country_id]
-			options = country_list
-			name = "country_id"
-			label = text('Country') 
+                        text_attr = "name"
+                        value_attr = "id"
+                        default_values = [person_country_id]
+                        options = country_list
+                        name = "country_id"
+                        title = text('Country') 
+                        label = "_none_"
                         required = 'true'
-	} ?> 
+        } ?> 
 </div>
 </div>
 <div class="input_line">
@@ -140,9 +151,10 @@
            type  = 'text',
            size  = '20',
            value = person.personal_id,
-           label = text('Personal ID') #'
+           title = text('Personal ID') #'
+           label = "_none_"
            class = 'id',
-			  required = 'true'
+                          required = 'true'
     } ?>
 </div>
 </div>
@@ -152,10 +164,11 @@
            name  = 'birthdate',
            type  = 'text',
            value = person.birthdate,
-           label = text('Birthdate'),
+           title = text('Birthdate'),
+           label = "_none_"
            size  = '11',
            class = 'date',
-			  required = 'true'
+                          required = 'true'
     } ?>
 </div>
 </div>
@@ -163,13 +176,13 @@
 <div class="input_line">
             <hr/>
 <div class="buttonrow">
-	<?lsmb PROCESS button element_data = {
+        <?lsmb PROCESS button element_data = {
                  id = 'person-generate-control-code'
-		text = text('Generate Control Code') #'
-		type = "submit"
-		name = "action"
-		value = "generate_control_code"
-		class = "submit"
+                text = text('Generate Control Code') #'
+                type = "submit"
+                name = "action"
+                value = "generate_control_code"
+                class = "submit"
         } ?>
         <?lsmb PROCESS button element_data = {
                   id = 'person-retrieve'
@@ -179,15 +192,15 @@
                value = 'get_by_cc'
                class = 'submit'
         } ?>
-		<?lsmb INCLUDE button element_data = {
-			text = text('Save'),
-			class="submit" 
-			type="submit" 
-			name="action" 
-			value="save_person" 
-			accesskey="S" 
-			title="Save [Alt-S]"
-		} ?>
+                <?lsmb INCLUDE button element_data = {
+                        text = text('Save'),
+                        class="submit" 
+                        type="submit" 
+                        name="action" 
+                        value="save_person" 
+                        accesskey="S" 
+                        title="Save [Alt-S]"
+                } ?>
 </div>
 </div>
 </form>

@@ -1,4 +1,4 @@
-<?lsmb FILTER latex -?>
+<?lsmb FILTER latex { format=FORMAT _ "(xelatex)" } -?>
 \documentclass{scrartcl}
  \usepackage{xltxtra}
  \usepackage{fontspec}
@@ -13,7 +13,7 @@
 \pagestyle{myheadings}
 \thispagestyle{empty}
 
-<?lsmb LETTERHEAD ?>
+<?lsmb INCLUDE letterhead ?>
 
 \parbox[t]{.5\textwidth}{
 <?lsmb statement.entity.name ?>

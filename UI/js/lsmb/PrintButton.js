@@ -1,0 +1,4 @@
+//>>built
+define("lsmb/PrintButton","dojo/_base/declare dojo/_base/event dojo/dom-attr dijit/form/Button lsmb/iframe dojo/dom-form dijit/registry".split(" "),function(c,d,e,f,g,h,k){return c("lsmb/PrintButton",[f],{minimalGET:!0,onClick:function(c){var a=this.valueNode.form;if("screen"==a.media.value){var b;this.minimalGET?(b={action:this.get("value"),type:a.type.value,id:a.id.value,formname:a.formname.value,language_code:a.language_code.value,media:"screen",format:a.format.value},a.vc&&(b.vc=a.vc.value)):
+(b=h.toObject(a),b.action=this.get("value"));g(e.get(a,"action"),{data:b}).then(function(){},function(a){k.byId("maindiv").report_request_error(a)});d.stop(c)}else return this.inherited(arguments)}})});
+//# sourceMappingURL=PrintButton.js.map

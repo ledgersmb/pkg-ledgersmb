@@ -398,7 +398,7 @@ SELECT account__save(NULL,'241010','Voiture acquis. exercice - Wagen m.b.t. dit 
 SELECT account_heading_save(NULL, '57', 'Caisses - Kassen', NULL);
 SELECT account__save(NULL,'510200','Titrés non-cotés - Aandelen niet op beurs','A','51', NULL, false, false, string_to_array('', ':'), false, false);
 SELECT account__save(NULL,'510090','Réduct. valeur actées (-) - Geb. waardev. aandelen (-)','A','51', NULL, false, false, string_to_array('', ':'), false, false);
-SELECT account__save(NULL,'510210','	Montants non-appelés (-) - Niet opgevraagde bedragen aan. (-)','A','51', NULL, false, false, string_to_array('', ':'), false, false);
+SELECT account__save(NULL,'510210','    Montants non-appelés (-) - Niet opgevraagde bedragen aan. (-)','A','51', NULL, false, false, string_to_array('', ':'), false, false);
 SELECT account__save(NULL,'510290','Réduct. valeur actées (-) - Geb. waardev. aandelen (-) ','A','51', NULL, false, false, string_to_array('', ':'), false, false);
 SELECT account__save(NULL,'614700','Frais de bonne politique','E','61', NULL, false, false, string_to_array('AP_amount:IC_expense', ':'), false, false);
 SELECT account__save(NULL,'615000','Sous-traitants','E','61', NULL, false, false, string_to_array('AP_amount:IC_expense', ':'), false, false);
@@ -432,7 +432,7 @@ INSERT INTO tax (chart_id, rate) VALUES ((SELECT id FROM account WHERE accno = '
 INSERT INTO tax (chart_id, rate) VALUES ((SELECT id FROM account WHERE accno = '451541'), 0.21);
 INSERT INTO tax (chart_id, rate) VALUES ((SELECT id FROM account WHERE accno = '640700'), 0.21);
 --
-INSERT INTO defaults (setting_key, value) VALUES ('inventory_accno_id', (SELECT 
+INSERT INTO defaults (setting_key, value) VALUES ('inventory_accno_id', (SELECT
 id FROM account WHERE accno = '340'));
 
  INSERT INTO defaults (setting_key, value) VALUES ('income_accno_id', (SELECT id FROM account WHERE accno = '743200'));
@@ -456,4 +456,3 @@ WHERE id
 
 SELECT cr_coa_to_account_save(accno, accno || '--' || description)
 FROM account WHERE accno = '55';
-

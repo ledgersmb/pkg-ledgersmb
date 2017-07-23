@@ -1,4 +1,4 @@
-<?lsmb FILTER latex -?>
+<?lsmb FILTER latex { format=FORMAT _ "(xelatex)" } -?>
 \documentclass{scrartcl}
  \usepackage{xltxtra}
  \usepackage{fontspec}
@@ -16,7 +16,7 @@
 \pagestyle{myheadings}
 \thispagestyle{empty}
 
-<?lsmb LETTERHEAD ?>
+<?lsmb INCLUDE letterhead ?>
 
 
 \markboth{<?lsmb company ?>\hfill <?lsmb invnumber ?>}{<?lsmb company ?>\hfill <?lsmb invnumber ?>}

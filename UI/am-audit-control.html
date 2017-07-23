@@ -1,7 +1,7 @@
 <?lsmb INCLUDE 'ui-header.html' ?> 
 <?lsmb PROCESS elements.html ?> 
-<body class="<?lsmb dojo_theme ?>">
-<form data-dojo-type="lsmb/lib/Form" method="post" action="<?lsmb form.script ?>">
+<body class="lsmb <?lsmb dojo_theme ?>">
+<form data-dojo-type="lsmb/Form" method="post" action="<?lsmb form.script ?>">
 <table width="100%">
   <tr><th class="listtop"><?lsmb text('Audit Control') ?></th></tr>
   <tr><td>&nbsp;</td></tr>
@@ -17,7 +17,12 @@
 	</tr>
 	<tr>
 	  <th align="right"><?lsmb text('Close Books up to') ?></th>
-	  <td><input class="date" name="closedto" size="11" title="<?lsmb user.dateformat ?>" value="<?lsmb form.closedto ?>" /></td>
+	  <td><?lsmb PROCESS input element_data = {
+		     class = "date"
+		     name = "closedto"
+		     size = 11
+		     title = user.dateformat
+		     value = form.closedto } ?></td>
 	</tr>
 	<tr>
 	  <th align="right"><?lsmb text('Activate Audit trail') ?></th>

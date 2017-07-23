@@ -1,7 +1,7 @@
 <?lsmb INCLUDE "ui-header.html" dojo_parse='onload';
 PROCESS "elements.html" ?>
-<body class="<?lsmb dojo_theme ?>">
-<form data-dojo-type="lsmb/lib/Form" action="timecard.pl" method="post">
+<body class="lsmb <?lsmb dojo_theme ?>">
+<form data-dojo-type="lsmb/Form" action="timecard.pl" method="post">
 <?lsmb 
 PROCESS input element_data = {
     type = "hidden"
@@ -48,7 +48,7 @@ FOREACH bu IN b_units;
 END;
 ?>
 <div class="listtop"><?lsmb text('Weekly Time and Materials Entry') ?></div>
-<table width="100%" cols=7 data-dojo-type="dijit/layout/TableContainer"
+<table width="100%" cols=7
  id="timecard-weekly">
 <tr class="listtop">
  <th><?lsmb transdates.0 ?></th>
@@ -87,37 +87,36 @@ END;
          default_values = [${"curr_$suffix"}]
        }; ?>
   <div><?lsmb  text('Partnumber') ?></div>
-    <div><?lsmb PROCESS input element_data = {
-               name = "partnumber_$suffix"
-              value = ${"partnumber_$suffix"}
-               type = 'text'
-               size = '15'
-              class = 'control-code'
-         } ?>
+  <div>
+    <input data-dojo-type="lsmb/parts/PartSelector"
+           data-dojo-props="required:false,channel:'/timecard/part-select/<?lsmb suffix ?>',fetchProperties:{type:'sales'}"
+           name="partnumber_<?lsmb suffix ?>"
+           id="partnumber_<?lsmb suffix ?>"
+           size="15"
+           value="<?lsmb ${"partnumber_$suffix"} ?>"
+           accesskey="p"
+           title="[p]"
+           style="width:100%" />
     </div>
   <div><?lsmb text('Qty') ?></div>
     <div><?lsmb PROCESS input element_data = {
        name = "qty_$suffix"
       value = ${"qty_$suffix"}
-       type = text
       class = 'qty'
        size = 5 } ?></div>
   <div><?lsmb text('Extra Used') ?></div>
     <div><?lsmb PROCESS input element_data = {
        name = "non_billable_$suffix"
       value = ${"non_billable_$suffix"}
-       type = text
       class = 'qty'
        size = 5 } ?></div>
-  <div><?lsmb text('Description') ?></div>
-    <div><?lsmb PROCESS textarea element_data = {
-               name = "description_$suffix"
-              value = ${"description_$suffix"}
-               type = 'text'
-               cols = '15'
-              class = 'description'
-         } ?>
-    </div>
+    <div><?lsmb text('Description') ?></div>
+    <div data-dojo-type="lsmb/parts/PartDescription"
+         data-dojo-props="channel:'/timecard/part-select/<?lsmb suffix ?>'"
+         name="description_<?lsmb suffix ?>"
+         id="description_<?lsmb suffix ?>"
+         cols="15"
+         class="description"><?lsmb ${"description_$suffix"} ?></div>
 </td>
 <?lsmb END ?>
 </tr>

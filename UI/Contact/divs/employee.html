@@ -1,6 +1,11 @@
-<div id="employee_div" class="lsmbtab"  title="<?lsmb text('Employee') ?>">
-	<div class="listtop"><strong><?lsmb text("$operation Employee") ?></strong></div>
-<form data-dojo-type="lsmb/lib/Form" name="hr" action="<?lsmb script ?>" method="post">
+<div id="employee_div"
+     title="<?lsmb text('Employee') ?>"
+     data-dojo-type="dijit/layout/ContentPane"
+     <?lsmb IF request.target_div == 'employee_div' ?>data-dojo-props="selected:true"<?lsmb END ?>
+     >
+  <div class="listtop"><strong><?lsmb text("$operation Employee") ?></strong></div>
+<form data-dojo-type="lsmb/Form" name="hr" action="<?lsmb request.script ?>" method="post">
+<div data-dojo-type="lsmb/TabularForm" data-dojo-props="cols:3">
 <?lsmb PROCESS input element_data = {
 		type = "hidden"
 		name = "target_div"
@@ -20,7 +25,8 @@
 <div class="input_group g1">
      <?lsmb 
         PROCESS select element_data = {
-                  label = text('Salutation')
+                  title = text('Salutation')
+                  label = "_none_"
                    name = 'salutation_id'
          default_values = [employee.salutation_id]
           default_blank = 1
@@ -34,7 +40,8 @@
 <div class="input_line" id="person_name_div"><?lsmb #text('Name:')?>&nbsp;
 <div class="input_group g1">
 <?lsmb PROCESS input element_data = {
-	label = text('First Name') #'
+	title = text('First Name') #'
+	label = "_none_"
 	name = "first_name"
 	value = employee.first_name
 	type = "text"
@@ -44,7 +51,8 @@
 </div>
 <div class="input_group g2">
 <?lsmb PROCESS input element_data = {
-	label = text('Middle Name') #'
+	title = text('Middle Name') #'
+	label = "_none_"
 	name = "middle_name"
 	value = employee.middle_name
 	type = "text"
@@ -55,7 +63,8 @@
 <div class="input_line" id='person_name2_div'>
 <div class="input_group g1">
 <?lsmb PROCESS input element_data = {
-	label = text('Last Name') #'
+	title = text('Last Name') #'
+	label = "_none_"
 	name = "last_name"
 	value = employee.last_name
 	type = "text"
@@ -67,7 +76,8 @@
 problems with multi-word single-quoted constructs in PI tags. -CT  -->
 <div class="input_group g2">
 <?lsmb PROCESS input element_data = {
-	label = text('Job Title')
+	title = text('Job Title')
+	label = "_none_"
 	name = "role"
 	value = employee.role
 	type = "text"
@@ -80,7 +90,8 @@ problems with multi-word single-quoted constructs in PI tags. -CT  -->
 <?lsmb 
 IF employee.sales; checked = "CHECKED"; ELSE; checked = undef; END;
 PROCESS input element_data = {
-	label = text('Sales')
+	title = text('Sales')
+	label = "_none_"
 	value = 1
 	type = "checkbox"
 	checked = checked
@@ -91,7 +102,8 @@ PROCESS input element_data = {
 <?lsmb
 IF employee.is_manager; checked = "CHECKED"; ELSE; checked = undef; END;
  PROCESS input element_data = {
-        label = text('Manager')
+        title = text('Manager')
+        label = "_none_"
         value = '1'
         type = "checkbox"
         checked = checked
@@ -109,14 +121,16 @@ IF employee.is_manager; checked = "CHECKED"; ELSE; checked = undef; END;
 			options = country_list
 			name = "country_id"
                         required = 'true'
-			label = text('Country') 
+			title = text('Country') 
+			label = "_none_"
 	} ?> 
 </div>
 </div>
 <div id="employee_div" class="input_line">
 <div class="input_group g1">
 <?lsmb PROCESS input element_data = {
-	label = text('Employee Number') #'
+	title = text('Employee Number') #'
+	label = "_none_"
 	value = employee.employeenumber
 	name = "employeenumber"
 	type = "text"
@@ -126,7 +140,8 @@ IF employee.is_manager; checked = "CHECKED"; ELSE; checked = undef; END;
 </div>
 <div class="input_group g2">
 <?lsmb PROCESS select element_data = {
-         label = text('Manager')
+         title = text('Manager')
+         label = "_none_"
           name = 'manager_id'
        options = all_managers
 default_values = [employee.manager_id]
@@ -136,7 +151,8 @@ default_values = [employee.manager_id]
 </div>
 <div class="input_group g3">
 <?lsmb PROCESS input element_data = {
-        label = text('Tax ID/SSN') #'
+        title = text('Tax ID/SSN') #'
+        label = "_none_"
          name = "ssn"
         value = employee.ssn
          type = "text"
@@ -149,7 +165,8 @@ default_values = [employee.manager_id]
 <div class="input_line" id="hr_dates_div">
 <div class="input_group g1">
 <?lsmb PROCESS input element_data = {
-	label = text('DOB')
+	title = text('DOB')
+	label = "_none_"
 	name = "dob"
 	value = employee.dob
 	type = "text"
@@ -160,7 +177,8 @@ default_values = [employee.manager_id]
 </div>
 <div class="input_group g2">
 <?lsmb PROCESS input element_data = {
-	label = text('Start Date')
+	title = text('Start Date')
+	label = "_none_"
 	name = "start_date"
 	value = employee.start_date
 	type = "text"
@@ -170,13 +188,15 @@ default_values = [employee.manager_id]
 </div>
 <div class="input_group g3">
 <?lsmb PROCESS input element_data = {
-	label = text('End Date')
+	title = text('End Date')
+	label = "_none_"
 	name = "end_date"
 	value = employee.end_date
 	class = "date"
 	type = "text"
 	size = 10
 } # ' ?>
+</div>
 </div>
 </div>
 <div>

@@ -1,3 +1,7 @@
+
+set client_min_messages = 'warning';
+
+
 BEGIN;
 -- WAGE FUNCTIONS
 CREATE OR REPLACE FUNCTION wage__list_for_entity(in_entity_id int)
@@ -8,16 +12,20 @@ $$ language sql;
 
 CREATE OR REPLACE FUNCTION wage__list_types(in_country_id int)
 RETURNS SETOF payroll_income_type AS
-$$ 
+$$
 SELECT * FROM payroll_income_type where country_id = $1
 $$ language sql;
 
-drop function if exists wage__save (numeric, int, int);
+DROP FUNCTION IF EXISTS wage__save
+(in_rate numeric, in_entity_id int, in_type_id int);
+
 CREATE OR REPLACE FUNCTION wage__save
 (in_rate numeric, in_entity_id int, in_type_id int)
-RETURNS SETOF payroll_wage
+RETURNS payroll_wage
 AS
-$$ 
+$$
+DECLARE
+  return_wage payroll_wage;
 BEGIN
 
 UPDATE payroll_wage
@@ -29,9 +37,11 @@ IF NOT FOUND THEN
     INSERT INTO payroll_wage (entity_id, type_id, rate)
     VALUES (in_entity_id, in_type_id, in_rate);
 END IF;
-  
-RETURN QUERY SELECT * FROM payroll_wage 
+
+SELECT * INTO return_wage FROM payroll_wage
              WHERE entity_id = in_entity_id and in_type_id;
+
+RETURN return_wage;
 END;
 $$ language plpgsql;
 
@@ -44,16 +54,19 @@ $$ language sql;
 
 CREATE OR REPLACE FUNCTION deduction__list_types(in_country_id int)
 RETURNS SETOF payroll_deduction_type AS
-$$ 
+$$
 SELECT * FROM payroll_deduction_type where country_id = $1
 $$ language sql;
 
-drop function if exists deduction__save (numeric, int, int);
+DROP FUNCTION IF EXISTS deduction__save
+(in_rate numeric, in_entity_id int, in_type_id int);
+
 CREATE OR REPLACE FUNCTION deduction__save
 (in_rate numeric, in_entity_id int, in_type_id int)
-RETURNS SETOF payroll_deduction
+RETURNS payroll_deduction
 AS
-$$ 
+$$
+DECLARE return_ded payroll_deduction;
 BEGIN
 
 UPDATE payroll_deduction
@@ -65,9 +78,10 @@ IF NOT FOUND THEN
     INSERT INTO payroll_deduction (entity_id, type_id, rate)
     VALUES (in_entity_id, in_type_id, in_rate);
 END IF;
-  
-RETURN QUERY SELECT * FROM payroll_deduction
+
+SELECT * INTO return_ded FROM payroll_deduction
              WHERE entity_id = in_entity_id and in_type_id;
+RETURN return_ded;
 END;
 $$ language plpgsql;
 
@@ -76,14 +90,14 @@ RETURNS payroll_income_type AS $$
 SELECT * FROM payroll_income_type WHERE id  = $1;
 $$ LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION payroll_income_category__list() 
+CREATE OR REPLACE FUNCTION payroll_income_category__list()
 RETURNS SETOF payroll_income_category AS $$
 SELECT * FROM payroll_income_category order by id;
 $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION payroll_income_class__for_country(in_country_id int)
 RETURNS SETOF payroll_income_class AS
-$$ 
+$$
 SELECT * FROM payroll_income_class where country_id = $1
 ORDER BY label;
 $$ language sql;
@@ -112,7 +126,7 @@ BEGIN
 
    INSERT INTO payroll_income_type
           (account_id, pic_id, country_id, label, unit, default_amount)
-   VALUES (in_account_id, in_pic_id, in_country_id, in_label, in_unit, 
+   VALUES (in_account_id, in_pic_id, in_country_id, in_label, in_unit,
            in_default_amount);
 
    retval := payroll_income_type__get(currval('payroll_income_type_id_seq')::int);
@@ -125,9 +139,9 @@ CREATE OR REPLACE FUNCTION payroll_income_type__search
 (in_account_id int, in_pic_id int, in_country_id int, in_label text,
 in_unit text) RETURNS SETOF payroll_income_type
 LANGUAGE SQL STABLE AS
-$$ 
-SELECT * 
-  FROM payroll_income_type 
+$$
+SELECT *
+  FROM payroll_income_type
  where (account_id = $1 OR $1 IS NULL) AND
        (pic_id = $2 OR $2 IS NULL) AND
        (country_id = $3 OR $3 IS NULL) AND
@@ -139,9 +153,9 @@ CREATE OR REPLACE FUNCTION payroll_deduction_type__search
 (in_account_id int, in_pdc_id int, in_country_id int, in_label text,
 in_unit text) RETURNS SETOF payroll_deduction_type
 LANGUAGE SQL STABLE AS
-$$ 
-SELECT * 
-  FROM payroll_deduction_type 
+$$
+SELECT *
+  FROM payroll_deduction_type
  where (account_id = $1 OR $1 IS NULL) AND
        (pdc_id = $2 OR $2 IS NULL) AND
        (country_id = $3 OR $3 IS NULL) AND

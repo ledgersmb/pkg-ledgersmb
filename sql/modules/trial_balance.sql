@@ -1,3 +1,7 @@
+
+set client_min_messages = 'warning';
+
+
 BEGIN;
 
 DROP TYPE IF EXISTS tb_row CASCADE;
@@ -5,7 +9,7 @@ create type tb_row AS (
    account_id int,
    account_number text,
    account_desc text,
-   gifi_accno	text,
+   gifi_accno   text,
    starting_balance numeric,
    debits numeric,
    credits numeric,
@@ -22,15 +26,19 @@ DROP FUNCTION IF EXISTS trial_balance__generate
 (in_from_date DATE, in_to_date DATE, in_heading INT, in_accounts INT[],
  in_ignore_yearend TEXT, in_business_units int[], in_balance_sign int);
 
+DROP FUNCTION IF EXISTS trial_balance__generate
+(in_from_date DATE, in_to_date DATE, in_heading INT, in_accounts INT[],
+ in_ignore_yearend TEXT, in_business_units int[], in_balance_sign int,
+ in_all_accounts boolean);
 
 CREATE OR REPLACE FUNCTION trial_balance__generate
 (in_from_date DATE, in_to_date DATE, in_heading INT, in_accounts INT[],
  in_ignore_yearend TEXT, in_business_units int[], in_balance_sign int,
- in_all_accounts boolean)
+ in_all_accounts boolean, in_approved boolean)
 returns setof tb_row AS
 $$
 DECLARE
-	out_row         tb_row;
+        out_row         tb_row;
         t_roll_forward  date;
         t_cp            account_checkpoint;
         ignore_trans    int[];
@@ -112,7 +120,10 @@ BEGIN
          JOIN (SELECT id, approved FROM ar UNION ALL
                SELECT id, approved FROM ap UNION ALL
                SELECT id, approved FROM gl) gl
-                   ON ac.approved and gl.approved and ac.trans_id = gl.id
+                   ON ac.trans_id = gl.id
+                     AND (in_approved is null
+                          OR (gl.approved = in_approved
+                             and (ac.approved OR in_approved is false)))
     LEFT JOIN business_unit_ac buac ON ac.entry_id = buac.entry_id
     LEFT JOIN bu_tree ON buac.bu_id = bu_tree.id
         WHERE ac.transdate BETWEEN t_roll_forward + '1 day'::interval
@@ -144,7 +155,7 @@ BEGIN
               case when in_from_date is null then coalesce(cp.credits, 0) else 0 end,
               COALESCE(t_balance_sign,
                        CASE WHEN a.category IN ('A', 'E') THEN -1 ELSE 1 END)
-              * (coalesce(cp.amount, 0) + sum(ac.amount)),
+              * (coalesce(cp.amount, 0) + sum(coalesce(ac.amount, 0))),
               CASE WHEN sum(ac.amount) + coalesce(cp.amount, 0) < 0
                    THEN (sum(ac.amount) + coalesce(cp.amount, 0)) * -1
                    ELSE NULL END,
@@ -174,38 +185,12 @@ $$ language plpgsql;
 COMMENT ON FUNCTION trial_balance__generate
 (in_from_date DATE, in_to_date DATE, in_heading INT, in_accounts INT[],
  in_ignore_yearend TEXT, in_business_units int[], in_balance_sign int,
- in_all_accounts boolean) IS
+ in_all_accounts boolean, in_approved boolean) IS
 $$Returns a row for each account which has transactions or a starting or
 ending balance over the indicated period, except when in_all_accounts
 is true, in which case a record is returned for all accounts, even ones
 unused over the reporting period.$$;
 
-
-CREATE OR REPLACE FUNCTION trial_balance__accounts (
-    in_report_id INT
-) RETURNS SETOF account AS $body$
-
-    SELECT a.*
-      FROM account a
-      JOIN trial_balance__account_to_report tbr ON a.id = tbr.account_id
-     WHERE tbr.report_id = $1
-
-     UNION
-
-     SELECT a.*
-       FROM account a
-       JOIN trial_balance__heading_to_report tbhr ON a.heading = tbhr.heading_id
-      WHERE tbhr.report_id = $1
-
-      ORDER BY accno DESC;
-$body$ LANGUAGE SQL;
-
--- Just lists all valid report_ids
-
-CREATE OR REPLACE FUNCTION trial_balance__list (
-) RETURNS SETOF trial_balance AS $body$
-    SELECT * FROM trial_balance ORDER BY id ASC;
-$body$ LANGUAGE SQL STABLE;
 
 DROP TYPE IF EXISTS trial_balance__heading CASCADE;
 CREATE TYPE trial_balance__heading AS (
@@ -227,23 +212,6 @@ CREATE OR REPLACE FUNCTION trial_balance__heading_accounts (
     SELECT * FROM account WHERE id in (SELECT unnest($1));
 $body$ LANGUAGE SQL IMMUTABLE;
 
-
-CREATE OR REPLACE FUNCTION trial_balance__delete (
-    in_report_id int
-) RETURNS boolean AS $body$
-
-    BEGIN
-        PERFORM id FROM trial_balance WHERE id = in_report_id;
-
-        IF FOUND THEN
-            DELETE FROM trial_balance__heading_to_report WHERE report_id = in_report_id;
-            DELETE FROM trial_balance__account_to_report WHERE report_id = in_report_id;
-            DELETE FROM trial_balance WHERE id = in_report_id;
-            RETURN TRUE;
-        END IF;
-        RETURN FALSE;
-    END;
-$body$ LANGUAGE PLPGSQL;
 
 update defaults set value = 'yes' where setting_key = 'module_load_ok';
 

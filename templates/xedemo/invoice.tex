@@ -1,4 +1,4 @@
-<?lsmb FILTER latex -?>
+<?lsmb FILTER latex { format=FORMAT _ "(xelatex)" } -?>
 \documentclass{scrartcl}
 \usepackage{tabularx}
  \usepackage{fontspec}
@@ -32,7 +32,7 @@
   }
 }
 
-<?lsmb INCLUDE letterhead.tex ?>
+<?lsmb INCLUDE letterhead ?>
 
 \markboth{<?lsmb company ?>\hfill <?lsmb invnumber ?>}{<?lsmb company ?>\hfill <?lsmb invnumber ?>}
 

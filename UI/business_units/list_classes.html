@@ -1,27 +1,33 @@
-<?lsmb INCLUDE 'ui-header.html' 
-      include_stylesheet = ["UI/business_units/list_classes.css"] 
+<?lsmb INCLUDE 'ui-header.html'
+      include_stylesheet = ["business_units/list_classes.css"]
 ?>
 <?lsmb PROCESS 'elements.html' ?>
-<body class="<?lsmb dojo_theme ?>">
-<div class="listtop"><?lsmb title ?></div>
+<body class="lsmb <?lsmb request.dojo_theme ?>">
+<div class="listtop"><?lsmb request.title ?></div>
+<div id="business_units">
 <div class="table">
 <!-- headings -->
-<div class="tr listheading"> 
+<div class="tr listheading">
     <div class="th"><?lsmb text('ID') ?></div>
     <div class="th"><?lsmb text('Label') ?></div>
     <div class="th"><?lsmb text('Active') ?></div>
     <div class="th"><?lsmb text('Ordering') ?></div>
-  <?lsmb FOREACH m IN modules ?>
+  <?lsmb FOREACH m IN request.modules ?>
     <div class="th"><?lsmb text(m.label) ?></div>
   <?lsmb END ?>
     <div class="th">&nbsp;</div>
     <div class="th">&nbsp;</div>
 </div>
-<?lsmb classes.push({}); 
-       FOR c IN classes;
+<?lsmb request.classes.push({});
+       FOR c IN request.classes;
            id = c.id;
 ?>
-<form data-dojo-type="lsmb/lib/Form" action="<?lsmb script ?>" method=POST id="edit-<?lsmb id ?>" class="tr">
+<form data-dojo-type="lsmb/Form"
+      action="<?lsmb request.script ?>"
+      method="GET"
+      class="tr">
+<!-- div class="tr"-->
+
 <div class="td">
 <?lsmb PROCESS input element_data = {
     type = "hidden"
@@ -55,12 +61,12 @@
     size = 4
 } ?>
 </div>
-  <?lsmb FOREACH m IN modules ?>
-    <div class="td"><?lsmb 
-    checked = undef;
+  <?lsmb FOREACH m IN request.modules ?>
+    <div class="td"><?lsmb
+    checked = '';
     FOREACH mm IN c.modules;
        IF mm.id == m.id;
-            checked = 'checked';
+          checked = 'checked';
        END;
     END;
     PROCESS input element_data = {
@@ -89,7 +95,7 @@ PROCESS button element_data = {
     text = text('Delete')
 } ?>
 </div>
-<div class="td"><?lsmb 
+<div class="td"><?lsmb
 IF c.id;
 PROCESS button element_data = {
     type = "submit"
@@ -108,8 +114,11 @@ PROCESS button element_data = {
     text = text('List Units')#'
 };
 END; ?></div>
+<!-- /div -->
 </form>
 <?lsmb END ?>
 </div>
+</div>
+
 </body>
 </html>

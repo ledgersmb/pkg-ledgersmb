@@ -15,19 +15,23 @@ if (agt.indexOf("opera") != -1){
    alert("<?lsmb text('Opera detected.  To complete this logout, please close your browser window or clear private/authentication information') ?>");
 }
 if (agt.indexOf("msie") == -1) {
-	var xhre = new XMLHttpRequest() ;
+        var xhre = new XMLHttpRequest();
         xhre.open("GET",'login.pl?action=logout_js',true,"logout","logout");
         xhre.send("");
 }
 </script>
-<body class="<?lsmb dojo_theme ?>">
+<body class="lsmb <?lsmb dojo_theme ?>">
 <h1 class="info">
    <?lsmb IF reason == 'timeout';
             text('Logged out due to inactivity');
           ELSE;
             text('Logout Successful');
           END; ?></h1>
-<p><a href="login.pl" target='top'><?lsmb text('Return to the login screen.') ?></a>
-<form data-dojo-type="lsmb/lib/Form" id='submitform' action="login.pl" method="post"><input type="hidden" name="action" value="logout_js"></form>
+<p><a target="_top" href="login.pl"><?lsmb text('Return to the login screen.') ?></a>
+<form data-dojo-type="lsmb/Form" id='submitform' action="login.pl" method="post">
+<?lsmb PROCESS input element_data = {
+       type = "hidden"
+       name = "action"
+       value = "logout_js" } ?></form>
 </body>
 </html>

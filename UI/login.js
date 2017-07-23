@@ -1,8 +1,10 @@
 
 
 function show_indicator() {
-        var e = document.getElementById('login-indicator');
-        e.style.visibility='visible';
+     require(["dojo/dom","dojo/dom-style"],
+                function(dom,style) {
+                     style.set(dom.byId("login-indicator"),"visibility","visible");
+                });
 }
 
 function submit_form() {
@@ -12,55 +14,58 @@ function submit_form() {
 }
 
 function send_form() {
-	var http = get_http_request_object();
     var username = document.login.login.value;
-	var password = document.login.password.value;
-	var company = document.login.company.value;
-	var action = document.login.action.value;
-        // console.log(password, company, username);
-        // alert('document.login.company.value='+document.login.company.value);
-	http.open("get", 'login.pl?action=authenticate&company='+encodeURIComponent(company), true, username, password);
-        http.onreadystatechange = function(){
-            if (http.readyState != 4){
-               return true;
-            }
-            if (http.status != 200){
-                    if (http.status == '454'){
-                          alert('Company does not exist.');
-                    } else {
-  	   	          alert("Access Denied:  Bad username/Password");
-                    }
-                    var e = document.getElementById('login-indicator');
-                    e.style.visibility='hidden';
-	  	    return false;
-	    }
-	    document.location=document.login.action.value+".pl?action=login&company="+encodeURIComponent(document.login.company.value);
-        };
- 	http.send("");
+     var password = document.login.password.value;
+     var company = encodeURIComponent(document.login.company.value);
+     var action = document.login.action.value;
+
+     require(["dojo/request/xhr","dojo/dom", "dojo/dom-style",
+             "dijit/Dialog"],
+                function(xhr,dom,style,Dialog){
+          xhr("login.pl?action=authenticate&company="+company,
+                {
+                     user: username,
+                     password: password
+                }).then(function(data){
+                     window.location.href=action
+                                           + ".pl?action=login&company=" + company;
+                }, function(err) {
+                     var status = err.response.status;
+                     if (status == "454"){
+                    (new Dialog({ title: "Error",
+                                  content: "Company does not exist.",
+                                  style: "width: 300px",
+                                })).show();
+                     } else if (status == "401") {
+                    (new Dialog({ title: "Error",
+                                  content: "Access denied: Bad username/password",
+                                  style: "width: 300px",
+                                })).show();
+                     } else if (status == "521") {
+                    (new Dialog({ title: "Error",
+                                  content: "Database version mismatch",
+                                  style: "width: 300px",
+                                })).show();
+                } else {
+                    (new Dialog({ title: "Error",
+                                  content: "Unknown error preventing login",
+                                  style: "width: 300px",
+                                })).show();
+                }
+                     style.set(dom.byId("login-indicator"),"visibility","hidden");
+                });
+     });
 }
 
-function check_auth() {
-    
-    var http = get_http_request_object();
-    var username = "admin";
-    var password = document.login.password.value;
-    
-    http.open("get", "login.pl?action=authenticate&company="
-        + encodeURIComponent(document.login.company.value), false, 
-		username, password
-    );
-}
-
-    require(['dojo/dom-construct', 'dijit/ProgressBar', 'dojo/domReady!'],
-    function(construct, progressbar){
-           var indicator = new progressbar({
-                  "style": "width: 10em",
-                  "id": "login-progressbar",
-                  "value": 100,
+require(["dojo/dom-construct", "dijit/ProgressBar", "dojo/domReady!"],
+          function(construct, progressbar){
+                var indicator = new progressbar({
+                "style": "width: 10em",
+                "id": "login-progressbar",
+                "value": 100,
                 "indeterminate": true
-           }).placeAt("login-indicator", "only");
-           indicator.startup();
-               
-    });
+                }).placeAt("login-indicator", "only");
+                indicator.startup();
+          });
 
 

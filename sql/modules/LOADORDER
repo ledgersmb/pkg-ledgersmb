@@ -4,14 +4,15 @@
 # Note: These files all adhere to the protocol where
 #  they change the value of the setting_key 'module_load_ok'
 #  from 'no' to 'yes' on success.
-Fixes.sql
 Settings.sql
 Util.sql
 App_Module.sql
 Menu.sql
+Entity.sql
 Drafts.sql
 Account.sql
 Session.sql
+Robot.sql
 Business_type.sql
 Business_Unit.sql
 Location.sql
@@ -19,7 +20,6 @@ Company.sql
 Customer.sql
 Date.sql
 Employee.sql
-Entity.sql
 Payment.sql
 Person.sql
 PNL.sql
@@ -45,4 +45,7 @@ Goods.sql
 Roles.sql
 Templates.sql
 Timecards.sql
-Fixes.sql
+PriceMatrix.sql
+arap.sql
+# This should remain the last check
+Duplicates_Functions.sql

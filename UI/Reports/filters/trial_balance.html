@@ -11,8 +11,8 @@ TRIAL_BALANCE_TYPES = [
    {text = text('Ending'), id = 'balance' }
 ] ?>
 
-<body class="<?lsmb dojo_theme ?>">
-    <form data-dojo-type="lsmb/lib/Form" method="get" action="trial_balance.pl">
+<body class="lsmb <?lsmb dojo_theme ?>">
+    <form data-dojo-type="lsmb/Form" method="get" action="trial_balance.pl">
         <?lsmb IF report.id;
             INCLUDE input element_data = {
                 type="hidden",
@@ -42,6 +42,27 @@ TRIAL_BALANCE_TYPES = [
             ?>
           </td>
         </tr>
+      <tr>
+        <td><?lsmb PROCESS input element_data = {
+                    name = 'is_approved'
+                    type = 'radio'
+                   value = 'Y' 
+                   label = text('Approved')
+                 checked = 'CHECKED'
+        }; ?>
+        <?lsmb PROCESS input element_data = {
+                    name = 'is_approved'
+                    type = 'radio'
+                   value = 'N' 
+                   label = text('Unapproved')
+        }; ?>
+        <?lsmb PROCESS input element_data = {
+                    name = 'is_approved'
+                    type = 'radio'
+                   value = 'All' 
+                   label = text('All')
+        }; ?></td>
+      </tr>
         <tr>
           <td>
             <table>

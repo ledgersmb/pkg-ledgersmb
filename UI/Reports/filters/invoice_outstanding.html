@@ -19,8 +19,8 @@
         END;
         tax_accounts.unshift({});
 ?>
-<body class="<?lsmb dojo_theme ?>">
-<form data-dojo-type="lsmb/lib/Form" action="invoice.pl" method="GET">
+<body class="lsmb <?lsmb dojo_theme ?>">
+<form data-dojo-type="lsmb/Form" action="invoice.pl" method="GET">
 <?lsmb PROCESS input element_data = {
      name = 'entity_class'
     value = entity_class
@@ -78,6 +78,7 @@
         label = text('All')
          type = 'radio'
          name = 'on_hold'
+           id = 'on_hold-all'
         value = ''
       checked = 'CHECKED'
      };
@@ -85,12 +86,15 @@
         label = text('Active')
          type = 'radio'
          name = 'on_hold'
+           id = 'on_hold-active'
+   
         value = '0'
      };
      PROCESS input element_data = {
         label = text('On Hold') #'
          type = 'radio'
          name = 'on_hold'
+           id = 'on_hold-hold'
         value = '1'
      }; ?></td>
 </tr>
@@ -104,6 +108,7 @@
       <tr>
         <td><?lsmb PROCESS input element_data = {
                     name = 'is_detailed'
+                      id = 'is_detailed-0'
                     type = 'radio'
                    value = '0' 
                  checked = 'CHECKED'
@@ -111,6 +116,7 @@
         } ?></td>
         <td><?lsmb PROCESS input element_data = {
                     name = 'is_detailed'
+                      id = 'is_detailed-1'
                     type = 'radio'
                    value = '1' 
                    label = text('Details')

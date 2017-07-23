@@ -1,0 +1,4 @@
+//>>built
+define("lsmb/parts/PartRestStore","dojo/store/JsonRest dojo/store/Observable dojo/request dojo/_base/array dojo/_base/declare dojo/Evented dojo/request dojo/io-query".split(" "),function(a,d,e,f,g,l,m,h){a=g("lsmb/parts/PartRestStore",[a],{get:function(b){var k=this;return e.get(this.target,{handleAs:"json",headers:this.headers}).then(function(a){var c;f.forEach(a,function(a){b==a[k.idProperty]&&(c=a)});return c})},query:function(b,a){b&&"object"==typeof b&&(b=h.objectToQuery(b));a&&a.type&&(b="\x26type\x3d"+
+a.type+"\x26"+b);return this.inherited(arguments,[b,a])}});return new d(new a({idProperty:"partnumber",target:"parts.pl?action\x3dpartslist_json\x26"}))});
+//# sourceMappingURL=PartRestStore.js.map

@@ -1,17 +1,23 @@
 <?lsmb
 INCLUDE 'ui-header.html'
-    include_stylesheet =  ['UI/accounts/edit.css']
-    include_script = ['UI/accounts/edit.js']
+    include_stylesheet =  ['accounts/edit.css']
 ?>
 <?lsmb PROCESS elements.html ?>
-<body class="<?lsmb dojo_theme ?>">
-<script type="text/javascript" language="Javascript">
-    var activeDiv = "<?lsmb form.charttype ?>";
-</script>
-<div class="TabSet" id="account-tabs">
-  <div class="lsmbtab" title="<?lsmb text('Heading') ?>" id="H">
-    <div>
-<form data-dojo-type="lsmb/lib/Form" method="post" action="<?lsmb form.script ?>">
+<body class="lsmb <?lsmb dojo_theme ?>">
+<div id="account-tabs"
+     data-dojo-type="dijit/layout/TabContainer">
+<?lsmb IF !form.id OR form.charttype == 'H'; ?>
+<div data-dojo-type="dijit/layout/ContentPane"
+     <?lsmb IF form.charttype == 'H'; ?>
+     data-dojo-props="selected:true"
+     <?lsmb END; ?>
+     title="<?lsmb text('Heading') ?>" id="H">
+  <?lsmb # if we put the FORM tag as the toplevel tab element,
+         # we get trouble: content gets cut off; wrap in a div
+         # although maybe the point is not to have the toplevel
+         # be a *widget*...?  ?>
+  <div>
+<form data-dojo-type="lsmb/Form" method="post" action="account.pl">
 <?lsmb PROCESS input element_data = {
         value = 'H'
         name = 'charttype'
@@ -57,7 +63,7 @@ INCLUDE 'ui-header.html'
     FOREACH h IN form.all_headings;
         h.text = h.accno _ '--' _ h.description;
     END;
-    form.all_headings.push({ id = -1, text = '(none)' });
+    form.all_headings.push({id = -1, text = '-- NONE --' });
     IF (! form.account_heading);
        form.account_heading = -1;
     END;
@@ -73,44 +79,20 @@ INCLUDE 'ui-header.html'
    </div>
 </div>
 <hr size="3" noshade="noshade" />
-<?lsmb FOREACH button IN buttons; PROCESS button element_data=button; END ?>
+<?lsmb FOREACH button IN buttons; INCLUDE button element_data=button; END ?>
 <hr />
-<table>
-<caption>Translations for this heading</caption>
-<tbody>
-<?lsmb
-   PROCESS input element_data = {
-       type="hidden"
-       name="languagecount"
-       value=form.languages.size
-   };
-   lang_index = 0;
-   FOREACH language IN form.languages;
-     lang_index = lang_index + 1; ?>
-  <tr>
-    <td><?lsmb language.description ?>
-      <?lsmb PROCESS input element_data = {
-             type="hidden"
-             name = 'languagecode_' _ lang_index
-             value = language.code } ?>
-    </td>
-    <td><?lsmb PROCESS input element_data = {
-               name = 'languagetranslation_' _ lang_index
-               id = 'heading-languagetranslation-' _ lang_index
-               class = 'translation'
-               value = form.translations.${language.code}.description
-       } ?>
-      </td>
-    </tr>
-  <?lsmb END ?>
-</tbody>
-</table>
 </form>
-    </div>
 </div>
-  <div class="lsmbtab" title="<?lsmb text('Account') ?>" id="A">
-    <div>
-<form data-dojo-type="lsmb/lib/Form" method="post" action="<?lsmb form.script ?>">
+</div>
+<?lsmb END ?>
+<?lsmb IF !form.id OR form.charttype == 'A' ?>
+<div data-dojo-type="dijit/layout/ContentPane"
+     <?lsmb IF form.charttype == 'A'; ?>
+     data-dojo-props="selected:true"
+     <?lsmb END; ?>
+     title="<?lsmb text('Account') ?>" id="A">
+  <div>
+<form data-dojo-type="lsmb/Form" method="post" action="account.pl">
 <?lsmb PROCESS input element_data = {
         value = 'A'
         name = 'charttype'
@@ -486,10 +468,19 @@ INCLUDE 'ui-header.html'
                 }; END ?>
 
 <hr size="3" noshade="noshade" />
-<?lsmb FOREACH button IN buttons; button.id = button.value _ '-A'; PROCESS button element_data=button; END ?>
+<?lsmb FOREACH button IN buttons; button.id = button.value _ '-A'; INCLUDE button element_data=button; END ?>
 <hr />
+</form>
+</div>
+</div>
+<?lsmb END ?>
+<?lsmb IF form.id ?>
+<div data-dojo-type="dijit/layout/ContentPane"
+     title="<?lsmb text('Translations') ?>" id="TranslationPane">
+  <div>
+<form data-dojo-type="lsmb/Form" method="post" action="account.pl">
 <table>
-<caption>Translations for this account</caption>
+<caption>Translations</caption>
 <tbody>
 <?lsmb
    PROCESS input element_data = {
@@ -509,7 +500,7 @@ INCLUDE 'ui-header.html'
     </td>
     <td><?lsmb PROCESS input element_data = {
                name = 'languagetranslation_' _ lang_index
-               id = 'account-languagetranslation-' _ lang_index
+               id = 'heading-languagetranslation-' _ lang_index
                class = 'translation'
                value = form.translations.${language.code}.description
        } ?>
@@ -518,8 +509,26 @@ INCLUDE 'ui-header.html'
   <?lsmb END ?>
 </tbody>
 </table>
+<?lsmb PROCESS input element_data = {
+    name = 'charttype'
+    type = 'hidden'
+   value = form.charttype
+}; ?>
+<?lsmb PROCESS input element_data = {
+    name = 'id'
+    type = 'hidden'
+   value = form.id
+}; ?>
+<?lsmb PROCESS button element_data = {
+    name = 'action',
+    value = 'update_translations',
+    type = 'submit',
+    class = 'submit',
+    text = text('Save'),
+} ?>
 </form>
 </div>
 </div>
+<?lsmb END ?>
 </body>
 </html>

@@ -1,0 +1,4 @@
+//>>built
+define("lsmb/parts/PartSelector","dijit/form/FilteringSelect dojo/_base/declare dojo/aspect dojo/topic dojo/when lsmb/parts/PartRestStore".split(" "),function(a,e,f,d,h,g){a=new e("lsmb/parts/PartSelector",[a],{store:g,queryExpr:"*${0}*",style:"width: 15ex",highlightMatch:"all",searchAttr:"partnumber",labelAttr:"label",autoComplete:!1,initialValue:null,channel:null,constructor:function(){this.inherited(arguments);this.initialValue=arguments[0].value},postCreate:function(){this.inherited(arguments)},
+startup:function(){var b=this;this.inherited(arguments);this.channel&&(this.own(d.subscribe(this.channel,function(c){b.set("value",c[b.searchAttr])})),this.on("change",function(c){d.publish(b.channel,b.item)}))}});f.around(a,"_announceOption",function(b){return function(c){var a=this.searchAttr;this.searchAttr=this.labelAttr;c=b.call(this,c);this.searchAttr=a;return c}});return a});
+//# sourceMappingURL=PartSelector.js.map

@@ -1,9 +1,9 @@
 <?lsmb INCLUDE "ui-header.html";
        PROCESS "report_base.html";
        PROCESS "elements.html" ?>
-<body class="<?lsmb dojo_theme ?>">
+<body class="lsmb <?lsmb dojo_theme ?>">
 <div class="listtop"><?lsmb text('COGS Lots Report') ?></div>
-<form data-dojo-type="lsmb/lib/Form" action="goods.pl" method="GET">
+<form data-dojo-type="lsmb/Form" action="goods.pl" method="GET">
 <table>
 <tr>
  <th><?lsmb text('Part Number') ?></th>
@@ -25,6 +25,7 @@
          size = 32
  } ?></td>
 </tr>
+<?lsmb PROCESS date_row ?>
 <tr><th>&nbsp;</th><td colspan="3"><hr /></td></tr>
 </table>
 <?lsmb PROCESS button element_data = {

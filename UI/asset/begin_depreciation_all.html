@@ -1,14 +1,15 @@
 <?lsmb INCLUDE "ui-header.html"
-       include_stylesheet = ["UI/asset/asset.css"] -?>
+       include_stylesheet = ["asset/asset.css"] -?>
 <?lsmb PROCESS "elements.html" -?>
-<body class="<?lsmb dojo_theme ?>">
+<body class="lsmb <?lsmb dojo_theme ?>">
+<div id="assets">
 <div class="listtop"><?lsmb text('Depreciate All') ?></div>
-<form data-dojo-type="lsmb/lib/Form" action="asset.pl" method="post">
+<form data-dojo-type="lsmb/Form" action="<?lsmb request.script ?>" method="post">
 <div class="inputrow" id="daterow"><div class="inputgroup" id="dategroup">
 <?lsmb PROCESS input element_data = {
      name = "report_date"
      class = "date"
-     value = report_date
+     value = request.report_date
      label = text("Date")
 } ?>
 </div></div>
@@ -29,5 +30,6 @@
 } ?>
 </div></div>
 </form>
+</div>
 </body>
 </html>

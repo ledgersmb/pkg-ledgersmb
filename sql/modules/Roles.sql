@@ -1,3 +1,7 @@
+
+set client_min_messages = 'warning';
+
+
 BEGIN;
 
 DELETE FROM menu_acl WHERE node_id in (206, 210);
@@ -38,6 +42,13 @@ BEGIN
    || quote_ident(lsmb__role(in_role));
    RETURN TRUE;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION lsmb__is_allowed_role(in_rolelist text[])
+RETURNS BOOL LANGUAGE SQL AS
+$$
+select bool_and(pg_has_role(lsmb__role(r), 'USAGE'))
+  from unnest(in_rolelist) r;
 $$;
 
 CREATE OR REPLACE FUNCTION lsmb__grant_perms
@@ -251,6 +262,8 @@ SELECT lsmb__create_role('contact_class_referral');
 SELECT lsmb__create_role('contact_class_lead');
 SELECT lsmb__create_role('contact_class_hot_lead');
 SELECT lsmb__create_role('contact_class_cold_lead');
+SELECT lsmb__create_role('contact_class_sub_contractor');
+SELECT lsmb__create_role('contact_class_robot');
 
 SELECT lsmb__create_role('contact_create');
 SELECT lsmb__grant_role('contact_create', 'contact_read');
@@ -389,14 +402,14 @@ SELECT lsmb__create_role('ar_transaction_create_voucher');
 SELECT lsmb__grant_role('ar_transaction_create_voucher', 'contact_read');
 SELECT lsmb__grant_role('ar_transaction_create_voucher', 'batch_create');
 SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'ar', 'INSERT');
-SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'inventory', 'INSERT');
+SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'warehouse_inventory', 'INSERT');
 SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'acc_trans', 'INSERT');
 SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'tax_extended', 'INSERT');
 SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'business_unit_ac', 'INSERT');
 SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'id', 'all');
 SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'invoice_id_seq', 'all');
 SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'acc_trans_entry_id_seq', 'all');
-SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'inventory_entry_id_seq', 'all');
+SELECT lsmb__grant_perms('ar_transaction_create_voucher', 'warehouse_inventory_entry_id_seq', 'all');
 SELECT lsmb__grant_menu('ar_transaction_create_voucher',198,'allow');
 SELECT lsmb__grant_menu('ar_transaction_create_voucher',20,'allow');
 SELECT lsmb__grant_menu('ar_transaction_create_voucher',11,'allow');
@@ -416,9 +429,9 @@ SELECT lsmb__grant_role('ar_invoice_create_voucher', 'contact_read');
 SELECT lsmb__grant_role('ar_invoice_create_voucher', 'batch_create');
 SELECT lsmb__grant_role('ar_invoice_create_voucher', 'ar_transaction_create_voucher');
 SELECT lsmb__grant_perms('ar_invoice_create_voucher', 'invoice', 'INSERT');
-SELECT lsmb__grant_perms('ar_invoice_create_voucher', 'inventory', 'INSERT');
+SELECT lsmb__grant_perms('ar_invoice_create_voucher', 'warehouse_inventory', 'INSERT');
 SELECT lsmb__grant_perms('ar_invoice_create_voucher', 'invoice_id_seq', 'ALL');
-SELECT lsmb__grant_perms('ar_invoice_create_voucher', 'inventory_entry_id_seq', 'ALL');
+SELECT lsmb__grant_perms('ar_invoice_create_voucher', 'warehouse_inventory_entry_id_seq', 'ALL');
 -- TODO add Menu ACLs
 
 SELECT lsmb__create_role('ar_transaction_list');
@@ -427,7 +440,7 @@ SELECT lsmb__grant_role('ar_transaction_list', 'file_read');
 SELECT lsmb__grant_perms('ar_transaction_list', tname, 'SELECT')
   FROM unnest(
          array['ar'::text, 'acc_trans', 'business_unit_ac', 'invoice',
-               'business_unit_inv', 'inventory', 'tax_extended', 'ac_tax_form',
+               'business_unit_inv', 'warehouse_inventory', 'tax_extended', 'ac_tax_form',
                'invoice_tax_form']
        ) tname;
 
@@ -447,7 +460,7 @@ SELECT lsmb__create_role('sales_order_create');
 SELECT lsmb__grant_role('sales_order_create', 'contact_read');
 SELECT lsmb__grant_role('sales_order_create', 'exchangerate_edit');
 SELECT lsmb__grant_perms('sales_order_create', obj, 'ALL')
-  FROM unnest(array['oe'::text, 'oe_id_seq', 'inventory', 'orderitems_id_seq'])
+  FROM unnest(array['oe'::text, 'oe_id_seq', 'warehouse_inventory', 'orderitems_id_seq'])
        obj;
 SELECT lsmb__grant_perms('sales_order_create', 'oe_id_seq', 'ALL');
 SELECT lsmb__grant_perms('sales_order_create', 'orderitems', 'INSERT');
@@ -548,10 +561,10 @@ SELECT lsmb__grant_menu('ap_transaction_create_voucher', node_id, 'allow')
 SELECT lsmb__create_role('ap_invoice_create');
 SELECT lsmb__grant_role('ap_invoice_create', 'ap_transaction_create');
 SELECT lsmb__grant_perms('ap_invoice_create', obj, 'INSERT')
-  FROM unnest(array['invoice'::text, 'business_unit_inv', 'inventory',
+  FROM unnest(array['invoice'::text, 'business_unit_inv', 'warehouse_inventory',
                     'tax_extended']) obj;
 SELECT lsmb__grant_perms('ap_invoice_create', obj, 'ALL')
-  FROM unnest(array['inventory_entry_id_seq'::text, 'invoice_id_seq']) obj;
+  FROM unnest(array['warehouse_inventory_entry_id_seq'::text, 'invoice_id_seq']) obj;
 
 SELECT lsmb__grant_menu('ap_invoice_create', node_id, 'allow')
   FROM unnest(array[23,197]) node_id;
@@ -560,16 +573,16 @@ SELECT lsmb__create_role('ap_invoice_create_voucher');
 SELECT lsmb__grant_role('ap_invoice_create_voucher', 'contact_read');
 SELECT lsmb__grant_role('ap_invoice_create_voucher', 'batch_create');
 SELECT lsmb__grant_perms('ap_invoice_create_voucher', 'invoice', 'INSERT');
-SELECT lsmb__grant_perms('ap_invoice_create_voucher', 'inventory', 'INSERT');
+SELECT lsmb__grant_perms('ap_invoice_create_voucher', 'warehouse_inventory', 'INSERT');
 SELECT lsmb__grant_perms('ap_invoice_create_voucher', 'invoice_id_seq', 'ALL');
-SELECT lsmb__grant_perms('ap_invoice_create_voucher', 'inventory_entry_id_seq', 'ALL');
+SELECT lsmb__grant_perms('ap_invoice_create_voucher', 'warehouse_inventory_entry_id_seq', 'ALL');
 -- TODO add Menu ACLs
 
 SELECT lsmb__create_role('ap_transaction_list');
 SELECT lsmb__grant_role('ap_transaction_list', 'contact_read');
 SELECT lsmb__grant_role('ap_transaction_list', 'file_read');
 SELECT lsmb__grant_perms('ap_transaction_list', obj, 'SELECT')
-  FROM unnest(array['ap'::text, 'acc_trans', 'invoice', 'inventory',
+  FROM unnest(array['ap'::text, 'acc_trans', 'invoice', 'warehouse_inventory',
                     'tax_extended', 'ac_tax_form', 'invoice_tax_form']) obj;
 SELECT lsmb__grant_menu('ap_transaction_list', node_id, 'allow')
   FROM unnest(array[25,27,34]) node_id;
@@ -596,8 +609,8 @@ SELECT lsmb__grant_perms('purchase_order_create', obj, ptype)
  CROSS JOIN unnest(array['INSERT'::text, 'UPDATE']) ptype;
 
 SELECT lsmb__grant_perms('purchase_order_create', obj, 'ALL')
-  FROM unnest(array['oe_id_seq'::text, 'orderitems_id_seq', 'inventory',
-                    'inventory_entry_id_seq']) obj;
+  FROM unnest(array['oe_id_seq'::text, 'orderitems_id_seq', 'warehouse_inventory',
+                    'warehouse_inventory_entry_id_seq']) obj;
 SELECT lsmb__grant_menu('purchase_order_create', 52, 'allow');
 
 SELECT lsmb__create_role('purchase_order_edit');
@@ -739,7 +752,7 @@ SELECT lsmb__grant_perms('part_delete', obj, 'DELETE')
 
 SELECT lsmb__create_role('inventory_reports');
 SELECT lsmb__grant_perms('inventory_reports', obj, 'SELECT')
-  FROM unnest(array['ar'::text, 'ap', 'inventory', 'invoice', 'acc_trans']) obj;
+  FROM unnest(array['ar'::text, 'ap', 'warehouse_inventory', 'invoice', 'acc_trans']) obj;
 
 SELECT lsmb__grant_menu('inventory_reports', 114, 'allow');
 SELECT lsmb__grant_menu('inventory_reports', 75, 'allow');
@@ -793,18 +806,18 @@ SELECT lsmb__grant_menu('assembly_stock', 84, 'allow');
 SELECT lsmb__create_role('inventory_ship');
 SELECT lsmb__grant_role('inventory_ship', 'sales_order_list');
 SELECT lsmb__grant_menu('inventory_ship', 64, 'allow');
-SELECT lsmb__grant_perms('inventory_ship', 'inventory', 'INSERT');
-SELECT lsmb__grant_perms('inventory_ship', 'inventory_entry_id_seq', 'ALL');
+SELECT lsmb__grant_perms('inventory_ship', 'warehouse_inventory', 'INSERT');
+SELECT lsmb__grant_perms('inventory_ship', 'warehouse_inventory_entry_id_seq', 'ALL');
 
 SELECT lsmb__create_role('inventory_receive');
 SELECT lsmb__grant_role('inventory_receive', 'purchase_order_list');
 SELECT lsmb__grant_menu('inventory_receive', 65, 'allow');
-SELECT lsmb__grant_perms('inventory_receive', 'inventory', 'INSERT');
-SELECT lsmb__grant_perms('inventory_receive', 'inventory_entry_id_seq', 'ALL');
+SELECT lsmb__grant_perms('inventory_receive', 'warehouse_inventory', 'INSERT');
+SELECT lsmb__grant_perms('inventory_receive', 'warehouse_inventory_entry_id_seq', 'ALL');
 
 SELECT lsmb__create_role('inventory_transfer');
-SELECT lsmb__grant_perms('inventory_transfer', 'inventory', 'INSERT');
-SELECT lsmb__grant_perms('inventory_transfer', 'inventory_entry_id_seq', 'ALL');
+SELECT lsmb__grant_perms('inventory_transfer', 'warehouse_inventory', 'INSERT');
+SELECT lsmb__grant_perms('inventory_transfer', 'warehouse_inventory_entry_id_seq', 'ALL');
 SELECT lsmb__grant_menu('inventory_transfer', 66, 'allow');
 
 SELECT lsmb__create_role('warehouse_create');
@@ -862,6 +875,13 @@ SELECT lsmb__grant_perms('yearend_run', obj, ptype)
 SELECT lsmb__grant_perms('yearend_run', 'account_checkpoint_id_seq','ALL');
 SELECT lsmb__grant_menu('yearend_run', 132, 'allow');
 
+SELECT lsmb__create_role('yearend_run');
+SELECT lsmb__grant_perms('yearend_run', obj, ptype)
+  FROM unnest(array['acc_trans'::text, 'account_checkpoint', 'yearend']) obj,
+       unnest(array['SELECT'::text, 'INSERT']) ptype;
+SELECT lsmb__grant_perms('yearend_run', 'account_checkpoint_id_seq','ALL');
+SELECT lsmb__grant_menu('yearend_run', 132, 'allow');
+
 SELECT lsmb__create_role('yearend_reopen');
 SELECT lsmb__grant_perms('yearend_reopen', obj, ptype)
   FROM unnest(array['account_checkpoint'::text]) obj,
@@ -869,6 +889,7 @@ SELECT lsmb__grant_perms('yearend_reopen', obj, ptype)
 SELECT lsmb__grant_perms('yearend_reopen', obj, ptype)
   FROM unnest(array['yearend'::text]) obj,
        unnest(array['UPDATE'::text]) ptype;
+-- also needs access to posting of transactions...
 
 SELECT lsmb__create_role('batch_list');
 SELECT lsmb__grant_role('batch_list', 'gl_reports');
@@ -1041,9 +1062,9 @@ SELECT lsmb__create_role('template_edit');
 SELECT lsmb__grant_perms('template_edit', 'template', 'ALL');
 SELECT lsmb__grant_perms('template_edit', 'template_id_seq', 'ALL');
 SELECT lsmb__grant_menu('template_edit', id, 'allow')
-  FROM unnest(array[90, 99, 159,160,161,162,163,164,165,166,167,168,169,170,
-                    171,173,174,175,176,177,178,179,180,181,182,183,184,
-                    185,186,187,241,242]) id;
+  FROM unnest(array[29,30,31,32,33,90, 99, 159,160,161,162,163,164,165,
+                    166,167,168,169,170,171,173,174,175,176,177,178,179,180,
+                    181,182,183,184,185,186,187,241,242]) id;
 
 SELECT lsmb__create_role('users_manage');
 SELECT lsmb__grant_role('users_manage', 'contact_read');
@@ -1051,12 +1072,20 @@ SELECT lsmb__grant_role('users_manage', 'contact_create');
 SELECT lsmb__grant_role('users_manage', 'contact_class_employee');
 SELECT lsmb__grant_exec('users_manage', 'admin__add_user_to_role(TEXT, TEXT)');
 SELECT lsmb__grant_exec('users_manage', 'admin__remove_user_from_role(TEXT, TEXT)');
-SELECT lsmb__grant_exec('users_manage', 'admin__get_roles_for_user(int)');
-SELECT lsmb__grant_exec('users_manage', 'admin__get_roles_for_user_by_entity(int)');
 SELECT lsmb__grant_exec('users_manage', 'admin__save_user(int,int,text,text,bool)');
 SELECT lsmb__grant_exec('users_manage', 'admin__delete_user(TEXT, bool)');
 SELECT lsmb__grant_perms('users_manage', 'role_view', 'SELECT');
-SELECT lsmb__grant_menu('users_manage', 222, 'allow');
+SELECT lsmb__grant_menu('users_manage', 222, 'allow');SELECT lsmb__grant_menu('users_manage', 48, 'allow');
+SELECT lsmb__grant_menu('users_manage', 48, 'allow');
+SELECT lsmb__grant_menu('users_manage', 49, 'allow');
+
+-- These two routines manage their own access!
+-- because users must be able to query their own roles!
+-- Note however, danger lies ahead: they are security definer functions!
+SELECT lsmb__grant_exec('base_user', 'admin__get_roles_for_user(int)');
+SELECT lsmb__grant_exec('base_user', 'admin__get_roles_for_user_by_entity(int)');
+
+
 
 SELECT lsmb__create_role('system_admin');
 SELECT lsmb__grant_role('system_admin', rname)
@@ -1137,7 +1166,7 @@ SELECT lsmb__grant_perms('base_user', obj, 'SELECT')
 SELECT lsmb__grant_perms('base_user', 'defaults', 'ALL');
 SELECT lsmb__grant_perms('base_user', obj, 'SELECT')
   FROM unnest(array['contact_class'::text, 'batch_class',
-                    'entity_class', 'lsmb_roles', 'users']) obj;
+                    'entity_class', 'users']) obj;
 
 SELECT lsmb__grant_perms('base_user', obj, 'ALL')
   FROM unnest(array['session'::text, 'session_session_id_seq',
@@ -1158,8 +1187,8 @@ SELECT lsmb__grant_perms('base_user', 'new_shipto', 'UPDATE');
 
 SELECT lsmb__grant_perms('base_user', obj, 'SELECT')
   FROM unnest(array['partstax'::text, 'partscustomer',
-                    'account_heading_derived_category',
                     'account_heading_descendant',
+                    'account_heading_derived_category',
                     'account_heading_tree', 'payment_type', 'warehouse',
                     'sic', 'voucher', 'mime_type',
                     'parts_translation', 'partsgroup_translation',

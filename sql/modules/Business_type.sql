@@ -1,16 +1,15 @@
+
+set client_min_messages = 'warning';
+
+
 BEGIN;
 
 CREATE OR REPLACE FUNCTION business_type__list() RETURNS SETOF business AS
 $$
-DECLARE out_row business%ROWTYPE;
-BEGIN
-	FOR out_row IN SELECT * FROM business ORDER BY description LOOP
-		RETURN NEXT out_row;
-	END LOOP;
-END;
-$$ LANGUAGE PLPGSQL;
+        SELECT * FROM business ORDER BY description;
+$$ LANGUAGE SQL;
 
-COMMENT ON function business_type__list() IS 
+COMMENT ON function business_type__list() IS
 $$Returns a list of all business types. Ordered by description by default.$$;
 
 update defaults set value = 'yes' where setting_key = 'module_load_ok';

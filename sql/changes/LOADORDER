@@ -1,0 +1,48 @@
+# This is the base file used to build the LOAD.idx file
+# It specifies a lost of db changes in order.
+# lines beginning with ! denote fixes where the fix is deemed applied even if it
+# errors (legacy fixes that may error).
+# comments begin with # (but you knew that....)
+
+#1.4 fixes from the old Fixes.sql
+1.4/menu-cleanup.sql
+!1.4/location-fixes.sql
+!1.4/batch-fixes.sql
+1.4/eca-update.sql
+!1.4/menu-update1.sql
+!1.4/person-fixes.sql
+!1.4/ar-constraint1.sql
+!1.4/ap-constraint1.sql
+!1.4/menu-update2.sql
+!1.4/invoice-fixes.sql
+!1.4/ar-fixes2.sql
+!1.4/ar-fixes3.sql
+1.4/chart-view.sql
+!1.4/account-heading-fix.sql
+1.4/locale-update.sql
+!1.4/account-heading-fix2.sql
+!1.4/inventory-fix.sql
+!1.4/inventory-fix2.sql
+!1.4/bu-fix.sql
+!1.4/account-translations.sql
+1.4/drop-je-functions.sql
+!1.4/templatetrans.sql
+1.4/business_unit_class_id_seq-fix.sql
+#1.5 changes
+!1.5/invoice-tbl-cogs-constraint.sql
+1.5/trial_balance_cleanup.sql
+1.5/templates-last-modified.sql
+1.5/parts_fkeys.sql
+1.5/open_forms_callers.sql
+1.5/robot_entity.sql
+1.5/cleanup_invoice_id.sql
+1.5/invoice_id_fkey.sql
+1.5/add_qty_to_pricematrix.sql
+1.5/remove_pos_template.sql
+1.5/template_menu.sql
+1.5/template_menu2.sql
+1.5/issue-2380-modify-tax_extended_entry_id-constraint.sql
+1.5/issue-2278-modify-acc_trans-index.sql
+1.5/template_menu3.sql
+1.5/template_menu4.sql
+#1.6 changes

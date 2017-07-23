@@ -7,13 +7,13 @@
 	<meta http-equiv="Expires" content="-1" />
 	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 	<link rel="stylesheet" href="css/<?lsmb stylesheet ?>" type="text/css" title="LedgerSMB stylesheet" />
-	<link rel="stylesheet" href="UI/menu/expanding.css" type="text/css" title="LedgerSMB stylesheet" />
+	<link rel="stylesheet" href="menu/expanding.css" type="text/css" title="LedgerSMB stylesheet" />
 
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 
 	<meta name="robots" content="noindex,nofollow" />
 </head>
-<body class="<?lsmb dojo_theme ?>">
+<body class="lsmb <?lsmb dojo_theme ?>">
 	<?lsmb FOR item = menu_items ?>
 			<a href="<?lsmb IF item.module ?><?lsmb item.module 
 				?><?lsmb ELSE ?>menu.pl<?lsmb END 

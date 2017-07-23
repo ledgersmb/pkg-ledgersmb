@@ -44,6 +44,9 @@ use Try::Tiny;
 use LedgerSMB::Template;
 use LedgerSMB::Company_Config;
 
+require 'bin/aa.pl'; # for arapprn::reprint() and arapprn::print[_transaction]()
+require 'bin/printer.pl';# centralizing print options display
+
 # any custom scripts for this one
 if ( -f "bin/custom/arapprn.pl" ) {
     eval { require "bin/custom/arapprn.pl"; };
@@ -58,6 +61,21 @@ if ( -f "bin/custom/$form->{login}_arapprn.pl" ) {
 
 sub print {
 
+    &create_links;
+    $form->{title} = $locale->text("Edit");
+    if ($form->{reverse}){
+        if ($form->{ARAP} eq 'AR'){
+            $form->{subtype} = 'credit_note';
+            $form->{type} = 'transaction';
+        } elsif ($form->{ARAP} eq 'AP'){
+            $form->{subtype} = 'debit_note';
+            $form->{type} = 'transaction';
+        } else {
+            $form->error("Unknown AR/AP selection value: $form->{ARAP}");
+        }
+
+    }
+
     my $csettings = $LedgerSMB::Company_Config::settings;
     $form->{company} = $csettings->{company_name};
     $form->{businessnumber} = $csettings->{businessnumber};
@@ -67,7 +85,7 @@ sub print {
     $form->{fax} = $csettings->{company_fax};
 
     if ( $form->{media} !~ /screen/ ) {
-        $form->error( $locale->text('Select postscript or PDF!') )
+        $form->error( $locale->text('Select postscript or PDF!')  )
           if $form->{format} !~ /(postscript|pdf)/;
         $old_form = new Form;
         for ( keys %$form ) { $old_form->{$_} = $form->{$_} }
@@ -270,17 +288,6 @@ sub print_transaction {
         $form->update_status( \%myconfig, 1);
 
         $old_form->{queued} = $form->{queued};
-
-        %audittrail = (
-            tablename => ($order) ? 'oe' : lc $ARAP,
-            reference => $form->{"${inv}number"},
-            formname  => $form->{formname},
-            action    => 'queued',
-            id        => $form->{id}
-        );
-
-        $old_form->{audittrail} .=
-          $form->audittrail( "", \%myconfig, \%audittrail );
     }
 
     if ( lc($form->{media}) eq 'zip'){
@@ -299,28 +306,15 @@ sub print_transaction {
         }
 
         $old_form->{printed} = $form->{printed} if %$old_form;
-
-        %audittrail = (
-            tablename => lc $form->{ARAP},
-            reference => $form->{"invnumber"},
-            formname  => $form->{formname},
-            action    => 'printed',
-            id        => $form->{id}
-        );
-
-        $old_form->{audittrail} .=
-          $form->audittrail( "", \%myconfig, \%audittrail )
-          if %$old_form;
-
     }
 
     $form->{fileid} = $form->{invnumber};
     $form->{fileid} =~ s/(\s|\W)+//g;
 
     my $template = LedgerSMB::Template->new(
-        user => \%myconfig, template => $form->{'formname'}, 
+        user => \%myconfig, template => $form->{'formname'},
         locale => $locale,
-	no_auto_output => 1,
+    no_auto_output => 1,
         format => uc $form->{format} );
 
     $template->render($form);
@@ -428,9 +422,9 @@ sub select_payment {
         locale => $locale,
         template => 'form-dynatable',
         );
-        
+
     my $column_heading = $template->column_heading($column_names);
-    
+
     $template->render({
         form => $form,
         buttons => \@buttons,
@@ -445,80 +439,6 @@ sub select_payment {
 sub payment_selected {
 
     &{"print_$form->{formname}"}( $form->{oldform}, $form->{ndx} );
-
-}
-
-sub print_options {
-
-    if ( $form->{selectlanguage} ) {
-        $form->{"selectlanguage"} =
-          $form->unescape( $form->{"selectlanguage"} );
-        $form->{"selectlanguage"} =~ s/ selected//;
-        $form->{"selectlanguage"} =~
-          s/(<option value="\Q$form->{language_code}\E")/$1 selected/;
-        $lang = qq|<select name=language_code>$form->{selectlanguage}</select>
-    <input type=hidden name=selectlanguage value="|
-          . $form->escape( $form->{selectlanguage}, 1 ) . qq|">|;
-    }
-
-    $form->{selectformname} = $form->unescape( $form->{selectformname} );
-    $form->{selectformname} =~ s/ selected//;
-    $form->{selectformname} =~
-      s/(<option value="\Q$form->{formname}\E")/$1 selected/;
-
-    $type = qq|<select name=formname>$form->{selectformname}</select>
-  <input type=hidden name=selectformname value="|
-      . $form->escape( $form->{selectformname}, 1 ) . qq|">|;
-
-    $media = qq|<select name=media>
-          <option value="screen">| . $locale->text('Screen');
-
-    $form->{selectformat} = qq|<option value="html">html<option value="csv">csv\n|;
-
-    if ( %{LedgerSMB::Sysconfig::printer} && ${LedgerSMB::Sysconfig::latex} ) {
-        for ( sort keys %{LedgerSMB::Sysconfig::printer} ) {
-            $media .= qq| 
-          <option value="$_">$_|;
-        }
-    }
-
-    if ( ${LedgerSMB::Sysconfig::latex} ) {
-        $form->{selectformat} .= qq|
-            <option value="postscript">| . $locale->text('Postscript') . qq|
-	    <option value="pdf">| . $locale->text('PDF');
-    }
-
-    $format = qq|<select name=format>$form->{selectformat}</select>|;
-    $format =~ s/(<option value="\Q$form->{format}\E")/$1 selected/;
-    $format .= qq|
-  <input type=hidden name=selectformat value="|
-      . $form->escape( $form->{selectformat}, 1 ) . qq|">|;
-    $media .= qq|</select>|;
-    $media =~ s/(<option value="\Q$form->{media}\E")/$1 selected/;
-
-    print qq|
-  <table width=100%>
-    <tr>
-      <td>$type</td>
-      <td>$lang</td>
-      <td>$format</td>
-      <td>$media</td>
-      <td align=right width=90%>
-  |;
-
-    if ( $form->{printed} =~ /$form->{formname}/ ) {
-        print $locale->text('Printed') . qq|<br>|;
-    }
-
-    if ( $form->{recurring} ) {
-        print $locale->text('Scheduled');
-    }
-
-    print qq|
-      </td>
-    </tr>
-  </table>
-|;
 
 }
 

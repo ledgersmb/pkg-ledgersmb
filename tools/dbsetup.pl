@@ -72,8 +72,6 @@ Available options:
 			from the webserver [$dstdir]
  --host			The PostgreSQL host to connect to (see 'man psql') [$host]
  --port			The PostgreSQL port to connect to (see 'man psql') [$port]
- --pgsql_contrib	The directory where the pg_trgm.sql and tablefunc.sql
-			are located [required for PostgreSQL version < 9.1.x]
  --company		The name of the database to be created for the company [*]
  --countrycode		The name of the 2 character country code. Defaults to 'US'
  --owner		The name of the superuser which is to become owner of the
@@ -333,7 +331,7 @@ sub setup_ledgersmb_conf {
 		You do not have a copy of ledgersmb.conf.\n
 		Please edit this new copy derived from ledgersmb.conf.default\n";
 	sleep 4;
-	system "cp $srcdir/ledgersmb.conf.default $srcdir/ledgersmb.conf;$editor $srcdir/ledgersmb.conf";
+	system "cp $srcdir/conf/ledgersmb.conf.default $srcdir/ledgersmb.conf;$editor $srcdir/ledgersmb.conf";
 }
 
 1;

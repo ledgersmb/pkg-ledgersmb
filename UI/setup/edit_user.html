@@ -1,12 +1,12 @@
 <?lsmb INCLUDE "ui-header.html"
 stylesheet="ledgersmb.css"
-include_stylesheet=["UI/setup/stylesheet.css"];
+include_stylesheet=["setup/stylesheet.css"];
        PROCESS "elements.html";
        PROCESS "dynatable.html"; ?>
-<body class="<?lsmb dojo_theme ?>">
+<body id="setup-edit-user" class="<?lsmb dojo_theme ?>">
  <div class="setupconsole">
-	<div class="listtop">
-            <?lsmb 
+        <div class="listtop">
+            <?lsmb
                IF request.pls_import;
                        text('Duplicate User Found: Importing User');
                        action = 'save_user';
@@ -18,11 +18,11 @@ include_stylesheet=["UI/setup/stylesheet.css"];
                       action = 'save_user';
                 END ?>
         </div>
-    
-    <form data-dojo-type="lsmb/lib/Form" method="POST">
-	     <input type="hidden" name="id" value="<?lsmb request.id ?>" />
-        <input type="hidden" name="database" value="<?lsmb request.database ?>" />
-        <table>
+
+    <form data-dojo-type="dijit/form/Form" method="POST">
+      <input type="hidden" name="id" value="<?lsmb request.id ?>" />
+      <input type="hidden" name="database" value="<?lsmb request.database ?>" />
+        <table id="user-data">
 
             <?lsmb IF user.user_id and not request.pls_import ?>
             <tr>
@@ -36,7 +36,7 @@ include_stylesheet=["UI/setup/stylesheet.css"];
                     } ?>
                 </td>
             </tr>
-            
+
             <?lsmb ELSE ?>
             <tr>
                 <td><?lsmb text('Username') ?></td>
@@ -46,23 +46,25 @@ include_stylesheet=["UI/setup/stylesheet.css"];
             </tr>
             <?lsmb END ?>
             <tr>
-                <td><?lsmb text('Password') ?></td>
+                <td><label for="password"><?lsmb text('Password') ?></label>
+                </td>
                 <td>
-                    <input type="password" name="password" value=""/>
+                    <input type="password"
+                           id="password" name="password" value=""/>
                 </td>
             </tr>
 
             <?lsmb IF (request.pls_import == 1) OR !user.username ?>
             <tr>
                 <td><?lsmb text('Import') ?></td>
-                <?lsmb 
+                <?lsmb
                   IF request.pls_import;
                       importc1 = 'CHECKED';
                       importc0 = '';
                   ELSE;
                       importc1 = '';
                       importc0 = 'CHECKED';
-                  END; ?> 
+                  END; ?>
                 <td><div class="input_line"><div overflow="auto" class="input_group">
                   <?lsmb INCLUDE input element_data = {
                            label   = 'Yes'
@@ -89,7 +91,7 @@ include_stylesheet=["UI/setup/stylesheet.css"];
                         class = 'submit'
                         value = 'reset_password'
                 };
-           ELSE; 
+           ELSE;
                 PROCESS button element_data  = {
                          text = text('Add User') #'
                          name = 'action'
@@ -106,8 +108,8 @@ include_stylesheet=["UI/setup/stylesheet.css"];
     ?>
     </form>
     <?lsmb IF user.user_id and not request.pls_import?>
-        <hr /> 
-        <form data-dojo-type="lsmb/lib/Form" name="groups" method="POST" action="<?lsmb script ?>">
+        <hr />
+        <form data-dojo-type="dijit/form/Form" name="groups" method="POST" action="<?lsmb script ?>">
             <input type="hidden" name="database" value="<?lsmb request.database ?>" />
             <?lsmb PROCESS input element_data = {
                type="hidden"
@@ -122,7 +124,7 @@ include_stylesheet=["UI/setup/stylesheet.css"];
            ?>
         <input type="hidden" name="entity_id" value="<?lsmb entity_id ?>"/>
            <div>
-            <table>
+            <table id="user-roles">
                 <!-- Groups section -->
                 <tr>
                 <?lsmb FOREACH role IN roles ?>
@@ -131,7 +133,7 @@ include_stylesheet=["UI/setup/stylesheet.css"];
                 <tr>
                 <?lsmb END ?>
                     <td>
-                        <?lsmb rolcheck = undef; 
+                        <?lsmb rolcheck = undef;
                            IF user.roles.grep(role.name).size;
                               rolcheck = "checked";
                            END ?>
@@ -147,7 +149,7 @@ include_stylesheet=["UI/setup/stylesheet.css"];
                 <?lsmb END ?>
                 </tr>
             </table>
-        
+
             <table>
                 <tr>
                     <td><?lsmb PROCESS button element_data = {
@@ -158,7 +160,7 @@ include_stylesheet=["UI/setup/stylesheet.css"];
                     } ?></td>
                 </tr>
             </table></div>
-        </form>   
+        </form>
 <?lsmb END ?>
 </div>
 </body>

@@ -1,4 +1,4 @@
-<?lsmb FILTER latex -?>
+<?lsmb FILTER latex { format=FORMAT _ "(pdflatex)" } -?>
 \documentclass{scrartcl}
 \usepackage[utf8]{inputenc}
 \usepackage{tabularx}
@@ -13,7 +13,7 @@
 
 \fontfamily{cmss}\fontsize{10pt}{12pt}\selectfont
 
-<?lsmb LETTERHEAD ?>
+<?lsmb INCLUDE letterhead ?>
 
 
 % Break old pagebreak directive
@@ -97,7 +97,7 @@
 <?lsmb END ?>
 
 <?lsmb IF shiptofax ?>
-<?lsmb text('Fax:[_1]', shiptofax) ?>
+<?lsmb text('Fax: [_1]', shiptofax) ?>
 <?lsmb END ?>
 
 <?lsmb shiptoemail ?>

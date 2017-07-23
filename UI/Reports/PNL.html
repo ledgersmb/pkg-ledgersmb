@@ -1,11 +1,10 @@
-<?lsmb INCLUDE 'ui-header.html'
-               include_stylesheet = ['UI/Reports/pnl.css'];
+<?lsmb INCLUDE 'ui-header.html';
 account_data = report.account_data;
 
 FORMATS = LIST_FORMATS();
 LINK = request.script _ '?' _ ENVARS.QUERY_STRING _ '&amp;company=' _ DBNAME;
 LINK = LINK.replace('\&amp;\&amp;', '&amp;');
-DRILLBASE = 'journal.pl?sort=transdate&amp;category=X'
+DRILLBASE = 'journal.pl?sort=transdate&amp;&amp;category=X'
        _ '&amp;col_transdate=Y&amp;col_reference=Y&amp;col_description=Y'
        _ '&amp;col_debits=Y&amp;col_credits=Y&amp;col_source=Y'
        _ '&amp;col_accno=Y&amp;action=search&amp;col_running_balance=Y';
@@ -23,6 +22,7 @@ ELSE ;
 END ;
 ?>
 <body class="financial-statement <?lsmb dojo_theme ?> <?lsmb hierarchy ?>">
+<div id="PNL" class="financial-statement <?lsmb hierarchy ?>"> <!-- Also used in balance sheet! -->
 <h1><?lsmb name ?></h1>
 <div class="company-name"><?lsmb company_name ?></div>
 <div class="company-address"><?lsmb company_address ?></div>
@@ -46,7 +46,7 @@ END ;
 </colgroup>
 <tbody>
     <tr class="sectionhead">
-        <th colspan="<?lsmb max_path_depth ?>"></th>
+        <th colspan="<?lsmb max_path_depth+1 ?>"></th>
 <?lsmb FOREACH col IN report.sorted_col_ids -?>
         <th><?lsmb report.cheads.ids.$col.props.description ?></th>
 <?lsmb END -?>

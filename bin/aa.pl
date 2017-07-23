@@ -45,8 +45,11 @@
 #======================================================================
 
 package lsmb_legacy;
+use LedgerSMB::Setting;
 use LedgerSMB::Tax;
 use LedgerSMB::Company_Config;
+
+use Data::Dumper;
 
 require 'bin/bridge.pl'; # needed for voucher dispatches
 # any custom scripts for this one
@@ -158,7 +161,6 @@ sub edit {
     }
 
     &display_form;
-
 }
 
 sub display_form {
@@ -172,6 +174,7 @@ sub display_form {
     $form->close_form;
     $form->open_form;
     AA->get_files($form, $locale);
+    $form->generate_selects(\%myconfig);
     &form_header;
     &form_footer;
 
@@ -188,20 +191,19 @@ sub create_links {
         $form->{vc}   = 'customer';
     }
 
-    $form->create_links( module => $form->{ARAP},
-                         myconfig => \%myconfig,
-                         vc => $form->{vc},
-                         billing => $form->{vc} eq 'customer'
-                                    && $form->{type} eq 'invoice');
+     $form->create_links( module => $form->{ARAP},
+                                 myconfig => \%myconfig,
+                                 vc => $form->{vc},
+                                 billing => $form->{vc} eq 'customer'
+                                      && $form->{type} eq 'invoice')
+        unless $form->{"$form->{ARAP}_links"};
+
 
     $duedate     = $form->{duedate};
-    $crdate      = $form->{crdate};
+    $crdate     = $form->{crdate};
 
     $form->{formname} = "transaction";
     $form->{media}    //= $myconfig{printer};
-
-    $form->{selectformname} =
-      qq|<option value="transaction">| . $locale->text('Transaction');
 
     # currencies
     if (!$form->{currencies}){
@@ -209,16 +211,8 @@ sub create_links {
            'No currencies defined.  Please set these up under System/Defaults.'
         ));
     }
-    @curr = split /:/, $form->{currencies};
-    $form->{defaultcurrency} = $curr[0];
-    chomp $form->{defaultcurrency};
-
-    for (@curr) { $form->{selectcurrency} .= "<option>$_\n"
-                     unless  $form->{selectcurrency} =~ /<option[^>]*>$_/
-    }
 
     my $vc = $form->{vc};
-
     AA->get_name( \%myconfig, \%$form )
             unless $form->{"old$vc"} eq $form->{$vc}
                     or $form->{"old$vc"} =~ /^\Q$form->{$vc}\E--/;
@@ -234,36 +228,8 @@ sub create_links {
     }
     $form->{oldtransdate} = $form->{transdate};
 
-    # customers/vendors
-    $form->{"select$form->{vc}"} = "";
-    if ( @{ $form->{"all_$form->{vc}"} } ) {
-        $form->{ $form->{vc} } =
-          qq|$form->{$form->{vc}}--$form->{"$form->{vc}_id"}|
-          unless $form->{ $form->{vc} } =~ /--$form->{"$form->{vc}_id"}$/;
-        for ( @{ $form->{"all_$form->{vc}"} } ) {
-            $form->{"select$form->{vc}"} .=
-              qq|<option value="$_->{name}--$_->{id}">$_->{name}\n|;
-        }
-    }
     # Business Reporting Units
     $form->all_business_units;
-
-    # sales staff
-    if ( @{ $form->{all_employee} } ) {
-        $form->{selectemployee} = "";
-        for ( @{ $form->{all_employee} } ) {
-            $form->{selectemployee} .=
-              qq|<option value="$_->{name}--$_->{id}">$_->{name}\n|;
-        }
-    }
-
-    if ( @{ $form->{all_language} } ) {
-        $form->{selectlanguage} = "<option>\n";
-        for ( @{ $form->{all_language} } ) {
-            $form->{selectlanguage} .=
-              qq|<option value="$_->{code}">$_->{description}\n|;
-        }
-    }
 
     # forex
     $form->{forex} = $form->{exchangerate};
@@ -273,16 +239,11 @@ sub create_links {
     $tax       = 0;
     $taxrate   = 0;
     #$ml        = ( $form->{ARAP} eq 'AR' ) ? 1 : -1;
-    $ml        = new Math::BigFloat( ( $form->{ARAP} eq 'AR' ) ? 1 : -1);
+    $ml        = new LedgerSMB::PGNumber( ( $form->{ARAP} eq 'AR' ) ? 1 : -1);
+
 
     foreach $key ( keys %{ $form->{"$form->{ARAP}_links"} } ) {
 
-
-        $form->{"select$key"} = "";
-        foreach $ref ( @{ $form->{"$form->{ARAP}_links"}{$key} } ) {
-            $form->{"select$key"} .=
-              "<option>$ref->{accno}--$ref->{description}\n";
-        }
 
         # if there is a value we have an old entry
         for $i ( 1 .. scalar @{ $form->{acc_trans}{$key} } ) {
@@ -335,10 +296,10 @@ sub create_links {
                         $form->{"description_$i"} =
                           $form->{acc_trans}{$key}->[ $i - 1 ]->{memo};
 
-                        $form->{"entry_id_$i"} =
+             $form->{"entry_id_$i"} =
                           $form->{acc_trans}{$key}->[ $i - 1 ]->{entry_id};
 
-                        $form->{"taxformcheck_$i"}=1 if(AA->get_taxcheck($form->{"entry_id_$i"},$form->{dbh}));
+            $form->{"taxformcheck_$i"}=1 if(AA->get_taxcheck($form->{"entry_id_$i"},$form->{dbh}));
 
                        $form->{rowcount}++;
                         $netamount += $form->{"${akey}_$i"};
@@ -372,9 +333,8 @@ sub create_links {
     # taxincluded can't be calculated
     # this works only if all taxes are checked
 
-    @taxaccounts = Tax::init_taxes( $form, $form->{taxaccounts} );
-
     if ( !$form->{oldinvtotal} ) { # first round loading (or amount was 0)
+        my @taxaccounts = Tax::init_taxes($form, $form->{taxaccounts});
         for (@taxaccounts) { $form->{ "calctax_" . $_->account } = 1 }
     }
 
@@ -394,6 +354,7 @@ sub create_links {
         $form->{readonly} = 1
           if $myconfig{acs} =~ /$form->{ARAP}--Add Transaction/;
     }
+    #$form->generate_selects(\%myconfig);
 }
 
 sub form_header {
@@ -406,11 +367,11 @@ sub form_header {
 
     if($form->{batch_id})
     {
-                $form->{batch_control_code}=$form->get_batch_control_code($form->{dbh},$form->{batch_id});
-                $form->{batch_description}=$form->get_batch_description($form->{dbh},$form->{batch_id});
+        $form->{batch_control_code}=$form->get_batch_control_code($form->{dbh},$form->{batch_id});
+        $form->{batch_description}=$form->get_batch_description($form->{dbh},$form->{batch_id});
     }
-    #   $locale->text('Add AR Transaction');
-    #   $locale->text('Add AP Transaction');
+    #     $locale->text('Add AR Transaction');
+    #     $locale->text('Add AP Transaction');
     #   $locale->text('Edit AR Transaction');
     #   $locale->text('Edit AP Transaction');
     if ($form->{ARAP} eq 'AP'){
@@ -419,16 +380,20 @@ sub form_header {
         $eclass = '2';
     }
     my $title_msgid="$title $form->{ARAP} Transaction";
+    my $status_div_id = $form->{ARAP} . '-transaction'
+         . ($form->{reverse} ? '-reverse' : '');
     if ($form->{reverse} == 0){
        #$form->{title} = $locale->text("[_1] [_2] Transaction", $title, $form->{ARAP});
-       $form->{title} = $locale->text($title_msgid);
+       $form->{title} = $locale->maketext($title_msgid);
     }
     elsif($form->{reverse} == 1) {
        if ($form->{subtype} eq 'credit_note'){
-           $title_msgid="$title Credit Note";$form->{title}=$locale->text($title_msgid);
+           $title_msgid="$title Credit Note";
+           $form->{title}=$locale->maketext($title_msgid);
            #$form->{title} = $locale->text("[_1] Credit Note", $title);
        } elsif ($form->{subtype} eq 'debit_note'){
-           $title_msgid="$title Debit Note";$form->{title}=$locale->text($title_msgid);
+           $title_msgid="$title Debit Note";
+           $form->{title}=$locale->maketext($title_msgid);
            #$form->{title} = $locale->text("[_1] Debit Note", $title);
        } else {
            $form->error("Unknown subtype $form->{subtype} in $form->{ARAP} "
@@ -448,19 +413,6 @@ sub form_header {
     # $locale->text('Add AP Transaction')
     # $locale->text('Edit AP Transaction')
 
-    # set option selected
-    for ( "$form->{ARAP}", "currency" ) {
-        $form->{"select$_"} =~ s/ selected//;
-        $form->{"select$_"} =~
-          s/<option>\Q$form->{$_}\E/<option selected>$form->{$_}/;
-    }
-
-    for ( "$form->{vc}", "department", "employee", "formname" ) {
-        $form->{"select$_"} = $form->unescape( $form->{"select$_"} );
-        $form->{"select$_"} =~ s/ selected//;
-        $form->{"select$_"} =~ s/(<option value="\Q$form->{$_}\E")/$1 selected/;
-    }
-
     $form->{selectprojectnumber} =
       $form->unescape( $form->{selectprojectnumber} );
 
@@ -471,19 +423,15 @@ sub form_header {
     $exchangerate = qq|<tr>|;
     $exchangerate .= qq|
                 <th align=right nowrap>| . $locale->text('Currency') . qq|</th>
-                <td><select name=currency>$form->{selectcurrency}</select></td> |
+        <td><select data-dojo-type="dijit/form/Select" id=currency name=currency>$form->{selectcurrency}</select></td> |
       if $form->{defaultcurrency};
-    $exchangerate .= qq|
-                <input type=hidden name=selectcurrency value="$form->{selectcurrency}">
-                <input type=hidden name=defaultcurrency value=$form->{defaultcurrency}>
-|;
 
     if (   $form->{defaultcurrency}
         && $form->{currency} ne $form->{defaultcurrency} )
     {
             $exchangerate .= qq|
         <th align=right>| . $locale->text('Exchange Rate') . qq|</th>
-        <td><input name=exchangerate size=10 value=$form->{exchangerate}></td>
+        <td><input data-dojo-type="dijit/form/TextBox" name=exchangerate size=10 value=$form->{exchangerate}></td>
 |;
     }
     $exchangerate .= qq|
@@ -494,27 +442,27 @@ sub form_header {
         $rows = 2;
     }
     $notes =
-qq|<textarea name=notes rows=$rows cols=50 wrap=soft>$form->{notes}</textarea>|;
+qq|<textarea data-dojo-type="dijit/form/Textarea" name=notes rows=$rows cols=50 wrap=soft>$form->{notes}</textarea>|;
     $intnotes =
-qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</textarea>|;
+qq|<textarea data-dojo-type="dijit/form/Textarea" name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</textarea>|;
 
     $department = qq|
-              <tr>
-                <th align="right" nowrap>| . $locale->text('Department') . qq|</th>
-                <td colspan=3><select name=department>$form->{selectdepartment}</select>
-                <input type=hidden name=selectdepartment value="|
+          <tr>
+        <th align="right" nowrap>| . $locale->text('Department') . qq|</th>
+        <td colspan=3><select data-dojo-type="dijit/form/Select" id=department name=department>$form->{selectdepartment}</select>
+        <input type=hidden name=selectdepartment value="|
       . $form->escape( $form->{selectdepartment}, 1 ) . qq|">
-                </td>
-              </tr>
+        </td>
+          </tr>
 | if $form->{selectdepartment};
 
     $n = ( $form->{creditremaining} < 0 ) ? "0" : "1";
 
     $name =
       ( $form->{"select$form->{vc}"} )
-      ? qq|<select name="$form->{vc}">$form->{"select$form->{vc}"}</select>|
-      : qq|<input name="$form->{vc}" value="$form->{$form->{vc}}" size=35>
-                 <a href="contact.pl?action=add&entity_class=$eclass"
+      ? qq|<select data-dojo-type="dijit/form/Select" id="$form->{vc}" name="$form->{vc}">$form->{"select$form->{vc}"}</select>|
+      : qq|<input data-dojo-type="dijit/form/TextBox" name="$form->{vc}" value="$form->{$form->{vc}}" size=35>
+                 <a href="login.pl?action=login&company=$form->{company}#/contact.pl?action=add&entity_class=$eclass"
                     target="new" id="new-contact">[|
                  .  $locale->text('New') . qq|]</a>|;
 
@@ -529,12 +477,12 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
           : $locale->text('Employee');
 
         $employee = qq|
-              <tr>
-                <th align=right nowrap>$label</th>
-                <td><select name=employee>$form->{selectemployee}</select></td>
-                <input type=hidden name=selectemployee value="|
+          <tr>
+        <th align=right nowrap>$label</th>
+        <td><select data-dojo-type="dijit/form/Select" id=employee name=employee>$form->{selectemployee}</select></td>
+        <input type=hidden name=selectemployee value="|
           . $form->escape( $form->{selectemployee}, 1 ) . qq|">
-              </tr>
+          </tr>
 |;
     }
 
@@ -543,9 +491,10 @@ qq|<textarea name=intnotes rows=$rows cols=35 wrap=soft>$form->{intnotes}</texta
     $form->header;
 
  print qq|
-<body class="$form->{dojo_theme}" onload="document.forms[0].${focus}.focus()" /> | .
-$form->open_status_div . qq|
-<form method=post action=$form->{script}>
+<body class="lsmb $form->{dojo_theme}"
+      onload="document.forms[0].${focus}.focus()" /> | .
+$form->open_status_div($status_div_id) . qq|
+<form method="post" data-dojo-type="lsmb/Form" action=$form->{script}>
 <input type=hidden name=type value="$form->{formname}">
 <input type=hidden name=title value="$title">
 
@@ -569,8 +518,7 @@ $form->open_status_div . qq|
     $form->hide_form(
         "old$form->{vc}",  "$form->{vc}_id",
         "terms",           "creditlimit",
-        "creditremaining", "selectcurrency",
-        "defaultcurrency", "select$form->{ARAP}_amount",
+        "creditremaining", "defaultcurrency",
         "rowcount"
     );
 
@@ -585,205 +533,192 @@ $form->open_status_div . qq|
     <td>
       <table width=100%>
         <tr valign=top>
-          <td>
-            <table>
-              <tr>
-                <th align="right" nowrap>$label</th>
-                <td colspan=3>$name
+      <td>
+        <table>
+          <tr>
+        <th align="right" nowrap>$label</th>
+        <td colspan=3>$name
                 </td>
-                <input type=hidden name="select$form->{vc}" value="|
-      . $form->escape( $form->{"select$form->{vc}"}, 1 ) . qq|">
-              </tr>
-              <tr>
-                <td colspan=3>
-                  <table width=100%>
-                    <tr> |;
+          </tr>
+          <tr>
+        <td colspan=3>
+          <table width=100%>
+            <tr> |;
     if (LedgerSMB::Setting ->get('show_creditlimit')){
        print qq|
-                      <th align=left nowrap>| . $locale->text('Credit Limit') . qq|</th>
-                      <td>$form->{creditlimit}</td>
-                      <th align=left nowrap>| . $locale->text('Remaining') . qq|</th>
-                      <td class="plus$n">|
+              <th align=left nowrap>| . $locale->text('Credit Limit') . qq|</th>
+              <td>$form->{creditlimit}</td>
+              <th align=left nowrap>| . $locale->text('Remaining') . qq|</th>
+              <td class="plus$n">|
       . $form->format_amount( \%myconfig, $form->{creditremaining}, 0, "0" )
       . qq|</td>|;
     } else {
        print qq|<td>&nbsp;</td>|;
     }
     print qq|
-                    </tr>
-                  </table>
-                </td>
-              </tr>
+            </tr>
+          </table>
+        </td>
+          </tr>
 |;
-                if($form->{batch_id})
-                {
-                print qq|       <tr>
-                <th align="right" nowrap>| .
-                        $locale->text('Batch Control Code') . qq|</th>
-                <td>$form->{batch_control_code}</td>
-              </tr>
-                <tr>
-                <th align="right" nowrap>| .
-                        $locale->text('Batch Name') . qq|</th>
-                <td>$form->{batch_description}</td>
-              </tr>
+        if($form->{batch_id})
+        {
+        print qq|    <tr>
+        <th align="right" nowrap>| .
+            $locale->text('Batch Control Code') . qq|</th>
+        <td>$form->{batch_control_code}</td>
+          </tr>
+        <tr>
+        <th align="right" nowrap>| .
+            $locale->text('Batch Name') . qq|</th>
+        <td>$form->{batch_description}</td>
+          </tr>
 
 |;
 
-                }
+        }
 
 
 
-                if ($form->{entity_control_code}){
-                        print qq|
-                <tr>
-                <th align="right" nowrap>| .
-                        $locale->text('Entity Control Code') . qq|</th>
-                <td colspan=3>$form->{entity_control_code}</td>
-              </tr>
-                <tr>
-                <th align="right" nowrap>| .
-                        $locale->text('Tax ID') . qq|</th>
-                <td colspan=3>$form->{tax_id}</td>
-              </tr>
-                <tr>
-                <th align="right" nowrap>| .
-                        $locale->text('Account') . qq|</th>
-                <td colspan=3>$form->{meta_number}</td>
-              </tr>
+        if ($form->{entity_control_code}){
+            print qq|
+            <tr>
+        <th align="right" nowrap>| .
+            $locale->text('Entity Control Code') . qq|</th>
+        <td colspan=3>$form->{entity_control_code}</td>
+          </tr>
+            <tr>
+        <th align="right" nowrap>| .
+            $locale->text('Tax ID') . qq|</th>
+        <td colspan=3>$form->{tax_id}</td>
+          </tr>
+            <tr>
+        <th align="right" nowrap>| .
+            $locale->text('Account') . qq|</th>
+        <td colspan=3>$form->{meta_number}</td>
+          </tr>
               <tr class="address_row">
                 <th align="right" nowrap>| .
                         $locale->text('Address'). qq|</th>
                 <td colspan=3>$form->{address}, $form->{city}</td>
               </tr>
-                |;
-               }
-        print qq|
-              $exchangerate
-              $department
+        |;
+           }
+    print qq|
+          $exchangerate
+          $department
             <tr>
                <th align="right" nowrap>| . $locale->text('Description') . qq|
                </th>
-               <td><input type="text" name="description" id="description" size="40"
+               <td><input data-dojo-type="dijit/form/TextBox" type="text" name="description" id="description" size="40"
                    value="| . $form->{description} . qq|" /></td>
             </tr>
-            </table>
-          </td>
-          <td align=right>
-            <table>
-              $employee
-              <tr>
-                <th align=right nowrap>| . $locale->text('Invoice Number') . qq|</th>
-                <td><input name=invnumber id=invnum size=20 value="$form->{invnumber}">
+        </table>
+      </td>
+      <td align=right>
+        <table>
+          $employee
+          <tr>
+        <th align=right nowrap>| . $locale->text('Invoice Number') . qq|</th>
+        <td><input data-dojo-type="dijit/form/TextBox" name=invnumber id=invnum size=20 value="$form->{invnumber}">
                       $form->{sequence_select}</td>
-              </tr>
-              <tr>
-                <th align=right nowrap>| . $locale->text('Order Number') . qq|</th>
-                <td><input name=ordnumber id=ordnum size=20 value="$form->{ordnumber}"></td>
-              </tr>
+          </tr>
+          <tr>
+        <th align=right nowrap>| . $locale->text('Order Number') . qq|</th>
+        <td><input data-dojo-type="dijit/form/TextBox" name=ordnumber id=ordnum size=20 value="$form->{ordnumber}"></td>
+          </tr>
               <tr>
                 <th align=right nowrap>| . $locale->text('Invoice Created') . qq|</th>
-                <td><input class="date" name=crdate size=11 title="($myconfig{'dateformat'})" value=$form->{crdate}></td>
+                <td><input class="date" data-dojo-type="lsmb/DateTextBox" name=crdate size=11 title="($myconfig{'dateformat'})" value=$form->{crdate}></td>
               </tr>
-              <tr>
-                <th align=right nowrap>| . $locale->text('Invoice Date') . qq|</th>
-                <td><input class="date" name=transdate id=transdate size=11 title="($myconfig{'dateformat'})" value=$form->{transdate}></td>
-              </tr>
-              <tr>
-                <th align=right nowrap>| . $locale->text('Due Date') . qq|</th>
-                <td><input class="date" name=duedate id=duedate size=11 title="$myconfig{'dateformat'}" value=$form->{duedate}></td>
-              </tr>
-              <tr>
-                <th align=right nowrap>| . $locale->text('PO Number') . qq|</th>
-                <td><input name=ponumber size=20 value="$form->{ponumber}"></td>
-              </tr>
-            </table>
-          </td>
-        </tr>
+          <tr>
+        <th align=right nowrap>| . $locale->text('Invoice Date') . qq|</th>
+        <td><input class="date" data-dojo-type="lsmb/DateTextBox" name=transdate id=transdate size=11 title="($myconfig{'dateformat'})" value=$form->{transdate}></td>
+          </tr>
+          <tr>
+        <th align=right nowrap>| . $locale->text('Due Date') . qq|</th>
+        <td><input class="date" data-dojo-type="lsmb/DateTextBox" name=duedate id=duedate size=11 title="$myconfig{'dateformat'}" value=$form->{duedate}></td>
+          </tr>
+          <tr>
+        <th align=right nowrap>| . $locale->text('PO Number') . qq|</th>
+        <td><input data-dojo-type="dijit/form/TextBox" name=ponumber size=20 value="$form->{ponumber}"></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
       </table>
     </td>
   </tr>
-  <input type=hidden name=selectprojectnumber value="|
-      . $form->escape( $form->{selectprojectnumber}, 1 ) . qq|">
   <tr>
     <td>
       <table>
 |;
 
     print qq|
-        <tr>
-          <th>| . $locale->text('Amount') . qq|</th>
-          <th></th>
-          <th>| . $locale->text('Account') . qq|</th>
-          <th>| . $locale->text('Description') . qq|</th>
-          <th>| . $locale->text('Tax Form Applied') . qq|</th>|;
+    <tr>
+      <th>| . $locale->text('Amount') . qq|</th>
+      <th></th>
+      <th>| . $locale->text('Account') . qq|</th>
+      <th>| . $locale->text('Description') . qq|</th>
+      <th>| . $locale->text('Tax Form Applied') . qq|</th>|;
     for my $cls (@{$form->{bu_class}}){
         if (scalar @{$form->{b_units}->{"$cls->{id}"}}){
-            print qq|<th>| . $locale->text($cls->{label}) . qq|</th>|;
+            print qq|<th>| . $locale->maketext($cls->{label}) . qq|</th>|;
         }
     }
     print qq|
-        </tr>
+    </tr>
 |;
-    # Building buisness unit dropdowns
 
 
     # Display rows
 
     for $i ( 1 .. $form->{rowcount} + $min_lines) {
 
-        $selectamount = $form->{"select$form->{ARAP}_amount"};
-        $selectamount =~
-s/option>\Q$form->{"$form->{ARAP}_amount_$i"}\E/option selected>$form->{"$form->{ARAP}_amount_$i"}/;
-
-        $selectprojectnumber = $form->{selectprojectnumber};
-        $selectprojectnumber =~
-          s/(<option value="\Q$form->{"projectnumber_$i"}\E")/$1 selected/;
-
         # format amounts
         $form->{"amount_$i"} =
           $form->format_amount( \%myconfig,$form->{"amount_$i"}, 2 );
 
         $project = qq|
-          <td align=right><select name="projectnumber_$i">$selectprojectnumber</select></td>
+      <td align=right><select data-dojo-type="dijit/form/Select" id="projectnumber_$i" name="projectnumber_$i">$form->{"selectprojectnumber_$i"}</select></td>
 | if $form->{selectprojectnumber};
 
         if ( ( $rows = $form->numtextrows( $form->{"description_$i"}, 40 ) ) >
             1 )
         {
             $description =
-qq|<td><textarea name="description_$i" rows=$rows cols=40>$form->{"description_$i"}</textarea></td>|;
+qq|<td><textarea data-dojo-type="dijit/form/Textarea" name="description_$i" rows=$rows cols=40>$form->{"description_$i"}</textarea></td>|;
         }
         else {
             $description =
-qq|<td><input name="description_$i" size=40 value="$form->{"description_$i"}"></td>|;
+qq|<td><input data-dojo-type="dijit/form/TextBox" name="description_$i" size=40 value="$form->{"description_$i"}"></td>|;
         }
 
-        $taxchecked="";
-        if($form->{"taxformcheck_$i"} or ($form->{default_reportable} and ($i == $form->{rowcount})))
-        {
-                $taxchecked=qq|CHECKED="CHECKED"|;
+    $taxchecked="";
+    if($form->{"taxformcheck_$i"} or ($form->{default_reportable} and ($i == $form->{rowcount})))
+    {
+        $taxchecked=qq|CHECKED="CHECKED"|;
 
-        }
+    }
 
-        $taxformcheck=qq|<td><input type="checkbox" name="taxformcheck_$i" value="1" $taxchecked></td>|;
+    $taxformcheck=qq|<td><input type="checkbox" data-dojo-type="dijit/form/CheckBox" name="taxformcheck_$i" value="1" $taxchecked></td>|;
         print qq|
-        <tr valign=top>
-          <td><input name="amount_$i" size=10 value="$form->{"amount_$i"}" accesskey="$i"></td>
-          <td></td>
-          <td><select name="$form->{ARAP}_amount_$i">$selectamount</select></td>
-          $description
+    <tr valign=top>
+      <td><input data-dojo-type="dijit/form/TextBox" name="amount_$i" size=10 value="$form->{"amount_$i"}" accesskey="$i"></td>
+      <td></td>
+      <td><select data-dojo-type="dijit/form/Select" id="$form->{ARAP}_amount_$i" name="$form->{ARAP}_amount_$i">$form->{"select$form->{ARAP}_amount_$i"}</select></td>
+      $description
           $taxformcheck
-          $project|;
+      $project|;
 
         for my $cls (@{$form->{bu_class}}){
             if (scalar @{$form->{b_units}->{"$cls->{id}"}}){
-                print qq|<td><select name="b_unit_$cls->{id}_$i">
+                print qq|<td><select data-dojo-type="dijit/form/Select" id="b_unit_$cls->{id}_$i" name="b_unit_$cls->{id}_$i">
                                     <option></option>|;
                       for my $bu (@{$form->{b_units}->{"$cls->{id}"}}){
                          my $selected = '';
                          if ($form->{"b_unit_$cls->{id}_$i"} eq $bu->{id}){
-                            $selected = "SELECTED='SELECTED'";
+                            $selected = 'selected="selected"';
                          }
                          print qq|  <option value="$bu->{id}" $selected>
                                         $bu->{control_code}
@@ -795,7 +730,7 @@ qq|<td><input name="description_$i" size=40 value="$form->{"description_$i"}"></
             }
         }
         print qq|
-        </tr>
+    </tr>
 |;
 
     $form->hide_form( "entry_id_$i"); #New block of code to pass entry_id
@@ -803,29 +738,22 @@ qq|<td><input name="description_$i" size=40 value="$form->{"description_$i"}"></
     }
      my $tax_base = $form->{invtotal};
     foreach $item ( split / /, $form->{taxaccounts} ) {
-
-        if($is_update){
-            $form->{"tax_$item"} = $form->{"${item}_rate"} * $tax_base
-                if $form->{"calctax_$item"};
-            $form->{invtotal} += $form->{"tax_$item"};
-        }
         $form->{"calctax_$item"} =
           ( $form->{"calctax_$item"} ) ? "checked" : "";
-
         $form->{"tax_$item"} =
           $form->format_amount( \%myconfig, $form->{"tax_$item"}, 2 );
         print qq|
         <tr>
-          <td><input name="tax_$item" id="tax_$item"
+      <td><input data-dojo-type="dijit/form/TextBox" name="tax_$item" id="tax_$item"
                      size=10 value=$form->{"tax_$item"} /></td>
-          <td align=right><input id="calctax_$item" name="calctax_$item"
-                                 class="checkbox" type="checkbox" value=1
+      <td align=right><input id="calctax_$item" name="calctax_$item"
+                                 class="checkbox" type="checkbox" data-dojo-type="dijit/form/CheckBox" value=1
                                  $form->{"calctax_$item"}
                             title="Calculate automatically"></td>
           <td><input type="hidden" name="$form->{ARAP}_tax_$item"
                 id="$form->{ARAP}_tax_$item"
                 value="$item" />$item--$form->{"${item}_description"}</td>
-        </tr>
+    </tr>
 |;
 
         $form->hide_form(
@@ -837,14 +765,13 @@ qq|<td><input name="description_$i" size=40 value="$form->{"description_$i"}"></
     $form->{invtotal} =
       $form->format_amount( \%myconfig, $form->{invtotal}, 2 );
 
-    $form->hide_form( "oldinvtotal", "oldtotalpaid", "taxaccounts",
-        "select$form->{ARAP}" );
+    $form->hide_form( "oldinvtotal", "oldtotalpaid", "taxaccounts" );
 
     print qq|
         <tr>
-          <th align=left>$form->{invtotal}</th>
-          <td></td>
-          <td><select name="$form->{ARAP}" id="$form->{ARAP}">
+      <th align=left>$form->{invtotal}</th>
+      <td></td>
+      <td><select data-dojo-type="dijit/form/Select" name="$form->{ARAP}" id="$form->{ARAP}">
                  $form->{"select$form->{ARAP}"}
               </select></td>
         </tr>
@@ -854,12 +781,12 @@ qq|<td><input name="description_$i" size=40 value="$form->{"description_$i"}"></
            <th align=left>| . $locale->text('Notes') . qq|</th>
            <th align=left>| . $locale->text('Internal Notes') . qq|</th>
         </tr>
-        <tr>
+    <tr>
            <td>&nbsp;</td>
            <td>&nbsp;</td>
-          <td>$notes</td>
+      <td>$notes</td>
           <td>$intnotes</td>
-        </tr>
+    </tr>
       </table>
     </td>
   </tr>
@@ -911,7 +838,7 @@ qq|<td><input name="description_$i" size=40 value="$form->{"description_$i"}"></
         $form->{"select$form->{ARAP}_paid_$i"} =
           $form->{"select$form->{ARAP}_paid"};
         $form->{"select$form->{ARAP}_paid_$i"} =~
-s/option>\Q$form->{"$form->{ARAP}_paid_$i"}\E/option selected>$form->{"$form->{ARAP}_paid_$i"}/;
+          s/(value="\Q$form->{"$form->{ARAP}_paid_$i"}\E")/\1 selected="selected"/;
 
         # format amounts
         $form->{"paid_$i"} =
@@ -927,23 +854,23 @@ s/option>\Q$form->{"$form->{ARAP}_paid_$i"}\E/option selected>$form->{"$form->{A
             }
             else {
                 $exchangerate =
-qq|<input name="exchangerate_$i" size=10 value=$form->{"exchangerate_$i"}>|;
+qq|<input data-dojo-type="dijit/form/TextBox" name="exchangerate_$i" size=10 value=$form->{"exchangerate_$i"}>|;
             }
         }
 
         $form->hide_form("forex_$i");
 
         $column_data{paid} =
-qq|<td align=center><input name="paid_$i" id="paid_$i" size=11 value=$form->{"paid_$i"}></td>|;
+qq|<td align=center><input data-dojo-type="dijit/form/TextBox" name="paid_$i" id="paid_$i" size=11 value=$form->{"paid_$i"}></td>|;
         $column_data{ARAP_paid} =
-qq|<td align=center><select name="$form->{ARAP}_paid_$i" id="$form->{ARAP}_paid_$i">$form->{"select$form->{ARAP}_paid_$i"}</select></td>|;
+qq|<td align=center><select data-dojo-type="dijit/form/Select" name="$form->{ARAP}_paid_$i" id="$form->{ARAP}_paid_$i">$form->{"select$form->{ARAP}_paid_$i"}</select></td>|;
         $column_data{exchangerate} = qq|<td align=center>$exchangerate</td>|;
         $column_data{datepaid} =
-qq|<td align=center><input class="date" name="datepaid_$i" id="datepaid_$i" size=11 value=$form->{"datepaid_$i"}></td>|;
+qq|<td align=center><input class="date" data-dojo-type="lsmb/DateTextBox" name="datepaid_$i" id="datepaid_$i" size=11 value=$form->{"datepaid_$i"}></td>|;
         $column_data{source} =
-qq|<td align=center><input name="source_$i" id="source_$i" size=11 value="$form->{"source_$i"}"></td>|;
+qq|<td align=center><input data-dojo-type="dijit/form/TextBox" name="source_$i" id="source_$i" size=11 value="$form->{"source_$i"}"></td>|;
         $column_data{memo} =
-qq|<td align=center><input name="memo_$i" id="memo_$i" size=11 value="$form->{"memo_$i"}"></td>|;
+qq|<td align=center><input data-dojo-type="dijit/form/TextBox" name="memo_$i" id="memo_$i" size=11 value="$form->{"memo_$i"}"></td>|;
 
         for (@column_index) { print qq|$column_data{$_}\n| }
 
@@ -952,7 +879,7 @@ qq|<td align=center><input name="memo_$i" id="memo_$i" size=11 value="$form->{"m
 ";
     }
 
-    $form->hide_form( "paidaccounts", "select$form->{ARAP}_paid", 'cash_accno' );
+    $form->hide_form( "paidaccounts", 'cash_accno' );
 
     print qq|
       </table>
@@ -981,6 +908,12 @@ sub form_footer {
     # type=submit $locale->text('Delete')
 
     if ( !$form->{readonly} ) {
+        my $printops = &print_options;
+        my $formname = { name => 'formname',
+                     options => [
+                                  {text=> $locale->text('Transaction'), value => 'transaction'},
+                                ]
+                   };
         my $hold_text;
 
         if ($form->{on_hold}) {
@@ -998,7 +931,8 @@ sub form_footer {
                              # update, not both. --CT
               { ndx => 1, key => 'C', value => $locale->text('Copy to New') },
             'print' =>
-              { ndx => 2, key => 'P', value => $locale->text('Print') },
+              { ndx => 2, key => 'P', value => $locale->text('Print'),
+                type => 'lsmb/PrintButton' },
             'post' => { ndx => 3, key => 'O', value => $locale->text('Post') },
             'schedule' =>
               { ndx => 7, key => 'H', value => $locale->text('Schedule') },
@@ -1020,12 +954,12 @@ sub form_footer {
                    ndx   => 3,
                    key   => 'O',
                    value => $locale->text('Post') };
-           if (grep /^lsmb_$form->{company}__draft_modify$/, @{$form->{_roles}}){
+           if ($form->is_allowed_role(['draft_modify'])){
                $button{edit_and_save} = {
                    ndx   => 4,
                    key   => 'E',
                    value => $locale->text('Save Draft') };
-          }
+           }
            delete $button{post_as_new};
            delete $button{post};
         }
@@ -1062,8 +996,10 @@ sub form_footer {
 
         if (defined $button{'print'}) {
             # Don't show the print selectors, if there's no "Print" button
-
-            &print_options;
+            print_select($form, $formname);
+            print_select($form, $printops->{lang});
+            print_select($form, $printops->{format});
+            print_select($form, $printops->{media});
         }
         print "<br>";
 
@@ -1090,9 +1026,9 @@ sub form_footer {
               print qq|
 <tr>
 <td><a href="file.pl?action=get&file_class=1&ref_key=$form->{id}&id=$file->{id}"
-            >$file->{file_name}</a></td>
+       target="_download">$file->{file_name}</a></td>
 <td>$file->{mime_type}</td>
-<td>|. $file->{uploaded_at}->to_output .qq|</td>
+<td>|. $file->{uploaded_at} .qq|</td>
 <td>$file->{uploaded_by_name}</td>
 </tr>
               |;
@@ -1132,10 +1068,6 @@ sub form_footer {
        print qq|
 <a href="file.pl?action=show_attachment_screen&ref_key=$form->{id}&file_class=1&callback=$callback"
    >[| . $locale->text('Attach') . qq|]</a>|;
-    }
-    if ( $form->{lynx} ) {
-        require "bin/menu.pl";
-        &menubar;
     }
 
     print qq|
@@ -1182,10 +1114,9 @@ sub save_temp {
     }
     $lsmb->{post_date} = $form->{transdate};
     for my $iter (0 .. $form->{rowcount}){
-        if ($form->{"$form->{ARAP}_amount_$iter"} and
+        if ($form->{"AP_amount_$iter"} and
                   ($form->{"amount_$iter"} != 0)){
-             my ($acc_id, $acc_name) =
-                 split /--/, $form->{"$form->{ARAP}_amount_$iter"};
+             my ($acc_id, $acc_name) = split /--/, $form->{"AP_amount_$iter"};
              my $amount = $form->{"amount_$iter"};
              push @{$lsmb->{journal_lines}},
                   {accno => $acc_id,
@@ -1194,7 +1125,7 @@ sub save_temp {
                   };
         }
     }
-    $template = LedgerSMB::DBObject::TransTemplate->new(base => $lsmb);
+    $template = LedgerSMB::DBObject::TransTemplate->new({base => $lsmb});
     $template->save;
     $form->redirect( $locale->text('Template Saved!') );
 }
@@ -1225,7 +1156,7 @@ sub approve {
     if ($form->{callback}){
         print "Location: $form->{callback}\n";
         print "Status: 302 Found\n\n";
-        print qq|<html><body class="$form->{dojo_theme}">|;
+        print qq|<html><body class="lsmb $form->{dojo_theme}">|;
         my $url = $form->{callback};
         print qq|If you are not redirected automatically, click <a href="$url">|
                 . qq|here</a>.</body></html>|;
@@ -1239,7 +1170,6 @@ sub update {
     my $display = shift;
     $form->open_form() unless $form->check_form();
     $is_update = 1;
-    if ( !$display ) {
 
         $form->{invtotal} = 0;
 
@@ -1291,24 +1221,23 @@ sub update {
             $newproj =
               &rebuild_vc( $form->{vc}, $form->{ARAP}, $form->{transdate} )
               if !$newname;
-
-            $form->{selectemployee} = "";
-            if ( @{ $form->{all_employee} } ) {
-                for ( @{ $form->{all_employee} } ) {
-                    $form->{selectemployee} .=
-                      qq|<option value="$_->{name}--$_->{id}">$_->{name}\n|;
-                }
-            }
         }
-    }#!$display
+
     @taxaccounts = split / /, $form->{taxaccounts};
 
     for (@taxaccounts) {
         $form->{"tax_$_"} =
-          $form->parse_amount( \%myconfig, $form->{"tax_$_"} );
+            $form->parse_amount( \%myconfig, $form->{"tax_$_"} );
+        $form->{"calctax_$_"} = 1 if !$form->{invtotal};
     }
 
-    @taxaccounts = Tax::init_taxes( $form, $form->{taxaccounts} );
+    my $tax_base = $form->{invtotal};
+    foreach $item ( split / /, $form->{taxaccounts} ) {
+        if($form->{"calctax_$item"} && $is_update){
+            $form->{"tax_$item"} = $form->{"${item}_rate"} * $tax_base;
+        }
+        $form->{invtotal} += $form->{"tax_$item"};
+    }
 
     $j = 1;
     for $i ( 1 .. $form->{paidaccounts} ) {
@@ -1361,10 +1290,11 @@ sub update {
     # rather than the newly selected one in the form
     # check_name() sets $form->{vendor_id} or $form->{customer_id}
     # and updates $form->{oldvendor} or $form->{oldcustomer}
-
-    #tshvr4 should be revised!
-    &create_links;
-
+    #
+    # For 1.5, we are just skipping create_links if the id exists
+    # for 1.6 we will probably remove it
+    &create_links unless $form->{id};
+    $form->generate_selects(\%myconfig);
 
     &display_form;
 
@@ -1446,21 +1376,17 @@ sub post {
 
     if ( AA->post_transaction( \%myconfig, \%$form ) ) {
 
-       $form->update_status( \%myconfig );
-       if ( $form->{printandpost} ) {
-           &{"print_$form->{formname}"}( $old_form, 1 );
+        $form->update_status( \%myconfig );
+        if ( $form->{printandpost} ) {
+            &{"print_$form->{formname}"}( $old_form, 1 );
         }
 
         if(defined($form->{batch_id}) and $form->{batch_id}
-           and ($form->{callback} !~ /vouchers/))
-        {
-                $form->{callback}.= qq|&batch_id=$form->{batch_id}|;
+           and ($form->{callback} !~ /vouchers/)) {
+            $form->{callback}.= qq|&batch_id=$form->{batch_id}|;
         }
-        if ($form->{separate_duties}){
-            $form->{rowcount} = 0;
-            edit();
-        }
-        else { edit(); }
+        $form->{rowcount} = 0;
+        edit();
     }
     else {
         $form->error( $locale->text('Cannot post transaction!') );
@@ -1474,41 +1400,41 @@ sub post {
 
 sub save_info {
 
-            my $taxformfound=0;
+        my $taxformfound=0;
 
-            $taxformfound=AA->taxform_exist($form,$form->{"$form->{vc}_id"});
+        $taxformfound=AA->taxform_exist($form,$form->{"$form->{vc}_id"});
             $form->{arap} = lc($form->{ARAP});
             AA->save_intnotes($form);
 
-            foreach my $i(1..($form->{rowcount}))
-            {
+        foreach my $i(1..($form->{rowcount}))
+        {
 
-                if($form->{"taxformcheck_$i"} and $taxformfound)
-                {
+        if($form->{"taxformcheck_$i"} and $taxformfound)
+        {
 
-                  AA->update_ac_tax_form($form,$form->{dbh},$form->{"entry_id_$i"},"true") if($form->{"entry_id_$i"});
+          AA->update_ac_tax_form($form,$form->{dbh},$form->{"entry_id_$i"},"true") if($form->{"entry_id_$i"});
 
-                }
-                else
-                {
+        }
+        else
+        {
 
-                    AA->update_ac_tax_form($form,$form->{dbh},$form->{"entry_id_$i"},"false") if($form->{"entry_id_$i"});
+            AA->update_ac_tax_form($form,$form->{dbh},$form->{"entry_id_$i"},"false") if($form->{"entry_id_$i"});
 
-                }
+        }
 
-            }
+        }
 
-            if ($form->{callback}){
-                print "Location: $form->{callback}\n";
-                print "Status: 302 Found\n\n";
-                print qq|<html><body class="$form->{dojo_theme}">|;
-                my $url = $form->{callback};
-                print qq|If you are not redirected automatically, click <a href="$url">|
-                        . qq|here</a>.</body></html>|;
+        if ($form->{callback}){
+        print "Location: $form->{callback}\n";
+        print "Status: 302 Found\n\n";
+        print qq|<html><body class="lsmb $form->{dojo_theme}">|;
+        my $url = $form->{callback};
+        print qq|If you are not redirected automatically, click <a href="$url">|
+            . qq|here</a>.</body></html>|;
 
-            } else {
-                $form->info($locale->text('Draft Posted'));
-            }
+        } else {
+        $form->info($locale->text('Draft Posted'));
+        }
 
 }
 
@@ -1519,35 +1445,35 @@ sub save_info {
 sub search {
 
     $form->create_links( module => $form->{ARAP},
-                         myconfig => \%myconfig,
-                         vc => $form->{vc},
-                         billing => 0);
+             myconfig => \%myconfig,
+             vc => $form->{vc},
+             billing => 0);
 
-    $form->{"select$form->{ARAP}"} = "<option>\n";
+    $form->{"select$form->{ARAP}"} = "<option></option>\n";
     for ( @{ $form->{"$form->{ARAP}_links"}{ $form->{ARAP} } } ) {
         $form->{"select$form->{ARAP}"} .=
-          "<option>$_->{accno}--$_->{description}\n";
+          "<option value=\"$_->{accno}--$_->{description}\">$_->{accno}--$_->{description}</option>\n";
     }
 
     if ( @{ $form->{"all_$form->{vc}"} } ) {
         $selectname = "";
         for ( @{ $form->{"all_$form->{vc}"} } ) {
             $selectname .=
-              qq|<option value="$_->{name}--$_->{id}">$_->{name}\n|;
+              qq|<option value="$_->{name}--$_->{id}">$_->{name}</option>\n|;
         }
         $selectname =
-          qq|<select name="$form->{vc}"><option>\n$selectname</select>|;
+          qq|<select data-dojo-type="dijit/form/Select" id="$form->{vc}" name="$form->{vc}"><option>$selectname</select>|;
     }
     else {
-        $selectname = qq|<input name=$form->{vc} size=35>|;
+        $selectname = qq|<input data-dojo-type="dijit/form/TextBox" name=$form->{vc} size=35>|;
     }
 
 
     if ( @{ $form->{all_employee} } ) {
-        $form->{selectemployee} = "<option>\n";
+        $form->{selectemployee} = "<option></option>\n";
         for ( @{ $form->{all_employee} } ) {
             $form->{selectemployee} .=
-              qq|<option value="$_->{name}--$_->{id}">$_->{name}\n|;
+              qq|<option value="$_->{name}--$_->{id}">$_->{name}</option>\n|;
         }
 
         $employeelabel =
@@ -1557,16 +1483,16 @@ sub search {
 
         $employee = qq|
         <tr>
-          <th align=right nowrap>$employeelabel</th>
-          <td colspan=3><select name=employee>$form->{selectemployee}</select></td>
-        </tr>
+      <th align=right nowrap>$employeelabel</th>
+      <td colspan=3><select data-dojo-type="dijit/form/Select" id=employee name=employee>$form->{selectemployee}</select></td>
+    </tr>
 |;
 
         $l_employee =
-qq|<input name="l_employee" class=checkbox type=checkbox value=Y> $employeelabel|;
+qq|<input name="l_employee" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> $employeelabel|;
 
         $l_manager =
-          qq|<input name="l_manager" class=checkbox type=checkbox value=Y> |
+          qq|<input name="l_manager" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
           . $locale->text('Manager');
     }
 
@@ -1576,41 +1502,41 @@ qq|<input name="l_employee" class=checkbox type=checkbox value=Y> $employeelabel
       : $locale->text('AP Transactions');
 
     $invnumber = qq|
-        <tr>
-          <th align=right nowrap>| . $locale->text('Invoice Number') . qq|</th>
-          <td colspan=3><input name=invnumber size=20></td>
-        </tr>
-        <tr>
-          <th align=right nowrap>| . $locale->text('Order Number') . qq|</th>
-          <td colspan=3><input name=ordnumber size=20></td>
-        </tr>
-        <tr>
-          <th align=right nowrap>| . $locale->text('PO Number') . qq|</th>
-          <td colspan=3><input name=ponumber size=20></td>
-        </tr>
-        <tr>
-          <th align=right nowrap>| . $locale->text('Source') . qq|</th>
-          <td colspan=3><input name=source size=40></td>
-        </tr>
-        <tr>
-          <th align=right nowrap>| . $locale->text('Description') . qq|</th>
-          <td colspan=3><input name=description size=40></td>
-        </tr>
-        <tr>
-          <th align=right nowrap>| . $locale->text('Notes') . qq|</th>
-          <td colspan=3><input name=notes size=40></td>
-        </tr>
+    <tr>
+      <th align=right nowrap>| . $locale->text('Invoice Number') . qq|</th>
+      <td colspan=3><input data-dojo-type="dijit/form/TextBox" name=invnumber size=20></td>
+    </tr>
+    <tr>
+      <th align=right nowrap>| . $locale->text('Order Number') . qq|</th>
+      <td colspan=3><input data-dojo-type="dijit/form/TextBox" name=ordnumber size=20></td>
+    </tr>
+    <tr>
+      <th align=right nowrap>| . $locale->text('PO Number') . qq|</th>
+      <td colspan=3><input data-dojo-type="dijit/form/TextBox" name=ponumber size=20></td>
+    </tr>
+    <tr>
+      <th align=right nowrap>| . $locale->text('Source') . qq|</th>
+      <td colspan=3><input data-dojo-type="dijit/form/TextBox" name=source size=40></td>
+    </tr>
+    <tr>
+      <th align=right nowrap>| . $locale->text('Description') . qq|</th>
+      <td colspan=3><input data-dojo-type="dijit/form/TextBox" name=description size=40></td>
+    </tr>
+    <tr>
+      <th align=right nowrap>| . $locale->text('Notes') . qq|</th>
+      <td colspan=3><input data-dojo-type="dijit/form/TextBox" name=notes size=40></td>
+    </tr>
 |;
 
     $openclosed = qq|
-              <tr>
-                <td nowrap><input name=open class=checkbox type=checkbox value=Y checked> |
+          <tr>
+        <td nowrap><input name=open class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y checked> |
       . $locale->text('Open')
       . qq|</td>
-                <td nowrap><input name=closed class=checkbox type=checkbox value=Y> |
+        <td nowrap><input name=closed class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Closed')
       . qq|</td>
-              </tr>
+          </tr>
 |;
 
     if ( $form->{outstanding} ) {
@@ -1624,45 +1550,45 @@ qq|<input name="l_employee" class=checkbox type=checkbox value=Y> $employeelabel
     }
     $summary = qq|
               <tr>
-                <td><input name=summary type=radio class=radio value=1> |
+        <td><input name=summary type=radio data-dojo-type="dijit/form/RadioButton" class=radio value=1> |
       . $locale->text('Summary')
       . qq|</td>
-                <td><input name=summary type=radio class=radio value=0 checked> |
+        <td><input name=summary type=radio data-dojo-type="dijit/form/RadioButton" class=radio value=0 checked> |
       . $locale->text('Detail') . qq|
-                </td>
-              </tr>
+        </td>
+          </tr>
 |;
 
 
     if ( @{ $form->{all_years} } ) {
 
         # accounting years
-        $form->{selectaccountingyear} = "<option>\n";
+        $form->{selectaccountingyear} = "<option></option>\n";
         for ( @{ $form->{all_years} } ) {
-            $form->{selectaccountingyear} .= qq|<option>$_\n|;
+            $form->{selectaccountingyear} .= qq|<option>$_</option>\n|;
         }
-        $form->{selectaccountingmonth} = "<option>\n";
+        $form->{selectaccountingmonth} = "<option></option>\n";
         for ( sort keys %{ $form->{all_month} } ) {
             $form->{selectaccountingmonth} .=
               qq|<option value=$_>|
-              . $locale->text( $form->{all_month}{$_} ) . qq|\n|;
+              . $locale->maketext( $form->{all_month}{$_} ) . qq|</option>\n|;
         }
 
         $selectfrom = qq|
         <tr>
-        <th align=right>| . $locale->text('Period') . qq|</th>
-        <td colspan=3>
-        <select name=month>$form->{selectaccountingmonth}</select>
-        <select name=year>$form->{selectaccountingyear}</select>
-        <input name=interval class=radio type=radio value=0 checked>&nbsp;|
+    <th align=right>| . $locale->text('Period') . qq|</th>
+    <td colspan=3>
+    <select data-dojo-type="dijit/form/Select" id=month name=month>$form->{selectaccountingmonth}</select>
+    <select data-dojo-type="dijit/form/Select" id=year name=year>$form->{selectaccountingyear}</select>
+    <input name=interval class=radio type=radio data-dojo-type="dijit/form/RadioButton" value=0 checked>&nbsp;|
           . $locale->text('Current') . qq|
-        <input name=interval class=radio type=radio value=1>&nbsp;|
+    <input name=interval class=radio type=radio data-dojo-type="dijit/form/RadioButton" value=1>&nbsp;|
           . $locale->text('Month') . qq|
-        <input name=interval class=radio type=radio value=3>&nbsp;|
+    <input name=interval class=radio type=radio data-dojo-type="dijit/form/RadioButton" value=3>&nbsp;|
           . $locale->text('Quarter') . qq|
-        <input name=interval class=radio type=radio value=12>&nbsp;|
+    <input name=interval class=radio type=radio data-dojo-type="dijit/form/RadioButton" value=12>&nbsp;|
           . $locale->text('Year') . qq|
-        </td>
+    </td>
       </tr>
 |;
     }
@@ -1670,9 +1596,9 @@ qq|<input name="l_employee" class=checkbox type=checkbox value=Y> $employeelabel
     $name = $locale->text('Customer');
     my $vc_number=$locale->text("Customer Number");
     $l_name =
-qq|<input name="l_name" class=checkbox type=checkbox value=Y checked> $name|;
+qq|<input name="l_name" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y checked> $name|;
     $l_till =
-      qq|<input name="l_till" class=checkbox type=checkbox value=Y> |
+      qq|<input name="l_till" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Till');
 
     if ( $form->{vc} eq 'vendor' ) {
@@ -1680,28 +1606,28 @@ qq|<input name="l_name" class=checkbox type=checkbox value=Y checked> $name|;
         $vc_number=$locale->text("Vendor Number");
         $l_till = "";
         $l_name =
-qq|<input name="l_name" class=checkbox type=checkbox value=Y checked> $name|;
+qq|<input name="l_name" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y checked> $name|;
     }
 
     @a = ();
     push @a,
-      qq|<input name="l_runningnumber" class=checkbox type=checkbox value=Y> |
+      qq|<input name="l_runningnumber" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('No.');
-    push @a, qq|<input name="l_id" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_id" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('ID');
     push @a,
-qq|<input name="l_invnumber" class=checkbox type=checkbox value=Y checked> |
+qq|<input name="l_invnumber" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y checked> |
       . $locale->text('Invoice Number');
     push @a,
-      qq|<input name="l_ordnumber" class=checkbox type=checkbox value=Y> |
+      qq|<input name="l_ordnumber" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Order Number');
-    push @a, qq|<input name="l_ponumber" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_ponumber" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('PO Number');
-    push @a, qq|<input name="l_transdate" class=checkbox type=checkbox value=Y checked> |
+    push @a, qq|<input name="l_transdate" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y checked> |
       . $locale->text('Invoice Date');
     if (!$form->{outstanding}){
         push @a,
-qq|<input name="l_projectnumber" class=checkbox type=checkbox value=Y checked> |
+qq|<input name="l_projectnumber" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y checked> |
       . $locale->text('Project Numbers');
     }
     push @a, $l_name;
@@ -1709,41 +1635,41 @@ qq|<input name="l_projectnumber" class=checkbox type=checkbox value=Y checked> |
     push @a, $l_manager if $l_employee;
     push @a, $l_department if $l_department;
     push @a,
-      qq|<input name="l_netamount" class=checkbox type=checkbox value=Y> |
+      qq|<input name="l_netamount" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Amount');
-    push @a, qq|<input name="l_tax" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_tax" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Tax');
     push @a,
-      qq|<input name="l_amount" class=checkbox type=checkbox value=Y checked> |
+      qq|<input name="l_amount" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y checked> |
       . $locale->text('Total');
-    push @a, qq|<input name="l_curr" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_curr" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Currency');
-    push @a, qq|<input name="l_datepaid" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_datepaid" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Date Paid');
     push @a,
-      qq|<input name="l_paid" class=checkbox type=checkbox value=Y checked> |
+      qq|<input name="l_paid" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y checked> |
       . $locale->text('Paid');
-    push @a, qq|<input name="l_crdate" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_crdate" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Invoice Created');
-    push @a, qq|<input name="l_duedate" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_duedate" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Due Date');
-    push @a, qq|<input name="l_due" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_due" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Amount Due');
-    push @a, qq|<input name="l_notes" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_notes" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Notes');
     push @a, $l_till if $l_till;
     push @a,
-      qq|<input name="l_shippingpoint" class=checkbox type=checkbox value=Y> |
+      qq|<input name="l_shippingpoint" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Shipping Point');
-    push @a, qq|<input name="l_shipvia" class=checkbox type=checkbox value=Y> |
+    push @a, qq|<input name="l_shipvia" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Ship via');
 
     $form->header;
 
     print qq|
-<body class="$form->{dojo_theme}">
+<body class="lsmb $form->{dojo_theme}">
 
-<form method=post action=$form->{script}>
+<form method="post" data-dojo-type="lsmb/Form" action=$form->{script}>
 
 <table width=100%>
   <tr><th class=listtop>$form->{title}</th></tr>
@@ -1752,39 +1678,39 @@ qq|<input name="l_projectnumber" class=checkbox type=checkbox value=Y checked> |
     <td>
       <table>
         <tr>
-          <th align=right>| . $locale->text('Account') . qq|</th>
-          <td colspan=3><select name=$form->{ARAP}>$form->{"select$form->{ARAP}"}</select></td>
+      <th align=right>| . $locale->text('Account') . qq|</th>
+      <td colspan=3><select data-dojo-type="dijit/form/Select" id=$from->{ARAP} name=$form->{ARAP}>$form->{"select$form->{ARAP}"}</select></td>
+    </tr>
+    <tr>
+      <th align=right>$name</th>
+      <td colspan=3>$selectname</td>
+    </tr>
+    <tr><th align="right">|.$vc_number.qq|</th>
+        <td colspan="3"><input data-dojo-type="dijit/form/TextBox" name="meta_number" size="36">
         </tr>
-        <tr>
-          <th align=right>$name</th>
-          <td colspan=3>$selectname</td>
-        </tr>
-        <tr><th align="right">|.$vc_number.qq|</th>
-            <td colspan="3"><input name="meta_number" size="36">
-        </tr>
-        $employee
-        $department
-        $invnumber
-        <tr>
-          <th align=right>| . $locale->text('Ship via') . qq|</th>
-          <td colspan=3><input name=shipvia size=40></td>
-        </tr>
-        <tr>
-          <th align=right nowrap>| . $locale->text('From') . qq|</th>
-          <td><input class="date" name=transdatefrom size=11 title="$myconfig{dateformat}"></td>
-          <th align=right>| . $locale->text('Date to') . qq|</th>
-          <td><input class="date" name=transdateto size=11 title="$myconfig{dateformat}"></td>
-        </tr>
-        $selectfrom
+    $employee
+    $department
+    $invnumber
+    <tr>
+      <th align=right>| . $locale->text('Ship via') . qq|</th>
+      <td colspan=3><input data-dojo-type="dijit/form/TextBox" name=shipvia size=40></td>
+    </tr>
+    <tr>
+      <th align=right nowrap>| . $locale->text('From') . qq|</th>
+      <td><input class="date" data-dojo-type="lsmb/DateTextBox" name=transdatefrom size=11 title="$myconfig{dateformat}"></td>
+      <th align=right>| . $locale->text('Date to') . qq|</th>
+      <td><input class="date" data-dojo-type="lsmb/DateTextBox" name=transdateto size=11 title="$myconfig{dateformat}"></td>
+    </tr>
+    $selectfrom
       </table>
     </td>
   </tr>
 
   <tr>
     <td>
-        |.$locale->text('All Invoices').qq|: <input type="radio" name="invoice_type" checked value="1">
-        |.$locale->text('Active').qq|: <input type="radio" name="invoice_type" value="2">
-        |.$locale->text('On Hold').qq|: <input type="radio" name="invoice_type" value="3">
+        |.$locale->text('All Invoices').qq|: <input type="radio" data-dojo-type="dijit/form/RadioButton" name="invoice_type" checked value="1">
+        |.$locale->text('Active').qq|: <input type="radio" data-dojo-type="dijit/form/RadioButton" name="invoice_type" value="2">
+        |.$locale->text('On Hold').qq|: <input type="radio" data-dojo-type="dijit/form/RadioButton" name="invoice_type" value="3">
         <br/>
     </td>
   </tr>
@@ -1792,12 +1718,12 @@ qq|<input name="l_projectnumber" class=checkbox type=checkbox value=Y checked> |
   <tr>
     <td>
       <table>
-        <tr>
-          <th align=right nowrap>| . $locale->text('Include in Report') . qq|</th>
-          <td>
-            <table width=100%>
-              $openclosed
-              $summary
+    <tr>
+      <th align=right nowrap>| . $locale->text('Include in Report') . qq|</th>
+      <td>
+        <table width=100%>
+          $openclosed
+          $summary
 |;
 
     $form->{sort} = "transdate";
@@ -1812,14 +1738,14 @@ qq|<input name="l_projectnumber" class=checkbox type=checkbox value=Y checked> |
     }
 
     print qq|
-              <tr>
-                <td nowrap><input name="l_subtotal" class=checkbox type=checkbox value=Y> |
+          <tr>
+        <td nowrap><input name="l_subtotal" class=checkbox type=checkbox data-dojo-type="dijit/form/CheckBox" value=Y> |
       . $locale->text('Subtotal')
       . qq|</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
+          </tr>
+        </table>
+      </td>
+    </tr>
       </table>
     </td>
   </tr>
@@ -1830,7 +1756,7 @@ qq|<input name="l_projectnumber" class=checkbox type=checkbox value=Y checked> |
 
 <br>
 <input type="hidden" name="action" value="continue">
-<button class="submit" type="submit" name="action" value="continue">|
+<button data-dojo-type="dijit/form/Button" class="submit" type="submit" name="action" value="continue">|
       . $locale->text('Continue')
       . qq|</button>|;
 
@@ -1839,11 +1765,6 @@ qq|<input name="l_projectnumber" class=checkbox type=checkbox value=Y checked> |
     print qq|
 </form>
 |;
-
-    if ( $form->{lynx} ) {
-        require "bin/menu.pl";
-        &menubar;
-    }
 
     print qq|
 

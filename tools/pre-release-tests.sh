@@ -1,9 +1,5 @@
 #!/bin/sh
 
-sh tools/delete-company-database.sh lsmb13installtest
+PGUSER=postgres PGPASSWORD=test dropdb lsmbinstalltest
 
-rm -f /tmp/ledgersmb/dblog*
-
-PGUSER=postgres PGPASSWORD=test dropdb lsmbinstall
-
-PGUSER=postgres PGPASSWORD=test LSMB_TEST_DB=1 LSMB_NEW_DB=lsmbinstall make test
+PGUSER=postgres PGPASSWORD=test LSMB_TEST_DB=1 LSMB_NEW_DB=lsmbinstalltest make test

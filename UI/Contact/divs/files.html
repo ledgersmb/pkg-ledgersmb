@@ -1,4 +1,8 @@
-<div class="lsmbtab" id="files_div" title="<?lsmb text('Files') ?>">
+<div id="files_div"
+     title="<?lsmb text('Files') ?>"
+     data-dojo-type="dijit/layout/ContentPane"
+     <?lsmb IF request.target_div == 'files_div' ?>data-dojo-props="selected:true"<?lsmb END ?>
+     >
 <?lsmb callback="contact.pl?action=get&entity_class=" _ 
                 credit_act.entity_class _ "&entity_id=" _ entity_id _
                 "&credit_id=" _ credit_act.id; 
@@ -14,7 +18,8 @@ columns = [{ col_id = 'file_name', name = text('File name'), #'
 <?lsmb 
   FOREACH COL IN columns;
          IF COL.col_id == 'file_name';
-                  COL.href_base='file.pl?action=get&file_class=4&id=';
+            COL.href_base='file.pl?action=get&file_class=4&id=';
+            COL.href_target='_download';
          END;
   END;
   FOREACH ROW IN entity_files;

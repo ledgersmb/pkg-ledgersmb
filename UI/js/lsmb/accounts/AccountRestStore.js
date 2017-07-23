@@ -1,0 +1,4 @@
+//>>built
+define("lsmb/accounts/AccountRestStore","dojo/store/JsonRest dojo/store/Observable dojo/store/Memory dojo/store/Cache dojo/request dojo/_base/array dojo/_base/declare dojo/Evented dojo/request".split(" "),function(b,h,c,a,e,f,g,k,l){b=g("lsmb/accounts/AccountRestStore",[b],{get:function(b){var c=this;return e.get(this.target,{handleAs:"json",headers:this.headers}).then(function(a){var d;f.forEach(a,function(a){b==a[c.idProperty]&&(d=a)});return d})}});return new a(new b({idProperty:"accno",target:"journal.pl?action\x3dchart_json"}),
+new c)});
+//# sourceMappingURL=AccountRestStore.js.map

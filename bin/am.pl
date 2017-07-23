@@ -111,7 +111,7 @@ sub add_gifi {
     &gifi_footer(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-gifi-form');
     $template->render({
@@ -137,7 +137,7 @@ sub edit_gifi {
     &gifi_footer(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-gifi-form');
     $template->render({
@@ -150,12 +150,12 @@ sub edit_gifi {
 
 sub gifi_header {
     my $hiddens = shift;
+
     my $title_msg="$form->{title} GIFI";
-
-    $form->{title} = $locale->text($title_msg);
-
     # $locale->text('Add GIFI')
     # $locale->text('Edit GIFI')
+
+    $form->{title} = $locale->maketext($title_msg);
 
     for (qw(accno description)) { $form->{$_} = $form->quote( $form->{$_} ) }
 
@@ -199,12 +199,6 @@ sub gifi_footer {
             };
     }
 
-##SC: Temporary commenting
-##    if ( $form->{lynx} ) {
-##        require "bin/menu.pl";
-##        &menubar;
-##    }
-
 }
 
 sub save_gifi {
@@ -236,7 +230,7 @@ sub add_business {
     &form_footer_buttons(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-business-form');
     $template->render({
@@ -261,7 +255,7 @@ sub edit_business {
     &form_footer_buttons(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-business-form');
     $template->render({
@@ -273,12 +267,11 @@ sub edit_business {
 
 sub business_header {
     my $hiddens = shift;
+
     my $title_msg="$form->{title} Business";
-
-    $form->{title} = $locale->text($title_msg);
-
     # $locale->text('Add Business')
     # $locale->text('Edit Business')
+    $form->{title} = $locale->maketext($title_msg);
 
     $form->{description} = $form->quote( $form->{description} );
     $form->{discount} =
@@ -318,7 +311,7 @@ sub add_sic {
     &form_footer_buttons(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-sic-form');
     $template->render({
@@ -333,7 +326,7 @@ sub edit_sic {
 
     $form->{title} = "Edit";
 
-    $form->{code} =~ s/\\'/'/g;
+    $form->{code} =~ s/\\'/'/g; # ' # kludge the single quote for syntax highlighting
     $form->{code} =~ s/\\\\/\\/g;
 
     AM->get_sic( \%myconfig, \%$form );
@@ -346,7 +339,7 @@ sub edit_sic {
     &form_footer_buttons(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-sic-form');
     $template->render({
@@ -360,12 +353,11 @@ sub edit_sic {
 
 sub sic_header {
     my $hiddens = shift;
+
     my $title_msg="$form->{title} SIC";
-
-    $form->{title} = $locale->text($title_msg);
-
     # $locale->text('Add SIC')
     # $locale->text('Edit SIC')
+    $form->{title} = $locale->maketext($title_msg);
 
     for (qw(code description)) { $form->{$_} = $form->quote( $form->{$_} ) }
 
@@ -407,7 +399,7 @@ sub add_language {
     &form_footer_buttons(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-language-form');
     $template->render({
@@ -423,7 +415,7 @@ sub edit_language {
 
     $form->{title} = "Edit";
 
-    $form->{code} =~ s/\\'/'/g;
+    $form->{code} =~ s/\\'/'/g; #' # kludge the single quote for syntax highlighting
     $form->{code} =~ s/\\\\/\\/g;
 
     AM->get_language( \%myconfig, \%$form );
@@ -436,7 +428,7 @@ sub edit_language {
     &form_footer_buttons(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-language-form');
     $template->render({
@@ -449,12 +441,11 @@ sub edit_language {
 
 sub language_header {
     my $hiddens = shift;
+
     my $title_msg="$form->{title} Language";
-
-    $form->{title} = $locale->text($title_msg);
-
     # $locale->text('Add Language')
     # $locale->text('Edit Language')
+    $form->{title} = $locale->maketext($title_msg);
 
     for (qw(code description)) { $form->{$_} = $form->quote( $form->{$_} ) }
 
@@ -523,7 +514,7 @@ sub delete_language {
         text => $locale->text('Delete Language'),
         });
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'form-confirmation');
     $template->render({
@@ -559,9 +550,9 @@ sub taxes {
     $i = 0;
     foreach $ref ( @{ $form->{taxrates} } ) {
         $i++;
-        $form->{"minvalue_$i"} = 
+        $form->{"minvalue_$i"} =
           $form->format_amount( \%myconfig, $ref->{minvalue}) || 0;
-        
+
         $form->{"taxrate_$i"} =
           $form->format_amount( \%myconfig, $ref->{rate} );
         $form->{"taxdescription_$i"} = $ref->{description};
@@ -616,7 +607,7 @@ sub display_taxes {
             push @rows, [$form->{"taxdescription_$i"}, \%select];
         }
 
-	$sametax = $form->{"taxdescription_$i"};
+    $sametax = $form->{"taxdescription_$i"};
 
     }
 
@@ -627,21 +618,15 @@ sub display_taxes {
         $hiddens{$taxmodule};
     }
 
-##SC: Temporary removal
-##    if ( $form->{lynx} ) {
-##        require "bin/menu.pl";
-##        &menubar;
-##    }
-
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-taxes');
     $template->render({
         form => $form,
-	hiddens => \%hiddens,
-	selects => \%selects,
-	rows => \@rows,
+    hiddens => \%hiddens,
+    selects => \%selects,
+    rows => \@rows,
     });
 }
 
@@ -657,7 +642,7 @@ sub update {
         ( $accno, $i ) = split /_/, $item;
         push @t, $accno;
 
-	$i=$i+$inserted;
+    $i=$i+$inserted;
 
         $form->{"taxmodulename_$i"} =
           $form->{ "taxmodule_" . $form->{"taxmodule_id_$i"} };
@@ -668,7 +653,6 @@ sub update {
             {
 
                 #insert line
-                #print STDERR localtime()." am.pl update insert line\n";
                 for ( $j = $ndx + 1 ; $j > $i ; $j-- ) {
                     $k = $j - 1;
                     for (qw(taxrate taxdescription taxnumber validto pass old_validto)) {
@@ -690,7 +674,6 @@ sub update {
             $j = $i + 1;
             if ( $form->{"taxdescription_$i"} eq $form->{"taxdescription_$j"} )
             {
-             #print STDERR localtime()." am.pl update remove line\n";
                 for ( $j = $i + 1 ; $j <= $ndx ; $j++ ) {
                     $k = $j + 1;
                     for (qw(taxrate taxdescription taxnumber validto pass old_validto)) {
@@ -742,7 +725,7 @@ sub add_warehouse {
     &form_footer_buttons(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-warehouse-form');
     $template->render({
@@ -766,7 +749,7 @@ sub edit_warehouse {
     &form_footer_buttons(\%hiddens, \@buttons);
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-warehouse-form');
     $template->render({
@@ -779,12 +762,11 @@ sub edit_warehouse {
 
 sub warehouse_header {
     my $hiddens = shift;
+
     my $title_msg="$form->{title} Warehouse";
-
-    $form->{title} = $locale->text($title_msg);
-
     # $locale->text('Add Warehouse')
     # $locale->text('Edit Warehouse')
+    $form->{title} = $locale->maketext($title_msg);
 
     $form->{description} = $form->quote( $form->{description} );
 
@@ -886,7 +868,7 @@ sub recurring_transactions {
     my $j;
     my $k;
     foreach my $transaction ( sort keys %{ $form->{transactions} } ) {
-    	my $transaction_count = scalar( @{ $form->{transactions}{$transaction} } );
+        my $transaction_count = scalar( @{ $form->{transactions}{$transaction} } );
         push @transactions, {type => $transaction,
             title => "$tr{$transaction} ($transaction_count)",
             transactions => [],
@@ -902,12 +884,12 @@ sub recurring_transactions {
             my $unit;
             my $repeat;
             if ( $ref->{repeat} > 1 ) {
-                $unit   = $locale->text( ucfirst $ref->{unit} );
+                $unit   = $locale->maketext( ucfirst $ref->{unit} );
                 $repeat = "$ref->{repeat} $unit";
             }
             else {
                 chop $ref->{unit};
-                $unit   = $locale->text( ucfirst $ref->{unit} );
+                $unit   = $locale->maketext( ucfirst $ref->{unit} );
                 $repeat = $unit;
             }
 
@@ -931,7 +913,7 @@ sub recurring_transactions {
               : $locale->text('Next Number');
             $column_data{reference} = {
                 text => $reference,
-                href => qq|$form->{script}?action=edit_recurring&id=$ref->{id}&vc=$ref->{vc}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}&module=$ref->{module}&invoice=$ref->{invoice}&transaction=$ref->{transaction}&recurringnextdate=$ref->{nextdate}|,
+                href => qq|am.pl?action=edit_recurring&id=$ref->{id}&vc=$ref->{vc}&path=$form->{path}&login=$form->{login}&sessionid=$form->{sessionid}&module=$ref->{module}&invoice=$ref->{invoice}&transaction=$ref->{transaction}&recurringnextdate=$ref->{nextdate}|,
                 };
 
             my $module = "$ref->{module}.pl";
@@ -990,12 +972,6 @@ sub recurring_transactions {
         }
     }
 
-##SC: Temporary removal
-##    if ( $form->{lynx} ) {
-##        require "bin/menu.pl";
-##        &menubar;
-##    }
-
     $hiddens{path} = $form->{path};
     $hiddens{login} = $form->{login};
     $hiddens{sessionid} = $form->{sessionid};
@@ -1011,7 +987,7 @@ sub recurring_transactions {
     };
 
     my $template = LedgerSMB::Template->new_UI(
-        user => \%myconfig, 
+        user => \%myconfig,
         locale => $locale,
         template => 'am-list-recurring');
     $template->render({
@@ -1068,7 +1044,16 @@ sub edit_recurring {
     }
 
     $form->{script} = "$form->{module}.pl";
-    do "bin/$form->{script}";
+    {
+        local ($!, $@);
+        my $do_ = "bin/$form->{script}";
+        unless ( do $do_ ) {
+            if ($! or $@) {
+                print "Status: 500 Internal server error (am.pl)\n\n";
+                warn "Failed to execute $do_ ($!): $@\n";
+            }
+        }
+    };
 
     &{ $links{ $form->{module} } };
 
@@ -1083,7 +1068,7 @@ sub edit_recurring {
     if ( ${LedgerSMB::Sysconfig::latex} ) {
         $form->{selectformat} .= qq|
             <option value="postscript">| . $locale->text('Postscript') . qq|
-	    <option value="pdf">| . $locale->text('PDF');
+        <option value="pdf">| . $locale->text('PDF');
     }
 
     &schedule;
@@ -1119,11 +1104,11 @@ sub process_transactions {
             # This is old code from SL, and it basically forces a reset of the
             # LedgerSMB::Form object by deleting all keys and then copying a few
             # back in.  This is error prone and buggy.  If you have issues with
-            # recurring transactions, the first thing to do is to see if 
-            # something is not being copied back that needs to be.  Looking 
+            # recurring transactions, the first thing to do is to see if
+            # something is not being copied back that needs to be.  Looking
             # forward to removing this code. --CT
             for ( keys %$form ) { delete $form->{$_}; }
-            for (qw(header dbversion company dbh login path sessionid 
+            for (qw(header dbversion company dbh login path sessionid
                     stylesheet timeout id)
             ) {
                 $form->{$_} = $pt->{$_};
@@ -1147,7 +1132,16 @@ sub process_transactions {
                         $form->{module} = "ap";
                         $invfld         = "vinumber";
                     }
-                    do "bin/$form->{script}";
+                    {
+                        local ($!, $@);
+                        my $do_ = "bin/$form->{script}";
+                        unless ( do $do_ ) {
+                            if ($! or $@) {
+                                print "Status: 500 Internal server error (am.pl)\n\n";
+                                warn "Failed to execute $do_ ($!): $@\n";
+                            }
+                        }
+                    };
 
                     if ( $pt->{invoice} ) {
                         &invoice_links;
@@ -1228,6 +1222,11 @@ sub process_transactions {
                     for (qw(invnumber reference)) {
                         $form->{$_} = $form->unquote( $form->{$_} );
                     }
+                    # Make sure the transaction isn't posted as a draft
+                    $form->{approved} = 1;
+                    # Make sure the posting procedure doesn't override
+                    # the 'approved' status
+                    $form->{separate_duties} = 0;
 
                     if ( $pt->{invoice} ) {
                         if ( $pt->{arid} ) {
@@ -1418,7 +1417,19 @@ sub print_recurring {
     my ( $pt, $defaultprinter ) = @_;
     use List::Util qw(first);
 
-    my %f  = &formnames;
+    my $ref = $form->{reference};
+    my %f  = (
+        transaction    => $locale->text('Printing Transaction [_1]', $ref),
+        invoice        => $locale->text('Printing Invoice [_1]', $ref),
+        credit_invoice => $locale->text('Printing Credit Invoice [_1]', $ref),
+        debit_invoice  => $locale->text('Printing Debit Invoice [_1]', $ref),
+        packing_list   => $locale->text('Printing Packing List [_1]', $ref),
+        pick_list      => $locale->text('Printing Pick List [_1]', $ref),
+        sales_order    => $locale->text('Printing Sales Order [_1]', $ref),
+        work_order     => $locale->text('Printing Work Order [_1]', $ref),
+        purchase_order => $locale->text('Printing Purchase Order [_1]', $ref),
+        bin_list       => $locale->text('Printing Bin List [_1]', $ref),
+        );
     my $ok = 1;
 
     if ( $pt->{recurringprint} ) {
@@ -1430,11 +1441,9 @@ sub print_recurring {
               if ${LedgerSMB::Sysconfig::printer}{ $myconfig->{printer} };
             $media ||= $defaultprinter;
 
-            $form->info( "\n"
-                  . $locale->text('Printing') . " "
-                  . $locale->text( $f{ $f[$j] } )
-                  . " $form->{reference}" );
 
+
+            $form->info( "\n" . $f{ $f[$j] } );
             $form->error( $locale->text('Invalid redirect') )
               unless first { $_ eq $form->{script} }
               @{LedgerSMB::Sysconfig::scripts};
@@ -1453,7 +1462,19 @@ sub email_recurring {
     my ($pt) = @_;
     use List::Util qw(first);
 
-    my %f  = &formnames;
+    my $ref = $form->{reference};
+    my %f  = (
+        transaction    => $locale->text('Sending Transaction [_1]', $ref),
+        invoice        => $locale->text('Sending Invoice [_1]', $ref),
+        credit_invoice => $locale->text('Sending Credit Invoice [_1]', $ref),
+        debit_invoice  => $locale->text('Sending Debit Invoice [_1]', $ref),
+        packing_list   => $locale->text('Sending Packing List [_1]', $ref),
+        pick_list      => $locale->text('Sending Pick List [_1]', $ref),
+        sales_order    => $locale->text('Sending Sales Order [_1]', $ref),
+        work_order     => $locale->text('Sending Work Order [_1]', $ref),
+        purchase_order => $locale->text('Sending Purchase Order [_1]', $ref),
+        bin_list       => $locale->text('Sending Bin List [_1]', $ref),
+        );
     my $ok = 1;
 
     if ( $pt->{recurringemail} ) {
@@ -1461,11 +1482,7 @@ sub email_recurring {
         @f = split /:/, $pt->{recurringemail};
         for ( $j = 0 ; $j <= $#f ; $j += 2 ) {
 
-            $form->info( "\n"
-                  . $locale->text('Sending') . " "
-                  . $locale->text( $f{ $f[$j] } )
-                  . " $form->{reference}" );
-
+            $form->info( "\n" . $f{ $f[$j] } );
             # no email, bail out
             if ( !$form->{email} ) {
                 $form->info(
@@ -1479,7 +1496,7 @@ sub email_recurring {
               unless first { $_ eq $form->{script} }
               @{LedgerSMB::Sysconfig::scripts};
             $form->{callback} = "$form->{script}?action=reprint&module=$form->{module}&type=$form->{type}&login=$form->{login}&path=$form->{path}&sessionid=$form->{sessionid}&id=$form->{id}&formname=$f[$j]&format=$f[$j+1]&media=email&vc=$form->{vc}&ARAP=$form->{ARAP}&message=$message";
-            $ok = !( main::redirect() );
+            $ok = !( $form->_redirect() );
 
             if ($ok) {
                 $form->info( " ..... " . $locale->text('done') );

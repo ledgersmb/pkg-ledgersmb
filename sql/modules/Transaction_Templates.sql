@@ -1,8 +1,11 @@
+
+set client_min_messages = 'warning';
+
+
 -- Many of these will have to be rewritten to work with 1.4
 
 BEGIN;
 
-update defaults set value='yes' where setting_key='module_load_ok';
 DROP FUNCTION IF EXISTS journal__add(text, text, int, date, bool, bool);
 
 CREATE OR REPLACE FUNCTION journal__add(
@@ -13,23 +16,21 @@ in_post_date date,
 in_approved bool,
 in_is_template bool,
 in_currency text
-) RETURNS journal_entry AS 
+) RETURNS journal_entry AS
 $$
         INSERT INTO journal_entry (reference, description, journal, post_date,
                         approved, is_template, effective_start, effective_end,
                         currency, entered_by)
         VALUES (coalesce($1, ''), $2, $3, $4,
-                        coalesce($5 , false), 
+                        coalesce($5 , false),
                         coalesce($6, false),
                $4, $4, $7, person__get_my_entity_id()) RETURNING *;
-$$ language sql; 
+$$ language sql;
 
 CREATE OR REPLACE FUNCTION journal__add_line(
-in_account_id int, in_journal_id int, in_amount numeric, 
+in_account_id int, in_journal_id int, in_amount numeric,
 in_cleared bool, in_memo text, in_business_units int[]
 ) RETURNS journal_line AS $$
-DECLARE retval journal_line;
-BEGIN
         INSERT INTO journal_line(account_id, journal_id, amount, cleared)
         VALUES (in_account_id, in_journal_id, in_amount,
                 coalesce(in_cleared, false));
@@ -39,16 +40,15 @@ BEGIN
           FROM business_unit
          WHERE id = any(in_business_units);
 
-        SELECT * INTO retval FROM journal_line where id = currval('journal_line_id_seq');
-        RETURN retval;
-END;
-$$ LANGUAGE PLPGSQL;
+        SELECT * FROM journal_line where id = currval('journal_line_id_seq');
+$$ LANGUAGE SQL;
+
 
 CREATE OR REPLACE FUNCTION journal__delete(in_journal_id int) RETURNS void AS
 $$
-  DELETE FROM journal_line WHERE journal_id = $1;
+  DELETE FROM journal_line WHERE journal_id = in_journal_id;
 
-  DELETE FROM journal_entry WHERE id = $1;
+  DELETE FROM journal_entry WHERE id = in_journal_id;
 $$ LANGUAGE SQL;
 
 
@@ -62,10 +62,10 @@ in_order_id int,  in_journal_id int, in_on_hold bool, in_reverse bool,
 in_credit_id int, in_language_code varchar
 ) returns eca_invoice AS $$
 DECLARE retval eca_invoice;
-BEGIN   
+BEGIN
         INSERT INTO eca_invoice (order_id, journal_id, on_hold, reverse,
                 credit_id, language_code, due)
-        VALUES (in_order_id, in_journal_id, coalesce(in_on_hold, false), 
+        VALUES (in_order_id, in_journal_id, coalesce(in_on_hold, false),
                 in_reverse, in_credit_id, in_language_code, 'today');
 
         SELECT * INTO retval FROM eca_invoice WHERE journal_id = in_journal_id;
@@ -75,7 +75,7 @@ END;
 $$ language plpgsql;
 
 
-DROP TYPE IF EXISTS journal_search_result CASCADE; 
+DROP TYPE IF EXISTS journal_search_result CASCADE;
 CREATE TYPE journal_search_result AS (
 id bigint,
 reference text,
@@ -96,7 +96,7 @@ in_description text,
 in_entry_type int,
 in_transaction_date date,
 in_approved bool,
-in_department_id int, 
+in_department_id int,
 in_is_template bool,
 in_meta_number text,
 in_entity_class int,
@@ -118,21 +118,21 @@ BEGIN
                 LEFT JOIN entity e ON (eca.entity_id = e.id)
                 LEFT JOIN entity_class ec ON (eca.entity_class = ec.id)
                 LEFT JOIN recurring r ON j.id = r.id
-                WHERE (in_reference IS NULL OR in_reference = j.reference) AND
-                        (in_description IS NULL 
-                                or in_description = j.description) AND
-                        (in_entry_type is null or in_entry_type = j.journal)
-                        and (in_transaction_date is null
-                                or in_transaction_date = j.post_date) and
-                        j.approved = coalesce(in_approved, true) and
-                        j.is_template = coalesce(in_is_template, false) and
-                        (in_meta_number is null
-                                or eca.meta_number = in_meta_number) and
-                        (in_entity_class is null
-                                or eca.entity_class = in_entity_class) AND
-                        (in_recurring IS NOT TRUE OR
-                                coalesce(r.startdate, r.nextdate) <= now()::date
-                        )
+--              WHERE (in_reference IS NULL OR in_reference = j.reference) AND
+--                      (in_description IS NULL
+--                              or in_description = j.description) AND
+--                      (in_entry_type is null or in_entry_type = j.journal)
+--                      and (in_transaction_date is null
+--                              or in_transaction_date = j.post_date) and
+--                      j.approved = coalesce(in_approved, true) and
+--                      j.is_template = coalesce(in_is_template, false) and
+--                      (in_meta_number is null
+--                              or eca.meta_number = in_meta_number) and
+--                      (in_entity_class is null
+--                              or eca.entity_class = in_entity_class) AND
+ --                       (in_recurring IS NOT TRUE OR
+  --                              coalesce(r.startdate, r.nextdate) <= now()::date
+   --                     )
         LOOP
                 RETURN NEXT retval;
         END LOOP;
@@ -157,8 +157,8 @@ $$ language sql;
 
 /*
 CREATE OR REPLACE FUNCTION journal__save_recurring
-(in_recurringreference text, in_recurringstartdate date, 
-in_recurring_interval interval, in_recurringhowmany int, in_id int) 
+(in_recurringreference text, in_recurringstartdate date,
+in_recurring_interval interval, in_recurringhowmany int, in_id int)
 RETURNS recurring LANGUAGE SQL AS
 $$
 delete from recurringprint where id = $5;
