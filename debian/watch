@@ -1,9 +1,10 @@
 # LedgerSMB debian/watch control file for uscan
 
-# Compulsory line, this is a version 3 file
+# Compulsory line, this is a version 4 file
 version=4
 
-# Check against upstream release key. Exclude development snapshots. \
+# Check against upstream release key. Exclude development snapshots. And only
+# include versions from the 1.5.x series.
 opts="filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/ledgersmb-$1\.tar\.gz/, \
 dversionmangle=s/\+ds//, \
 repacksuffix=+ds, \
