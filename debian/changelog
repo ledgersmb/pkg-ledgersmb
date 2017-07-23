@@ -1,29 +1,27 @@
-ledgersmb (1.5.8+ds-0~1) UNRELEASED; urgency=low
+ledgersmb (1.5.9+ds-0~1) UNRELEASED; urgency=low
 
   * TODO:
-    - Adapt package to the new 1.5.x series upstream.
-      * Update debian/watch for new upstream location. (#868724)
+    - Adapt p ackage to the new 1.5.x series upstream.
   * New Upstream Release
     - Along with an explicit requirement for liblatex-driver-perl >= 0.300.2,
       resolves the issue with printing to PDF or Postscript. (Closes: # 821251)
   * Add '--with systemd' to dh invocation line in debian/rules
   * Adapt maintenance scripts for new 1.5.x series upstream.
   * Add an initial version of a debian/ledgersmb.init file.
+  * Update debian/watch for the new upstream location. (Closes #868724 ?)
   * Add ledgersmb-nginx and ledgersmb-apache maintainer scripts.
   * Rewrite and/or rename or delete debian/patches/* for new upstream version.
   * Removed debian/adm/apache-vhost.conf as it is in upstream.
-  * Remove debian/ledgersmb.starman-ledgersmb.service as it is in upstream
-    and add installing a patched version one from upstream.
+  * Remove debian/ledgersmb.starman-ledgersmb.service as it is now in upstream
+    and add installing a patched version of it from upstream.
   * Update the links in debian/ledgersmb.links related to embedded dojo files.
   * Update 'Files-Excluded' in debian/copyright related to embedded dojo files
     and unneeded empty directories.
   * Changes in debian/control:
     - Declare compliance with Debian Policy 4.0.0.
-    - Include 'libmoosex-nonmoose-perl' as a 'Depends'.
-    - Include 'libcgi-emulate-psgi-perl' as a 'Depends'.
-    - Include 'libplack-builder-conditionals-perl' as a 'Depends'.
-    - Change 'Maintainer' to ledger-smb-devel@lists.sourceforge.net LedgerSMB
-      Developer mailing list.
+    - Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
+      libplack-builder-conditionals-perl.
+    - Change 'Maintainer' to "LedgerSMB Core Team <devel@lists.ledgersmb.org>"
     - Add stanzas for ledgersmb-nginx and ledgersmb-apache packages and set
       them as Suggests for the main binary package.
     - Update dojo requirement from libjs-dojo-dojox to libjs-dojo-dijit.
@@ -36,7 +34,7 @@ ledgersmb (1.5.8+ds-0~1) UNRELEASED; urgency=low
       libpgobject-type-bytestring-perl, libpgobject-type-datetime-perl,
       libpgobject-util-dbmethod-perl, and libpgobject-util-dbadmin-perl.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 20 Jul 2017 03:19:52 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 23 Jul 2017 06:05:46 -0400
 
 ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
