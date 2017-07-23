@@ -9,6 +9,6 @@ dversionmangle=s/\+ds//, \
 repacksuffix=+ds, \
 uversionmangle=s/^1\.5\.99\d*/0/, \
 pgpsigurlmangle=s/archive\/(\d\S+)\.tar\.gz/releases\/download\/$1\/ledgersmb-$1\.tar\.gz\.asc/" \
-https://github.com/ledgersmb/LedgerSMB/tags .*/v?(\d\S+)\.tar\.gz
+https://github.com/ledgersmb/LedgerSMB/tags .*/v?(1.5.+)\.tar\.gz
 
 
