@@ -25,7 +25,7 @@ case "$1" in
         # Do Apache related processing if it is present.
         if [ -d "/etc/apache2" ]; then
             if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
-                [ -d /etc/apache2/sites-available/ ] && [ ! -e /etc/apache2/sites-available/ledgersmb-proxy.conf ] && ucf --debconf-ok /usr/share/ledgersmb/conf/apache-proxy.copy /etc/apache2/sites-available/ledgersmb-proxy.conf
+                [ -d /etc/apache2/sites-available/ ] && [ ! -e /etc/apache2/sites-available/ledgersmb-proxy.conf ] && ucf --debconf-ok /usr/share/ledgersmb/conf/apache-vhost.conf /etc/apache2/sites-available/ledgersmb-proxy.conf
                 . /usr/share/apache2/apache2-maintscript-helper
                 if ! a2query -qm proxy ; then
                     apache2_invoke enmod proxy || exit $?
