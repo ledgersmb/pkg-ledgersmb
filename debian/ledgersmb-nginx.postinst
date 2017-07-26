@@ -24,7 +24,7 @@ case "$1" in
     configure)
         # Do Nginx related processing if it is present.
         if [ -d "/etc/nginx" ]; then
-            [ -d /etc/nginx/sites-available/ ] && [ ! -e /etc/nginx/sites-available/ledgersmb-proxy.conf ] && ucf /usr/share/ledgersmb/conf/nginx-proxy.conf /etc/nginx/sites-available/ledgersmb-proxy.conf
+            [ -d /etc/nginx/sites-available/ ] && [ ! -e /etc/nginx/sites-available/ledgersmb-proxy.conf ] && ucf /usr/share/ledgersmb/conf/nginx-vhost.conf /etc/nginx/sites-available/ledgersmb-proxy.conf
             # Enable nginx proxy configuration 
             if [ ! -h /etc/nginx/sites-enabled/ledgersmb-proxy.conf ] ; then
                 ln -s /etc/nginx/sites-available/ledgersmb-proxy.conf /etc/nginx/sites-enabled/ledgersmb-proxy.conf
