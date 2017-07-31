@@ -27,8 +27,8 @@ case "$1" in
             if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
                 [ -d /etc/apache2/sites-available/ ] && [ ! -e /etc/apache2/sites-available/ledgersmb-proxy.conf ] && ucf --debconf-ok /usr/share/ledgersmb/conf/apache-vhost.conf /etc/apache2/sites-available/ledgersmb-proxy.conf
                 . /usr/share/apache2/apache2-maintscript-helper
-                if ! a2query -qm proxy ; then
-                    apache2_invoke enmod proxy || exit $?
+                if ! a2query -qm proxy_http ; then
+                    apache2_invoke enmod proxy_http || exit $?
                 fi
                 if ! a2query -qm rewrite ; then
                     apache2_invoke enmod rewrite || exit $?
