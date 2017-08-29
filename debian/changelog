@@ -1,7 +1,7 @@
-ledgersmb (1.5.9+ds-0~1) UNRELEASED; urgency=low
+ledgersmb (1.5.9+ds-0~2) UNRELEASED; urgency=low
 
   * TODO:
-    - Adapt p ackage to the new 1.5.x series upstream.
+    - Adapt package to the new 1.5.x series upstream.
   * New Upstream Release
     - Along with an explicit requirement for liblatex-driver-perl >= 0.300.2,
       resolves the issue with printing to PDF or Postscript. (Closes: # 821251)
@@ -11,7 +11,7 @@ ledgersmb (1.5.9+ds-0~1) UNRELEASED; urgency=low
   * Update debian/watch for the new upstream location. (Closes #868724 ?)
   * Add ledgersmb-nginx and ledgersmb-apache maintainer scripts.
   * Rewrite and/or rename or delete debian/patches/* for new upstream version.
-  * Removed debian/adm/apache-vhost.conf as it is in upstream.
+  * Removed debian/adm/apache-vhost.conf as it is now in upstream.
   * Remove debian/ledgersmb.starman-ledgersmb.service as it is now in upstream
     and add installing a patched version of it from upstream.
   * Update the links in debian/ledgersmb.links related to embedded dojo files.
@@ -34,7 +34,7 @@ ledgersmb (1.5.9+ds-0~1) UNRELEASED; urgency=low
       libpgobject-type-bytestring-perl, libpgobject-type-datetime-perl,
       libpgobject-util-dbmethod-perl, and libpgobject-util-dbadmin-perl.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 23 Jul 2017 06:05:46 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 29 Aug 2017 13:37:06 -0400
 
 ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
