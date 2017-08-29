@@ -57,7 +57,6 @@ Optional Perl modules
     Template::Plugin::Latex  [Support for Postscript and PDF output]
     Parse::RecDescent        [Support for the *experimental* scripting engine]
     Image::Size              [Support for image size detection in templates]
-    Starman                  [Support for using Starman to run LedgerSMB]
 
     The X12 EDI support is available as the package libx12-parser-perl if it is
     not already installed.
