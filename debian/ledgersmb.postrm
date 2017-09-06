@@ -52,6 +52,37 @@ case "$1" in
                 ucfr --purge ledgersmb /etc/apache2/conf-available/ledgersmb-proxy.conf
             fi
         fi
+        #
+        # If a sym link to ledgersmb-proxy.conf is present in Nginx
+        # sites-enabled, then remove it.
+        if [ -h /etc/nginx/sites-enabled/ledgersmb-proxy.conf ] ; then
+            rm -f /etc/nginx/sites-enabled/ledgersmb-proxy.conf 
+        fi
+        # When being purged; if sym link /etc/ledgersmb-/nginx-proxy.conf
+        # exists, then remove it.
+        if [ -h "/etc/ledgersmb-/nginx-proxy.conf" ]; then
+            rm -f /etc/ledgersmb-/nginx-proxy.conf
+        fi
+        # When being purged; if /etc/nginx/sites-available/ledgersmb-proxy.conf exists, remove
+        # it and deregister it with ucf.
+        if [ -f "/etc/nginx/sites-available/ledgersmb-proxy.conf" ]; then
+            # Remove the possible backup extensions of the configuration file.
+            for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
+                rm -f /etc/nginx/sites-available/ledgersmb-proxy.conf$ext
+            done
+            # Remove the configuration file itself
+            rm -f /etc/nginx/sites-available/ledgersmb-proxy.conf
+            # Clear it out from the ucf database.
+            if which ucf >/dev/null 2>&1; then
+                ucf --purge /etc/nginx/sites-available/ledgersmb-proxy.conf
+            fi
+            if which ucfr >/dev/null 2>&1; then
+                ucfr --purge ledgersmb-1.5 /etc/nginx/sites-available/ledgersmb-1.5-proxy.conf
+            fi
+        fi
+        if which nginx >/dev/null 2>&1; then
+            nginx -s reload
+        fi
     ;;
 
     remove)
@@ -59,6 +90,15 @@ case "$1" in
         if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
             . /usr/share/apache2/apache2-maintscript-helper
             apache2_invoke disconf ledgersmb-proxy.conf || exit $?
+        fi
+        #
+        # If a sym link to ledgersmb-1.5-proxy.conf is present in Nginx
+        # sites-enabled, then remove it & reload ngnix
+        if [ -h /etc/nginx/sites-enabled/ledgersmb-proxy.conf ] ; then
+            rm -f /etc/nginx/sites-enabled/ledgersmb-proxy.conf 
+            if which nginx >/dev/null 2>&1; then
+                nginx -s reload
+            fi
         fi
     ;;
 
