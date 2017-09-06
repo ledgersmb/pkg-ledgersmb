@@ -22,6 +22,36 @@ case "$1" in
     purge)
         deluser --system --quiet ledgersmb
         delgroup --system --quiet ledgersmb
+        # If Apache 2.4 in use, disable use of ledgersmb.conf.
+        if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
+            . /usr/share/apache2/apache2-maintscript-helper
+            apache2_invoke disconf ledgersmb-proxy.conf || exit $?
+        fi
+        # When being purged; if /etc/ledgersmb-httpd-2.4.conf exists, remove it.
+        if [ -h "/etc/ledgersmb/apache-proxy.conf" ]; then
+            rm -f /etc/ledgersmb/apache-proxy.conf
+        fi
+        # When being purged; if /etc/apache2/conf-available/ledgersmb.conf exists, remove it.
+        if [ -f "/etc/apache2/conf-available/ledgersmb-proxy.conf" ]; then
+            rm -f /etc/apache2/conf-available/ledgersmb-proxy.conf
+        fi
+        # When being purged; if /etc/apache2/conf-available/ledgersmb-proxy.conf exists, remove
+        # it and deregister it with ucf.
+        if [ -f "/etc/apache2/conf-available/ledgersmb-proxy.conf" ]; then
+            # Remove the possible backup extensions of the configuration file.
+            for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
+                rm -f /etc/apache2/conf-available/ledgersmb-proxy.conf$ext
+            done
+            # Remove the configuration file itself
+            rm -f /etc/apache2/conf-available/ledgersmb-proxy.conf
+            # Clear it out from the ucf database.
+            if which ucf >/dev/null 2>&1; then
+                ucf --purge /etc/apache2/conf-available/ledgersmb-proxy.conf
+            fi
+            if which ucfr >/dev/null 2>&1; then
+                ucfr --purge ledgersmb /etc/apache2/conf-available/ledgersmb-proxy.conf
+            fi
+        fi
     ;;
 
     remove)
