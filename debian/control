@@ -84,6 +84,5 @@ Description: financial accounting and ERP program
  .
  The application now defaults to being made available on port 5762 and being
  run directly by Starman instead of by Apache. If other access is needed, a
- Reverse Proxy can be configured locally using Apache or Nginx, using the
- packages ledgersmb-apache or ledgersmb-nginx to select which. For more
+ Reverse Proxy can be configured locally using Apache or Nginx. For more
  information, please see /usr/share/doc/ledgersmb/README.Debian.
