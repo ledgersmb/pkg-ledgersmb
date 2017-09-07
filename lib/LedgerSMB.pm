@@ -168,7 +168,7 @@ use Carp;
 use DBI;
 
 use base qw(LedgerSMB::Request);
-our $VERSION = '1.5.9';
+our $VERSION = '1.5.10';
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB');
 
@@ -484,8 +484,8 @@ sub is_allowed_role {
 
 sub finalize_request {
     LedgerSMB::App_State->cleanup();
-    die 'exit'; # return to error handling and cleanup
-                # Without dying, we tend to continue with a bad dbh. --CT
+    die; # return to error handling and cleanup
+         # Without dying, we tend to continue with a bad dbh. --CT
 }
 
 sub error {
