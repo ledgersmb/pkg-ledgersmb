@@ -1,0 +1,28 @@
+<?lsmb PROCESS 'ui-header.html' ?>
+<?lsmb PROCESS elements.html ?> 
+<?lsmb PROCESS 'dynatable-old.html' ?>
+
+<body class="<?lsmb dojo_theme ?>">
+<form data-dojo-type="lsmb/lib/Form" method="post" action="<?lsmb form.script ?>">
+<?lsmb FOREACH header IN headers ?><div class="listtop"><?lsmb header ?></div><?lsmb END ?>
+
+<?lsmb PROCESS 'dynatable' ?>
+<br />
+
+<?lsmb FOREACH hidden IN hiddens.keys;
+	PROCESS input element_data={
+		type => 'hidden',
+		name => hidden,
+		value => hiddens.item(hidden)
+		}; END ?>
+<?lsmb FOREACH button IN buttons; PROCESS button element_data=button; END ?>
+</form>
+<?lsmb IF ENVARS.QUERY_STRING.defined;
+    text('If you would like to access this report again, please try this URL')
+?>:<br />
+<?lsmb url = 'http://' _ ENVARS.SERVER_NAME _ ENVARS.SCRIPT_NAME 
+           _ '?' _ ENVARS.QUERY_STRING _ '&company=' _ form.company ?>
+<a href="<?lsmb url ?>"><?lsmb url ?></a>
+<?lsmb END ?>
+</body>
+</html>

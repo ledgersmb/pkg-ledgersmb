@@ -1,0 +1,101 @@
+<?lsmb BLOCK print_options ?>
+<div class="print-options"><?lsmb
+
+IF templates.size == 1;
+PROCESS input element_data = {
+     name = 'template'
+     type = 'hidden'
+    value = templates.0
+};
+ELSE;
+PROCESS select element_data = {
+           name = "template"
+        options = templates
+ default_values = [template]
+};
+END; 
+
+IF languages.defined;
+languages.push({});
+PROCESS select element_data = {
+           name = "language"
+        options = languages
+ default_values = [language]
+};
+END;
+
+IF ! formats.defined;
+   formats = [];
+   FOR F IN LIST_FORMATS();
+      formats.push({text = F, id = F});
+   END;
+END;
+
+PROCESS select element_data = {
+           name = "format"
+        options = formats
+ default_values = [format]
+};
+
+IF !printers.defined;
+   printers = [];
+END;
+
+printers.push({ text = text('Screen'), id = 'screen' });
+PROCESS select element_data = {
+           name = "media"
+        options = printers
+ default_values = [media]
+}; ?></div>
+<?lsmb END ?>
+<?lsmb- BLOCK employee;
+IF !element_name;
+    element_name = 'employee';
+END;
+
+PROCESS select element_data = {
+            name = element_name
+         options = employees
+  default_values = [$element_name]
+           class = 'employees'
+           label = label
+       text_attr = text_attr 
+      value_attr = value_attr
+};
+
+END; 
+
+BLOCK business_unit_class;
+IF !element_name;
+    element_name = 'bu_class_id';
+END;
+
+PROCESS select element_data = {
+           label = label
+            name = element_name
+         options = bu_class_list
+  default_values = [$element_name]
+           class = 'bu-class'
+       text_attr = text_attr 
+      value_attr = value_attr
+};
+
+END;
+BLOCK business_unit;
+
+IF !element_name;
+    element_name = 'business_unit_id';
+END;
+
+PROCESS select element_data = {
+            name = element_name
+         options = b_unit_list
+  default_values = [$element_name]
+           class = 'b-unit'
+           label = label
+       text_attr = text_attr 
+      value_attr = value_attr
+};
+
+END;
+-?>

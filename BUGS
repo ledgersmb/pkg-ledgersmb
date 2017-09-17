@@ -1,0 +1,12 @@
+CURRENT KNOWN BUGS:
+
+Current bug list for LedgerSMB 1.4.  Items from the list can be looked up at
+http://sourceforge.net/p/ledger-smb/bugs/
+
+Specific significant bugs known to affect 1.4.0 include:
+
+https://sourceforge.net/p/ledger-smb/bugs/1198/
+Workaround:  request from /ledgersmb/rest-handler.pl/ instead of ledgersmb/rest/
+
+https://sourceforge.net/p/ledger-smb/bugs/1205/
+Workaround:  in the setup.pl, reload the db after copying.

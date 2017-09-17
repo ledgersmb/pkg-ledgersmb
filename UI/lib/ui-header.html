@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?lsmb USER.language.split('_').shift() ?>" lang="<?lsmb USER.language.split('_').shift() ?>">
+<head>
+	<title><?lsmb form.titlebar ? form.titlebar : titlebar ?></title>
+	<!--
+	<meta http-equiv="Cache-Control" content="no-cache"/>
+	<meta http-equiv="Pragma" content="no-cache" />
+	<meta http-equiv="Expires" content="-1" />
+	-->
+	<?lsmb IF refresh -?>
+	<meta http-equiv="refresh" 
+		content="<?lsmb refresh.delay ?>;<?lsmb refresh.url ?>">
+	<?lsmb END -?>
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+	<?lsmb IF form.stylesheet ?>
+	<link rel="stylesheet" href="<?lsmb CSSDIR ?><?lsmb form.stylesheet ?>" type="text/css" title="LedgerSMB stylesheet" />
+	<?lsmb ELSIF stylesheet ?>
+	<link rel="stylesheet" href="<?lsmb CSSDIR ?><?lsmb stylesheet ?>" type="text/css" title="LedgerSMB stylesheet" />
+	<?lsmb ELSE ?>
+	<?lsmb END ?>
+	<link rel="stylesheet" href="css/global.css" type="text/css" title="LedgerSMB stylesheet" />
+	<link rel="stylesheet" href="UI/lib/dojo/dijit/themes/<?lsmb dojo_theme ?>/<?lsmb dojo_theme ?>.css" type="text/css" title="LedgerSMB stylesheet" />
+	<link rel="stylesheet" href="UI/lib/dojo/dojo/resources/dojo.css" type="text/css" title="LedgerSMB stylesheet" />
+	<?lsmb FOREACH s = include_stylesheet ?>
+	<link rel="stylesheet" href="<?lsmb s ?>" type="text/css" title="LedgerSMB stylesheet" />
+	<?lsmb END ?>
+	<?lsmb IF warn_expire ?>
+	<script type="text/javascript">
+	window.alert('<?lsmb text('Warning:  Your password will expire in [_1]', pw_expires)?>');
+	</script>
+	<?lsmb END ?>
+	<script type="text/javascript">    
+	  var dojoConfig = {
+	       async: 1,
+	       parseOnLoad: 0,
+	       packages: [{"name":"lsmb","location":"../../.."}]
+	   };
+           var lsmbConfig = { "dateformat": '<?lsmb USER.dateformat ?>' };
+        </script>
+       <script type="text/javascript" src="UI/lib/dojo/dojo/dojo.js"></script>
+        <script type="text/javascript" 
+           src="UI/lib/setup.js"></script>
+	<?lsmb FOREACH s = include_script ?>
+	<script type="text/javascript" src="<?lsmb s ?>" ></script>
+	<?lsmb END ?>
+	
+        <?lsmb IF html_charset ?>
+        <meta http-equiv="content-type" content="text/html; charset=<?lsmb
+                                                           html_charset ?>">
+        <?lsmb ELSE ?>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <?lsmb END # if html_charset ?>
+	<meta name="robots" content="noindex,nofollow" />
+        
+</head>
+<?lsmb BLOCK end_html ?>
+</html>
+<?lsmb END ?>
