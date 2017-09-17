@@ -405,6 +405,9 @@ CREATE TYPE aa_transactions_line AS (
     entity_name text,
     transdate date,
     invnumber text,
+    ordnumber text,
+    ponumber text,
+    curr char(3),
     amount numeric,
     netamount numeric,
     tax numeric,
@@ -433,7 +436,8 @@ BEGIN
 
 FOR retval IN
 SELECT a.id, a.invoice, eeca.id, eca.meta_number, eeca.name, a.transdate,
-       a.invnumber, a.amount, a.netamount, a.amount - a.netamount as tax,
+       a.invnumber, a.ordnumber, a.ponumber, a.curr, a.amount, a.netamount,
+       a.amount - a.netamount as tax,
        a.amount - p.due as paid, p.due, p.last_payment, a.duedate, a.notes,
        a.till, ee.name, me.name, a.shippingpoint, a.shipvia,
        '{}' as business_units -- TODO
@@ -443,7 +447,7 @@ SELECT a.id, a.invoice, eeca.id, eca.meta_number, eeca.name, a.transdate,
           FROM ar
          WHERE in_entity_class = 2 and approved
          UNION
-        SELECT id, transdate, invnumber, amount, netamount, duedate, notes,
+        SELECT id, transdate, invnumber, curr, amount, netamount, duedate, notes,
                null, person_id, entity_credit_account, invoice, shippingpoint,
                shipvia, ordnumber, ponumber, description, on_hold, force_closed
           FROM ap
@@ -504,6 +508,7 @@ RETURNS SETOF aa_transactions_line LANGUAGE SQL AS $$
 
 SELECT null::int as id, null::bool as invoice, entity_id, meta_number,
        entity_name, null::date as transdate, count(*)::text as invnumber,
+       null::text as ordnumber, null::text as ponumber, curr,
        sum(amount) as amount, sum(netamount) as netamount, sum(tax) as tax,
        sum(paid) as paid, sum(due) as due, max(last_payment) as last_payment,
        null::date as duedate, null::text as notes, null::text as till,
@@ -512,9 +517,17 @@ SELECT null::int as id, null::bool as invoice, entity_id, meta_number,
        null::text[] as business_units
   FROM report__aa_outstanding_details($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
     $11, $12)
- GROUP BY meta_number, entity_name, entity_id;
+ GROUP BY meta_number, entity_name, entity_id, curr;
 
 $$;
+
+DROP FUNCTION IF EXISTS report__aa_transactions
+(in_entity_class int, in_account_id int, in_entity_name text,
+ in_meta_number text,
+ in_employee_id int, in_manager_id int, in_invnumber text, in_ordnumber text,
+ in_ponumber text, in_source text, in_description text, in_notes text,
+ in_shipvia text, in_from_date date, in_to_date date, in_on_hold bool,
+ in_taxable bool, in_tax_account_id int, in_open bool, in_closed bool);
 
 CREATE OR REPLACE FUNCTION report__aa_transactions
 (in_entity_class int, in_account_id int, in_entity_name text,
@@ -522,7 +535,8 @@ CREATE OR REPLACE FUNCTION report__aa_transactions
  in_employee_id int, in_manager_id int, in_invnumber text, in_ordnumber text,
  in_ponumber text, in_source text, in_description text, in_notes text,
  in_shipvia text, in_from_date date, in_to_date date, in_on_hold bool,
- in_taxable bool, in_tax_account_id int, in_open bool, in_closed bool)
+ in_taxable bool, in_tax_account_id int, in_open bool, in_closed bool,
+ in_partnumber text)
 RETURNS SETOF aa_transactions_line LANGUAGE PLPGSQL AS $$
 
 DECLARE retval aa_transactions_line;
@@ -532,19 +546,20 @@ BEGIN
 FOR retval IN
 
 SELECT a.id, a.invoice, eeca.id, eca.meta_number, eeca.name,
-       a.transdate, a.invnumber, a.amount, a.netamount,
+       a.transdate, a.invnumber, a.ordnumber, a.ponumber, a.curr,
+       a.amount, a.netamount,
        a.amount - a.netamount as tax, a.amount - p.due, p.due, p.last_payment,
        a.duedate, a.notes,
        a.till, eee.name as employee, mee.name as manager, a.shippingpoint,
        a.shipvia, '{}'
 
-  FROM (select id, transdate, invnumber, amount, netamount, duedate, notes,
+  FROM (select id, transdate, invnumber, curr, amount, netamount, duedate, notes,
                till, person_id, entity_credit_account, invoice, shippingpoint,
                shipvia, ordnumber, ponumber, description, on_hold, force_closed
           FROM ar
          WHERE in_entity_class = 2 and approved
          UNION
-        SELECT id, transdate, invnumber, amount, netamount, duedate, notes,
+        SELECT id, transdate, invnumber, curr, amount, netamount, duedate, notes,
                null, person_id, entity_credit_account, invoice, shippingpoint,
                shipvia, ordnumber, ponumber, description, on_hold, force_closed
           FROM ap
@@ -612,6 +627,12 @@ SELECT a.id, a.invoice, eeca.id, eca.meta_number, eeca.name,
                OR (in_closed IS TRUE AND ( a.force_closed IS NOT TRUE AND
                  abs(p.due) > 0.005) IS NOT TRUE)
             )
+            AND  -- by partnumber
+              (in_partnumber IS NULL
+                 OR a.id IN (
+                    select i.trans_id
+                      FROM invoice i JOIN parts p ON i.parts_id = p.id
+                     WHERE p.partnumber = in_partnumber))
 
 LOOP
 

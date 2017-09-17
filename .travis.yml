@@ -1,11 +1,17 @@
 # run on container-based build:
 sudo: false
 language: perl
+dist: trusty
 matrix:
   include:
+    - perl: '5.26'
+      addons:
+        postgresql: "9.6"
+      env:
+        - DB_TESTING=1
     - perl: '5.24'
       addons:
-        postgresql: "9.3"
+        postgresql: "9.5"
       env:
         - DB_TESTING=1
     - perl: '5.22'
@@ -35,7 +41,7 @@ matrix:
         - DB_TESTING=1
     - perl: '5.12'
       addons:
-        postgresql: "9.1"
+        postgresql: "9.2"
       env:
         - DB_TESTING=1
     - perl: '5.10'
