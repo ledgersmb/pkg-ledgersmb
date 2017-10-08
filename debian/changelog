@@ -1,4 +1,4 @@
-ledgersmb (1.4.42+ds-1~2) UNRELEASED; urgency=low
+ledgersmb (1.4.42+ds-1) unstable; urgency=low
 
   * New upstream release.
   * Declare compliance with Debian Policy 4.1.1
@@ -6,7 +6,7 @@ ledgersmb (1.4.42+ds-1~2) UNRELEASED; urgency=low
   * Remove 'Vcs-Svn' entry from debian/control as no longer necessary.
   * Update Vcs-Browser in debian/control for correct 'new' upstream at GitHub.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 07 Oct 2017 12:31:09 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 08 Oct 2017 04:52:24 +0000
 
 ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
