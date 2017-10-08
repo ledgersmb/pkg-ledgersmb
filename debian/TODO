@@ -2,29 +2,62 @@ debian/TODO for packaging LedgerSMB v1.4
 
 
 ================================================================================
+-------------------------------------------------------------------------------
+  - Discussed in IRC some of the permission fix issues.  Erik took care of
+  fixing many of them in both master & 1.5 so when the next release comes out
+  will need to run a build of ledgersmb for 1.4? without the fixes enabled
+  in order to check how the fix permissions stanza in d/rules can be updated
+  for that.
 
 -----------------------------------------------------------------------------------
-- LedgerSMB package for Debian Stretch, which will be Debian v9 when it is released,
+- LedgerSMB package for Debian Stretch, which is Debian v9 since being released,
 is not currently available because it was removed due to depending on the 'dojo'
 package which had been removed from Debian Testing ("Stretch") because of an RC
 (Release Critical) bug.
-Reference; https://github.com/ledgersmb/LedgerSMB/issues/2704
+
+  - The dojo package itself is still in unstable but it's only version 1.11.0
+and the version 1.5.x series of LedgerSMB has been verified to be using version
+1.12.2 of Dojo.
+
+  - Debian bug to update ledgersmb package to 1.5.x series:
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=874664
+
+  - Debian bug for the RC bug in the dojo package, which is also merged with a bug
+  to update the dojo package to its version 1.12.2:
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=852923
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=869864
+
+-----------------------------------------------------------------------------------
+- The new debian/watch file works for 'uscan --report-status' but not when running
+  the get-orig-source target in debian/rules, even in the current Debia unstable:
+
+$ debian/rules get-orig-source
+uscan --force-download --rename --destdir .
+uscan: Newest version of ledgersmb on remote site is 1.5.12, local version is 1.4.42+ds
+ (mangled local version is 1.4.42)
+uscan:    => Newer package available from
+      https://github.com/ledgersmb/LedgerSMB/archive/1.5.12.tar.gz
+gpgv: Signature made Mon Sep 18 10:27:49 2017 UTC
+gpgv:                using RSA key 39A629558DA0AF10
+gpgv: BAD signature from "LedgerSMB Core Team (This is the key used for package signing.) <ledger-smb-core@lists.ledgersmb.org>"
+uscan die: OpenPGP signature did not verify.
+debian/rules:35: recipe for target 'get-orig-source' failed
+make: *** [get-orig-source] Error 1
+
+- Update debian/watch for new upstream location
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=868724
 
 -----------------------------------------------------------------------------------
 - Investigate again not using the Debian packaged dojo libraries.
 
 -----------------------------------------------------------------------------------
-
-- debian/watch: expand the uversionmangle regular expression to exclude v1.2,
-v1.3, and v1.5 versions.
-
------------------------------------------------------------------------------------
 - As per discussions in IRC, serveral in upstream do not think that the password
-for the LSMB DB Admin user should be capable of getting changed after the package has
-initially been installed, much less that it can happen each time the package is
-upgraded as is currently the case. Note that functionality for being able to do
-such a password update using the upstream 'setup.pl' is being looked at,
-reference https://github.com/ledgersmb/LedgerSMB/issues/2717.
+for the LSMB DB Admin user should be capable of getting changed after the package 
+has initially been installed, much less that it can happen each time the package 
+is upgraded as is currently the case. Note that functionality for being able to 
+do such a password update using the upstream 'setup.pl' is being looked at,
+reference https://github.com/ledgersmb/LedgerSMB/issues/2717. (But that may only
+implemented for v1.6 and v1.4 isn't expected to get any more updates.)
 
 -----------------------------------------------------------------------------------
 
@@ -34,6 +67,13 @@ Languages in LSMB 1.3.40: "ja" is not in the default list. It's also not
 listed as an available language when editing templates, and presumably
 those lists come from the same source. It can be added manually using
 System|Language|Add Language. 
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=831688
+
+-----------------------------------------------------------------------------------
+
+- From Lintian:
+I: ledgersmb source: testsuite-autopkgtest-missing
+https://lintian.debian.org/tags/testsuite-autopkgtest-missing.html
 
 -----------------------------------------------------------------------------------
 
@@ -49,10 +89,6 @@ then register it with doc-base?
 - Review the tools/* shell and perl scripts to determine what patches may be
 necessary to make them usable on a Debian installation. 
 
-- Instead of a sym link to point to the /etc/ledgersmb config file(s), 
-patch config file to add '/etc/' to the config file setting? (Would
-the apache config also need to be updated to allow that?)
+-----------------------------------------------------------------------------------
 
-
-
- -- Robert James Clay <jame@rocasa.us>  Thu, 11 May 2017 11:31 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun,  8 Oct 2017 00:22 -0400
