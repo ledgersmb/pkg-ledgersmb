@@ -1,4 +1,4 @@
-ledgersmb (1.5.10+ds-0~1) UNRELEASED; urgency=low
+ledgersmb (1.5.12+ds-0~1) UNRELEASED; urgency=low
 
   * TODO:
     - Adapt package to the new 1.5.x series upstream.
@@ -12,17 +12,14 @@ ledgersmb (1.5.10+ds-0~1) UNRELEASED; urgency=low
   * Rewrite and/or rename or delete debian/patches/* for new upstream version.
   * Removed debian/adm/apache-vhost.conf as the file is now in upstream.
   * Remove debian/ledgersmb.starman-ledgersmb.service as it is now in upstream
-    and add installing a patched version of it from upstream.
-  * Update the links in debian/ledgersmb.links related to embedded dojo files.
+    and add installing a patched version of it.
+  * Update the links in 'debian/ledgersmb.links' related to embedded dojo files.
   * Update 'Files-Excluded' in debian/copyright related to embedded dojo files
     and unneeded empty directories.
   * Changes in debian/control:
-    - Declare compliance with Debian Policy 4.0.0.
     - Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
       libplack-builder-conditionals-perl.
     - Change 'Maintainer' to "LedgerSMB Core Team <devel@lists.ledgersmb.org>"
-    - Add stanzas for ledgersmb-nginx and ledgersmb-apache packages and set
-      them as Suggests for the main binary package.
     - Update dojo requirement from libjs-dojo-dojox to libjs-dojo-dijit.
     - Drop explicit 'Depends' on 'liberror-perl' as not being necessary.
     - Drop the version being required for the Perl requirement in 'Depends'.
@@ -33,7 +30,7 @@ ledgersmb (1.5.10+ds-0~1) UNRELEASED; urgency=low
       libpgobject-type-bytestring-perl, libpgobject-type-datetime-perl,
       libpgobject-util-dbmethod-perl, and libpgobject-util-dbadmin-perl.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 06 Sep 2017 15:37:06 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 20 Oct 2017 17:35:15 -0400
 
 ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
