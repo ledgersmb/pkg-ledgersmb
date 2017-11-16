@@ -93,7 +93,7 @@ LedgerSMB Access via a Web Proxy
     Remote access using Apache, Lighttpd, Nginx, or Varnish as a Web Proxy can
     be set up locally by installing the appropriate application package and then
     running 'dpkg-reconfigure ledgersmb' and making the appropriate selection
-    in anwser to the question regarding which web proxy to use. It defaults to
+    in answer to the question regarding which web proxy to use. It defaults to
     'None' and you can change it any time afterwards.
 
     Configuration files are installed as necessary but will still need further
