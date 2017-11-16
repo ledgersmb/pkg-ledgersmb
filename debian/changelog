@@ -1,10 +1,10 @@
-ledgersmb (1.5.12+ds-0~1) UNRELEASED; urgency=low
+ledgersmb (1.5.13+ds-0~1) UNRELEASED; urgency=low
 
   * TODO:
-    - Adapt package to the new 1.5.x series upstream.
-  * New series 1.5.x Upstream Release
-    - Along with an explicit requirement for liblatex-driver-perl >= 0.300.2,
-      resolves the issue with printing to PDF or Postscript. (Closes: # 821251)
+    + Adapt package to the new 1.5.x series upstream.
+  * New series 1.5.x Upstream Release (Closes: #874664)
+    + Along with an explicit requirement for liblatex-driver-perl >= 0.300.2,
+      resolves the issue with printing to PDF or Postscript. (Closes: #821251)
   * Add '--with systemd' to dh invocation line in debian/rules
   * Adapt maintenance scripts for new 1.5.x series upstream.
   * Add an initial version of a debian/ledgersmb.init file.
@@ -16,21 +16,26 @@ ledgersmb (1.5.12+ds-0~1) UNRELEASED; urgency=low
   * Update the links in 'debian/ledgersmb.links' related to embedded dojo files.
   * Update 'Files-Excluded' in debian/copyright related to embedded dojo files
     and unneeded empty directories.
+  * Edited the README.Debian file, adding a new introduction at the beginning as
+    well as a new section specifically regarding accessing the application via
+    a web proxy and otherwise updating it for the new upstream version.
   * Changes in debian/control:
-    - Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
+    + Change the Priority setting from 'extra' back to 'optional'.
+    + Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
       libplack-builder-conditionals-perl.
-    - Change 'Maintainer' to "LedgerSMB Core Team <devel@lists.ledgersmb.org>"
-    - Update dojo requirement from libjs-dojo-dojox to libjs-dojo-dijit.
-    - Drop explicit 'Depends' on 'liberror-perl' as not being necessary.
-    - Drop the version being required for the Perl requirement in 'Depends'.
-    - Explicitly add 'liblatex-driver-perl (>= 0.300.2)' to Recommends section.
-    - Include the PGObject* Perl modules required for the new 1.5.x series
+    + Change 'Maintainer' to "LedgerSMB Core Team <devel@lists.ledgersmb.org>".
+    + Update dojo requirement from libjs-dojo-dojox to libjs-dojo-dijit.
+    + Drop explicit 'Depends' on 'liberror-perl' as not being necessary.
+    + Drop 'libparse-recdescent-perl' as a Recommends as it no longer needed.
+    + Drop the version being required for the Perl requirement in 'Depends'.
+    + Explicitly add 'liblatex-driver-perl (>= 0.300.2)' to Recommends section.
+    + Include the PGObject* Perl modules required for the new 1.5.x series
       upstream as Depends: libpgobject-perl, libpgobject-simple-perl,
       libpgobject-simple-role-perl, libpgobject-type-bigfloat-perl,
       libpgobject-type-bytestring-perl, libpgobject-type-datetime-perl,
       libpgobject-util-dbmethod-perl, and libpgobject-util-dbadmin-perl.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 20 Oct 2017 17:35:15 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 16 Nov 2017 15:04:15 -0500
 
 ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
