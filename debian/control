@@ -1,6 +1,6 @@
 Source: ledgersmb
 Section: web
-Priority: extra
+Priority: optional
 Maintainer: LedgerSMB Core Team <devel@lists.ledgersmb.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
 Build-Depends: debhelper (>= 9),
