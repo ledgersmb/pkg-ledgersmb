@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ledgersmb\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
-"POT-Creation-Date: 2012-10-31 14:29+0000\n"
+"POT-Creation-Date: 2017-11-17 10:04-0500\n"
 "PO-Revision-Date: 2012-10-31 23:29+0900\n"
 "Last-Translator: victory <victory.deb@gmail.com>\n"
 "Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
@@ -31,8 +31,8 @@ msgid ""
 "http://localhost/ledgersmb/setup.pl."
 msgstr ""
 "LedgerSMB データベース管理ユーザのログイン名を入力してください。これは通常 "
-"http://localhost/ledgersmb/setup.pl にあるウェブユーザインターフェイスの管理に"
-"必要となります。"
+"http://localhost/ledgersmb/setup.pl にあるウェブユーザインターフェイスの管理"
+"に必要となります。"
 
 #. Type: password
 #. Description
@@ -48,9 +48,9 @@ msgid ""
 "This password is needed for the administrative web user interface, typically "
 "at http://localhost/ledgersmb/setup.pl."
 msgstr ""
-"LedgerSMB データベース管理ユーザのパスワードを入力してください。このパスワード"
-"は通常 http://localhost/ledgersmb/setup.pl にあるウェブユーザインターフェイス"
-"の管理に必要となります。"
+"LedgerSMB データベース管理ユーザのパスワードを入力してください。このパスワー"
+"ドは通常 http://localhost/ledgersmb/setup.pl にあるウェブユーザインターフェイ"
+"スの管理に必要となります。"
 
 #. Type: boolean
 #. Description
@@ -75,5 +75,36 @@ msgid ""
 "More general information about the initial configuration of the application "
 "can be found in /usr/share/doc/ledgersmb/README.Debian."
 msgstr ""
-"アプリケーションの初期設定についての一般的な情報は "
-"/usr/share/doc/ledgersmb/README.Debian にあります。"
+"アプリケーションの初期設定についての一般的な情報は /usr/share/doc/ledgersmb/"
+"README.Debian にあります。"
+
+#. Type: select
+#. Description
+#: ../templates:5001
+msgid "Web Reverse Proxy to configure?"
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../templates:5001
+msgid ""
+"The LedgerSMB application now defaults to being made available on port 5762, "
+"and being run directly by Starman. If other access is needed, a Reverse "
+"Proxy can be configured using Apache or Nginx or Lighttpd or Varnish, or you "
+"can leave the choice as None if it is not needed or if the web proxy will be "
+"set up remotely."
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../templates:5001
+#, fuzzy
+#| msgid ""
+#| "More general information about the initial configuration of the "
+#| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
+msgid ""
+"For more details, please see the Web Proxy section that can be found in the /"
+"usr/share/doc/ledgersmb/README.Debian file."
+msgstr ""
+"アプリケーションの初期設定についての一般的な情報は /usr/share/doc/ledgersmb/"
+"README.Debian にあります。"

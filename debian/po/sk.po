@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ledgersmb\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
-"POT-Creation-Date: 2012-06-07 08:21+0200\n"
+"POT-Creation-Date: 2017-11-17 10:04-0500\n"
 "PO-Revision-Date: 2012-06-22 09:20+0100\n"
 "Last-Translator: Ivan Masár <helix84@centrum.sk>\n"
 "Language-Team: Slovak <debian-l10n-slovak@lists.debian.org>\n"
@@ -74,6 +74,37 @@ msgstr ""
 msgid ""
 "More general information about the initial configuration of the application "
 "can be found in /usr/share/doc/ledgersmb/README.Debian."
+msgstr ""
+"Ďalšie informácie o prvotnej konfigurácii aplikácie nájdete v súbore /usr/"
+"share/doc/ledgersmb/README.Debian."
+
+#. Type: select
+#. Description
+#: ../templates:5001
+msgid "Web Reverse Proxy to configure?"
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../templates:5001
+msgid ""
+"The LedgerSMB application now defaults to being made available on port 5762, "
+"and being run directly by Starman. If other access is needed, a Reverse "
+"Proxy can be configured using Apache or Nginx or Lighttpd or Varnish, or you "
+"can leave the choice as None if it is not needed or if the web proxy will be "
+"set up remotely."
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../templates:5001
+#, fuzzy
+#| msgid ""
+#| "More general information about the initial configuration of the "
+#| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
+msgid ""
+"For more details, please see the Web Proxy section that can be found in the /"
+"usr/share/doc/ledgersmb/README.Debian file."
 msgstr ""
 "Ďalšie informácie o prvotnej konfigurácii aplikácie nájdete v súbore /usr/"
 "share/doc/ledgersmb/README.Debian."
