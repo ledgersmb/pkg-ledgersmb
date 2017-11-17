@@ -65,6 +65,9 @@ case "$1" in
             # Get password
             db_get ledgersmb/admin_password
             LSMBDBPW=$RET
+            # Select which, if any, Web Proxy is to be used.
+            db_get ledgersmb/lsmb_proxy
+            LSMBPROXY=$RET
             # Configure database administrative user
             /usr/share/ledgersmb/tools/config-lsmb-db-user.sh $LSMBDBUSER $LSMBDBPW
         fi
