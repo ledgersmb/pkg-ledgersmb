@@ -1,32 +1,40 @@
-ledgersmb (1.5.13+ds-0~1) UNRELEASED; urgency=low
+ledgersmb (1.5.13+ds-1~1) UNRELEASED; urgency=low
 
   * TODO:
     + Adapt package to the new 1.5.x series upstream.
   * New series 1.5.x Upstream Release (Closes: #874664)
     + Along with an explicit requirement for liblatex-driver-perl >= 0.300.2,
       resolves the issue with printing to PDF or Postscript. (Closes: #821251)
-  * Add '--with systemd' to dh invocation line in debian/rules
-  * Adapt maintenance scripts for new 1.5.x series upstream.
   * Add an initial version of a debian/ledgersmb.init file.
+  * Add '--with systemd' to dh invocation line in debian/rules
+  * Adapt the maintainer scripts for the new 1.5.x series upstream.
   * Initial update to debian/watch for the new upstream location.
-  * Rewrite and/or rename or delete debian/patches/* for new upstream version.
+  * Copy UI/js-src/lsmb/* from upstream to debian/missing-sources/UI/js.
   * Removed debian/adm/apache-vhost.conf as the file is now in upstream.
+  * Rewrite and/or rename or delete debian/patches/* for new upstream version.
+  * Add capability to select setting for Web Proxy to use during installation.
   * Remove debian/ledgersmb.starman-ledgersmb.service as it is now in upstream
     and add installing a patched version of it.
   * Update the links in 'debian/ledgersmb.links' related to embedded dojo files.
-  * Update 'Files-Excluded' in debian/copyright related to embedded dojo files
-    and unneeded empty directories.
   * Edited the README.Debian file, adding a new introduction at the beginning as
     well as a new section specifically regarding accessing the application via
     a web proxy and otherwise updating it for the new upstream version.
+  * Changes in debian/copyright:
+    + Add a stanza for the 'debian/missing-sources/UI/js/lsmb/*' files.
+    + Correct the License entry in the 'debian/*' stanza to 'GPL-2+' and update
+      its comment with about why that was done.
+    + Update 'Files-Excluded' in debian/copyright related to embedded dojo files
+      and unneeded empty directories.
   * Changes in debian/control:
     + Change the Priority setting from 'extra' back to 'optional'.
+    + Change debhelper Build-Depends from '>= 9' to '>= 9.20160709'.
+    + Remove the Vcs-Svn line as it has been replace by the use of Vcs-Git.
     + Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
       libplack-builder-conditionals-perl.
     + Change 'Maintainer' to "LedgerSMB Core Team <devel@lists.ledgersmb.org>".
     + Update dojo requirement from libjs-dojo-dojox to libjs-dojo-dijit.
     + Drop explicit 'Depends' on 'liberror-perl' as not being necessary.
-    + Drop 'libparse-recdescent-perl' as a Recommends as it no longer needed.
+    + Drop 'libparse-recdescent-perl' as a Recommends as it is no longer needed.
     + Drop the version being required for the Perl requirement in 'Depends'.
     + Explicitly add 'liblatex-driver-perl (>= 0.300.2)' to Recommends section.
     + Include the PGObject* Perl modules required for the new 1.5.x series
@@ -35,7 +43,7 @@ ledgersmb (1.5.13+ds-0~1) UNRELEASED; urgency=low
       libpgobject-type-bytestring-perl, libpgobject-type-datetime-perl,
       libpgobject-util-dbmethod-perl, and libpgobject-util-dbadmin-perl.
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 16 Nov 2017 15:04:15 -0500
+ -- Robert James Clay <jame@rocasa.us>  Fri, 17 Nov 2017 09:31:28 -0500
 
 ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
