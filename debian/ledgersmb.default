@@ -1,0 +1,21 @@
+# CONFIGURATION FILE FOR LEDGERSMB
+# /etc/default/ledgersmb
+# Consult the LedgerSMB manual page and documentation in /usr/share/doc/ledgersmb/.
+
+# The directory where LedgerSMB is installed
+WORKING_DIRECTORY=/usr/share/ledgersmb
+
+# The location of the LedgerSMB Config file
+LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf
+
+# The interface address and port to bind to (listen on). Note that these are for
+# the backend settings; other access is recommended to be done using an http
+# proxy. (See conf/*-vhost.conf in the LedgerSMB installation for examples.)
+LISTEN_ADDRESS=localhost
+LISTEN_PORT=5762
+
+# This is only required in special circumstances.
+# In case you installed dependencies into a 'local::lib'
+# make sure you set the PERL5LIB environment variable
+# to the correct location by uncommenting the line below
+#PERL5_LIB=/path/to/local-lib/lib/perl5
