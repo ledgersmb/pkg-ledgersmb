@@ -5,17 +5,15 @@ if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
 fi
 ### BEGIN INIT INFO
 # Provides:          ledgersmb
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
+# Required-Start:    $remote_fs $network $syslog
+# Required-Stop:     $remote_fs $network $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: LedgerSMB 1.5 running under Starman
-# Description:       This file should be used to construct scripts to be
-#                    placed in /etc/init.d.  This example start a
-#                    single forking daemon capable of writing a pid
-#                    file.  To get other behavoirs, implement
-#                    do_start(), do_stop() or other functions to
-#                    override the defaults in /lib/init/init-d-script.
+# Description:       LedgerSMB now is now run by Starman instead of directly
+#                    by Apache like with previous versions. This is used to
+#                    stop or start that process if the system is using
+#                    sysv init instead using systemd and service files.
 ### END INIT INFO
 
 # Author: Robert james Clay <jame@rocasa.us>
@@ -23,21 +21,33 @@ fi
 
 DESC="Run LedgerSMB via Starman"
 
+# Include defaults if available
+if [ -f "/etc/default/ledgersmb" ]
+then
+    . "/etc/default/ledgersmb"
+else
+    WORKING_DIRECTORY=/usr/share/legdersmb-1.5
+    LISTEN_ADDRESS=localhost
+    LISTEN_PORT=5762
+    export LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf 
+fi
+
 # app settings
-APP_HOME=/usr/share/legdersmb-1.5
+APP_HOME=$WORKING_DIRECTORY
 APP=$APP_HOME/tools/starman.psgi
 APP_NAME=$(basename $(readlink -f $0))
+START_SERVER=/usr/bin/start_server
 STARMAN=/usr/bin/starman
-PORT=5762
-USER=ledgersmb15
-GROUP=ledgersmb15
+USER=ledgersmb
+GROUP=ledgersmb
 
 PID_FILE=/var/run/$APP_NAME.pid
 STATUS_FILE=/var/run/$APP_NAME.status
+LOCK_FILE=/var/run/$APP_NAME.lock
 LOGDIR=/var/log/$APP_NAME
 
 # configure app perl
-export $APP_PATH=/usr/share/ledgersmb-1.5:/sbin:/bin:/usr/bin:/usr/sbin
+export APP_PATH=$WORKING_DIRECTORY:/sbin:/bin:/usr/bin:/usr/sbin
 
 RETVAL=0
 
@@ -46,7 +56,7 @@ start(){
 
     mkdir -p $LOGDIR
 
-    daemon --pidfile $PID_FILE \
+    start-stop-daemon --chuid $USER:$GROUP --pidfile $PID_FILE \
       $START_SERVER \
         --interval=5 \
         --signal-on-hup=QUIT \
@@ -57,10 +67,7 @@ start(){
         -- \
         $STARMAN \
           --preload-app \
-          --listen "localhost:$PORT" \
-          --workers $WORKERS \
-          --user $USER \
-          --group $GROUP \
+          --listen "$LISTEN_ADDRESS:$LISTEN_PORT" \
           --error-log $LOGDIR/error.log \
           --access-log $LOGDIR/access.log \
           $APP \
