@@ -84,6 +84,11 @@ Copyright: 2009-2017, Robert James Clay <jame@rocasa.us>
              2008,    Roberto C. Sanchez <robert@debian.org>
 License: GPL-2+
 
+Files: debian/ledgersmb.default
+Copyright: 2017, David Godfrey <info@sbts.com.au>
+           2017, Robert James Clay <jame@rocasa.us>
+License: GPL-2+
+
 Files: debian/missing-sources/UI/js/lsmb/*
 Comment: Copyright and License for files copied from upstream UI/js-src/lsmb/
  because Lintian could not find these source files which resulted in multiple
