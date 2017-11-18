@@ -38,6 +38,9 @@ case "$1" in
                 if ! a2query -qm rewrite ; then
                     apache2_invoke enmod rewrite || exit $?
                 fi
+                if ! a2query -qm ssl ; then
+                    apache2_invoke enmod ssl || exit $?
+                fi
                 apache2_invoke enconf ledgersmb-proxy.conf
                 [ ! -h /etc/ledgersmb/apache-proxy.conf ] && ln -s /etc/apache2/sites-available/ledgersmb-proxy.conf /etc/ledgersmb/apache-proxy.conf
             fi
