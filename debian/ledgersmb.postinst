@@ -27,56 +27,82 @@ fi
 
 case "$1" in
     configure)
-        # Do Apache related processing if it is present.
-        if [ -d "/etc/apache2" ]; then
-            if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
-                [ -d /etc/apache2/sites-available/ ] && [ ! -e /etc/apache2/sites-available/ledgersmb-proxy.conf ] && ucf --debconf-ok /usr/share/ledgersmb/conf/apache-vhost.conf /etc/apache2/sites-available/ledgersmb-proxy.conf
-                . /usr/share/apache2/apache2-maintscript-helper
-                if ! a2query -qm proxy_http ; then
-                    apache2_invoke enmod proxy_http || exit $?
-                fi
-                if ! a2query -qm rewrite ; then
-                    apache2_invoke enmod rewrite || exit $?
-                fi
-                if ! a2query -qm ssl ; then
-                    apache2_invoke enmod ssl || exit $?
-                fi
-                apache2_invoke enconf ledgersmb-proxy.conf
-                [ ! -h /etc/ledgersmb/apache-proxy.conf ] && ln -s /etc/apache2/sites-available/ledgersmb-proxy.conf /etc/ledgersmb/apache-proxy.conf
-            fi
-        fi
         #
-        # Do Nginx related processing if it is present.
-        if [ -d "/etc/nginx" ]; then
-            [ -d /etc/nginx/sites-available/ ] && [ ! -e /etc/nginx/sites-available/ledgersmb-proxy.conf ] && ucf /usr/share/ledgersmb/conf/nginx-vhost.conf /etc/nginx/sites-available/ledgersmb-proxy.conf
-            # Enable nginx proxy configuration 
-            if [ ! -h /etc/nginx/sites-enabled/ledgersmb-proxy.conf ] ; then
-                ln -s /etc/nginx/sites-available/ledgersmb-proxy.conf /etc/nginx/sites-enabled/ledgersmb-proxy.conf
-                if which nginx >/dev/null 2>&1; then
-                    nginx -s reload
-                fi
-            fi
-            [ ! -h /etc/ledgersmb/nginx-proxy.conf ] && ln -s /etc/nginx/sites-available/ledgersmb-proxy.conf /etc/ledgersmb/ngnix-proxy.conf
-        fi
-        #
-        # If enabled, do the debconf supported configuration
-        db_get ledgersmb/debconf_install
-        if [ "$RET" = true ]; then 
+        #  If this is a new install of the package...
+        if [ -z "$old_version" ]; then
             # Get user name.
             db_get ledgersmb/admin_login
             LSMBDBUSER=$RET
             # Get password
             db_get ledgersmb/admin_password
             LSMBDBPW=$RET
-            # Select which, if any, Web Proxy is to be used.
-            db_get ledgersmb/lsmb_proxy
-            LSMBPROXY=$RET
             # Configure database administrative user
             /usr/share/ledgersmb/tools/config-lsmb-db-user.sh $LSMBDBUSER $LSMBDBPW
-        fi
+        if
+        # Get which, if any, Web Proxy is to be used.
+        db_get ledgersmb/lsmb_proxy
+        LSMBPROXY=$RET
+        # All done getting config information, do debconf stop
         db_stop
-    ;;
+        #
+        # Process web proxy selection
+        case $LSMBPROXY in
+            apache)
+                # start apache case
+                #
+                # Do Apache related processing if it is verified to be present.
+                if [ -d "/etc/apache2" ]; then
+                    if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
+                        [ -d /etc/apache2/sites-available/ ] && [ ! -e /etc/apache2/sites-available/ledgersmb-proxy.conf ] && ucf --debconf-ok /usr/share/ledgersmb/conf/apache-vhost.conf /etc/apache2/sites-available/ledgersmb-proxy.conf
+                        . /usr/share/apache2/apache2-maintscript-helper
+                        if ! a2query -qm proxy_http ; then
+                            apache2_invoke enmod proxy_http || exit $?
+                        fi
+                        if ! a2query -qm rewrite ; then
+                            apache2_invoke enmod rewrite || exit $?
+                        fi
+                        if ! a2query -qm ssl ; then
+                            apache2_invoke enmod ssl || exit $?
+                        fi
+                        [ ! -h /etc/ledgersmb/apache-proxy.conf ] && ln -s /etc/apache2/sites-available/ledgersmb-proxy.conf /etc/ledgersmb/apache-proxy.conf
+                    fi
+                fi
+                # end apache case
+            ;;
+            nginx)
+                # start nginx case
+                # Do Nginx related processing if it is verfied to be present.
+                if [ -d "/etc/nginx" ]; then
+                    # Set proxy config file.
+                    [ -d /etc/nginx/sites-available/ ] && [ ! -e /etc/nginx/sites-available/ledgersmb-proxy.conf ] && ucf /usr/share/ledgersmb/conf/nginx-vhost.conf /etc/nginx/sites-available/ledgersmb-proxy.conf
+                    [ ! -h /etc/ledgersmb/nginx-proxy.conf ] && ln -s /etc/nginx/sites-available/ledgersmb-proxy.conf /etc/ledgersmb/ngnix-proxy.conf
+                    #
+                    # Don't enable the config yet (at least not on a new install), just enable modules as necessary?
+                    #
+                fi
+                # end nginx case
+            ;;
+            lighttpd)
+                # Do lighttpd related processing if it is present.
+                if [ -d "/etc/lighttpd" ]; then
+                    [ -d /etc/lighttpd/conf-available/ ] && [ ! -e /etc/lighttpd/conf-available/ledgersmb-1.5-proxy.conf ] && ucf /usr/share/ledgersmb-1.5/conf/lighttpd-vhost.conf /etc/lighttpd/conf-available/ledgersmb-1.5-proxy.conf
+                    [ ! -h /etc/ledgersmb-1.5/lighttpd-proxy.conf ] && ln -s /etc/lighttpd/conf-available/ledgersmb-1.5-proxy.conf /etc/ledgersmb-1.5/lighttpd-proxy.conf
+                fi
+            ;;
 
+            varnish)
+            # Do varnish related processing if it is present.
+                if [ -d "/etc/varnish" ]; then
+                    [ ! -h /etc/ledgersmb-1.5/varnish-proxy.conf ] && ln -s /etc/varnish/default.vcl /etc/ledgersmb-1.5/varnish-proxy.conf
+                fi
+            ;;
+
+            none)
+                # start 'none' case
+                # end 'none' case
+            ;;
+        esac
+    #
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;
 
