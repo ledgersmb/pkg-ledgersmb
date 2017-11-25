@@ -32,9 +32,10 @@ remove_old_config() {
     # it and deregister it with ucf.
     if [ -f "/etc/apache2/conf-available/ledgersmb-proxy.conf" ]; then
     # Remove the possible backup extensions of the configuration file.
-    for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
+      for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
         rm -f /etc/apache2/conf-available/ledgersmb-proxy.conf$ext
-    done
+      done
+    fi
     # Remove the configuration file itself
     rm -f /etc/apache2/conf-available/ledgersmb-proxy.conf
     # Clear it out from the ucf database.
