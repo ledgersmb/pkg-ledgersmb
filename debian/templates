@@ -21,7 +21,7 @@ Default: LEDGERSMBINITIAL
 _Description: Database administrative user password:
  Please enter the password of the LedgerSMB database administrative user. This
  password is needed for the administrative web user interface, typically at
- http://localhost/ledgersmb/setup.pl.
+ http://localhost:5762/setup.pl.
 
 Template: ledgersmb/config_admin
 Type: boolean
