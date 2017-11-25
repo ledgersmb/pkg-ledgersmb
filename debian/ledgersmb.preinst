@@ -19,7 +19,7 @@ old_version=$2
 #   If upgrading from a pre 1.5.x version of the ledgersmb package,
 # then it would have been using the old apache configuration and that
 # needs to be removed.  (or should this go to the preinst script?)
-remove_old-config() {
+remove_old_config() {
     # If /etc/ledgersmb-httpd-2.4.conf exists, remove it.
     if [ -h "/etc/ledgersmb/apache-proxy.conf" ]; then
         rm -f /etc/ledgersmb/apache-proxy.conf
