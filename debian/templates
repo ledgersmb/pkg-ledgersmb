@@ -23,14 +23,14 @@ _Description: Database administrative user password:
  password is needed for the administrative web user interface, typically at
  http://localhost/ledgersmb/setup.pl.
 
-Template: ledgersmb/debconf_install
+Template: ledgersmb/config_admin
 Type: boolean
 Default: true
-_Description: Configure LedgerSMB automatically?
- The configuration program for the package can automatically configure
- some aspects of LedgerSMB, such as the LedgerSMB database user.
+_Description: Configure LedgerSMB Database administrative user automatically?
+ The configuration program for the package can automatically configure the
+ LedgerSMB database user. Enable if you want to do that, disable if not.
  .
- More general information about the initial configuration of the application
+ More information about the configuration of the database administrative user
  can be found in /usr/share/doc/ledgersmb/README.Debian.
 
 Template: ledgersmb/lsmb_proxy
