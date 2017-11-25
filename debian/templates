@@ -13,7 +13,7 @@ Default: ledgersmb
 _Description: Database administrative user login:
  Please enter the login of the LedgerSMB database administrative user. This
  login is needed for the administrative web user interface, typically at
- http://localhost/ledgersmb/setup.pl.
+ http://localhost:5762/setup.pl.
 
 Template: ledgersmb/admin_password
 Type: password
