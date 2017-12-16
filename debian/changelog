@@ -1,25 +1,27 @@
-ledgersmb (1.5.13+ds-1~1) UNRELEASED; urgency=low
+ledgersmb (1.5.14+ds-1~1) UNRELEASED; urgency=low
 
   * TODO:
     + Adapt package to the new 1.5.x series upstream.
   * New series 1.5.x Upstream Release (Closes: #874664)
     + Along with an explicit requirement for liblatex-driver-perl >= 0.300.2,
       resolves the issue with printing to PDF or Postscript. (Closes: #821251)
-  * Add an initial version of a debian/ledgersmb.init file.
+  * Updated the debian/po/* files using 'debconf-updatepo'.
   * Add '--with systemd' to dh invocation line in debian/rules
   * Adapt the maintainer scripts for the new 1.5.x series upstream.
-  * Initial update to debian/watch for the new upstream location.
+  * Add a debian/ledgersmb.init and a debian/ledgersmb.default file.
+  * Rewrote the debian/ledgersmb.config file for new upstream package.
   * Copy UI/js-src/lsmb/* from upstream to debian/missing-sources/UI/js.
-  * Removed debian/adm/apache-vhost.conf as the file is now in upstream.
+  * Removed debian/adm/apache-vhost.conf as the file itself is now in upstream.
   * Rewrite and/or rename or delete debian/patches/* for new upstream version.
   * Add capability to select setting for Web Proxy to use during installation.
   * Remove debian/ledgersmb.starman-ledgersmb.service as it is now in upstream
-    and add installing a patched version of it.
+    and added installing a patched version of that upstream version.
   * Update the links in 'debian/ledgersmb.links' related to embedded dojo files.
   * Edited the README.Debian file, adding a new introduction at the beginning as
     well as a new section specifically regarding accessing the application via
     a web proxy and otherwise updating it for the new upstream version.
   * Changes in debian/copyright:
+    + Add stanza for the 'debian/ledgersmb.default' file.
     + Add a stanza for the 'debian/missing-sources/UI/js/lsmb/*' files.
     + Correct the License entry in the 'debian/*' stanza to 'GPL-2+' and update
       its comment with about why that was done.
@@ -28,7 +30,6 @@ ledgersmb (1.5.13+ds-1~1) UNRELEASED; urgency=low
   * Changes in debian/control:
     + Change the Priority setting from 'extra' back to 'optional'.
     + Change debhelper Build-Depends from '>= 9' to '>= 9.20160709'.
-    + Remove the Vcs-Svn line as it has been replace by the use of Vcs-Git.
     + Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
       libplack-builder-conditionals-perl.
     + Change 'Maintainer' to "LedgerSMB Core Team <devel@lists.ledgersmb.org>".
@@ -42,8 +43,22 @@ ledgersmb (1.5.13+ds-1~1) UNRELEASED; urgency=low
       libpgobject-simple-role-perl, libpgobject-type-bigfloat-perl,
       libpgobject-type-bytestring-perl, libpgobject-type-datetime-perl,
       libpgobject-util-dbmethod-perl, and libpgobject-util-dbadmin-perl.
+  * Changes in debian/templates for new upstream version series:
+    + Update the example URL in the admin_login stanza.
+    + Update the example URL in the admin_password stanza.
+    + Drop the debconf_install stanza but add a config_admin stanza.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 17 Nov 2017 09:31:28 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sat, 16 Dec 2017 13:04:32 -0500
+
+ledgersmb (1.4.42+ds-1) unstable; urgency=low
+
+  * New upstream release.
+  * Declare compliance with Debian Policy 4.1.1
+  * Update debian/watch for correct 'new' upstream at GitHub.
+  * Remove 'Vcs-Svn' entry from debian/control as no longer necessary.
+  * Update Vcs-Browser in debian/control for correct 'new' upstream at GitHub.
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 08 Oct 2017 04:52:24 +0000
 
 ledgersmb (1.4.41+ds-1) unstable; urgency=low
 
