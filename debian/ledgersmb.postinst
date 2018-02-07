@@ -102,6 +102,7 @@ case "$1" in
                 # end 'none' case
             ;;
         esac
+        ;;
     #
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;
