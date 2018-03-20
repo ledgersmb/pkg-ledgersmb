@@ -94,7 +94,7 @@ Files: debian/missing-sources/UI/js/lsmb/*
 Comment: Copyright and License for files copied from upstream UI/js-src/lsmb/
  because Lintian could not find these source files which resulted in multiple
  instances of the following error: "source-is-missing".
-Copyright: 2016-2017, The LedgerSMB Core Team
+Copyright: 2016-2018, The LedgerSMB Core Team
 License: GPL-2+
 
 License: GPL-2+
