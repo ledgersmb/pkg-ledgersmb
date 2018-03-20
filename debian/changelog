@@ -1,4 +1,4 @@
-ledgersmb (1.5.16+ds-1~1) UNRELEASED; urgency=low
+ledgersmb (1.5.18+ds-1~1) UNRELEASED; urgency=low
 
   * TODO:
     + Adapt package to the new 1.5.x series upstream.
@@ -25,8 +25,8 @@ ledgersmb (1.5.16+ds-1~1) UNRELEASED; urgency=low
     + Add a stanza for the 'debian/missing-sources/UI/js/lsmb/*' files.
     + Correct the License entry in the 'debian/*' stanza to 'GPL-2+' and update
       its comment with about why that was done.
-    + Update 'Files-Excluded' in debian/copyright related to embedded dojo files
-      and unneeded empty directories.
+    + Update 'Files-Excluded' in debian/copyright related to the embedded dojo
+      files in upstream.
   * Changes in debian/control:
     + Change the Priority setting from 'extra' back to 'optional'.
     + Change debhelper Build-Depends from '>= 9' to '>= 9.20160709'.
@@ -48,7 +48,7 @@ ledgersmb (1.5.16+ds-1~1) UNRELEASED; urgency=low
     + Update the example URL in the admin_password stanza.
     + Drop the debconf_install stanza but add a config_admin stanza.
 
- -- Robert James Clay <jame@rocasa.us>  Wed,  7 Dec 2018 13:06:43 -0500
+ -- Robert James Clay <jame@rocasa.us>  Tue, 20 Mar 2018 16:26:43 -0500
 
 ledgersmb (1.4.42+ds-1) unstable; urgency=low
 
