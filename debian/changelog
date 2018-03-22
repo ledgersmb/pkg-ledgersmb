@@ -1,4 +1,4 @@
-ledgersmb (1.5.18+ds-1~1) UNRELEASED; urgency=low
+ledgersmb (1.5.18+ds-1~2) UNRELEASED; urgency=low
 
   * TODO:
     + Adapt package to the new 1.5.x series upstream.
@@ -10,7 +10,6 @@ ledgersmb (1.5.18+ds-1~1) UNRELEASED; urgency=low
   * Adapt the maintainer scripts for the new 1.5.x series upstream.
   * Add a debian/ledgersmb.init and a debian/ledgersmb.default file.
   * Rewrote the debian/ledgersmb.config file for new upstream package.
-  * Copy UI/js-src/lsmb/* from upstream to debian/missing-sources/UI/js.
   * Removed debian/adm/apache-vhost.conf as the file itself is now in upstream.
   * Rewrite and/or rename or delete debian/patches/* for new upstream version.
   * Add capability to select setting for Web Proxy to use during installation.
@@ -22,7 +21,6 @@ ledgersmb (1.5.18+ds-1~1) UNRELEASED; urgency=low
     a web proxy and otherwise updating it for the new upstream version.
   * Changes in debian/copyright:
     + Add stanza for the 'debian/ledgersmb.default' file.
-    + Add a stanza for the 'debian/missing-sources/UI/js/lsmb/*' files.
     + Correct the License entry in the 'debian/*' stanza to 'GPL-2+' and update
       its comment with about why that was done.
     + Update 'Files-Excluded' in debian/copyright related to the embedded dojo
@@ -48,7 +46,7 @@ ledgersmb (1.5.18+ds-1~1) UNRELEASED; urgency=low
     + Update the example URL in the admin_password stanza.
     + Drop the debconf_install stanza but add a config_admin stanza.
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 20 Mar 2018 16:26:43 -0500
+ -- Robert James Clay <jame@rocasa.us>  Wed, 21 Mar 2018 22:25:16 -0500
 
 ledgersmb (1.4.42+ds-1) unstable; urgency=low
 
