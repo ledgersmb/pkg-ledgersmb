@@ -87,13 +87,6 @@ Copyright: 2017, David Godfrey <info@sbts.com.au>
            2017, Robert James Clay <jame@rocasa.us>
 License: GPL-2+
 
-Files: debian/missing-sources/UI/js/lsmb/*
-Comment: Copyright and License for files copied from upstream UI/js-src/lsmb/
- because Lintian could not find these source files which resulted in multiple
- instances of the following error: "source-is-missing".
-Copyright: 2016-2018, The LedgerSMB Core Team
-License: GPL-2+
-
 License: GPL-2+
  This program is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public
