@@ -1,9 +1,9 @@
 Author: Robert James Clay <jame@rocasa.us>
 Description: Make needed updates for ledgesmb.config.default for use by package.
 Origin: vendor
-Last-Update: 2017-07-19
---- a/conf/ledgersmb.conf.default
-+++ b/conf/ledgersmb.conf.default
+Last-Update: 2018-03-21
+--- a/conf/ledgersmb.conf.unbuilt-dojo
++++ b/conf/ledgersmb.conf.unbuilt-dojo
 @@ -46,8 +46,9 @@
  
  # Spelling of cookie name for this instance of LedgerSMB.
