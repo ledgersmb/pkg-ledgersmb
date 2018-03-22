@@ -1,3 +1,0 @@
-# The sources for the UI/js/lsmb/* files are in the UI/js-src/lsmb/ directory,
-# so override Lintian Errors like this.
-ledgersmb source: source-is-missing UI/js/lsmb/*
