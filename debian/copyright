@@ -14,7 +14,7 @@ Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
  Erik Huelsmann, Havard Sorli, John Locke, Pongracz Istvan, Herman Vierendeels,
  and Robert James Clay. For a full list including contact information of
  contributors, maintainers, and copyright holders, see the CONTRIBUTORS file.
-Copyright:  2006-2017, The LedgerSMB Core Team
+Copyright:  2006-2018, The LedgerSMB Core Team
             1999-2006, DWS Systems Inc.
 
 Files: *
