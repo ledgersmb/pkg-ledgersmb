@@ -4,10 +4,7 @@ Upstream-Contact: Development discussion for LedgerSMB <devel@lists.ledgersmb.or
 Source: https://github.com/ledgersmb/LedgerSMB
  Repackaged, excluding embedded version of dojo Javascript library files.
 Files-Excluded:
- ledgersmb/UI/js/build-report.txt
- ledgersmb/UI/js/dijit
- ledgersmb/UI/js/dojo
- ledgersmb/UI/js/lsmb/nls
+ ledgersmb/UI/js
  ledgersmb/UI/js-src/dijit
  ledgersmb/UI/js-src/dojo
  ledgersmb/UI/js-src/util
