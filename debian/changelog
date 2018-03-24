@@ -1,4 +1,4 @@
-ledgersmb (1.5.18+ds-1~2) UNRELEASED; urgency=low
+ledgersmb (1.5.18+ds-1~3) UNRELEASED; urgency=low
 
   * TODO:
     + Adapt package to the new 1.5.x series upstream.
@@ -14,7 +14,7 @@ ledgersmb (1.5.18+ds-1~2) UNRELEASED; urgency=low
   * Rewrite and/or rename or delete debian/patches/* for new upstream version.
   * Add capability to select setting for Web Proxy to use during installation.
   * Remove debian/ledgersmb.starman-ledgersmb.service as it is now in upstream
-    and added installing a patched version of that upstream version.
+    and add installing a patched version of that upstream version.
   * Update the links in 'debian/ledgersmb.links' related to embedded dojo files.
   * Edited the README.Debian file, adding a new introduction at the beginning as
     well as a new section specifically regarding accessing the application via
@@ -22,10 +22,11 @@ ledgersmb (1.5.18+ds-1~2) UNRELEASED; urgency=low
   * Changes in debian/copyright:
     + Add stanza for the 'debian/ledgersmb.default' file.
     + Correct the License entry in the 'debian/*' stanza to 'GPL-2+' and update
-      its comment with about why that was done.
+      its comment about why that was done.
     + Update 'Files-Excluded' in debian/copyright related to the embedded dojo
       files in upstream.
   * Changes in debian/control:
+    + Declare compliance with Debian Policy 4.1.3.
     + Change the Priority setting from 'extra' back to 'optional'.
     + Change debhelper Build-Depends from '>= 9' to '>= 9.20160709'.
     + Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
@@ -44,9 +45,9 @@ ledgersmb (1.5.18+ds-1~2) UNRELEASED; urgency=low
   * Changes in debian/templates for new upstream version series:
     + Update the example URL in the admin_login stanza.
     + Update the example URL in the admin_password stanza.
-    + Drop the debconf_install stanza but add a config_admin stanza.
+    + Drop the debconf_install stanza but add a lsmb_proxy stanza.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 21 Mar 2018 22:25:16 -0500
+ -- Robert James Clay <jame@rocasa.us>  Fri, 23 Mar 2018 21:39:13 -0400
 
 ledgersmb (1.4.42+ds-1) unstable; urgency=low
 
