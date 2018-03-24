@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ledgersmb\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
-"POT-Creation-Date: 2017-11-25 09:41-0500\n"
+"POT-Creation-Date: 2018-03-23 21:01-0400\n"
 "PO-Revision-Date: 2012-06-13 17:31+0100\n"
 "Last-Translator: Julien Patriarca <patriarcaj@gmail.com>\n"
 "Language-Team: FRENCH <debian-l10n-fr@lists.debian.org>\n"
@@ -62,52 +62,15 @@ msgstr ""
 "passe est nécessaire pour accéder à l'interface web d'administration, "
 "généralement située à l'adresse http://localhost/ledgersmb/setup.pl."
 
-#. Type: boolean
-#. Description
-#: ../templates:4001
-#, fuzzy
-#| msgid "Configure LedgerSMB automatically?"
-msgid "Configure LedgerSMB Database administrative user automatically?"
-msgstr "Faut-il configurer LedgerSMB automatiquement ?"
-
-#. Type: boolean
-#. Description
-#: ../templates:4001
-#, fuzzy
-#| msgid ""
-#| "The configuration program for the package can automatically configure "
-#| "some aspects of LedgerSMB, such as the LedgerSMB database user."
-msgid ""
-"The configuration program for the package can automatically configure the "
-"LedgerSMB database user. Enable if you want to do that, disable if not."
-msgstr ""
-"Le programme de configuration du paquet peut paramétrer automatiquement "
-"certains aspects de LedgerSMB, comme l'utilisateur de la base de données de "
-"LedgerSMB."
-
-#. Type: boolean
-#. Description
-#: ../templates:4001
-#, fuzzy
-#| msgid ""
-#| "More general information about the initial configuration of the "
-#| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
-msgid ""
-"More information about the configuration of the database administrative user "
-"can be found in /usr/share/doc/ledgersmb/README.Debian."
-msgstr ""
-"Des renseignements supplémentaires sur la configuration initiale de "
-"l'application sont disponibles dans /usr/share/doc/ledgersmb/README.Debian."
-
 #. Type: select
 #. Description
-#: ../templates:5001
+#: ../templates:4001
 msgid "Web Reverse Proxy to configure?"
 msgstr ""
 
 #. Type: select
 #. Description
-#: ../templates:5001
+#: ../templates:4001
 msgid ""
 "The LedgerSMB application now defaults to being made available on port 5762, "
 "and being run directly by Starman. If other access is needed, a Reverse "
@@ -118,7 +81,7 @@ msgstr ""
 
 #. Type: select
 #. Description
-#: ../templates:5001
+#: ../templates:4001
 #, fuzzy
 #| msgid ""
 #| "More general information about the initial configuration of the "
@@ -129,3 +92,32 @@ msgid ""
 msgstr ""
 "Des renseignements supplémentaires sur la configuration initiale de "
 "l'application sont disponibles dans /usr/share/doc/ledgersmb/README.Debian."
+
+#, fuzzy
+#~| msgid "Configure LedgerSMB automatically?"
+#~ msgid "Configure LedgerSMB Database administrative user automatically?"
+#~ msgstr "Faut-il configurer LedgerSMB automatiquement ?"
+
+#, fuzzy
+#~| msgid ""
+#~| "The configuration program for the package can automatically configure "
+#~| "some aspects of LedgerSMB, such as the LedgerSMB database user."
+#~ msgid ""
+#~ "The configuration program for the package can automatically configure the "
+#~ "LedgerSMB database user. Enable if you want to do that, disable if not."
+#~ msgstr ""
+#~ "Le programme de configuration du paquet peut paramétrer automatiquement "
+#~ "certains aspects de LedgerSMB, comme l'utilisateur de la base de données "
+#~ "de LedgerSMB."
+
+#, fuzzy
+#~| msgid ""
+#~| "More general information about the initial configuration of the "
+#~| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
+#~ msgid ""
+#~ "More information about the configuration of the database administrative "
+#~ "user can be found in /usr/share/doc/ledgersmb/README.Debian."
+#~ msgstr ""
+#~ "Des renseignements supplémentaires sur la configuration initiale de "
+#~ "l'application sont disponibles dans /usr/share/doc/ledgersmb/README."
+#~ "Debian."

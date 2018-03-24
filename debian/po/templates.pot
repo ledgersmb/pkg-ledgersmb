@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ledgersmb\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
-"POT-Creation-Date: 2017-11-25 09:41-0500\n"
+"POT-Creation-Date: 2018-03-23 21:01-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -47,37 +47,15 @@ msgid ""
 "at http://localhost:5762/setup.pl."
 msgstr ""
 
-#. Type: boolean
-#. Description
-#: ../templates:4001
-msgid "Configure LedgerSMB Database administrative user automatically?"
-msgstr ""
-
-#. Type: boolean
-#. Description
-#: ../templates:4001
-msgid ""
-"The configuration program for the package can automatically configure the "
-"LedgerSMB database user. Enable if you want to do that, disable if not."
-msgstr ""
-
-#. Type: boolean
-#. Description
-#: ../templates:4001
-msgid ""
-"More information about the configuration of the database administrative user "
-"can be found in /usr/share/doc/ledgersmb/README.Debian."
-msgstr ""
-
 #. Type: select
 #. Description
-#: ../templates:5001
+#: ../templates:4001
 msgid "Web Reverse Proxy to configure?"
 msgstr ""
 
 #. Type: select
 #. Description
-#: ../templates:5001
+#: ../templates:4001
 msgid ""
 "The LedgerSMB application now defaults to being made available on port 5762, "
 "and being run directly by Starman. If other access is needed, a Reverse "
@@ -88,7 +66,7 @@ msgstr ""
 
 #. Type: select
 #. Description
-#: ../templates:5001
+#: ../templates:4001
 msgid ""
 "For more details, please see the Web Proxy section that can be found in the /"
 "usr/share/doc/ledgersmb/README.Debian file."
