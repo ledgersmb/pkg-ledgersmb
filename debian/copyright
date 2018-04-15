@@ -12,8 +12,9 @@ Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
  derived in 2006. The fork was from SQL-Ledger 2.6.17. Note also that the
  'The LedgerSMB Core Team' consists of the following people: Chris Travers,
  Erik Huelsmann, Havard Sorli, John Locke, Pongracz Istvan, Herman Vierendeels,
- and Robert James Clay. For a full list including contact information of
- contributors, maintainers, and copyright holders, see the CONTRIBUTORS file.
+ David Godfrey, Nick Prater and Robert James Clay. For a copy of the full list
+ including contact information of contributors, maintainers, and copyright
+ holders, see the CONTRIBUTORS file.
 Copyright:  2006-2018, The LedgerSMB Core Team
             1999-2006, DWS Systems Inc.
 
