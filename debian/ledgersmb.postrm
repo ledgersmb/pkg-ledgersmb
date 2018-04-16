@@ -79,9 +79,10 @@ case "$1" in
             if which ucfr >/dev/null 2>&1; then
                 ucfr --purge ledgersmb-1.5 /etc/nginx/sites-available/ledgersmb-1.5-proxy.conf
             fi
-        fi
-        if which nginx >/dev/null 2>&1; then
-            nginx -s reload
+            # Verify that nginx itself is installed & if so, then reload it.
+            if which nginx >/dev/null 2>&1; then
+                nginx -s reload
+            fi
         fi
     ;;
 
