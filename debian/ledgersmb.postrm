@@ -53,19 +53,19 @@ case "$1" in
             fi
         fi
         #
-        # If a sym link to ledgersmb-proxy.conf is present in Nginx
-        # sites-enabled, then remove it.
-        if [ -h /etc/nginx/sites-enabled/ledgersmb-proxy.conf ] ; then
-            rm -f /etc/nginx/sites-enabled/ledgersmb-proxy.conf 
-        fi
-        # When being purged; if sym link /etc/ledgersmb-/nginx-proxy.conf
-        # exists, then remove it.
-        if [ -h "/etc/ledgersmb-/nginx-proxy.conf" ]; then
-            rm -f /etc/ledgersmb-/nginx-proxy.conf
-        fi
         # When being purged; if /etc/nginx/sites-available/ledgersmb-proxy.conf exists, remove
-        # it and deregister it with ucf.
+        # it, remove the sym links point to it and deregister it with ucf.
         if [ -f "/etc/nginx/sites-available/ledgersmb-proxy.conf" ]; then
+            # When being purged; if sym link /etc/ledgersmb-/nginx-proxy.conf
+            # exists, then remove it.
+            if [ -h "/etc/ledgersmb-/nginx-proxy.conf" ]; then
+                rm -f /etc/ledgersmb-/nginx-proxy.conf
+            fi
+            # If a sym link to ledgersmb-proxy.conf is present in Nginx
+            # sites-enabled, then remove it.
+            if [ -h /etc/nginx/sites-enabled/ledgersmb-proxy.conf ] ; then
+                rm -f /etc/nginx/sites-enabled/ledgersmb-proxy.conf 
+            fi
             # Remove the possible backup extensions of the configuration file.
             for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
                 rm -f /etc/nginx/sites-available/ledgersmb-proxy.conf$ext
