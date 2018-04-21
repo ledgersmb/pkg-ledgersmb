@@ -18,6 +18,18 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+# Source debconf
+if [ -f /usr/share/debconf/confmodule ]; then
+    . /usr/share/debconf/confmodule
+fi
+
+# Get which, if any, Web Proxy had been selected..
+db_get ledgersmb/lsmb_proxy
+LSMBPROXY=$RET
+# All done getting config information, do debconf stop
+db_stop
+#
+
 case "$1" in
     purge)
         deluser --system --quiet ledgersmb
