@@ -25,25 +25,25 @@ remove_old_config() {
         rm -f /etc/ledgersmb/ledgersmb-httpd-2.4.conf
     fi
     # If /etc/apache2/conf-available/ledgersmb.conf exists, remove it.
-    if [ -f "/etc/apache2/conf-available/ledgersmb-proxy.conf" ]; then
-        rm -f /etc/apache2/conf-available/ledgersmb-proxy.conf
+    if [ -f "/etc/apache2/conf-available/ledgersmb.conf" ]; then
+        rm -f /etc/apache2/conf-available/ledgersmb.conf
     fi
-    # If /etc/apache2/conf-available/ledgersmb-proxy.conf exists, remove
+    # If /etc/apache2/conf-available/ledgersmb.conf exists, remove
     # it and deregister it with ucf.
-    if [ -f "/etc/apache2/conf-available/ledgersmb-proxy.conf" ]; then
+    if [ -f "/etc/apache2/conf-available/ledgersmb.conf" ]; then
     # Remove the possible backup extensions of the configuration file.
       for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
-        rm -f /etc/apache2/conf-available/ledgersmb-proxy.conf$ext
+        rm -f /etc/apache2/conf-available/ledgersmb.conf$ext
       done
     fi
     # Remove the configuration file itself
-    rm -f /etc/apache2/conf-available/ledgersmb-proxy.conf
+    rm -f /etc/apache2/conf-available/ledgersmb.conf
     # Clear it out from the ucf database.
     if which ucf >/dev/null 2>&1; then
-        ucf --purge /etc/apache2/conf-available/ledgersmb-proxy.conf
+        ucf --purge /etc/apache2/conf-available/ledgersmb.conf
     fi
     if which ucfr >/dev/null 2>&1; then
-        ucfr --purge ledgersmb /etc/apache2/conf-available/ledgersmb-proxy.conf
+        ucfr --purge ledgersmb /etc/apache2/conf-available/ledgersmb.conf
     fi
 }
 
