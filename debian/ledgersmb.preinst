@@ -20,9 +20,9 @@ old_version=$2
 # then it would have been using the old apache configuration and that
 # needs to be removed.  (or should this go to the preinst script?)
 remove_old_config() {
-    # If /etc/ledgersmb-httpd-2.4.conf exists, remove it.
-    if [ -h "/etc/ledgersmb/apache-proxy.conf" ]; then
-        rm -f /etc/ledgersmb/apache-proxy.conf
+    # If /etc/ledgersmb/ledgersmb-httpd-2.4.conf exists, remove it.
+    if [ -h "/etc/ledgersmb/ledgersmb-httpd-2.4.conf" ]; then
+        rm -f /etc/ledgersmb/ledgersmb-httpd-2.4.conf
     fi
     # If /etc/apache2/conf-available/ledgersmb.conf exists, remove it.
     if [ -f "/etc/apache2/conf-available/ledgersmb-proxy.conf" ]; then
