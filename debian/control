@@ -80,7 +80,9 @@ Description: financial accounting and ERP program
  the LedgerSMB project is to bring high quality ERP and accounting capabilities
  to Small and Midsize Businesses.
  .
- The application now defaults to being made available on port 5762 and being
- run directly by Starman instead of by Apache. If other access is needed, a
- Reverse Proxy can be configured locally using Apache, Nginx, Lighttpd, or
- Varish. For more information, please see /usr/share/doc/ledgersmb/README.Debian.
+ The application now defaults to being made available locally on port 5762 and
+ being run directly by Starman instead of by Apache. If other access is needed,
+ a Reverse Proxy can be configured locally using Apache, Nginx, Lighttpd, or
+ Varnish.
+ .
+ For more information, please see /usr/share/doc/ledgersmb/README.Debian.
