@@ -1,4 +1,4 @@
-ledgersmb (1.5.20+ds-1~4) UNRELEASED; urgency=low
+ledgersmb (1.5.20+ds-1~5) UNRELEASED; urgency=low
 
   * TODO:
     + Adapt package for the new 1.5.x series upstream.
@@ -34,6 +34,7 @@ ledgersmb (1.5.20+ds-1~4) UNRELEASED; urgency=low
     + Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
       libplack-builder-conditionals-perl.
     + Change 'Maintainer' to "LedgerSMB Core Team <devel@lists.ledgersmb.org>".
+      (Closes: #899564)
     + Update dojo requirement from libjs-dojo-dojox to libjs-dojo-dijit.
     + Drop explicit 'Depends' on 'liberror-perl' as not being necessary.
     + Drop 'libparse-recdescent-perl' as a Recommends as it is no longer needed.
@@ -49,7 +50,7 @@ ledgersmb (1.5.20+ds-1~4) UNRELEASED; urgency=low
     + Update the example URL in the admin_password stanza.
     + Drop the debconf_install stanza but add a lsmb_proxy stanza.
 
- -- Robert James Clay <jame@rocasa.us>  Tue,  2 May 2018 19:17:09 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 28 May 2018 09:52:38 -0400
 
 ledgersmb (1.4.42+ds-1) unstable; urgency=low
 
