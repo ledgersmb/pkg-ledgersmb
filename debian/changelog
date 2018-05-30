@@ -1,4 +1,4 @@
-ledgersmb (1.5.20+ds-1~6) UNRELEASED; urgency=low
+ledgersmb (1.5.20+ds-1~7) UNRELEASED; urgency=low
 
   * TODO:
     + Adapt package for the new 1.5.x series upstream.
@@ -50,7 +50,7 @@ ledgersmb (1.5.20+ds-1~6) UNRELEASED; urgency=low
     + Update the example URL in the admin_password stanza.
     + Drop the debconf_install stanza but add a lsmb_proxy stanza.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 28 May 2018 19:57:03 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 30 May 2018 17:43:30 -0400
 
 ledgersmb (1.4.42+ds-1) unstable; urgency=low
 
