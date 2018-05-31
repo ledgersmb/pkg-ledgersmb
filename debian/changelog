@@ -1,4 +1,4 @@
-ledgersmb (1.4.42+ds-2~1) UNRELEASED; urgency=medium
+ledgersmb (1.4.42+ds-2) unstable; urgency=medium
 
   * Declare compliance with Debian Policy 4.1.4.
   * Change the Priority in debian/control from "extra" back to "optional".
@@ -6,7 +6,7 @@ ledgersmb (1.4.42+ds-2~1) UNRELEASED; urgency=medium
   * Change 'Maintainer' to "LedgerSMB Core Team <devel@lists.ledgersmb.org>" in
     debian/control. (Closes: #899564)
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 31 May 2018 12:12:41 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 31 May 2018 16:52:03 -0400
 
 ledgersmb (1.4.42+ds-1) unstable; urgency=low
 
