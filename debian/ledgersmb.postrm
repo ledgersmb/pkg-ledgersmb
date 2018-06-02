@@ -37,15 +37,14 @@ case "$1" in
             apache)
                 # start apache case
                 #
-                # Do Apache related processing if it is verified to be present.
-                # If Apache 2.4 in use, disable use of ledgersmb.conf.
-                if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
-                    . /usr/share/apache2/apache2-maintscript-helper
-                    apache2_invoke disconf ledgersmb-proxy.conf || exit $?
-                fi
-                # When being purged; if /etc/apache2/sites-available/ledgersmb-proxy.conf exists, remove
-                # it and deregister it with ucf.
+                # When being purged; if /etc/apache2/sites-available/ledgersmb-proxy.conf still exists,
+                # remove it and deregister it with ucf.
                 if [ -f "/etc/apache2/sites-available/ledgersmb-proxy.conf" ]; then
+                    # If Apache 2.4 in use, disable use of ledgersmb.conf.
+                    if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
+                        . /usr/share/apache2/apache2-maintscript-helper
+                        apache2_invoke disconf ledgersmb-proxy.conf || exit $?
+                    fi
                     # Remove the possible backup extensions of the configuration file.
                     for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
                         rm -f /etc/apache2/sites-available/ledgersmb-proxy.conf$ext
