@@ -32,7 +32,7 @@ db_stop
 
 case "$1" in
     purge)
-        deluser --system --quiet ledgersmb
+        deluser --system --quiet ledgersmb > /dev/null || true
         case $LSMBPROXY in
             apache)
                 # start apache case
