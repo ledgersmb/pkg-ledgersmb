@@ -1,21 +1,66 @@
 debian/TODO for ledgersmb
 
-See also:  https://github.com/ledgersmb/pkg-ledgersmb/issues as well as
-https://bugs.debian.org/cgi-bin/pkgreport.cgi?src=ledgersmb and
+  See also:
+https://github.com/ledgersmb/pkg-ledgersmb/issues 
+https://bugs.debian.org/cgi-bin/pkgreport.cgi?src=ledgersmb 
 https://qa.debian.org/debcheck.php?dist=unstable&package=ledgersmb
 https://github.com/ledgersmb/pkg-ledgersmb/issues/1
-===================================================================================================
-===================================================================================================
-	- In debian/control;  shouldn't this now be optional, per policy?
-Priority: extra
+=================================================================================
+--------------------------------------------------------------------------------
+  - Currently, automatic testing is being overridden during the package build. 
+    Add at least basic testing.  And later add configuration etc as necessary
+    in order to use autopkgtest for package as-installed testing.
+
+--------------------------------------------------------------------------------
+
+  - The setting of the password for the dbadmin user is now done automatially
+    on a new install and when requested during a 'dpkg-reconfigure' of the pkg.
+    Should it actually be optional during a pkg reconfigure? If so, (re)add a
+    stanza to the template file about it and functionality as necessary to
+    config & postinst scripts. (Re-add by reversing commit 98db30a63?)
+
+  - Use the web proxy selection for a case statement for each of the selections
+    in the postinst script?
+
+  - The preinst script checks if the apache old config file is present. Gets rid
+    of it if is. The presence of that file is also a good indication that it's
+    going though an update install, the previous version is pre 1.5.x, and that
+    apache is already installed. A good reason to change the default proxy
+    selection to 'apache' instead of the package 'none'?  
+
+-------------------------------------------------------------------------------
+
+-> Separately;  if upgradeing from anything before 1.5.0, apache will already
+ be installed because for those previous versions Apache was required. So in 
+ that special case, default the question about the web proxy to Apache instead
+ of None?  There is a "Set" function that can do that. And do that in the config
+ script rather than the postinst script.
+
+-> I don't think I actually added code to the script that used $LSMBPROXY when
+   first tried using it, for anything in part because I'd been looking for a 
+   way to get the web proxy app  installed from the script & hadn't found a way
+   to do that. So will still need to add that.
+   But thinking about it, there's 'dpkg --set-selections'. Haven't found an
+   example of that being used in a config or postinst script but there are a
+   _lot_ of pkgs to look thru & perhaps I just haven't found a good set of
+   search terms.
 
 -----------------------------------------------------------------------------------------------------
-	- If these turn out to have worked for the ledgersmb-1.5 pkg, adapt from there:
+  - debian/ledgersmb.preinst
+  - remove_old_config() function
+
+It may not be needed as often but it should be allow for and taken care of;  these also should be
+removed if present.
+
+ config file: /etc/apache2/conf.d/ledgersmb.conf
+ symlink:     /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
+
+
+-----------------------------------------------------------------------------------------------------
+  - If these turn out to have worked for the ledgersmb-1.5 pkg, adapt from there:
  
-$ git ci -m "Add a debian/ledgersmb-1.5.default file for package default settings."
 $ git ci -m "Separate out the 'GPL' license stanza in the debian/copyright file."	(if necessary)
-$ git ci -m "Add stanza for 'debian/ledgersmb-1.5.default' to debian/copyright."
-$ git ci -m "Initial change to 15_lsmb-service.patch to use 'EnvironmentFile' setting."
+
 $ git ci -m "Change how 'WORKING_DIRECTORY' is set in starman-ledgersmb.service patch."
 
 -----------------------------------------------------------------------------------------------------
@@ -24,73 +69,45 @@ $ git ci -m "Change how 'WORKING_DIRECTORY' is set in starman-ledgersmb.service 
  at http://screenshots.debian.net/package/ledgersmb.  (And get the old 1.3 
  screenshots removed.)
 
-
------------------------------------------------------------------------------------
-https://github.com/ledgersmb/LedgerSMB/issues/3272
-
-While testing an updated package for LedgerSMB 1.5.13 which includes setting up 
-Apache as a web proxy for LedgerSMB (ledgersmb-1.5-apache), i found that I could 
-not leave the SSLRequireSSL in the apache-vhost.conf (as installed by the package)
-file and try to that new configuration online without resulting in an error like
-the following (from: systemctl status apache2.service).
-
-Nov 11 00:57:05 lsmbtest apachectl[13212]: AH00526: Syntax error on line 32 of /etc/apache2/sites-enabled/ledgersmb-1.5-proxy.conf:
-Nov 11 00:57:05 lsmbtest apachectl[13212]: SSLRequireSSL not allowed here
-Nov 11 00:57:05 lsmbtest apachectl[13212]: Action 'start' failed.
-
--------------------------------------------------------------------------------
-
--> Separately;  if upgradeing from anything before 1.5.0, apache will already
- be installed because for those previous versions Apache was required. So in 
- that special case, default the question to Apache instead of None?
- 
-
--> I don't think I actually added code to the script that used #LSMBPROXY for
-   anything in part because I'd been looking for a way to get the web proxy app
-   installed from the script & hadn't found a way to that. So will still need
-   to add that.
-
--------------------------------------------------------------------------------
-	- Discussed in IRC some of the permission fix issues.  Erik took care of
-	fixing many of them in both master & 1.5 so when the next release comes out
-	will need to run a build of both ledgersmb & ledgersmb-1.5 without the 
-	fixes enabled in order to check how the fix permissions stanza in d/rules
-	can be updated for that.
+------------------------------------------------------------------------------
+- Discussed in IRC some of the permission fix issues.  Erik took care of
+fixing many of them in both master & 1.5 so when the next release comes out
+will need to run a build of both ledgersmb & ledgersmb-1.5 without the 
+fixes enabled in order to check how the fix permissions stanza in d/rules
+can be updated for that.
 
   - Referance also https://github.com/ledgersmb/LedgerSMB/issues/2899 which 
   for the creation of a test in upstream that checks for such permission issues.
 
-- As of the packageing for 1.5.10, this is what is in the override_dh_fixperms
+- As of the packageing for 1.5.21, this is what is in the override_dh_fixperms
   stanza
 <-->dh_fixperms
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/sql/modules/reload_modules.sh
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/dbsetup.pl
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/drop-roles.pl
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/install_interactive.pl
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/pre-release-tests.sh
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/tools/starman.psgi
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/notify_short/config.pl
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/notify_short/listener.pl
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/process_queue/config.pl.default
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/process_queue/process_queue.pl
-<-->chmod +x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/utils/replication/configure-replication.sh
-<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/locale/html/splash.html
-<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/lib/LedgerSMB/Template/TXT.pm
-<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/lib/LedgerSMB/Template/HTML.pm
-<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/lib/LedgerSMB/Template/CSV.pm
-<-->chmod -x debian/ledgersmb-1.5/usr/share/ledgersmb-1.5/lib/LedgerSMB/Template/LaTeX.pm
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/sql/modules/reload_modules.sh
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/dbsetup.pl
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/drop-roles.pl
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/starman.psgi
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/config.pl
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/listener.pl
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/config.pl.default
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/process_queue.pl
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/replication/configure-replication.sh
+<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/html/splash.html
+<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/TXT.pm
+<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/HTML.pm
+<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/CSV.pm
+<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/LaTeX.pm
 
 -------------------------------------------------------------------------------
 https://github.com/ledgersmb/LedgerSMB/issues/2900
-Although Debian (and others) do now use systemd by default, it does still support sysvinit
-init.d scripts as well, so providing at least an example init.d sysvinit startup script
- for starman-ledgersmb would be quite useful.
+Although Debian (and others) do now use systemd by default, it does still
+support sysvinit init.d scripts as well, so providing at least an example
+init.d sysvinit startup script for starman-ledgersmb would be quite useful.
 
-- In the mean time, added an initial version of a possible version of the file,
+- In the mean time, added an initial version of an example of the file,
 which will need to be removed when it becomes available in upstream.
 (In order to test how it works, one needs to use something that has been
 changed to use sysvinit by default instead of systemd, which is the default
-on stretch and was also availalbe on jessie.)
+on stretch now and was also availalbe on jessie.)
 
 -------------------------------------------------------------------------------
     - debian/adm/config-lsmb-db-user.sh
@@ -110,50 +127,47 @@ user ID already exists, but not by default; would have to explicitly agree
 to it, each time, and that agreement isn't saved so the question gets asked
 each time and by default is not to do the reset.
 
-	- see also: admin user password change
+  - see also: admin user password change
 https://github.com/ledgersmb/LedgerSMB/issues/2717
 
 -----------------------------------------------------------------------------------
+      - Lintian results for 1.5.21-1~4 (UNRELEASED)
 
-I: ledgersmb: systemd-service-file-missing-documentation-key lib/systemd/system/starman-ledgersmb.service
+I: ledgersmb source: no-complete-debconf-translation
+  - https://lintian.debian.org/tags/no-complete-debconf-translation.html
+
+I: ledgersmb source: debian-rules-contains-unnecessary-get-orig-source-target
+  - https://www.google.com/search?q=debian-rules-contains-unnecessary-get-orig-source-target
+
+I: ledgersmb source: testsuite-autopkgtest-missing
+  - https://lintian.debian.org/tags/testsuite-autopkgtest-missing.html
+
+I: ledgersmb: systemd-service-file-missing-documentation-key lib/systemd/system/ledgersmb.service
+  - https://lintian.debian.org/tags/systemd-service-file-missing-documentation-key.html
+
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/UI/js-src/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/conf/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/conf/systemd/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/locale/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/sql/modules/README
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/sql/upgrade/README
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/notify_short/README
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/replication/README
+  - https://lintian.debian.org/tags/package-contains-documentation-outside-usr-share-doc.html
+
+N: 3 tags overridden (3 info)
 
 -----------------------------------------------------------------------------------
 https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=868724
-	- Project has totally moved from SourceForge.net, so debian/watch needs to be
+
+  - Project has totally moved from SourceForge.net, so debian/watch needed to be
 updated for the new locations of the distribution archive and its detached gpg file
 for verifiction. An update for getting the new archive itself appears to have been 
 successful but the *.asc associated with it used for the gpg verification does not 
-seem to get refereneced properly and so step fails.
+seem to get refereneced properly and so that step fails.
 
 -----------------------------------------------------------------------------------
-  - Use a separate source tarball for the UI/js directories?  Devs have discussed
-it some but nothing has come of it as yet. If it's provided, then a way to bypass
-all (330) source-is-missing lintian errors could be to use the multiple upstream
-tarballs functionality that's available in the debian pkg format being used.
-
-https://wiki.debian.org/Projects/DebSrc3.0
-https://raphaelhertzog.com/2010/09/07/how-to-use-multiple-upstream-tarballs-in-debian-source-packages/  
-
-google search: debian package multiple source files
-
-
-dcg_mx (3 Sep 2017)
-jame_mx: well, even if the underlying dojo version matched (unlikely unless multiple 
-versions can be installed and currently used easily)
-There is still the issue that we compile the payload using uglify for performance reasons.
-and it's not as simple as dojo being available already uglified.
-As that process is dependent on being run from within our codebase as it potentially 
-includes part of our code, and should exclude dojo elements that we don't use
-J
-jame_mx
-23:11
-dcg_mx: <shrug> I'll be looking at all that again when/if the dojo package in Debian 
-gets updated. (which reminds me; I need to check with them about what going on the 
-dojo pkg.
-
-
------------------------------------------------------------------------------------
-	- updating debconf po
+  - updating debconf po
 https://www.debian.org/doc/manuals/developers-reference/ch06.html#s6.5.2.2
 -----------------------------------------------------------------------------------
 - A debian/po debconf Japanese translation has been provided. Currently,
@@ -174,7 +188,7 @@ README.Debian
 been 'wkhtml2pdf'.
 
 -----------------------------------------------------------------------------------
-	- docomentation related changes that were done for legersmb-1.5 pkg:
+  - docomentation related changes that were done for legersmb-1.5 pkg:
 $ git ci -m "Add 'db-changes' to and also sort the debian/ledgersmb-1.5.docs file."
 $ git ci -m "Add a debian/ledgersmb-1.5.doc-base.coding-standard file."
 $ git ci -m "Add a debian/ledgersmb-1.5.doc-base.db-changes file."
@@ -197,11 +211,12 @@ https://metacpan.org/release/Config-Model-Systemd
   -> It's been in Debian since Stretch
   https://packages.debian.org/source/sid/libconfig-model-systemd-perl
 
-  - So if there is a need to do a debconf update for the service file, will
-  be able to do so.
+  - So if there is a need to do a debconf update for the service file, will it
+  be able to do so?
 - Being able to update the service file for the LSMB Starman port from the 
 postinstall script may be quite useful. Investigate?
+
 -----------------------------------------------------------------------------------
 
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 17 Nov 2017 10:06 -0500
+ -- Robert James Clay <jame@rocasa.us>  Thi, 12 Jul 2018 19:03 -0400
