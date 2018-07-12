@@ -1,0 +1,92 @@
+<?lsmb INCLUDE "ui-header.html"
+stylesheet="ledgersmb.css"
+include_stylesheet=["setup/stylesheet.css"] ?>
+<?lsmb PROCESS elements.html ?>
+<body id="setup-select-coa" class="lsmb <?lsmb dojo_theme ?>">
+<div class="setupconsole">
+<h2><?lsmb text('Database Management Console') ?></h2>
+<div class="listtop"><?lsmb title ?></div>
+<form data-dojo-type="lsmb/SimpleForm" action="setup.pl" method="POST" name="credentials">
+<?lsmb IF coa_lc;
+   INCLUDE input element_data = {
+        name = 'coa_lc'
+        type = 'hidden'
+       value = coa_lc
+   } ;
+END ?>
+<div class="inputrow">
+<?lsmb IF coa_lc;
+    INCLUDE select element_data = {
+         options = charts
+            name = 'chart'
+       text_attr = 'name'
+      value_attr = 'name'
+           label = text('Chart of accounts')
+    };
+    IF gifis.size > 0;
+-?>
+</div>
+<div class="inputrow">
+<?lsmb
+       INCLUDE select element_data = {
+         options = gifis
+            name = 'gifi'
+       text_attr = 'name'
+      value_attr = 'name'
+           label = text('GIFI')
+       };
+    END;
+    IF sics.size > 0;
+-?>
+</div>
+<div class="inputrow">
+<?lsmb
+       INCLUDE select element_data = {
+         options = sics
+            name = 'sic'
+       text_attr = 'name'
+      value_attr = 'name'
+           label = text('SIC')
+       };
+    END;
+ELSE;
+    INCLUDE select element_data = {
+         options = coa_lcs
+            name = 'coa_lc'
+       text_attr = 'code'
+      value_attr = 'code'
+           label = text('Country Code') #'
+    };
+END ?>
+</div>
+<div class="inputrow">
+<?lsmb INCLUDE input element_data = {
+    name = 'database'
+   value = database
+    type = 'hidden'
+} ?>
+</div>
+<div class="inputrow">
+<?lsmb INCLUDE button element_data = {
+    name = 'action'
+   value = 'select_coa'
+    type = 'submit'
+   class = 'submit'
+    text = text('Next')
+} ?>
+</div>
+<div class="inputrow">
+<?lsmb INCLUDE button element_data = {
+    name = 'action'
+   value = 'skip_coa'
+    type = 'submit'
+   class = 'submit'
+    text = text('Skip')
+} ?>
+</div>
+</div>
+</form>
+</div>
+</div>
+</body>
+</html>

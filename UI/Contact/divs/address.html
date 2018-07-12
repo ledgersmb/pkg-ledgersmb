@@ -1,0 +1,217 @@
+<div id="address_div"
+     title="<?lsmb text('Addresses') ?>"
+     data-dojo-type="dijit/layout/ContentPane"
+     <?lsmb IF request.target_div == 'address_div' ?>data-dojo-props="selected:true"<?lsmb END ?>
+     >
+    <div class="listtop"><?lsmb text('Locations') ?></div>
+        <!-- This entire form should probably be optionaly automated with AJAX
+        in order to prevent user confusion -CT -->
+    <form data-dojo-type="lsmb/Form" id="location_form" action="<?lsmb request.script ?>" method="post">
+<?lsmb PROCESS input element_data = {
+                type = "hidden"
+                name = "form_id"
+                value = form_id
+        } ?>
+<?lsmb PROCESS input element_data = {
+                type = "hidden"
+                name = "old_location_class"
+                value = request.location_class
+        } ?>
+<?lsmb PROCESS input element_data = {
+                type = "hidden"
+                name = "target_div"
+                value = 'location_div'
+        } ?>
+        <?lsmb PROCESS input element_data = {
+                type="hidden" 
+                name="entity_id" 
+                value=entity_id
+        } ?>
+        <?lsmb PROCESS input element_data = {
+                type="hidden" 
+                name="credit_id" 
+                value=credit_act.id
+        };
+    FOREACH LOC IN locations;
+        IF LOC.credit_id;
+           LOC.is_for_credit = 'X';
+        END;
+        IF LOC.location_class == 1;
+           LOC.type = text('Billing');
+        ELSIF LOC.location_class == 2;
+           LOC.type = text('Sales');
+        ELSIF LOC.location_class == 3;
+           LOC.type = text('Shipping');
+        END;
+        FOREACH CNTRY IN country_list;
+           IF LOC.country_id == CNTRY.id;
+              LOC.country = CNTRY.name;
+           END;
+        END;
+        LOC.edit = '[' _ text('Edit') _ ']';
+        LOC.delete= '[' _ text('Delete') _ ']';
+        base_suffix = "$request.script?entity_id=$entity_id&location_id=$LOC.id" _
+               "&credit_id=$credit_act.id&is_for_credit=$LOC.is_for_credit&target_div=address_div" _
+               "&location_class=$LOC.location_class";
+        LOC.edit_href_suffix= base_suffix _ '&action=edit';
+        LOC.delete_href_suffix= base_suffix _ '&action=delete_location';
+        IF LOC.id == request.location_id && request.action == 'edit';
+             DISPLAY = LOC;
+        END;
+    END; ?><?lsmb
+
+    FOREACH loc IN locations;
+         loc.address = loc.line_one;
+         IF loc.line_two;
+            loc.address = loc.address _ '<br />' _ loc.line_two;
+         END;
+         IF loc.line_three;
+            loc.address = loc.address _ '<br />' _ loc.line_three;
+         END;
+    END;
+
+    PROCESS dynatable 
+               tbody = {rows = locations}
+          attributes = {id = 'location_table'
+                       width = '100%'}
+             columns = [
+       {col_id = 'is_for_credit', type = 'text', name = text('This Account') } #'
+       {col_id = 'type', type = 'text', name=text('Type') }
+       {col_id = 'address', type='text', name=text('Address') }
+       {col_id = 'city', type='text', name=text('City') }
+       {col_id = 'state', type='text', name=text('State/Province') }
+       {col_id = 'mail_code', type='text', name=text('Zip/Post Code') } #'
+       {col_id = 'country', type='text', name=text('Country') }
+       {col_id = 'edit', type='href', name=' ', href_base='' }
+       {col_id = 'delete', type='href', name=' ', href_base='' } 
+    ];
+        PROCESS input element_data = {
+                type="hidden" 
+                name="location_id" 
+                value= DISPLAY.id
+        }; 
+       ?> <div data-dojo-type="lsmb/TabularForm" data-dojo-props="cols:1"><div>
+             <?lsmb IF credit_act.id;
+                    IF is_for_credit;
+                       attach_to = 3;
+                    ELSE; 
+                       attach_to = 1;
+                    END; 
+                       INCLUDE select element_data = {
+                          name            = "attach_to"
+                          id              = 'attach_address_to' 
+                          default_values  = [attach_to]
+                          options         = attach_level_options
+                          title = text('Attach To') #'
+                          label = "_none_"
+                       };
+                     ELSE ?>
+         </div>
+        <div> 
+             <label><?lsmb text('Attach to') ?></label><?lsmb text('Entity');
+                    END; ?>
+                <?lsmb INCLUDE select element_data = {
+                       name           = "location_class"
+                       default_values = [DISPLAY.location_class]
+                       options        = location_class_list
+                       text_attr      = "class"
+                       value_attr     = "id"
+                       title = text('Type')
+                       label = "_none_"
+                } ?>
+        </div>
+        <div> 
+                <?lsmb INCLUDE input element_data = {
+                        title = text('Address'),
+                        label = "_none_"
+                        name = "line_one",
+                        value = DISPLAY.line_one,
+                        type = "text",
+                        size = "20",
+                        required = 'true',
+                } ?>
+        </div>
+        <div> 
+                <?lsmb PROCESS input element_data = {
+                        name = "line_two"
+                        class = "addl-address"
+                        value = DISPLAY.line_two
+                        type = "text"
+                        size = "20"
+                } ?>
+        </div>
+        <div> 
+                <?lsmb PROCESS input element_data = {
+                        name = "line_three"
+                        class = "addl-address"
+                        value = DISPLAY.line_three
+                        type = "text"
+                        size = "20"
+                } ?>
+        </div>
+        <div> 
+                <?lsmb PROCESS input element_data = {
+                        title = text('City'),
+                        label = "_none_"
+                        name = "city",
+                        value = DISPLAY.city,
+                        type = "text",
+                        required = 'true',
+                        size = "20"
+                } ?>
+        </div>
+        <div> 
+                <?lsmb PROCESS input element_data = {
+                        title = text('State/Province'),
+                        label = "_none_"
+                        name = "state",
+                        value = DISPLAY.state,
+                        type = "text",
+                        size = "20"
+                } ?>
+        </div>
+        <div> 
+                <?lsmb PROCESS input element_data = {
+                        title = text('Zip/Post Code'),
+                        label = "_none_"
+                        name = "mail_code",
+                        value = DISPLAY.mail_code,
+                        type = "text",
+                        size = "20"
+                } #' ?>
+        </div>
+        <div> 
+                <?lsmb IF !country_id; country_id = default_country; END -?>
+                <?lsmb INCLUDE select element_data = {
+                        id = "address-country-select"
+                        text_attr = "name"
+                        value_attr = "id"
+                        default_values = [DISPLAY.country_id]
+                        options = country_list
+                        name = "country_id"
+                        title = text('Country') 
+                        label = "_none_"
+                        required = 'true'
+                } ?>
+        </div></div>
+        <div>
+             <?lsmb
+              IF request.location_class; 
+                PROCESS button element_data = {
+                class = "submit" 
+                name = "action" 
+                value = "save_location" 
+                id = "loc_save_location"
+                text = text('Save Location') #'
+                }; 
+              END; ?>
+             <?lsmb PROCESS button element_data = {
+                class = "submit" 
+                name = "action" 
+                value = "save_new_location" 
+                id = "loc_save_new_location"
+                text = text('Save New Location') 
+        } #' ?>
+        </div>
+    </form>
+</div>

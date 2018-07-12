@@ -1,0 +1,116 @@
+<?lsmb INCLUDE "ui-header.html"
+        stylesheet = stylesheet
+        include_stylesheet = [
+                "css/system/global.css"
+        ]
+        titlebar = text('Batch Selection'); #'
+PROCESS "elements.html";
+PROCESS 'report_base.html';
+
+IF search_type == 'drafts';
+   batch_classes = [
+       {},
+       { text = text('AP'), value = 'ap'},
+       { text = text('AR'), value = 'ar'},
+       { text = text('GL'), value = 'gl'},
+   ];
+   script = 'drafts.pl';
+   action = 'list_drafts';
+ELSE;
+   script = 'vouchers.pl';
+   action = 'list_batches';
+   FOR CLS IN batch_classes;
+       CLS.text = CLS.class;
+       CLS.value = CLS.id;
+   END;
+   batch_classes.unshift({});
+   SHOW_APPROVED=1;
+END;
+
+ ?>
+<body class="lsmb <?lsmb dojo_theme ?>">
+<form data-dojo-type="lsmb/Form"
+      action="<?lsmb script ?>"
+      method="get">
+<div class="listtop" id="title_div"><?lsmb text('Search Unapproved Transactions') ?></div>
+<div data-dojo-type="lsmb/TabularForm" data-dojo-props="cols:1">
+<div class="input" id="batch_class_div">
+        <?lsmb INCLUDE select element_data = {
+                title = text('Transaction Type') # '
+                options = batch_classes
+                value_attr = "value"
+                text_attr = "text"
+                name = "type"
+                default_values = [class_id]
+        } ?>
+</div>
+<!--
+Commenting this section out.  Does not seem to be used by API. -CT
+
+<div class="input" id="entered_by_div">
+        <?lsmb INCLUDE select element_data = {
+                title = text('Created By') # '
+                options = users
+                value_attr = "entity_id"
+                text_attr = "username"
+                name = "created_by_eid"
+                default_values = [created_by]
+        } ?></div> -->
+<?lsmb IF SHOW_APPROVED ?>
+<div class="input" id="approved_div">
+  <?lsmb INCLUDE input element_data = {
+          name="approved"
+          id="approved-1"
+          value="1"
+          title = text("Approved")
+          type="radio"
+   };
+   INCLUDE input element_data = {
+          name="approved"
+          id="approved-0"
+          value="0"
+          title = text("Unapproved")
+          type="radio"
+          checked="CHECKED"
+   }; ?>
+</div>
+<?lsmb END ?>
+<div class="input" id="reference_div">
+        <?lsmb INCLUDE input element_data = {
+                title = text('Reference') #'
+                size = 20
+                value = reference
+                name = "reference"
+        } ?>
+        </div>
+<div class="input" id="amounts_div">
+        <?lsmb INCLUDE input element_data = {
+                title = "Minimum Value"
+                name = "amount_gt"
+                class = "numeric"
+                size = 20
+                value = amount_gt
+                type = "text"
+        } ?>
+        <?lsmb INCLUDE input element_data = {
+                title = "Maximum Value"
+                name = "amount_lt"
+                value = amount_lt
+                size = 20
+                class = "numeric"
+                type = "text"
+        } ?>
+        </div>
+</div>
+<div class="input" id="buttons_div">
+        <?lsmb INCLUDE button element_data = {
+                text = text('Search')
+                name = "action"
+                value = action
+                class = "submit"
+                type = "submit"
+        } ?> </div>
+</form>
+</body>
+
+</html>
