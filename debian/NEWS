@@ -1,3 +1,28 @@
+ledgersmb (1.5.21+ds-1) unstable; urgency=medium
+
+  This represents the first upload to Debian of a LedgerSMB v1.5.x series
+  package.
+
+  The application now defaults to being made available on port 5762 and being
+  run directly by Starman instead of by Apache. If other access is needed, a
+  Reverse Proxy can be configured locally using Apache or Nginx or Lighttpd
+  or Varnish.
+
+  The default database adminitration user is now named "lsmb_dbadmin" instead
+  of the "ledgersmb" that it used to be in order to better match up with the
+  application. This might only be a possible issue when upgrading an existing
+  installation from a version previous to LedgerSMB v1.5.x.
+
+  The service file is named 'ledgersmb.service' after the package rather than
+  as 'starman-ledgersmb.service' as it is in upstream.
+
+  To differeniate from upstream the default value for the 'cookie_name' in the
+  ledgersmb.conf file was changed from "LedgerSMB-1.5" to "LedgerSMB-1.5-ds".
+
+  For more information, please see /usr/share/doc/ledgersmb/README.Debian.
+
+ -- Robert James Clay <jame@rocasa.us>  Thu, 12 Jul 2018 19:40:53 -0400
+
 ledgersmb (1.4.30+ds-1) unstable; urgency=medium
 
   This represents the first upload to Debian of a LedgerSMB v1.4.x series
