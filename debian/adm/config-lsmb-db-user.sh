@@ -1,7 +1,7 @@
 #!/bin/bash
 # Configure the LedgerSMB database administrator user 
 #
-# Copyright (C) 2015 Robert James Clay <jame@rocasa.us>
+# Copyright (C) 2015-2017 Robert James Clay <jame@rocasa.us>
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
