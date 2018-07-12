@@ -1,4 +1,0 @@
-//>>built
-define("lsmb/DateTextBox",["dijit/form/DateTextBox","dojo/date/locale","dojo/_base/declare"],function(c,d,e){var b=/^\d\d\d\d-\d\d-\d\d$/;return e("lsmb/DateTextBox",[c],{_formattedValue:null,constructor:function(a,b){this._formattedValue=b.value;a.constraints||(a.constraints={});a.constraints.datePattern||(a.constraints.datePattern=lsmbConfig.dateformat.replace(/mm/,"MM"));a.placeholder||(a.placeholder=lsmbConfig.dateformat);this.inherited(arguments)},postMixInProperties:function(){this.inherited(arguments);
-if(this._formattedValue&&(!this.value||!b.test(this.value)))this.value=this.parse(this._formattedValue,this.constraints)},parse:function(a,c){return!b.test(a)?this.inherited(arguments):d.parse(a,{datePattern:"yyyy-MM-dd",selector:"date"})}})});
-//# sourceMappingURL=DateTextBox.js.map

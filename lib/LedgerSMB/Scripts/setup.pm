@@ -301,11 +301,11 @@ sub copy_db {
     my $rc = $database->copy($request->{new_name})
            || die 'An error occurred. Please check your database logs.' ;
     my $dbh = LedgerSMB::Database->new(
-           {%$database, (company_name => $request->{new_name})}
+           +{%$database, (dbname => $request->{new_name})}
     )->connect({ PrintError => 0, AutoCommit => 0 });
     $dbh->prepare("SELECT setting__set('role_prefix',
                                coalesce((setting_get('role_prefix')).value, ?))"
-    )->execute("lsmb_$database->{company_name}__");
+    )->execute("lsmb_$database->{dbname}__");
     $dbh->commit;
     $dbh->disconnect;
     complete($request);
@@ -364,17 +364,7 @@ sub run_backup {
     my $mimetype;
 
     if ($request->{backup} eq 'roles'){
-       my @t = localtime(time);
-       $t[4]++;
-       $t[5] += 1900;
-       $t[3] = substr( "0$t[3]", -2 );
-       $t[4] = substr( "0$t[4]", -2 );
-       my $date = "$t[5]-$t[4]-$t[3]";
-
-       $backupfile = $database->backup_globals(
-                      tempdir => $LedgerSMB::Sysconfig::backupdir,
-                         file => "roles_${date}.sql"
-       );
+       $backupfile = $database->backup_globals;
        $mimetype   = 'text/x-sql';
     } elsif ($request->{backup} eq 'db'){
        $backupfile = $database->backup;
@@ -411,9 +401,9 @@ sub run_backup {
         $template->render($request);
     } elsif ($request->{backup_type} eq 'browser'){
         binmode(STDOUT, ':bytes');
-        open BAK, '<', $backupfile;
+        open BAK, '<', $backupfile
+            or die "failed to open backup file $backupfile $!";
         my $cgi = CGI::Simple->new();
-        $backupfile =~ s/$LedgerSMB::Sysconfig::backuppath(\/)?//;
         print $cgi->header(
           -type       => $mimetype,
           -status     => '200',
@@ -663,7 +653,7 @@ sub upgrade {
     $request->{dbh}->{AutoCommit} = 0;
     my $locale = $request->{_locale};
 
-    for my $check (_applicatble_upgrade_tests($dbinfo)) {
+    for my $check (_applicable_upgrade_tests($dbinfo)) {
         if ( $check->selectable_values ) {
             my $sth = $request->{dbh}->prepare($check->selectable_values);
             $sth->execute()
@@ -875,9 +865,13 @@ sub select_coa {
         if ($request->{chart}){
            my $database = _get_database($request);
 
-           $database->load_coa( {
+            $database->load_coa(
+                {
                country => $request->{coa_lc},
-               chart => $request->{chart} });
+                    chart => $request->{chart},
+                    gifi => $request->{gifi},
+                    sic => $request->{sic}
+                });
 
            template_screen($request);
            return;
@@ -888,6 +882,25 @@ sub select_coa {
                 sort(grep !/^(\.|[Ss]ample.*)/,
                       readdir(CHART));
             closedir(CHART);
+
+            opendir(GIFI, "sql/coa/$request->{coa_lc}/gifi");
+            @{$request->{gifis}} =
+                map +{ name => $_ },
+                sort(grep !/^(\.|[Ss]ample.*)/,
+                      readdir(GIFI));
+            closedir(GIFI);
+
+            if (-e "sql/coa/$request->{coa_lc}/sic") {
+                opendir(SIC, "sql/coa/$request->{coa_lc}/sic");
+                @{$request->{sics}} =
+                    map +{ name => $_ },
+                    sort(grep !/^(\.|[Ss]ample.*)/,
+                         readdir(SIC));
+                closedir(SIC);
+            }
+            else {
+                @{$request->{sics}} = ();
+            }
        }
     } else {
         #COA Directories
@@ -989,7 +1002,7 @@ Saves the administrative user, and then directs to the login page.
 
 sub save_user {
     my ($request) = @_;
-    $request->requires(qw(first_name last_name ssn employeenumber));
+    $request->requires(qw(first_name last_name employeenumber));
     $request->{entity_class} = 3;
     $request->{name} = "$request->{last_name}, $request->{first_name}";
     use LedgerSMB::Entity::Person::Employee;
@@ -1106,7 +1119,7 @@ sub process_and_run_upgrade_script {
     $dbtemplate->render($request);
     $database->run_file(
         file =>  $LedgerSMB::Sysconfig::tempdir . "/upgrade.sql",
-        log => $temp . "_stdout",
+        stdout_log => $temp . "_stdout",
         errlog => $temp . "_stderr"
         );
 

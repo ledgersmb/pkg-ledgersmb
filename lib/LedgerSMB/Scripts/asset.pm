@@ -403,7 +403,7 @@ sub display_report {
    my $rows = [];
    my $hiddens = {};
    my $count = 0;
-   for my $asset (@{$request->{assets}}){
+   for my $asset (@{$report->{assets}}){
        push @$rows,
             { select         => {input => { name    => "asset_$count",
                                             checked => $asset->{checked},
@@ -427,6 +427,12 @@ sub display_report {
                                             class => 'amount',
                                             value => $request->{"amount_$asset->{id}"},
                                             size  => 20,
+                                            # requiring proceeds works around
+                                            # a problem of NULL amounts ending
+                                            # up in the database, resulting in
+                                            # approval trying to post NULL into
+                                            # the amount field in the gl table
+                                            required => 1,
                                           },
                                 },
               percent        => {input => { name  => "percent_$asset->{id}",
@@ -536,7 +542,10 @@ sub report_results {
                      total => $locale->text('Total'),
     };
     my $rows = [];
-    my $hiddens = {};
+    my $hiddens = {
+        gain_acct => $request->{gain_acct},
+        loss_acct => $request->{loss_acct},
+    };
     my $count = 0;
     my $base_href = "asset.pl?action=report_details&".
                      "expense_acct=$ar->{expense_acct}";
@@ -566,7 +575,7 @@ sub report_results {
                total          => $r->{total}->to_output(money => 1),
         };
         for my $ac (@{$ar->{asset_classes}}){
-            if ($ac->{id} = $r->{asset_class}){
+            if ($ac->{id} == $r->{asset_class}){
                 $ref->{asset_class} = $ac->{label};
             }
         }
@@ -584,7 +593,7 @@ sub report_results {
                    type  => 'submit',
                    class => 'submit',
                    name  => 'action',
-                   value => 'approve'
+                   value => 'report_results_approve'
                    },
     ];
     my $template = LedgerSMB::Template->new(
@@ -599,7 +608,7 @@ sub report_results {
          heading => $header,
          rows    => $rows,
          columns => $cols,
-         hiddens  => $request,
+         hiddens  => $hiddens,
         buttons  => $buttons,
    });
 }
@@ -662,14 +671,14 @@ sub report_details {
                    type  => 'submit',
                    class => 'submit',
                    name =>  'action',
-                   value => 'approve'
+                   value => 'report_details_approve'
                    },
     ];
     $template->render({form => $report,
                     columns => \@cols,
                     heading => $header,
                        rows => $rows,
-                    hiddens => $report,
+                    hiddens => { id => $report->{id} },
                     buttons => $buttons
     });
 }
@@ -730,14 +739,17 @@ sub partial_disposal_details {
                    type  => 'submit',
                    class => 'submit',
                    name =>  'action',
-                   value => 'approve'
+                   value => 'disposal_details_approve'
                    },
     ];
     $template->render({form => $report,
                     columns => \@cols,
                     heading => $header,
                        rows => $rows,
-                    hiddens => $report,
+                    hiddens => { id => $report->{id},
+                          gain_acct => $report->{gain_acct},
+                          loss_acct => $report->{loss_acct},
+                               },
                     buttons => $buttons
     });
 }
@@ -794,14 +806,17 @@ sub disposal_details {
                    type  => 'submit',
                    class => 'submit',
                    name =>  'action',
-                   value => 'approve'
+                   value => 'disposal_details_approve'
                    },
     ];
     $template->render({form => $report,
                     columns => \@cols,
                     heading => $header,
                        rows => $rows,
-                    hiddens => $report,
+                    hiddens => { id => $report->{id},
+                          gain_acct => $report->{gain_acct},
+                          loss_acct => $report->{loss_acct},
+                               },
                     buttons => $buttons
     });
 }

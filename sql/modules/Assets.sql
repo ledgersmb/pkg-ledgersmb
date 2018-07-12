@@ -92,7 +92,7 @@ $$
                   coalesce(sum(l.amount), 0)),
             ai.department_id, ai.location_id
        FROM asset_item ai
-  LEFT JOIN asset_report_line l ON (l.asset_id = ai.id)
+  LEFT JOIN asset_report_line l ON (l.asset_id = ai.id and l.amount > 0)
   LEFT JOIN asset_report r ON (l.report_id = r.id)
       WHERE ai.id = ANY($1)
    GROUP BY ai.id, ai.start_depreciation, ai.purchase_date, ai.purchase_value,
@@ -127,7 +127,7 @@ $$
                   coalesce(sum(l.amount), 0)),
             ai.department_id, ai.location_id
        FROM asset_item ai
-  LEFT JOIN asset_report_line l ON (l.asset_id = ai.id)
+  LEFT JOIN asset_report_line l ON (l.asset_id = ai.id and l.amount > 0)
   LEFT JOIN asset_report r ON (l.report_id = r.id)
       WHERE ai.id = ANY($1)
    GROUP BY ai.id, ai.start_depreciation, ai.purchase_date, ai.purchase_value,
@@ -168,7 +168,7 @@ $$
                   coalesce(sum(l.amount), 0)),
             ai.department_id, ai.location_id
        FROM asset_item ai
-  LEFT JOIN asset_report_line l ON (l.asset_id = ai.id)
+  LEFT JOIN asset_report_line l ON (l.asset_id = ai.id and l.amount > 0)
   LEFT JOIN asset_report r ON (l.report_id = r.id)
       WHERE ai.id = ANY($1)
    GROUP BY ai.id, ai.start_depreciation, ai.purchase_date, ai.purchase_value,
@@ -195,7 +195,9 @@ DECLARE
 Begin
         INSERT INTO gl (reference, description, transdate, approved)
         SELECT setting_increment('glnumber'), 'Asset Report ' || asset_report.id,
-                report_date, false
+                report_date,
+                coalesce((select value::boolean from defaults
+                           where setting_key = 'debug_fixed_assets'), true)
         FROM asset_report
         JOIN asset_report_line
                 ON (asset_report.id = asset_report_line.report_id)
@@ -230,7 +232,8 @@ COMMENT ON FUNCTION asset_report__generate_gl
 (in_report_id int, in_accum_account_id int) IS
 $$ Generates a GL transaction when the Asset report is approved.
 
-Currently this creates GL drafts, not approved transctions
+Create approved transactions, unless the value of the setting_key
+'debug_fixed_assets' evaluates to false
 $$;
 
 CREATE OR REPLACE FUNCTION asset_class__get (in_id int) RETURNS asset_class AS
@@ -665,7 +668,10 @@ $$
      FROM asset_item ai
      JOIN asset_class ac ON (ai.asset_class_id = ac.id)
      JOIN asset_dep_method adm ON (adm.id = ac.method)
-LEFT JOIN asset_report_line rl ON (ai.id = rl.asset_id)
+LEFT JOIN (select arl.*
+             from asset_report_line arl
+             join asset_report ar on arl.report_id = ar.id
+            where approved_at is not null) rl ON (ai.id = rl.asset_id)
 LEFT JOIN asset_report r on (rl.report_id = r.id)
     WHERE r.id IS NULL OR r.approved_at IS NOT NULL
  GROUP BY ai.id, ai.tag, ai.description, ai.start_depreciation, ai.purchase_date,

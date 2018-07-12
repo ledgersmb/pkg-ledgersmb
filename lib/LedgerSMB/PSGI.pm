@@ -29,6 +29,20 @@ use Try::Tiny;
 
 use CGI::Emulate::PSGI;
 
+use English qw(-no_match_vars);
+if ($EUID == 0) {
+    die join("\n",
+        'Running a Web Service as root is a security problem',
+        'If you are starting LedgerSMB as a system service',
+        'please make sure that you drop privlidges as per README.md',
+        'and the example files in conf/',
+        'This makes it difficult to run on a privlidged port (<1024)',
+        'In theory you can pass the --user argument to starman,',
+        'However starman drops privlidges too late, starting us as root.'
+        );
+}
+
+
 local $@; # localizes just for initial load.
 eval { require LedgerSMB::Template::LaTeX; };
 $ENV{GATEWAY_INTERFACE}="cgi/1.1";
@@ -99,18 +113,22 @@ sub new_app {
 
 sub _run_old {
     if (my $cpid = fork()){
-       wait;
+       waitpid $cpid, 0;
     } else {
-        local ($!, $@);
-        my $do_ = 'bin/old-handler.pl';
-        unless ( do $do_ ) {
-            if ($! or $@) {
-                print "Status: 500 Internal server error (PSGI.pm)\n\n";
-                warn "Failed to execute $do_ ($!): $@\n";
+        # We need a 'try' block here to prevent errors being thrown in
+        # the inner block from escaping out of the block and missing
+        # the 'exit' below.
+        try {
+            local ($!, $@);
+            my $do_ = 'bin/old-handler.pl';
+            unless ( do $do_ ) {
+                if ($! or $@) {
+                    print "Status: 500 Internal server error (PSGI.pm)\n\n";
+                    warn "Failed to execute $do_ ($!): $@\n";
+                }
             }
-        }
-
-       exit;
+        };
+        exit;
     }
 }
 

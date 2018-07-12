@@ -11,6 +11,7 @@ use Config;
 use Config::IniFiles;
 use DBI qw(:sql_types);
 use English qw(-no_match_vars);
+use File::Path qw(make_path);
 
 binmode STDOUT, ':utf8';
 binmode STDERR, ':utf8';
@@ -434,30 +435,11 @@ our $log4perl_config = qq(
 
 
 if(!(-d LedgerSMB::Sysconfig::tempdir())){
-     my $rc;
-     if ($Config{path_sep} eq ';'){ # We need an actual platform configuration variable
-         $rc = system("mkdir " . LedgerSMB::Sysconfig::tempdir());
-     } else {
-         $rc=system("mkdir -p " . LedgerSMB::Sysconfig::tempdir());
-     #$logger->info("created tempdir \$tempdir rc=\$rc"); log4perl not initialised yet!
-     }
+    make_path(LedgerSMB::Sysconfig::tempdir())
+        or die 'failed to create temporary directory ' . LedgerSMB::Sysconfig::tempdir() . " $!";
 }
 
 sub check_permissions {
-    use English qw(-no_match_vars);
-
-    if($EUID == 0){
-        die_pretty( "Running a Web Service as root is a security problem",
-                    "If you are starting LedgerSMB as a system service",
-                    "please make sure that you drop privlidges as per README.md",
-                    "and the example files in conf/",
-                    "This makes it difficult to run on a privlidged port (<1024)",
-                    "In theory you can pass the --user argument to starman,",
-                    "However starman drops privlidges too late, starting us as root."
-        )
-    }
-
-
     my $tempdir = LedgerSMB::Sysconfig::tempdir();
     # commit 6978b88 added this line to resolve issues if HOME isn't set
     $ENV{HOME} = $tempdir;

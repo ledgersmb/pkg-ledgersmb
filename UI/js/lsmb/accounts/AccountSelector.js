@@ -1,3 +1,0 @@
-//>>built
-define("lsmb/accounts/AccountSelector",["dijit/form/FilteringSelect","dojo/_base/declare","lsmb/accounts/AccountRestStore"],function(a,b,c){return new b("lsmb/accounts/AccountSelector",[a],{store:c,queryExpr:"*${0}*",style:"width: 300px",highlightMatch:"all",searchAttr:"label",labelAttr:"label",autoComplete:!1,initialValue:null,constructor:function(){this.inherited(arguments);this.initialValue=arguments[0].value}})});
-//# sourceMappingURL=AccountSelector.js.map

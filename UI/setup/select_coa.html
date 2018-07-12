@@ -6,7 +6,7 @@ include_stylesheet=["setup/stylesheet.css"] ?>
 <div class="setupconsole">
 <h2><?lsmb text('Database Management Console') ?></h2>
 <div class="listtop"><?lsmb title ?></div>
-<form data-dojo-type="dijit/form/Form" action="setup.pl" method="POST" name="credentials">
+<form data-dojo-type="lsmb/SimpleForm" action="setup.pl" method="POST" name="credentials">
 <?lsmb IF coa_lc;
    INCLUDE input element_data = {
         name = 'coa_lc'
@@ -23,6 +23,32 @@ END ?>
       value_attr = 'name'
            label = text('Chart of accounts')
     };
+    IF gifis.size > 0;
+-?>
+</div>
+<div class="inputrow">
+<?lsmb
+       INCLUDE select element_data = {
+         options = gifis
+            name = 'gifi'
+       text_attr = 'name'
+      value_attr = 'name'
+           label = text('GIFI')
+       };
+    END;
+    IF sics.size > 0;
+-?>
+</div>
+<div class="inputrow">
+<?lsmb
+       INCLUDE select element_data = {
+         options = sics
+            name = 'sic'
+       text_attr = 'name'
+      value_attr = 'name'
+           label = text('SIC')
+       };
+    END;
 ELSE;
     INCLUDE select element_data = {
          options = coa_lcs

@@ -290,10 +290,8 @@ qq|<option value="$ref->{partsgroup}--$ref->{id}">$ref->{partsgroup}\n|;
         }
         my $moneyplaces = LedgerSMB::Setting->get('decimal_places');
         $dec = length $dec;
-        $dec ||= $moneyplaces;
-        $form->{"precision_$i"} ||= $dec;
-        $dec =  $form->{"precision_$i"};
         $decimalplaces = ( $dec > $moneyplaces ) ? $dec : $moneyplaces;
+        $form->{"precision_$i"} = $decimalplaces;
 
         # undo formatting
         for (qw(qty oldqty ship discount sellprice)) {
@@ -1303,24 +1301,12 @@ sub print_form {
 
     &{"$form->{vc}_details"};
 
-    my @vars = ();
-
     $form->{parts_id} = [];
     foreach $i ( 1 .. $form->{rowcount} ) {
-        push @vars,
-          (
-            "partnumber_$i",    "description_$i",
-            "projectnumber_$i", "partsgroup_$i",
-            "serialnumber_$i",  "bin_$i",
-            "unit_$i",          "notes_$i",
-            "image_$i",         "id_$i"
-          );
           push @{$form->{parts_id}}, $form->{"id_$i"};
     }
-    for ( split / /, $form->{taxaccounts} ) { push @vars, "${_}_description" }
 
     $ARAP = ( $form->{vc} eq 'customer' ) ? "AR" : "AP";
-    push @vars, $ARAP;
 
     # format payment dates
     for my $i ( 1 .. $form->{paidaccounts} - 1 ) {
@@ -1329,11 +1315,7 @@ sub print_form {
               $locale->date( \%myconfig, $form->{"datepaid_$i"},
                 $form->{longformat} );
         }
-
-        push @vars, "${ARAP}_paid_$i", "source_$i", "memo_$i";
     }
-
-    $form->format_string(@vars);
 
     ( $form->{employee} ) = split /--/, $form->{employee};
     ( $form->{warehouse}, $form->{warehouse_id} ) = split /--/,
@@ -1378,7 +1360,7 @@ sub print_form {
               $locale->date( \%myconfig, $form->{$_}, $form->{longformat} );
         }
     }
-    @vars =
+    my @vars =
       qw(name address1 address2 city state zipcode country contact phone fax email);
 
     $shipto = 1;
@@ -1405,12 +1387,6 @@ sub print_form {
             }
         }
     }
-
-    # some of the stuff could have umlauts so we translate them
-    push @vars,
-      qw(contact shiptoname shiptoaddress1 shiptoaddress2 shiptocity shiptostate shiptozipcode shiptocountry shiptocontact shiptoemail shippingpoint shipvia notes intnotes employee warehouse);
-
-    push @vars, ( "${inv}number", "${inv}date", "${due}date" );
 
     $form->{address} =~ s/\\n/\n/g;
 
@@ -1527,8 +1503,6 @@ sub print_form {
 
         $old_form->{queued} = $form->{queued};
     }
-
-    $form->format_string( "email", "cc", "bcc" );
 
     $form->{fileid} = $form->{"${inv}number"};
     $form->{fileid} =~ s/(\s|\W)+//g;
@@ -1685,7 +1659,7 @@ sub ship_to {
                               <input name=shiptolocationid_$i type="hidden" value="$form->{"shiptolocationid_$i"}" readonly>
                               <td><input data-dojo-type="dijit/form/TextBox" name=shiptoaddress1_$i size=12 maxlength=64 id="ad1_$i" value="$form->{"shiptoaddress1_$i"}" readonly></td>
                               <td><input data-dojo-type="dijit/form/TextBox" name=shiptoaddress2_$i size=12 maxlength=64 id="ad2_$i" value="$form->{"shiptoaddress2_$i"}" readonly></td>
-                              <td><input data-dojo-type="dijit/form/TextBox" name=shiptoaddress3_$i size=12 maxlength=64 id="ad2_$i" value="$form->{"shiptoaddress3_$i"}" readonly></td>
+                              <td><input data-dojo-type="dijit/form/TextBox" name=shiptoaddress3_$i size=12 maxlength=64 id="ad3_$i" value="$form->{"shiptoaddress3_$i"}" readonly></td>
                               <td><input data-dojo-type="dijit/form/TextBox" name=shiptocity_$i size=8 maxlength=32 id="ci_$i" value="$form->{"shiptocity_$i"}" readonly></td>
                               <td><input data-dojo-type="dijit/form/TextBox" name=shiptostate_$i size=10 maxlength=32 id="st_$i" value="$form->{"shiptostate_$i"}" readonly></td>
                               <td><input data-dojo-type="dijit/form/TextBox" name=shiptozipcode_$i size=8 maxlength=10 id="zi_$i" value="$form->{"shiptozipcode_$i"}" readonly></td>

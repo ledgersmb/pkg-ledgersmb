@@ -1,4 +1,0 @@
-//>>built
-define("lsmb/Form","dijit/form/Form dojo/_base/declare dojo/_base/event dojo/on dojo/hash dojo/dom-attr dojo/dom-form dojo/query dijit/registry".split(" "),function(e,f,g,h,k,l,d,m,n){return f("lsmb/Form",[e],{clickedAction:null,startup:function(){var a=this;this.inherited(arguments);m('input[type\x3d"submit"]',this.domNode).forEach(function(b){h(b,"click",function(){a.clickedAction=l.get(b,"value")})})},onSubmit:function(a){g.stop(a);this.submit()},submit:function(){if(this.validate()){var a="undefined"===
-typeof this.method?"GET":this.method,b=this.action,c={handleAs:"text"};"get"===a.toLowerCase()?(a=d.toQuery(this.domNode),a="action\x3d"+this.clickedAction+"\x26"+a,k(b+"?"+a)):(c.method=a,"multipart/form-data"==this.domNode.enctype?(c.data=new FormData(this.domNode),c.data.append("action",this.clickedAction)):c.data="action\x3d"+this.clickedAction+"\x26"+d.toQuery(this.domNode),n.byId("maindiv").load_form(b,c))}}})});
-//# sourceMappingURL=Form.js.map
