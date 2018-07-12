@@ -1,4 +1,4 @@
-ledgersmb (1.5.21+ds-1~2) UNRELEASED; urgency=low
+ledgersmb (1.5.21+ds-1~4) UNRELEASED; urgency=low
 
   * TODO:
     + Adapt package for the new 1.5.x series upstream.
@@ -28,6 +28,7 @@ ledgersmb (1.5.21+ds-1~2) UNRELEASED; urgency=low
     + Update 'Files-Excluded' in debian/copyright related to the embedded dojo
       files to reflect the new version 1.5.x series upstream.
   * Changes in debian/control:
+    + Include 'liblocale-codes-perl' package as a Depends. (Closes: #903273)
     + Change debhelper Build-Depends from '>= 9' to '>= 9.20160709'.
     + Include as 'Depends': libmoosex-nonmoose-perl, libcgi-emulate-psgi-per',
       libplack-builder-conditionals-perl.
@@ -46,7 +47,7 @@ ledgersmb (1.5.21+ds-1~2) UNRELEASED; urgency=low
     + Update the example URL in the admin_password stanza.
     + Drop the debconf_install stanza but add a lsmb_proxy stanza.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 11 Jul 2018 17:03:40 -0400
+ -- Robert James Clay <jame@rocasa.us>  Wed, 11 Jun 2018 19:57:15 -0400
 
 ledgersmb (1.4.42+ds-2) unstable; urgency=medium
 
