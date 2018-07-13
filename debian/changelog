@@ -1,15 +1,13 @@
-ledgersmb (1.5.21+ds-1~4) UNRELEASED; urgency=low
+ledgersmb (1.5.21+ds-1) unstable; urgency=medium
 
-  * TODO:
-    + Adapt package for the new 1.5.x series upstream.
   * New series 1.5.x Upstream Release (Closes: #874664)
     + Along with an explicit requirement for liblatex-driver-perl >= 0.300.2,
       resolves the issue with printing to PDF or Postscript. (Closes: #821251)
   * Updated the debian/po/* files using 'debconf-updatepo'.
+  * Rewrote the debian/ledgersmb.config file for new upstream.
   * Add '--with systemd' to dh invocation line in debian/rules
   * Adapt the maintainer scripts for the new 1.5.x series upstream.
   * Add a debian/ledgersmb.init and a debian/ledgersmb.default file.
-  * Rewrote the debian/ledgersmb.config file for new upstream package.
   * Removed debian/adm/apache-vhost.conf as the file itself is now in upstream.
   * Rewrite and/or rename or delete debian/patches/* for new upstream version.
   * Add capability to select setting for Web Proxy to use during installation.
@@ -47,7 +45,7 @@ ledgersmb (1.5.21+ds-1~4) UNRELEASED; urgency=low
     + Update the example URL in the admin_password stanza.
     + Drop the debconf_install stanza but add a lsmb_proxy stanza.
 
- -- Robert James Clay <jame@rocasa.us>  Wed, 11 Jun 2018 19:57:15 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 12 Jul 2018 19:38:40 -0400
 
 ledgersmb (1.4.42+ds-2) unstable; urgency=medium
 
