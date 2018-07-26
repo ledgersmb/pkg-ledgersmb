@@ -4,10 +4,10 @@
 #
 # Changes:
 # - Initial translation
-# Camaleón <noelamac@gmail.com>, 2012
+# 	Camaleón <noelamac@gmail.com>, 2012
 #
 # - Updates
-#
+#	Jonatan Porras <jonatanpc8@gmail.com>, 2018
 #
 # Traductores, si no conocen el formato PO, merece la pena leer la
 # documentación de gettext, especialmente las secciones dedicadas a este
@@ -49,11 +49,6 @@ msgstr "Nombre del usuario administrador de la base de datos:"
 #. Type: string
 #. Description
 #: ../templates:2001
-#, fuzzy
-#| msgid ""
-#| "Please enter the login of the LedgerSMB database administrative user. "
-#| "This login is needed for the administrative web user interface, typically "
-#| "at http://localhost/ledgersmb/setup.pl."
 msgid ""
 "Please enter the login of the LedgerSMB database administrative user. This "
 "login is needed for the administrative web user interface, typically at "
@@ -61,7 +56,7 @@ msgid ""
 msgstr ""
 "Introduzca el nombre del usuario administrador de la base de datos de "
 "LedgerSMB. Este usuario es necesario para el acceso como administrador a la "
-"interfaz web, disponible en «http://localhost/ledgersmb/setup.pl»."
+"interfaz web, disponible en http://localhost:5762/setup.pl."
 
 #. Type: password
 #. Description
@@ -72,11 +67,6 @@ msgstr "Contraseña del usuario administrador de la base de datos:"
 #. Type: password
 #. Description
 #: ../templates:3001
-#, fuzzy
-#| msgid ""
-#| "Please enter the password of the LedgerSMB database administrative user. "
-#| "This password is needed for the administrative web user interface, "
-#| "typically at http://localhost/ledgersmb/setup.pl."
 msgid ""
 "Please enter the password of the LedgerSMB database administrative user. "
 "This password is needed for the administrative web user interface, typically "
@@ -84,13 +74,13 @@ msgid ""
 msgstr ""
 "Introduzca la contraseña del usuario administrador de la base de datos de "
 "LedgerSMB. Esta contraseña es necesaria para el acceso como administrador a "
-"la interfaz web, disponible en «http://localhost/ledgersmb/setup.pl»."
+"la interfaz web, disponible en http://localhost:5762/setup.pl."
 
 #. Type: select
 #. Description
 #: ../templates:4001
 msgid "Web Reverse Proxy to configure?"
-msgstr ""
+msgstr "¿Proxy inverso web para configurar?"
 
 #. Type: select
 #. Description
@@ -102,45 +92,35 @@ msgid ""
 "can leave the choice as None if it is not needed or if the web proxy will be "
 "set up remotely."
 msgstr ""
+"La aplicación LedgerSMB ahora está predeterminada para estar disponible en el puerto 5762, "
+"y ser ejecutado directamente por Starman. Si se necesita otro acceso, un proxy inverso "
+"puede ser configurado usando Apache o Nginx o Lighttpd o Varnish, o usted"
+"puede dejar la opción como Ninguno si no es necesario o si el proxy web se configura"
+"de forma remota."
 
 #. Type: select
 #. Description
 #: ../templates:4001
-#, fuzzy
-#| msgid ""
-#| "More general information about the initial configuration of the "
-#| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
 msgid ""
 "For more details, please see the Web Proxy section that can be found in the /"
 "usr/share/doc/ledgersmb/README.Debian file."
 msgstr ""
-"Puede encontrar información general sobre la configuración inicial de la "
-"aplicación en el archivo «/usr/share/doc/ledgersmb/README.Debian»."
+"Para obtener más detalles, consulte la sección Proxy web que se puede encontrar en el "
+"archivo /usr/share/doc/ledgersmb/README.Debian"
 
-#, fuzzy
-#~| msgid "Configure LedgerSMB automatically?"
 #~ msgid "Configure LedgerSMB Database administrative user automatically?"
-#~ msgstr "¿Desea configurar LedgerSMB automáticamente?"
+#~ msgstr "¿Desea configurar el usuario administrador de la base de datos LedgerSMB automáticamente?"
 
-#, fuzzy
-#~| msgid ""
-#~| "The configuration program for the package can automatically configure "
-#~| "some aspects of LedgerSMB, such as the LedgerSMB database user."
 #~ msgid ""
 #~ "The configuration program for the package can automatically configure the "
 #~ "LedgerSMB database user. Enable if you want to do that, disable if not."
 #~ msgstr ""
-#~ "El asistente de configuración de este paquete permite configurar "
-#~ "automáticamente algunos aspectos de LedgerSMB, como el usuario de la base "
-#~ "de datos de LedgerSMB."
+#~ "El asistente de configuración de este paquete permite configurar automáticamente"
+#~ "el usuario de la base de datos ledgerSMB. Activar si desea hacerlo, deshabilitar si no."
 
-#, fuzzy
-#~| msgid ""
-#~| "More general information about the initial configuration of the "
-#~| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
 #~ msgid ""
 #~ "More information about the configuration of the database administrative "
 #~ "user can be found in /usr/share/doc/ledgersmb/README.Debian."
 #~ msgstr ""
-#~ "Puede encontrar información general sobre la configuración inicial de la "
-#~ "aplicación en el archivo «/usr/share/doc/ledgersmb/README.Debian»."
+#~ "Más información sobre la configuración del usuario administrador "
+#~ "de la base de datos en /usr/share/doc/ledgersmb/README.Debian."
