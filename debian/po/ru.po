@@ -1,22 +1,22 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the ledgersmb package.
 #
-# Yuri Kozlov <yuray@komyakino.ru>, 2012.
+# Yuri Kozlov <yuray@komyakino.ru>, 2012, 2018.
 msgid ""
 msgstr ""
-"Project-Id-Version: ledgersmb 1.3.15-3\n"
+"Project-Id-Version: ledgersmb 1.5.21+ds-1\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
 "POT-Creation-Date: 2018-03-23 21:01-0400\n"
-"PO-Revision-Date: 2012-06-08 20:14+0400\n"
+"PO-Revision-Date: 2018-07-27 05:27+0300\n"
 "Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
 "Language-Team: Russian <debian-l10n-russian@lists.debian.org>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 1.2\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 2.0\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<"
+"=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Type: string
 #. Description
@@ -27,7 +27,6 @@ msgstr "Учётная запись администратора баз данн
 #. Type: string
 #. Description
 #: ../templates:2001
-#, fuzzy
 #| msgid ""
 #| "Please enter the login of the LedgerSMB database administrative user. "
 #| "This login is needed for the administrative web user interface, typically "
@@ -39,7 +38,7 @@ msgid ""
 msgstr ""
 "Введите учётную запись администратора базы данных LedgerSMB. Эта запись "
 "требуется для веб-интерфейса управления, обычно располагающегося по адресу "
-"http://localhost/ledgersmb/setup.pl."
+"http://localhost:5762/setup.pl."
 
 #. Type: password
 #. Description
@@ -50,7 +49,6 @@ msgstr "Пароль к административной учётной запи
 #. Type: password
 #. Description
 #: ../templates:3001
-#, fuzzy
 #| msgid ""
 #| "Please enter the password of the LedgerSMB database administrative user. "
 #| "This password is needed for the administrative web user interface, "
@@ -62,13 +60,13 @@ msgid ""
 msgstr ""
 "Введите пароль к учётной записи администратора базы данных LedgerSMB. Этот "
 "пароль требуется для веб-интерфейса управления, обычно располагающегося по "
-"адресу http://localhost/ledgersmb/setup.pl."
+"адресу http://localhost:5762/setup.pl."
 
 #. Type: select
 #. Description
 #: ../templates:4001
 msgid "Web Reverse Proxy to configure?"
-msgstr ""
+msgstr "Настроить обратный прокси-веб?"
 
 #. Type: select
 #. Description
@@ -80,11 +78,15 @@ msgid ""
 "can leave the choice as None if it is not needed or if the web proxy will be "
 "set up remotely."
 msgstr ""
+"Теперь по умолчанию приложение LedgerSMB доступно на порту 5762, "
+"который слушает непосредственно Starman. Если нужен дополнительный "
+"доступ, то можно настроить обратный прокси с помощью Apache, "
+"Nginx, Lighttpd или Varnish, или вы можете выбрать «Нет», если "
+"это не нужно или если прокси-веб будет настроен удалённо."
 
 #. Type: select
 #. Description
 #: ../templates:4001
-#, fuzzy
 #| msgid ""
 #| "More general information about the initial configuration of the "
 #| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
@@ -92,8 +94,8 @@ msgid ""
 "For more details, please see the Web Proxy section that can be found in the /"
 "usr/share/doc/ledgersmb/README.Debian file."
 msgstr ""
-"Дополнительную информацию о начальной настройке приложения можно найти в "
-"файле /usr/share/doc/ledgersmb/README.Debian."
+"Дополнительную информацию можно найти в разделе Web Proxy в файле "
+"/usr/share/doc/ledgersmb/README.Debian."
 
 #, fuzzy
 #~| msgid "Configure LedgerSMB automatically?"
