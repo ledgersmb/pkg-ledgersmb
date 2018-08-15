@@ -1,15 +1,18 @@
-ledgersmb (1.5.21+ds-2~3) UNRELEASED; urgency=medium
+ledgersmb (1.5.21+ds-2~4) UNRELEASED; urgency=medium
 
   TODO:
-    * Pending debian/po/*.po file updates.
+    * Pending *.po file updates.
   * Updated debconf debian/po/es.po file.
   * Updated debconf debian/po/ru.po file. (Closes: #904708)
   * Updated debconf debian/po/cs.po file. (Closes: #905098)
+  * Updated debconf debian/po/da.po file. (Closes: #905893)
   * Updated debconf debian/po/fr.po file. (Closes: #905637)
+  * Updated debconf debian/po/pt_BR.po file. (Closes #905870)
+  * Updated debconf debian/po/nl.po file. (Closes: #906061)
   * Update the debian/po/* information in the debian/copyright file.
   * Declare compliance with Debian Policy 4.2.0, no changes required.
 
- -- Robert James Clay <jame@rocasa.us>  Tue, 07 Aug 2018 23:36:11 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 14 Aug 2018 20:43:04 -0400
 
 ledgersmb (1.5.21+ds-1) unstable; urgency=medium
 
