@@ -1,14 +1,14 @@
 # Dutch translation of ledgersmb debconf templates.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the ledgersmb package.
-# Frans Spiesschaert <Frans.Spiesschaert@yucom.be>, 2014.
+# Frans Spiesschaert <Frans.Spiesschaert@yucom.be>, 2014, 2018.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: ledgersmb\n"
+"Project-Id-Version: ledgersmb_1.5.21+ds-1\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
 "POT-Creation-Date: 2018-03-23 21:01-0400\n"
-"PO-Revision-Date: 2014-10-16 15:00+0200\n"
+"PO-Revision-Date: 2018-07-30 14:31+0200\n"
 "Last-Translator: Frans Spiesschaert <Frans.Spiesschaert@yucom.be>\n"
 "Language-Team: Debian Dutch l10n Team <debian-l10n-dutch@lists.debian.org>\n"
 "Language: nl\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Gtranslator 2.91.7\n"
 
 #. Type: string
 #. Description
@@ -26,7 +27,6 @@ msgstr "Gebruikersnaam van de databasebeheerder:"
 #. Type: string
 #. Description
 #: ../templates:2001
-#, fuzzy
 #| msgid ""
 #| "Please enter the login of the LedgerSMB database administrative user. "
 #| "This login is needed for the administrative web user interface, typically "
@@ -39,7 +39,7 @@ msgstr ""
 "Gelieve de gebruikersnaam in te voeren van de beheerder van de LedgerSMB-"
 "database. Deze gebruikersnaam is nodig voor de op het web gebaseerde "
 "gebruikersinterface voor beheerstaken, die gewoonlijk als adres http://"
-"localhost/ledgersmb/setup.pl heeft."
+"localhost:5762//setup.pl heeft."
 
 #. Type: password
 #. Description
@@ -50,7 +50,6 @@ msgstr "Wachtwoord van de databasebeheerder:"
 #. Type: password
 #. Description
 #: ../templates:3001
-#, fuzzy
 #| msgid ""
 #| "Please enter the password of the LedgerSMB database administrative user. "
 #| "This password is needed for the administrative web user interface, "
@@ -63,13 +62,13 @@ msgstr ""
 "Gelieve het wachtwoord in te voeren van de beheerder van de LedgerSMB-"
 "database. Dit wachtwoord is nodig voor de op het web gebaseerde "
 "gebruikersinterface voor beheerstaken, die gewoonlijk als adres http://"
-"localhost/ledgersmb/setup.pl heeft."
+"localhost:5762/setup.pl heeft."
 
 #. Type: select
 #. Description
 #: ../templates:4001
 msgid "Web Reverse Proxy to configure?"
-msgstr ""
+msgstr "Te configureren omgekeerde webproxy?"
 
 #. Type: select
 #. Description
@@ -81,11 +80,16 @@ msgid ""
 "can leave the choice as None if it is not needed or if the web proxy will be "
 "set up remotely."
 msgstr ""
+"De standaardinstelling is nu dat de applicatie LedgerSMB beschikbaar gesteld "
+"wordt op poort 5762 en rechtstreeks door Starman uitgevoerd wordt. Indien "
+"een andere toegang nodig is, kan met Apache, Nginx, Lighttpd of Varnish een "
+"omgekeerde proxy (reverse proxy) geconfigureerd worden. Als dat niet nodig "
+"is, of de webproxy extern opgezet zal worden, kunt u de selectie op None "
+"(geen) laten staan."
 
 #. Type: select
 #. Description
 #: ../templates:4001
-#, fuzzy
 #| msgid ""
 #| "More general information about the initial configuration of the "
 #| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
@@ -93,8 +97,8 @@ msgid ""
 "For more details, please see the Web Proxy section that can be found in the /"
 "usr/share/doc/ledgersmb/README.Debian file."
 msgstr ""
-"Meer algemene informatie over de initiële configuratie van deze toepassing "
-"vindt u in /usr/share/doc/ledgersmb/README.Debian."
+"Raadpleeg voor meer details het hoofdstuk over Web Proxy dat te vinden is in "
+"het bestand /usr/share/doc/ledgersmb/README.Debian."
 
 #, fuzzy
 #~| msgid "Configure LedgerSMB automatically?"
