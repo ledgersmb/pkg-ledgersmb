@@ -68,7 +68,7 @@ License: BSD-2-clause
  POSSIBILITY OF SUCH DAMAGE.
 
 Files: utils/notify_short/*.pl utils/notify_short/README
-Copyright:  2006-2007, Chris Travers <chris@metatrontech.com>
+Copyright: 2006-2007, Chris Travers <chris@metatrontech.com>
 License: GPL-2+
 
 Files: debian/*
@@ -86,6 +86,69 @@ License: GPL-2+
 Files: debian/ledgersmb.default
 Copyright: 2017, David Godfrey <info@sbts.com.au>
            2017, Robert James Clay <jame@rocasa.us>
+License: GPL-2+
+
+Files: debian/po/cs.po
+Copyright: 2012,2018 Michal Simunek <michal.simunek@gmail.com>
+License: GPL-2+
+
+Files: debian/po/da.po
+Copyright: 2012,2018 Joe Hansen <joedalton2@yahoo.dk>
+License: GPL-2+
+
+Files: debian/po/de.po
+Copyright: 2012, Erik Pfannenstein <debianignatz@gmx.de>
+           2018, Helge Kreutzmann <debian@helgefjell.de>
+License: GPL-2+
+
+Files: debian/po/es.po
+Copyright: 2018, Jonatan Porras <jonatanpc8@gmail.com>
+           2012, Camaleón <noelamac@gmail.com>
+License: GPL-2+
+
+Files: debian/po/fr.po
+Copyright: 2012-2018?, Julien Patriarca <patriarcaj@gmail.com> 
+License: GPL-2+
+
+Files: debian/po/gl.po
+Copyright: 2012, Jorge Barreiro Gonzalez <yortx@cobertoria>
+           2012, Jorge Barreiro <yortx.barry@gmail.com>
+License: GPL-2+
+
+Files: debian/po/it.po
+Copyright: 2012, Beatrice Torracca <beatricet@libero.it>
+License: GPL-2+
+
+Files: debian/po/ja.po
+Copyright: 2012, victory <victory.deb@gmail.com>
+License: GPL-2+
+
+Files: debian/po/nl.po
+Copyright: 2014,2018 Frans Spiesschaert <Frans.Spiesschaert@yucom.be> 
+License: GPL-2+
+
+Files: debian/po/pl.po
+Copyright: 2012, Michał Kułach <michal.kulach@gmail.com>
+License: GPL-2+
+
+Files: debian/po/pt_BR.po
+Copyright: 2012,2018 Adriano Rafael Gomes <adrianorg@gmail.com>
+License: GPL-2+
+
+Files: debian/po/pt.po 
+Copyright: 2012, Miguel Figueiredo <elmig@debianpt.org>
+License: GPL-2+
+
+Files: debian/po/ru.po
+Copyright: 2012,2018 Yuri Kozlov <yuray@komyakino.ru>
+License: GPL-2+
+
+Files: debian/po/sk.po
+Copyright: 2012, Ivan Masár <helix84@centrum.sk>
+License: GPL-2+
+
+Files: debian/po/sv.po
+Copyright: 2012, Martin Bagge <brother@bsnet.se>
 License: GPL-2+
 
 License: GPL-2+
@@ -109,3 +172,4 @@ License: GPL-2+
  On Debian systems, the full text of the GNU General Public
  License version 2 can be found in the file
  `/usr/share/common-licenses/GPL-2'.
+
