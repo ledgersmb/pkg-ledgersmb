@@ -33,8 +33,8 @@ override_dh_fixperms:
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/CSV.pm
 	chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/LaTeX.pm
 
-get-orig-source:
+get-original-source:
 	uscan --force-download --rename --destdir .
 
-.PHONY: get-orig-source
+.PHONY: get-original-source
 
