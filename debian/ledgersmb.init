@@ -26,7 +26,7 @@ if [ -f "/etc/default/ledgersmb" ]
 then
     . "/etc/default/ledgersmb"
 else
-    WORKING_DIRECTORY=/usr/share/legdersmb-1.5
+    WORKING_DIRECTORY=/usr/share/legdersmb
     LISTEN_ADDRESS=localhost
     LISTEN_PORT=5762
     export LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf 
