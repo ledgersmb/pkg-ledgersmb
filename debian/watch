@@ -6,10 +6,10 @@ version=4
 # Check against upstream release key. Exclude development snapshots. And only
 # include versions from the 1.5.x series.
 opts="filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/ledgersmb-$1\.tar\.gz/, \
+pgpsigurlmangle=s/$/.asc/, \
 dversionmangle=s/\+ds//, \
 repacksuffix=+ds, \
-uversionmangle=s/^1\.5\.99\d*/0/, \
-pgpsigurlmangle=s/archive\/(\d\S+)\.tar\.gz/releases\/download\/$1\/ledgersmb-$1\.tar\.gz\.asc/" \
-https://github.com/ledgersmb/LedgerSMB/tags .*/v?(1.5.+)\.tar\.gz
+uversionmangle=s/^1\.5\.99\d*/0/" \
+https://download.ledgersmb.org/f/Releases/(1.5.+)/ledgersmb-([\d\.]*).tar.gz
 
 
