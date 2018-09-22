@@ -1,3 +1,12 @@
+ledgersmb (1.5.21+ds-3) UNRELEASED; urgency=medium
+
+  TODO:
+    * Still pending 7 updates for debian/po/*po files.
+  * Update debian/watch to use the 'download.ledgersmb.org' release site.
+  * Change debian/rules target from 'get-orig-source' to 'get-original-source'.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 22 Sep 2018 12:34:02 -0400
+
 ledgersmb (1.5.21+ds-2) unstable; urgency=medium
 
   * Updated the debconf debian/po/es.po file.
