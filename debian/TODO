@@ -7,6 +7,56 @@ https://qa.debian.org/debcheck.php?dist=unstable&package=ledgersmb
 https://github.com/ledgersmb/pkg-ledgersmb/issues/1
 =================================================================================
 --------------------------------------------------------------------------------
+  - Review the required modules! there are some still not added even for the
+  1.6.x pkg.
+
+--------------------------------------------------------------------------------
+    - Status of the debian/po/*po updates:
+
+  - total files:
+$ ls *po|wc -l
+15
+
+$ ll *po
+-rw-r--r-- 1 jame jame 2725 Aug 25 07:34 cs.po
+-rw-r--r-- 1 jame jame 2716 Aug 25 07:34 da.po
+-rw-r--r-- 1 jame jame 2883 Aug 25 07:34 de.po
+-rw-r--r-- 1 jame jame 3619 Aug 25 07:34 es.po
+-rw-r--r-- 1 jame jame 2920 Aug 25 07:34 fr.po
+-rw-r--r-- 1 jame jame 2923 Aug 25 07:34 gl.po
+-rw-r--r-- 1 jame jame 2907 Aug 25 07:34 it.po
+-rw-r--r-- 1 jame jame 2848 Aug 25 07:34 ja.po
+-rw-r--r-- 1 jame jame 2954 Aug 25 07:34 nl.po
+-rw-r--r-- 1 jame jame 2942 Aug 25 07:34 pl.po
+-rw-r--r-- 1 jame jame 2865 Aug 25 07:34 pt_BR.po
+-rw-r--r-- 1 jame jame 2813 Aug 25 07:34 pt.po
+-rw-r--r-- 1 jame jame 3338 Aug 25 07:34 ru.po
+-rw-r--r-- 1 jame jame 2710 Aug 25 07:34 sk.po
+-rw-r--r-- 1 jame jame 2848 Aug 25 07:34 sv.po
+
+  - Those that still need to have the translations updated: (7)
+
+-rw-r--r-- 1 jame jame 2923 Aug 25 07:34 gl.po
+-rw-r--r-- 1 jame jame 2907 Aug 25 07:34 it.po
+-rw-r--r-- 1 jame jame 2848 Aug 25 07:34 ja.po
+-rw-r--r-- 1 jame jame 2954 Aug 25 07:34 nl.po
+-rw-r--r-- 1 jame jame 2813 Aug 25 07:34 pt.po
+-rw-r--r-- 1 jame jame 2710 Aug 25 07:34 sk.po
+-rw-r--r-- 1 jame jame 2848 Aug 25 07:34 sv.po
+
+
+  - These are the deb po updates that are already done, as of 1.5.21+ds-2:
+* Updated the debconf debian/po/es.po file.
+* Updated the debconf debian/po/ru.po file. (Closes: #904708)
+* Updated the debconf debian/po/cs.po file. (Closes: #905098)
+* Updated the debconf debian/po/da.po file. (Closes: #905893)
+* Updated the debconf debian/po/de.po file. (Closes: #906576)
+* Updated the debconf debian/po/fr.po file. (Closes: #905637)
+* Updated the debconf debian/po/pt_BR.po file. (Closes: #905870)
+* Updated the debconf debian/po/nl.po file. (Closes: #906061)
+
+
+--------------------------------------------------------------------------------
   - Currently, automatic testing is being overridden during the package build. 
     Add at least basic testing.  And later add configuration etc as necessary
     in order to use autopkgtest for package as-installed testing.
@@ -70,6 +120,7 @@ $ git ci -m "Change how 'WORKING_DIRECTORY' is set in starman-ledgersmb.service 
  screenshots removed.)
 
 ------------------------------------------------------------------------------
+- This needs to be updated for the 1.6.x series
 - Discussed in IRC some of the permission fix issues.  Erik took care of
 fixing many of them in both master & 1.5 so when the next release comes out
 will need to run a build of both ledgersmb & ledgersmb-1.5 without the 
@@ -219,4 +270,4 @@ postinstall script may be quite useful. Investigate?
 -----------------------------------------------------------------------------------
 
 
- -- Robert James Clay <jame@rocasa.us>  Thi, 12 Jul 2018 19:03 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 22 Sep 2018 12:26 -0400
