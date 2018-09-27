@@ -64,7 +64,6 @@ Recommends: apache2 | nginx-light | nginx-full | nginx-extra,
             texlive-latex-recommended
 Suggests: default-mta | mail-transport-agent,
           latex-cjk-all,
-          ledgersmb-1.5-apache | ledgersmb-1.5-nginx,
           libimage-size-perl,
           libopenoffice-oodoc-perl,
           libx12-parser-perl,
