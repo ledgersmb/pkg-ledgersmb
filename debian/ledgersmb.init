@@ -9,7 +9,7 @@ fi
 # Required-Stop:     $remote_fs $network $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: LedgerSMB 1.5 running under Starman
+# Short-Description: LedgerSMB running under Starman
 # Description:       LedgerSMB now is now run by Starman instead of directly
 #                    by Apache like with previous versions. This is used to
 #                    stop or start that process if the system is using
