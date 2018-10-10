@@ -6,12 +6,6 @@ debian/adm/config-lsmb-db-user.sh usr/share/ledgersmb/tools
 locale/* usr/share/ledgersmb/locale
 sql/* usr/share/ledgersmb/sql
 templates/* usr/share/ledgersmb/templates
-tools/dbsetup.pl usr/share/ledgersmb/tools
-tools/drop-roles.pl usr/share/ledgersmb/tools
-tools/delete-company-database.sh usr/share/ledgersmb/tools
-tools/patch-release-upgrade.pl usr/share/ledgersmb/tools
-tools/prepare-company-database.pl usr/share/ledgersmb/tools
-tools/starman.psgi usr/share/ledgersmb/tools
 UI/* usr/share/ledgersmb/UI
 utils/notify_short/* usr/share/ledgersmb/utils/notify_short
 utils/process_queue/* usr/share/ledgersmb/utils/process_queue
