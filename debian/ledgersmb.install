@@ -15,4 +15,3 @@ tools/starman.psgi usr/share/ledgersmb/tools
 UI/* usr/share/ledgersmb/UI
 utils/notify_short/* usr/share/ledgersmb/utils/notify_short
 utils/process_queue/* usr/share/ledgersmb/utils/process_queue
-utils/replication/* usr/share/ledgersmb/utils/replication
