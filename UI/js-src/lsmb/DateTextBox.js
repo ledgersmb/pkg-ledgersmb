@@ -1,32 +1,53 @@
 define([
     "dijit/form/DateTextBox",
     "dojo/date/locale",
+    "dojo/i18n",
     "dojo/_base/declare"
     ],
-       function(DateTextBox, locale, declare) {
+       function(DateTextBox, locale, i18n, declare) {
            var isoDate = /^\d\d\d\d-\d\d-\d\d$/;
       return declare("lsmb/DateTextBox",
         [DateTextBox],
         {
           _formattedValue: null,
           constructor: function(params, srcNodeRef) {
-  // this is a workaround for https://github.com/ledgersmb/LedgerSMB/issues/2270
             this._formattedValue = srcNodeRef.value;
 
             /* Provide default 'old code' doesn't include in its templates */
             if (! params.constraints) {
                params.constraints = { };
             }
-            if (! params.constraints.datePattern) {
+            if (! params.constraints.datePattern
+                 && lsmbConfig.dateformat) {
               params.constraints.datePattern =
                 lsmbConfig.dateformat.replace(/mm/,"MM");
             }
-            if (! params.placeholder) {
+            if (! params.placeholder && lsmbConfig.dateformat) {
                params.placeholder = lsmbConfig.dateformat;
             }
             // end of 'old code' support block
 
-            this.inherited(arguments);
+            // retrieve format to add it as the placeholder
+            // (unless there's a placeholder already)
+            if (! params.placeholder) {
+               var l = i18n.normalizeLocale(params.locale),
+                   formatLength = params.formatLength || 'short',
+                   bundle = locale._getGregorianBundle(l);
+
+               if(params.constraints.selector == "year") {
+                  params.placeholder = bundle["dateFormatItem-yyyy"] || "yyyy";
+               }
+               else if(params.constraints.selector == "time") {
+                  params.placeholder = params.constraints.timePattern
+                       || bundle["timeFormat-"+formatLength];
+               }
+               else {
+                  params.placeholder = params.constraints.datePattern
+                       || bundle["dateFormat-"+formatLength];
+               }
+               params.placeholder =
+                  params.placeholder.replace(/M/g, 'm').replace(/y/g, 'yy');
+            }
           },
           postMixInProperties: function() {
             this.inherited(arguments);
@@ -40,8 +61,7 @@ define([
             }
           },
             parse: function(value, constraints) {
-   // this is a workaround for https://github.com/ledgersmb/LedgerSMB/issues/2270
-               if (! isoDate.test(value)) {
+                if (! isoDate.test(value)) {
                     return this.inherited(arguments);
                 }
                 return locale.parse(value,

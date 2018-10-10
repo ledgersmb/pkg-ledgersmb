@@ -1,18 +1,17 @@
-<?lsmb INCLUDE "ui-header.html";
- PROCESS "elements.html" ?>
+<?lsmb PROCESS "elements.html" ?>
 <body class="lsmb <?lsmb dojo_theme ?>">
 <div class="listtop"><?lsmb to_edit.template_name ?>.<?lsmb to_edit.format ?><?lsmb
  IF language_code; "($language_code)"; ELSE; "(" _ text("No language") _ ")";
  END; ?></div>
 <form data-dojo-type="lsmb/Form" action="<?lsmb request.script ?>" method="post">
   <?lsmb PROCESS textarea element_data = {
-			class="template-body " _ to_edit.format _ " editor" 
-			cols="80"
-			name="template"
-			rows="30" 
-		 text=UNESCAPE(to_edit.content) } ?>
+                        class="template-body " _ to_edit.format _ " editor"
+                        cols="80"
+                        name="template"
+                        rows="30"
+                 text=UNESCAPE(to_edit.content) } ?>
   <br/>
-<?lsmb 
+<?lsmb
 PROCESS input element_data = {
     type = 'hidden'
     name = 'template_name'
@@ -37,5 +36,5 @@ PROCESS button element_data = {
    value = 'save'
     text = text('Save')
 };  ?>
+</form>
 </body>
-</html>

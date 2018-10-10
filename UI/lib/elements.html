@@ -1,3 +1,4 @@
+<?lsmb# HTML Snippet, for import only ?>
 <?lsmb
   default_keys = ['id', 'class', 'title']  # Defaults for all attributes
    # Defaults for input attributes
@@ -76,6 +77,19 @@
     "data-dojo-type" = "dijit/form/Select"
   }
 
+  #multiselect
+  multiselect_defaults = {
+    "data-dojo-type" = "dijit/form/MultiSelect"
+    "multiple" = "true"
+  }
+
+  #toggle
+  toggle_defaults = {
+    type = 'submit',
+    "data-dojo-type"  = "dijit/form/ToggleButton"
+    "data-dojo-props" = "iconClass:'dijitCheckBoxIcon'"
+  }
+
 ?>
 
 <?lsmb # INPUT ELEMENT ?>
@@ -105,9 +119,12 @@
               CASE ['checkbox'];
                 input_type_keys = input_keys.merge(['checked']);
                 input_defaults = checkbox_defaults;
+              CASE ['toggle'];
+                input_type_keys = input_keys.merge(['checked']);
+                input_defaults = toggle_defaults;
               CASE ['radio'];
                 input_type_keys = input_keys.merge(['checked']);
-            input_defaults = radiobutton_defaults;
+                input_defaults = radiobutton_defaults;
               CASE ['password'];
                 input_type_keys = input_keys;
                 input_defaults = password_defaults;
@@ -115,19 +132,19 @@
                 input_type_keys = input_keys;
                 input_defaults = date_defaults;
               CASE 'text';
-            IF 'date' == element_data.class;
-                input_type_keys = input_keys;
-                input_defaults = date_defaults;
-            ELSE;
-                input_type_keys = input_keys.merge(['maxlength', 'readonly']);
-                input_defaults = text_defaults;
-            END;
+                IF 'date' == element_data.class;
+                    input_type_keys = input_keys;
+                    input_defaults = date_defaults;
+                ELSE;
+                    input_type_keys = input_keys.merge(['maxlength', 'readonly']);
+                    input_defaults = text_defaults;
+                END;
               CASE 'currency';
-            input_type_keys = input_keys;
-            input_defaults = currency_defaults;
+                input_type_keys = input_keys;
+                input_defaults = currency_defaults;
               CASE 'monetary';
-            input_type_keys = input_keys;
-            input_defaults = monetary_defaults;
+                input_type_keys = input_keys;
+                input_defaults = monetary_defaults;
               CASE;
                 input_type_keys = input_keys;
             END;
@@ -216,8 +233,11 @@
           ?>
           <?lsmb PROCESS attributes  # Process regular attributes.
             attribute_data=element_data
-            attribute_defaults = select_defaults
-            # Attributes that apply to selects.
+            attribute_defaults =
+                (element_data.type.defined() && element_data.type == "multiselect")
+                ? multiselect_defaults
+                : select_defaults
+            # Attributes that apply to selects and multiselect.
             element_keys=['name', 'size', 'multiple', 'disabled', 'accesskey',
             'tabindex', 'required', 'data-dojo-type', 'data-dojo-props']
           ?>
@@ -283,6 +303,35 @@
           ?>
           <?lsmb PROCESS auto_label  # Process element label. ?>
           <button<?lsmb all_attributes ?><?lsmb all_custom_attributes ?>><?lsmb element_data.text ?></button>
+          <?lsmb IF element_data.tooltip.msg;
+                INCLUDE tooltip element_data = {
+                id       => element_data.tooltip.id,
+                ref_id   => element_data.id,
+                position => element_data.tooltip.position,
+                msg      => element_data.tooltip.msg };
+          END ?>
+  <?lsmb END ?>
+<?lsmb END ?>
+
+<?lsmb # BUTTON ELEMENT ?>
+<?lsmb BLOCK toggle ?>
+  <?lsmb IF element_data  # Only process element if one exists. ?>
+        <?lsmb
+            element_type = 'toggle';
+            PROCESS auto_id;
+          ?>
+          <?lsmb PROCESS attributes  # Process regular attributes.
+            attribute_data=element_data
+            attribute_defaults = toggle_defaults
+            element_keys=['name', 'value', 'accesskey', 'type', 'disabled',
+                 'showLabel', 'label',
+                 'tabindex', 'data-dojo-type', 'data-dojo-props']  # Attributes that apply to toggles.
+          ?>
+          <?lsmb PROCESS custom_attributes  # Process custom attributes.
+            custom_attribute_data=element_data.attributes
+          ?>
+          <?lsmb PROCESS auto_label  # Process element label. ?>
+          <button<?lsmb all_attributes ?><?lsmb all_custom_attributes ?>><?lsmb element_data.text ?></button>
   <?lsmb END ?>
 <?lsmb END ?>
 
@@ -336,7 +385,7 @@
   <?lsmb UNLESS element_data.defined('id') # id attribute should always be set, so auto-set it if it's not defined. ?>
     <?lsmb element_id = "" ?>
     <?lsmb  # Label id's default to [for]-label.
-      IF element_type == 'label' AND element_data.defined('for');
+      IF element_type == 'label' AND (element_data.defined('for') OR element_type == 'toggle');
         element_id = element_data.for _ "-label";
       ELSIF ((element_type == 'input' AND element_data.type == 'radio') OR element_type == 'button') AND element_data.defined('name') AND element_data.defined('value');
         element_id = element_data.name _ "-" _ element_data.value;  # radios and buttons get name-value for uniqueness.
@@ -389,8 +438,29 @@
 
 <?lsmb BLOCK CLOSE_STATUS_DIV ?></div><?lsmb END ?>
 
-<?lsmb BLOCK tooltip; ?>
-  <?lsmb IF element_data && element_data.id.defined() && element_data.msg.defined(); ?>
-    <div data-dojo-type="dijit/Tooltip" connectId=<?lsmb element_data.id ?> ><?lsmb element_data.msg ?></div>
-  <?lsmb END ?>
-<?lsmb END ?>
+<?lsmb BLOCK decorated_text;
+  IF element_data && element_data.msg.defined();
+    element_data.msg.replace('&lt;((/?[ibup]|br))&gt;','<$1>');
+  END;
+END ?>
+
+<?lsmb BLOCK tooltip;
+  IF element_data && element_data.msg.defined();
+     props="\"connectId:'" _ element_data.ref_id _ "'";
+     IF element_data.position.defined();
+        positions = [];
+        FOREACH position IN element_data.position
+            "<!-- == $position == -->"; # Prevent loop variable optimization
+            positions.push("'$position'");
+        END;
+        props = props _ ',position:[' _ positions.join(',') _ ']';
+    END;
+    props = props _ '"';
+    ?>
+    <div data-dojo-type="dijit/Tooltip" data-dojo-props=<?lsmb props ?>  >
+         <?lsmb INCLUDE decorated_text element_data = {
+                msg => element_data.msg };
+         ?>
+    </div>
+  <?lsmb END;
+END ?>

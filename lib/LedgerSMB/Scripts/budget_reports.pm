@@ -8,7 +8,6 @@ LedgerSMB::Scripts::budget_reports - Budget search and reporting workflows.
 
 package LedgerSMB::Scripts::budget_reports;
 
-use LedgerSMB;
 use LedgerSMB::Template;
 use LedgerSMB::Report::Budget::Search;
 use LedgerSMB::Report::Budget::Variance;
@@ -31,7 +30,7 @@ sub search {
     LedgerSMB::Report::Budget::Search->prepare_criteria($request);
     my $report = LedgerSMB::Report::Budget::Search->new(%$request);
     $report->run_report;
-    $report->render($request);
+    return $report->render($request);
 }
 
 =item variance_report
@@ -46,7 +45,7 @@ sub variance_report {
     my $id = $request->{id};
     my $report = LedgerSMB::Report::Budget::Variance->for_budget_id($id);
     $report->run_report;
-    $report->render($request);
+    return $report->render($request);
 }
 
 =back

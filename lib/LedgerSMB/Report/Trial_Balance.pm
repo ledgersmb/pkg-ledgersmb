@@ -24,9 +24,10 @@ We can also retrieve a previous report from the database and run it:
 
 package LedgerSMB::Report::Trial_Balance;
 use Moose;
+use namespace::autoclean;
 use LedgerSMB::App_State;
 extends 'LedgerSMB::Report';
-with 'LedgerSMB::Report::Dates';
+with 'LedgerSMB::Report::Dates', 'LedgerSMB::Report::Approval_Option';
 
 =head1 DESCRIPTION
 
@@ -121,27 +122,6 @@ A boolean indicating that even unused accounts should be output
 
 has all_accounts => (is => 'ro', isa => 'Bool', required => 0);
 
-=item is_approved string
-
-Y, N, All
-
-=cut
-
-has is_approved => (is => 'ro', isa => 'Str', required => 1);
-has approved => (is => 'ro', lazy => 1, builder => '_approved');
-
-my $_approval_map = {
-   Y => 1,
-   N => 0,
-  All => undef
-};
-
-sub _approved {
-    my $self = shift;
-    die 'Bad approval code: ' . $self->is_approved
-        unless exists $_approval_map->{$self->is_approved};
-    return $_approval_map->{$self->is_approved}
-}
 
 =back
 
@@ -253,10 +233,10 @@ sub run_report {
         next if ! $self->all_accounts
                 && (($ref->{starting_balance} == 0)
                     and ($ref->{credits} == 0) and ($ref->{debits} == 0));
-        my $href_suffix = "&accno=" . $ref->{account_number};
-        $href_suffix .= "&from_date=" . $self->from_date->to_db
+        my $href_suffix = '&accno=' . $ref->{account_number};
+        $href_suffix .= '&from_date=' . $self->from_date->to_db
               if defined $self->from_date;
-        $href_suffix .= "&to_date=" . $self->to_date->to_db
+        $href_suffix .= '&to_date=' . $self->to_date->to_db
               if defined $self->to_date;
 
         $total_debits += $ref->{debits};
@@ -270,7 +250,8 @@ sub run_report {
                debits => $total_debits,
               credits => $total_credits,
             html_class => 'listtotal'};
-    $self->rows(\@rows);
+
+    return $self->rows(\@rows);
 }
 
 =back

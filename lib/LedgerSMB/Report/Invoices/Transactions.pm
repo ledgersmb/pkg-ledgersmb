@@ -12,8 +12,9 @@ LedgerSMB
 
 package LedgerSMB::Report::Invoices::Transactions;
 use Moose;
+use namespace::autoclean;
 extends 'LedgerSMB::Report';
-with 'LedgerSMB::Report::Dates';
+with 'LedgerSMB::Report::Dates', 'LedgerSMB::Report::Approval_Option';
 
 =head1 DESCRIPTION
 
@@ -183,29 +184,6 @@ invoices will be shown.
 has open => (is => 'ro', isa => 'Bool', required => 0);
 has closed => (is => 'ro', isa => 'Bool', required => 0);
 
-=item is_approved string
-
-Y, N, All
-
-=cut
-
-has is_approved => (is => 'ro', isa => 'Str', required => 1);
-has approved => (is => 'ro', lazy => 1, builder => '_approved');
-
-my $_approval_map = {
-   Y => 1,
-   N => 0,
-  All => undef
-};
-
-sub _approved {
-    my $self = shift;
-    die 'Bad approval code: ' . $self->is_approved
-        unless exists $_approval_map->{$self->is_approved};
-    return $_approval_map->{$self->is_approved}
-}
-
-
 =back
 
 =head1 INTERNLS
@@ -283,7 +261,7 @@ sub columns {
            type => 'text'},
        { col_id => 'entity_name',
            name => $entity_name_label,
-       href_base =>"contact.pl?action=get&entity_class=".$self->entity_class,
+       href_base =>'contact.pl?action=get&entity_class='.$self->entity_class,
            type => 'href', },
        { col_id => 'invnumber',
            name => LedgerSMB::Report::text('Invoice'),
@@ -351,6 +329,7 @@ sub name {
     my $self = shift;
     return LedgerSMB::Report::text('Search AP') if $self->entity_class == 1;
     return LedgerSMB::Report::text('Search AR') if $self->entity_class == 2;
+    return;
 }
 
 =head1 METHODS
@@ -364,7 +343,7 @@ This runs the report and sets the $report->rows.
 
 sub run_report {
     my $self = shift;
-    $ENV{LSMB_ALWAYS_MONEY} = 1;
+    local $ENV{LSMB_ALWAYS_MONEY} = 1;
     $self->approved;
     my @rows = $self->call_dbmethod(funcname => 'report__aa_transactions');
     for my $r(@rows){
@@ -378,7 +357,7 @@ sub run_report {
                "&entity_id=$r->{entity_id}&meta_number=$r->{meta_number}";
         $r->{invnumber_href_suffix} = "$script?action=edit&id=$r->{id}";
     }
-    $self->rows(\@rows);
+    return $self->rows(\@rows);
 }
 
 =head1 COPYRIGHT

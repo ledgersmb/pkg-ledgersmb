@@ -41,9 +41,12 @@ define([
                                  ? "GET"
                                  : this.method;
                       var url = this.action;
-
                       var options = { "handleAs": "text" };
                       if ("get" === method.toLowerCase()){
+                          if (!url) {
+                              alert('Form contains no action. Please file a bug');
+                              return false;
+                          }
                           c++;
                           var qobj = domform.toQuery(this.domNode);
                           qobj = "action=" + this.clickedAction + "&" + qobj;

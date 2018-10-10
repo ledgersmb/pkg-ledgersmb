@@ -47,7 +47,7 @@ sub init_taxes {
     my @accounts = split / /, $taxaccounts;
     if ( defined $taxaccounts2 ) {
         #my @tmpaccounts = @accounts;#unused var
-        $#accounts = -1;# empty @accounts,@accounts=();
+        @accounts=(); # empty @accounts
         for my $acct ( split / /, $taxaccounts2 ) {
             if ( $taxaccounts =~ /\b$acct\b/ ) {
                 push @accounts, $acct;
@@ -55,12 +55,12 @@ sub init_taxes {
         }
     }
     else{
-     $logger->trace("taxaccounts2 undefined");
+     $logger->trace('taxaccounts2 undefined');
     }
-    my $query = qq|
+    my $query = q{
         SELECT t.taxnumber, c.description,
             t.rate, t.chart_id, t.pass, m.taxmodulename, t.minvalue
-            FROM tax t INNER JOIN chart c ON (t.chart_id = c.id)
+            FROM tax t INNER JOIN account c ON (t.chart_id = c.id)
             INNER JOIN taxmodule m
                 ON (t.taxmodule_id = m.taxmodule_id)
             WHERE c.accno = ?
@@ -68,7 +68,7 @@ sub init_taxes {
                           >= coalesce(?::timestamp, now())
             ORDER BY validto ASC
             LIMIT 1
-        |;
+        };
     my $sth = $dbh->prepare($query);
     foreach my $taxaccount (@accounts) {
         next if ( !defined $taxaccount );
@@ -87,14 +87,8 @@ sub init_taxes {
 
         my $module = "LedgerSMB/Taxes/$ref->{taxmodulename}.pm";
         require $module;
-        $module = $ref->{taxmodulename};
-        $module =~ s/\//::/g;
-        my $tax;
-        {
-          no strict 'refs';
-          $tax = "LedgerSMB::Taxes::$module"->new(%$ref);
-        }
 
+        my $tax = "LedgerSMB::Taxes::$ref->{taxmodulename}"->new(%$ref);
         $tax->account($taxaccount);
         $tax->taxnumber( $ref->{'taxnumber'} );
         $tax->value( 0 );
@@ -142,7 +136,7 @@ sub calculate_taxes {
 
 =head2 apply_taxes
 
-A shortcut for calculating taxes without extracting (i.e. when taxes not 
+A shortcut for calculating taxes without extracting (i.e. when taxes not
 included)
 
 =head2 extract_taxes

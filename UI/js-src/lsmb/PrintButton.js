@@ -27,7 +27,10 @@ define([
                                    media: "screen",
                                    format: f.format.value
                                };
-                               if (f.vc) {
+                               // Apparently, transactions do not include a
+                               // 'vc' field; so, when we have one, add it.
+                               // when we don't... don't.
+                               if (f["vc"]) {
                                    data["vc"] = f.vc.value;
                                }
                            }

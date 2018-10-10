@@ -26,7 +26,9 @@ transactions.
 
 package LedgerSMB::Report::Unapproved::Drafts;
 use Moose;
+use namespace::autoclean;
 extends 'LedgerSMB::Report';
+with 'LedgerSMB::Report::Dates';
 
 use LedgerSMB::Business_Unit_Class;
 use LedgerSMB::Business_Unit;
@@ -232,7 +234,7 @@ sub run_report{
         $ref->{reference_href_suffix} = "$script.pl?action=edit&id=$ref->{id}";
         $ref->{id_href_suffix} = $ref->{reference_href_suffix};
     }
-    $self->rows(\@rows);
+    return $self->rows(\@rows);
 }
 
 =back

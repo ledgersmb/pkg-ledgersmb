@@ -19,7 +19,9 @@ None
 =cut
 
 package LedgerSMB::Report::Listings::Business_Type;
+
 use Moose;
+use namespace::autoclean;
 extends 'LedgerSMB::Report';
 
 =head1 STATIC METHODS
@@ -90,7 +92,7 @@ sub run_report {
         $ref->{row_id} = $ref->{id};
         $ref->{discount} *= 100;
     }
-    $self->rows(\@rows);
+    return $self->rows(\@rows);
 }
 
 =head1 COPYRIGHT

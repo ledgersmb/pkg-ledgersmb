@@ -14,9 +14,6 @@ include_stylesheet=["setup/stylesheet.css"] ?>
    value = database
 } ?>
 <div class="form">
-<?lsmb- IF notice -?>
-<div class="notice"><?lsmb notice ?></div>
-<?lsmb- END # IF notice -?>
 <div class="input_row">
 <?lsmb INCLUDE input element_data = {
                             name  = 'username'
@@ -51,7 +48,7 @@ text('Password') ?></label>
          label_pos = 1 ;
          ?>
     </div>
-    <div>
+    <div style="float:left">
       <?lsmb
          PROCESS input element_data = {
          label   = text("Import existing user")
@@ -62,6 +59,9 @@ text('Password') ?></label>
          }
          label_pos = 1 ; ?>
     </div>
+    <?lsmb- IF notice -?>
+    <div class="notice" style="float:left"><?lsmb notice ?></div>
+    <?lsmb- END # IF notice -?>
   </div>
   <div data-dojo-type="dijit/Tooltip"
        data-dojo-props="connectId:'pls-import-1',position:['below']">
@@ -91,6 +91,7 @@ text('Password') ?></label>
         text_attr = 'salutation'
        value_attr = 'id'
     default_blank = 1
+   default_values = [salutation_id]
              name = 'salutation_id'
             label = 'Salutation'
 } ?>
@@ -101,6 +102,7 @@ text('Password') ?></label>
    class = 'name'
     type = 'text'
     size = '15'
+   value = first_name
    label = text('First Name') #'
 required = 'required'
 } ?>
@@ -111,6 +113,7 @@ required = 'required'
    class = 'name'
     type = 'text'
     size = '15'
+   value = last_name
    label = text('Last name') #'
 required = 'required'
 } ?>
@@ -151,6 +154,7 @@ INCLUDE select element_data = {
           options = countries
         text_attr = 'name'
        value_attr = 'id'
+    default_blank = 1
    default_values = [country_id]
              name = 'country_id'
             label = 'Country'
@@ -163,6 +167,8 @@ INCLUDE select element_data = {
         text_attr = 'label'
        value_attr = 'id'
              name = 'perms'
+    default_blank = 1
+   default_values = [perms]
             label = 'Assign Permissions'
 } ?>
 </div>
@@ -174,6 +180,7 @@ INCLUDE select element_data = {
     type = 'submit'
    class = 'submit'
 } ?>
+</div>
 </div>
 </form>
 </div>

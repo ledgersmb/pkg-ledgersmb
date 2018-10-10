@@ -12,9 +12,9 @@ This module provides AR/AP aging reports and statements for LedgerSMB.
 
 package LedgerSMB::Scripts::report_aging;
 
-use LedgerSMB;
 use LedgerSMB::Template;
 use LedgerSMB::Business_Unit;
+use LedgerSMB::Legacy_Util;
 use LedgerSMB::Report::Aging;
 use LedgerSMB::Scripts::reports;
 use LedgerSMB::Setting;
@@ -38,13 +38,13 @@ sub run_report{
 
     _strip_specials($request);
     $request->{business_units} = [];
-    for my $count (1 .. $request->{bc_count}){
+    for my $count (1 .. ($request->{bc_count} // 0)){
          push @{$request->{business_units}}, $request->{"business_unit_$count"}
                if $request->{"business_unit_$count"};
     }
     my $report = LedgerSMB::Report::Aging->new(%$request);
     $report->run_report;
-    $report->render($request);
+    return $report->render($request);
 }
 
 
@@ -55,7 +55,7 @@ Runs a report again, selecting all items
 =cut
 
 sub select_all {
-    run_report(@_);
+    return run_report(@_);
 }
 
 =item generate_statement
@@ -76,7 +76,6 @@ sub generate_statement {
     my $rtype = $request->{report_type}; # in case we need it later
     $request->{report_type} = 'detail'; # needed to generate statement
 
-    my $template_suffix;
     my @statements;
     my $old_meta = $request->{meta_number};
 
@@ -122,33 +121,37 @@ sub generate_statement {
     $request->{meta_number} = $old_meta;
     my $template = LedgerSMB::Template->new(
         path => 'DB',
-        locale => $LedgerSMB::App_Date::Locale,
+        locale => $LedgerSMB::App_State::Locale,
         template => $request->{print_template},
         #language => $language->{language_code}, #TODO
         format => uc $request->{print_format},
         method => $request->{media},
-        no_auto_output => 1,
+        output_options => {
+          filename => 'aging-report.' . lc($request->{print_format})
+        }
     );
     if ($request->{media} eq 'email'){
+
        #TODO -- mailer stuff
+       return;
+
     } elsif ($request->{media} eq 'screen'){
-        $template->render({statements => \@statements});
-        $template->{rendered} //=
-              'aging_statement.' . lc($request->{print_format});
-        $template->output;
+        return $template->render({statements => \@statements});
     } else {
-        $template->render({statements => \@statements});
+        LedgerSMB::Legacy_Util::render_template($template, {
+             statements => \@statements });
         $request->{module_name}='gl';
         $request->{report_type}='aging';
-        LedgerSMB::Scripts::reports::start_report($request);
+        return LedgerSMB::Scripts::reports::start_report($request);
     }
-
+    # Unreachable
 }
 
 sub _strip_specials {
     my $request = shift;
     delete $request->{$_} for (qw(buttons rows _DBH options locale));
     delete $request->{category} if (exists $request->{category} and $request->{category} eq 'X');
+    return;
 }
 
 =back

@@ -1,3 +1,4 @@
+<?lsmb# HTML Snippet, for import only ?>
 <div id="contact_info_div"
      title="<?lsmb text('Contact Info') ?>"
      data-dojo-type="dijit/layout/ContentPane"
@@ -10,13 +11,13 @@ FOREACH ROW IN contacts;
     ROW.edit = '[' _ text('Edit') _ ']';
     ROW.delete = '[' _ text('Delete') _ ']';
     base_suffix =
-               "$request.script?entity_id=$entity_id&" _
+               "$request.script?entity_id=$entity_id&amp;" _
                "contact=" _ tt_url(ROW.contact) _
-               "&class_id=$ROW.class_id&" _
+               "&amp;class_id=$ROW.class_id&amp;" _
                "description=" _ tt_url(ROW.description) _
-               "&credit_id=$credit_act.id&for_credit=$ROW.credit_id&target_div=contact_info_div";
-    ROW.edit_href_suffix = base_suffix _ '&action=edit';
-    ROW.delete_href_suffix = base_suffix _ '&action=delete_contact';
+               "&amp;credit_id=$credit_act.id&amp;for_credit=$ROW.credit_id&amp;target_div=contact_info_div";
+    ROW.edit_href_suffix = base_suffix _ '&amp;action=edit';
+    ROW.delete_href_suffix = base_suffix _ '&amp;action=delete_contact';
     IF ROW.credit_id;
          ROW.for_credit = 'X';
     END;
@@ -40,38 +41,38 @@ PROCESS dynatable
         } ?>
         <?lsmb PROCESS input element_data = {
                 type="hidden"
-                name="entity_id" 
+                name="entity_id"
                 value=entity_id
         } ?>
         <?lsmb PROCESS input element_data = {
-                type="hidden" 
-                name="credit_id" 
+                type="hidden"
+                name="credit_id"
                 value=credit_act.id
         } ?>
         <?lsmb PROCESS input element_data = {
-                type="hidden" 
-                name="old_class_id" 
+                type="hidden"
+                name="old_class_id"
                 value=request.class_id
         } ?>
         <?lsmb PROCESS input element_data = {
-                type="hidden" 
-                name="old_contact" 
+                type="hidden"
+                name="old_contact"
                 value=request.contact
         } ?>
         <?lsmb PROCESS input element_data = {
-                type="hidden" 
-                name="contact_id" 
+                type="hidden"
+                name="contact_id"
                 value=request.contact_id
         } ?>
         <div data-dojo-type="lsmb/TabularForm" data-dojo-props="cols:1">
         <div>
-           
+
              <?lsmb IF credit_act.id;
                     IF request.for_credit;
                        attach_to = 3;
                     ELSE;
                        attach_to = 1;
-                    END; 
+                    END;
                        INCLUDE select element_data = {
                           name            = "attach_to"
                           id              = 'attach-contact-to'
@@ -91,7 +92,7 @@ PROCESS dynatable
                         label = "_none_"
                         text_attr = "class"
                         value_attr = "id"
-                        default_values = [request.class_id]             
+                        default_values = [request.class_id]
                         options = contact_class_list
                 } ?>
         </div>
@@ -123,7 +124,7 @@ PROCESS dynatable
                 text =  text('Save Contact'),
                 class = "submit"
                 } #' ?>
-        <?lsmb IF request.contact.defined ?> 
+        <?lsmb IF request.contact.defined ?>
         <?lsmb PROCESS button element_data = {
                 name = "action",
                 value = "save_contact_new",
@@ -133,6 +134,6 @@ PROCESS dynatable
         <?lsmb END # IF old_contact.defined ?>
         </div>
         </form>
-        
+
 </div>
 

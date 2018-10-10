@@ -42,6 +42,7 @@ use strict;
 use warnings;
 
 use Moose;
+use namespace::autoclean;
 use LedgerSMB::PGNumber;
 use LedgerSMB::MooseTypes;
 
@@ -74,17 +75,7 @@ The tax rate as a fractional number.
 has rate        => (isa => 'LedgerSMB::Moose::Number',
                     is => 'ro', coerce => 1);
 
-=item chart
-
-###TODO: document the difference between 'chart' and 'account'??
-
-=cut
-
-has chart       => (isa => 'Str', is => 'ro');
-
 =item account
-
-###TODO: document the difference between 'chart' and 'account'??
 
 =cut
 
@@ -177,4 +168,5 @@ sub extract_tax {
 
 =cut
 
+__PACKAGE__->meta->make_immutable;
 1;

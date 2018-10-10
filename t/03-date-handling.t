@@ -21,13 +21,13 @@ $ENV{REQUEST_METHOD} = 'GET';
      # Suppress warnings from LedgerSMB::_process_cookies
 
 
-my $form = new Form;
+my $form = Form->new;
 my $locale_en = LedgerSMB::Locale->get_handle('en_CA');
 my $locale_es = LedgerSMB::Locale->get_handle('es');
 my %myconfig;
 ok(defined $form);
 isa_ok($form, 'Form');
-my $lsmb = new LedgerSMB;
+my $lsmb = LedgerSMB->new;
 ok(defined $lsmb);
 isa_ok($lsmb, 'LedgerSMB');
 
@@ -82,9 +82,9 @@ foreach my $format (0 .. $#formats) {
         for my $mm (1 .. 12) {
                 my $start = $fmt;
                 my $temp = sprintf('%02d', $mm);
-                my $month_en = $locale_en->text($months[$mm - 1]);
-                my $month_en_2 = $locale_en->text($mon[$mm - 1]);
-                my $month_es = $locale_es->text($months[$mm - 1]);
+                my $month_en = $locale_en->maketext($months[$mm - 1]);
+                my $month_en_2 = $locale_en->maketext($mon[$mm - 1]);
+                my $month_es = $locale_es->maketext($months[$mm - 1]);
                 $start =~ s/dd/29/;
                 $start =~ s/yyyy/2000/;
                 $start =~ s/yy/00/;

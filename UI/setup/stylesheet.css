@@ -12,7 +12,7 @@ div#loading {
     background: white;
 }
 
-div#setupconsole {
+div.setupconsole {
     background-color: white;
     margin-right: auto;
     margin-left: auto;
@@ -43,6 +43,18 @@ form#loginform {
 .login_form {
     text-align: left;
 }
+
+.inputrow {
+    padding-top: 3px;
+    padding-bottom: 2px;
+    padding-left: 4ex;
+}
+
+/* Prevent inheritance of the above */
+.inputrow * {
+    padding: initial;
+}
+
 div {
     overflow: auto;
 }
@@ -58,7 +70,6 @@ caption {
 
 label {
     width: 10em;
-    text-align: right;
     float: left;
     border-width: 1px;
     margin: 0;
@@ -93,4 +104,24 @@ img.logo {
 
 button {
     margin-top: 10px;
+}
+
+.listtop {
+    font-size: larger;
+}
+
+tr.listheading {
+    background-color: lightgrey;
+}
+tr.listrow:nth-child(even) {background: #FFF}
+tr.listrow:nth-child(odd) {background: #EEE}
+
+td.dijitStretch {
+    min-width: 125px;
+}
+
+.notice {
+    background-color: red;
+    color: white;
+    margin-left: 1px;
 }

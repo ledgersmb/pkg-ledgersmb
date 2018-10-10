@@ -76,13 +76,12 @@ SQL content read from the change file.
 sub content {
     my ($self, $raw) = @_;
     unless ($self->{_content}) {
-        my $file;
-        local $!;
-        open(FILE, '<', $self->path) or
+        local $! = undef;
+        open my $fh, '<', $self->path or
             die 'FileError: ' . Cwd::abs_path($self->path) . ": $!";
-        binmode FILE, ':utf8';
-        $self->{_content} = join '', <FILE>;
-        close FILE;
+        binmode $fh, 'encoding(:UTF-8)';
+        $self->{_content} = join '', <$fh>;
+        close $fh or die 'Cannot close file ' .  $self->path();
     }
     return $self->{_content};
 }
@@ -101,7 +100,7 @@ sub sha {
     my $normalized = join "\n",
                      grep { /\S/ }
                      map { my $string = $_; $string =~ s/--.*//; $string }
-                     split("\n", $content);
+                     split /\n/, $content;
     $self->{_sha} = Digest::SHA::sha512_base64($normalized);
     return $self->{_sha};
 }
@@ -117,7 +116,7 @@ sub is_applied {
     my ($self, $dbh) = @_;
     my $sha = $self->sha;
     my $sth = $dbh->prepare(
-        "SELECT * FROM db_patches WHERE sha = ?"
+        'SELECT * FROM db_patches WHERE sha = ?'
     );
     $sth->execute($sha);
     my $retval = int $sth->rows;
@@ -134,7 +133,7 @@ transaction.
 
 sub run {
     my ($self, $dbh) = @_;
-    $dbh->do($self->content); # not raw
+    return $dbh->do($self->content); # not raw
 }
 
 =head2 apply($dbh)
@@ -142,6 +141,10 @@ sub run {
 Applies the current file to the db in the current dbh. May issue
 one or more C<$dbh->commit()>s; if there's a pending transaction on
 a handle, C<$dbh->clone()> can be used to create a separate copy.
+
+Returns no value in particular.
+
+Throws an error in case of failure.
 
 =cut
 
@@ -154,6 +157,7 @@ sub apply {
 
     my @statements = _combine_statement_blocks($self->_split_statements);
     my $last_stmt_rc;
+    my ($state, $errstr);
 
     $dbh->do(q{set client_min_messages = 'warning';});
     $dbh->commit if ! $dbh->{AutoCommit};
@@ -179,6 +183,11 @@ sub apply {
             else {
                 $dbh->commit;
             }
+        }
+        elsif (not $no_transactions and not $last_stmt_rc) {
+            $errstr = $dbh->errstr;
+            $state = $dbh->state;
+            last;
         }
     }
 
@@ -211,8 +220,12 @@ sub apply {
     $dbh->do(q{
             INSERT INTO db_patch_log(when_applied, path, sha, sqlstate, error)
             VALUES(now(), ?, ?, ?, ?)
-    }, undef, $self->sha, $self->path, $dbh->state, $dbh->errstr);
+    }, undef, $self->sha, $self->path, $state, $errstr);
     $dbh->commit if (! $dbh->{AutoCommit});
+
+    if ($errstr) {
+        die 'Error applying upgrade script ' . $self->path . ': ' . $errstr;
+    }
 
     return;
 }
@@ -321,7 +334,7 @@ Initializes the tracking system
 sub init {
     my ($dbh) = @_;
     return 0 unless needs_init($dbh);
-    my $success = $dbh->prepare("
+    my $success = $dbh->prepare('
     CREATE TABLE db_patch_log (
        when_applied timestamp primary key,
        path text NOT NULL,
@@ -334,7 +347,7 @@ sub init {
        path text not null,
        last_updated timestamp not null
     );
-    ")->execute();
+    ')->execute();
     die "$DBI::state: $DBI::errstr" unless $success;
 
     return 1;
@@ -348,9 +361,9 @@ Returns true if the tracking system needs to be initialized
 
 sub needs_init {
     my ($dbh) = @_;
-    local $@;
+    local $@ = undef;
     my $rows = eval { $dbh->prepare(
-       "select 1 from db_patches"
+       'select 1 from db_patches'
     )->execute(); };
     $dbh->rollback;
     return 0 if $rows;

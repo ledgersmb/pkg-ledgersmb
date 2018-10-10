@@ -51,7 +51,7 @@ sub show_income_type {
         template => 'income',
         format   => 'HTML'
     );
-    $template->render($request);
+    return $template->render($request);
 }
 
 =item save_income_type
@@ -64,7 +64,7 @@ sub save_income_type {
     my ($request) = @_;
     my $itype = LedgerSMB::Payroll::Income_Type->new(%$request);
     $itype->save;
-    show_income_type($request);
+    return show_income_type($request);
 }
 
 =item get_income_type
@@ -76,7 +76,7 @@ Gets an income type and shows it
 sub get_income_type {
     my ($request) = @_;
     my $itype = LedgerSMB::Payroll::Income_Type->get($request->{id});
-    show_income_type($itype);
+    return show_income_type($itype);
 }
 
 
@@ -92,7 +92,7 @@ sub search_income_type {
        funcname => 'location_list_country'
     );
 
-    my $template = LedgerSMB::Template->new(
+    return LedgerSMB::Template->new(
         user     => $request->{_user},
         locale   => $request->{_locale},
         path     => 'UI/payroll',
@@ -110,7 +110,8 @@ Displays income type search results
 sub income_type_results {
     my ($request) = @_;
     use LedgerSMB::Report::Payroll::Income_Types;
-    LedgerSMB::Report::Payroll::Income_Types->new(%$request)->render($request);
+    return LedgerSMB::Report::Payroll::Income_Types
+        ->new(%$request)->render($request);
 }
 
 =back

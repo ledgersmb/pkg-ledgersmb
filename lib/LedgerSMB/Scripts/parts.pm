@@ -7,10 +7,8 @@ LedgerSMB::Scripts::parts
 package LedgerSMB::Scripts::parts;
 use strict;
 use warnings;
-use CGI::Simple;
 
 use LedgerSMB::Part;
-use LedgerSMB::REST_Format::json;
 
 =head1 FUNCTIONS
 
@@ -54,11 +52,8 @@ sub partslist_json {
         grep { ! $_->{obsolete} }
         map { $_->{label} = $_->{partnumber} . '--' . $_->{description}; $_ }
         @$items;
-    my $json = LedgerSMB::REST_Format::json->to_output($items);
-    my $cgi = CGI::Simple->new();
-    binmode STDOUT, ':raw';
-    print $cgi->header('application/json;charset=UTF-8', '200 Success');
-    $cgi->put($json);
+
+    return $request->to_json( $items );
 }
 
 1;

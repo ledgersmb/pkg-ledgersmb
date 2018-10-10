@@ -4,7 +4,6 @@ LedgerSMB::PGNumber - Number handling and serialization to database
 
 =cut
 
-
 package LedgerSMB::PGNumber;
 # try using the GMP library for Math::BigFloat for speed
 use Math::BigFloat try => 'GMP';
@@ -13,18 +12,10 @@ use strict;
 use warnings;
 use Number::Format;
 use LedgerSMB::Setting;
+use LedgerSMB::Magic qw( DEFAULT_NUM_PREC );
 
-# For 1.6, better to move to the type's registration API rather than 
-# do it ourselves, but this keeps the logic the same.
-for ('float4', 'float8', 'double precision', 'float', 'numeric'){
-    if ($PGObject::VERSION =~ /^1\./){
-        PGObject->register_type(pg_type => $_,
-                                  perl_class => __PACKAGE__);
-    } else {
-        PGObject::Type::Registry->register_type(registry => 'default',
-                dbtype => $_, apptype => __PACKAGE__);
-    }
-}
+__PACKAGE__->register(registry => 'default',
+    types => [qw(float4 float8 float numeric), 'double precision']);
 
 
 =head1 SYNPOSIS
@@ -55,7 +46,7 @@ can be used in this way.
 
 =cut
 
-use overload "bool" => "_bool";
+use overload 'bool' => '_bool';
 
 # function to return boolean value based on the numerical value
 # of the BigFloat (zero being false)
@@ -89,15 +80,14 @@ sub _bool {
 =cut
 
 our $lsmb_formats = {
-      "1000.00" => { thousands_sep => '',  decimal_sep => '.' },
-
-      "1000,00" => { thousands_sep => '',  decimal_sep => ',' },
-     "1 000.00" => { thousands_sep => ' ', decimal_sep => '.' },
-     "1 000,00" => { thousands_sep => ' ', decimal_sep => ',' },
-     "1,000.00" => { thousands_sep => ',', decimal_sep => '.' },
-     "1.000,00" => { thousands_sep => '.', decimal_sep => ',' },
-     "1'000,00" => { thousands_sep => "'", decimal_sep => ',' },
-     "1'000.00" => { thousands_sep => "'", decimal_sep => '.' },
+       '1000.00' => { thousands_sep => '',   decimal_sep => '.' },
+       '1000,00' => { thousands_sep => '',   decimal_sep => ',' },
+      '1 000.00' => { thousands_sep => ' ',  decimal_sep => '.' },
+      '1 000,00' => { thousands_sep => ' ',  decimal_sep => ',' },
+      '1,000.00' => { thousands_sep => ',',  decimal_sep => '.' },
+      '1.000,00' => { thousands_sep => '.',  decimal_sep => ',' },
+     q{1'000,00} => { thousands_sep => q{'}, decimal_sep => ',' },
+     q{1'000.00} => { thousands_sep => q{'}, decimal_sep => '.' },
 
 };
 
@@ -147,39 +137,41 @@ The input is formatted.
 sub from_input {
     my $self = shift;
     my $string = shift;
-    { # pre-5.14 compatibility block
-        local ($@); # pre-5.14, do not die() in this block
-        return $string if eval { $string->isa(__PACKAGE__) };
-    }
+
+    local $@ = undef;
+    return $string if eval { $string->isa(__PACKAGE__) };
+
     #tshvr4 avoid 'Use of uninitialized value $string in string eq'
-    if(!defined $string || $string eq ''){
-     return undef;
+    if (!defined $string || $string eq '') {
+        return undef;
     }
-    #$string = undef if $string eq '';
-    my %args   = (ref($_[0]) eq 'HASH')? %{$_[0]}: @_;
+    my %args   = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
     my $format = ($args{format}) ? $args{format}
-                              : $LedgerSMB::App_State::User->{numberformat};
+                                 : $LedgerSMB::App_State::User->{numberformat};
     die 'LedgerSMB::PGNumber No Format Set' if !$format;
     #return undef if !defined $string;
     my $negate;
     my $pgnum;
     my $newval;
     $negate = 1 if $string =~ /(^\(|DR$)/;
-    if ( UNIVERSAL::isa( $string, 'LedgerSMB::PGNumber' ) )
-    {
+
+    if (UNIVERSAL::isa($string, 'LedgerSMB::PGNumber')) {
         return $string;
     }
-    if (UNIVERSAL::isa( $string, 'LedgerSMB::PGNumber' ) ) {
+
+    if (UNIVERSAL::isa($string, 'LedgerSMB::PGNumber')) {
         $pgnum = $string;
-    } else {
-        my $formatter = new Number::Format(
-                    -thousands_sep => $lsmb_formats->{$format}->{thousands_sep},
-                    -decimal_point => $lsmb_formats->{$format}->{decimal_sep},
+    }
+    else {
+        my $formatter = Number::Format->new(
+            -thousands_sep => $lsmb_formats->{$format}->{thousands_sep},
+            -decimal_point => $lsmb_formats->{$format}->{decimal_sep},
         );
         $newval = $formatter->unformat_number($string);
         $pgnum = LedgerSMB::PGNumber->new($newval);
         $self->round_mode('+inf');
     }
+
     bless $pgnum, $self;
     $pgnum->bmul(-1) if $negate;
     die 'LedgerSMB::PGNumber Invalid Number' if $pgnum->is_nan();
@@ -231,13 +223,13 @@ sub to_output {
     my $dplaces = $places;
     $places = 0 unless defined $places and ($places > 0);
     my $zfill = ($places > 0) ? 1 : 0;
-    $dplaces = 5 unless defined $dplaces;
-    my $formatter = new Number::Format(
+    $dplaces = DEFAULT_NUM_PREC  unless defined $dplaces;
+    my $formatter = Number::Format->new(
         -thousands_sep => $lsmb_formats->{$format}->{thousands_sep},
         -decimal_point => $lsmb_formats->{$format}->{decimal_sep},
         -decimal_fill => $zfill,
         -neg_format => 'x'
-        );
+    );
     $str = $formatter->format_number($str, $dplaces);
 
     my $neg_format = ($args{neg_format}) ? $args{neg_format} : 'def';

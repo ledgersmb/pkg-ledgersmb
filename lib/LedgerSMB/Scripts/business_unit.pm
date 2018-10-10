@@ -44,7 +44,7 @@ sub list_classes {
         template => 'list_classes',
         format => 'HTML'
     );
-    $template->render({request => $request});
+    return $template->render({request => $request});
 }
 
 =item add
@@ -68,7 +68,7 @@ sub add {
     @{$request->{parent_options}} = $b_unit->list($request->{class_id});
     $request->{id} = undef;
     $request->{mode} = 'add';
-    _display($request);
+    return _display($request);
 }
 
 =item edit
@@ -86,7 +86,7 @@ sub edit {
     @{$bu->{parent_options}} = $b_unit->list($bu->{class_id});
     $bu->{mode} = 'edit';
 
-    _display($bu);
+    return _display($bu);
 }
 
 sub _display {
@@ -98,7 +98,7 @@ sub _display {
         template => 'edit',
         format => 'HTML'
     );
-    $template->render($request);
+    return $template->render($request);
 
 }
 
@@ -132,7 +132,8 @@ If set, excludes those which are not associated with customers/vendors.
 
 sub list {
     my ($request) = @_;
-    LedgerSMB::Report::Listings::Business_Unit->new(%$request)->render($request);
+    return LedgerSMB::Report::Listings::Business_Unit->new(%$request)
+        ->render($request);
 }
 
 =item delete
@@ -148,7 +149,7 @@ sub delete {
     my ($request) = @_;
     my $unit = LedgerSMB::Business_Unit->new(%$request);
     $unit->delete;
-    list($request);
+    return list($request);
 }
 
 =item delete_class
@@ -163,7 +164,7 @@ sub delete_class {
     my ($request) = @_;
     my $bu_class = LedgerSMB::Business_Unit_Class->new(%$request);
     $bu_class->delete;
-    list_classes($request);
+    return list_classes($request);
 }
 
 
@@ -176,8 +177,8 @@ Saves a new unit and returns to the add entry screen
 sub save_new {
     my ($request) = @_;
     my $unit = _save($request);
-    $request->{message} = $request->{_locale}->text("Added id [_1]", $unit->id);
-    add($request);
+    $request->{message} = $request->{_locale}->text('Added id [_1]', $unit->id);
+    return add($request);
 }
 
 =item save
@@ -190,8 +191,8 @@ LedgerSMB::Business_Unit must be set for $request.
 sub save {
     my ($request) = @_;
     my $unit = _save($request);
-    $request->{message} = $request->{_locale}->text("Saved id [_1]", $unit->id);
-    edit($request);
+    $request->{message} = $request->{_locale}->text('Saved id [_1]', $unit->id);
+    return edit($request);
 }
 
 sub _save {
@@ -229,7 +230,7 @@ sub save_class {
     my @modules = $lsmb_modules->list;
     my $modlist = [];
     for my $mod (@modules){
-        if ($request->{"module_" . $mod->id}){
+        if ($request->{'module_' . $mod->id}){
             push @$modlist, $mod;
         }
     }
@@ -241,7 +242,7 @@ sub save_class {
     my $bu_class = LedgerSMB::Business_Unit_Class->new(%$request);
     $bu_class->modules($modlist);
     $bu_class->save;
-    list_classes($request);
+    return list_classes($request);
 }
 
 =back

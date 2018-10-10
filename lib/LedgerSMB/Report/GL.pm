@@ -25,8 +25,9 @@ searching for and reporting financial transactions.
 
 package LedgerSMB::Report::GL;
 use Moose;
+use namespace::autoclean;
 extends 'LedgerSMB::Report';
-with 'LedgerSMB::Report::Dates';
+with 'LedgerSMB::Report::Dates', 'LedgerSMB::Report::Approval_Option';
 
 use LedgerSMB::Business_Unit_Class;
 use LedgerSMB::Business_Unit;
@@ -165,7 +166,7 @@ sub columns {
     );
     my @bclasses = LedgerSMB::Business_Unit_Class->list('1', 'gl');
     for my $class (@bclasses){
-        push @COLS, {col_id =>  "bc_" . $class->id,
+        push @COLS, {col_id =>  'bc_' . $class->id,
                        name => LedgerSMB::Report::maketext($class->label),
                        type => 'text',
                      pwidth => '2'};
@@ -283,29 +284,6 @@ Full text search of description field of GL transaction
 
 has 'description' => (is => 'rw', isa => 'Maybe[Str]');
 
-=item is_approved string
-
-Y, N, All
-
-=cut
-
-has is_approved => (is => 'ro', isa => 'Str',
-                    default => 'Y');
-has approved => (is => 'ro', lazy => 1,
-                 builder => '_approved');
-
-my $_approval_map = {
-   Y => 1,
-   N => 0,
-  All => undef
-};
-
-sub _approved {
-    my $self = shift;
-    die 'Bad approval code: ' . $self->is_approved
-        unless exists $_approval_map->{$self->is_approved};
-    return $_approval_map->{$self->is_approved}
-}
 
 =item from_amount
 
@@ -385,7 +363,7 @@ sub run_report{
         }
         $self->process_bclasses($ref);
     }
-    $self->rows(\@rows);
+    return $self->rows(\@rows);
 }
 
 =back

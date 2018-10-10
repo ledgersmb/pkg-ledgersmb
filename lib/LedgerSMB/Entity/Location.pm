@@ -19,6 +19,7 @@ attached either to the entity (person or company) or credit account
 
 package LedgerSMB::Entity::Location;
 use Moose;
+use namespace::autoclean;
 use LedgerSMB::MooseTypes;
 use LedgerSMB::App_State;
 use LedgerSMB::Locale;
@@ -110,7 +111,7 @@ $self->set_class_name is called.
 
 our %classes = ( 1 => $locale->text('Billing'),
                  2 => $locale->text('Sales'),
-                 3 => $locale->text('Shipping'),
+                 3 => $locale->text('Shipping'),  ## no critic (ProhibitMagicNumbers) sniff
 );
 
 has 'class_name' => (is => 'rw', isa => 'Str', required => 0);
@@ -247,7 +248,7 @@ sub save {
     } else {
         $procname = 'entity__location_save';
     }
-    $self->call_dbmethod(funcname => $procname);
+    return $self->call_dbmethod(funcname => $procname);
 }
 
 =item delete()
@@ -275,7 +276,7 @@ sub delete{
            $ref->{entity_id}, $ref->{location_id}, $ref->{location_class}
         ];
     }
-    __PACKAGE__->call_procedure(funcname => $procname, args => $args );
+    return __PACKAGE__->call_procedure(funcname => $procname, args => $args );
 }
 
 =back

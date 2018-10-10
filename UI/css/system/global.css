@@ -11,6 +11,24 @@ div.input {
 div.date {
     width: 13ex;
 }
+
+div.warning {
+    float: right;
+    width: 60%;
+    margin-right: 10%;
+    box-sizing: border-box;
+    padding-top: 1em;
+    padding-bottom:1em;
+    padding-left: 5em;
+    padding-right: 5em;
+    text-align: center;
+    border: 3px solid #f22;
+    background: #f81;
+    color: black;
+    border-radius: 6px;
+    border-shadow: #eee 6px 6px 4px;
+}
+
 html, body {
     height: 100%;
     margin: 0;
@@ -216,8 +234,8 @@ html, body {
 #balance-sheet-parameters label,
 #balance-sheet-parameters .label {
     display: inline-block;
-        width: 170px;
-        text-align: right;
+    width: 170px;
+    text-align: right;
     vertical-align: top;
 }
 
@@ -234,7 +252,7 @@ html, body {
 #reports .input_row,
 #balance-sheet-parameters .input_row {
    display: block;
-        width: 100%;
+   width: 100%;
    margin-top: 0.2em;
    margin-bottom: 1em;
    clear: both;
@@ -476,4 +494,34 @@ html, body {
     outline: none;
     padding-top: 0;
     padding-bottom: 0;
+}
+
+#top_menu .dijitTreeIcon {
+    background-image: none;
+    width: 0
+}
+
+#version_info {
+    text-align: center;
+}
+
+.header_table {
+    margin-left: auto;
+    margin-right: auto;
+    border=none; border-height:0; padding-top:0; padding-bottom:0; margin-top:0; margin-bottom:0;
+    border-collapse: collapse;
+}
+
+.header_left {
+    font-size: smaller;
+    text-align: right;
+    border-right: 1px solid;
+    padding-right: 3px;
+}
+
+.header_right {
+    font-size: smaller;
+    text-align: left;
+    border-left: 1px solid;
+    padding-left: 3px;
 }
