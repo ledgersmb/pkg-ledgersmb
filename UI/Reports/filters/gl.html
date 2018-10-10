@@ -1,5 +1,3 @@
-<?lsmb INCLUDE 'ui-header.html'
-?>
 <?lsmb PROCESS 'elements.html';
        PROCESS 'report_base.html' ?>
 <body class="lsmb <?lsmb dojo_theme ?>">
@@ -17,7 +15,7 @@
         <th class="listtop"><?lsmb text('General Ledger Reports') ?></th>
 
       </tr>
-      <tr height="5"></tr>
+      <tr style="height:5px"></tr>
       <tr>
         <td>
           <table>
@@ -99,7 +97,6 @@
             <?lsmb PROCESS business_classes;
                    PROCESS date_row ?>
             <tr>
-
               <th align="right"><?lsmb text('Amount') ?> &gt;=</th>
               <td><?lsmb PROCESS input element_data = {
                          name="from_amount"
@@ -151,7 +148,7 @@
                              class="radio"
                              type="radio"
                              value="Q"
-                             } ?>&nbsp;<?lsmb text('Equity') ?></td><td>
+                             } ?>&nbsp;<?lsmb text('Equity') ?></td>
                       <td align="left">
                       <?lsmb PROCESS input element_data = {
                              name="category"
@@ -159,7 +156,7 @@
                              class="radio"
                              type="radio"
                              value="I"
-                             } ?>&nbsp;<?lsmb text('Income') ?></td><td>
+                             } ?>&nbsp;<?lsmb text('Income') ?></td>
                       <td align="left">
                       <?lsmb PROCESS input element_data = {
                              name="category"
@@ -168,27 +165,28 @@
                              type="radio"
                              value="E"
                              } ?>&nbsp;<?lsmb text('Expense') ?>
-                    </td>
+                      </td>
                   </tr>
-      <tr>
-        <td><?lsmb PROCESS input element_data = {
-                    name = 'is_approved'
-                    type = 'radio'
-                   value = 'Y' 
-                 checked = 'CHECKED'
-        }; ?>&nbsp;<?lsmb text('Approved'); ?></td><td>
-        <?lsmb PROCESS input element_data = {
-                    name = 'is_approved'
-                    type = 'radio'
-                   value = 'N' 
-        }; ?>&nbsp;<?lsmb text('Unpproved'); ?></td><td>
-        <?lsmb PROCESS input element_data = {
-                    name = 'is_approved'
-                    type = 'radio'
-                   value = 'All'
-        }; ?>&nbsp;<?lsmb text('All'); ?>
-      </tr>
-
+                  <tr>
+                    <td><?lsmb PROCESS input element_data = {
+                                name = 'is_approved'
+                                type = 'radio'
+                               value = 'Y'
+                             checked = 'CHECKED'
+                    }; ?>&nbsp;<?lsmb text('Approved'); ?></td><td>
+                    <?lsmb PROCESS input element_data = {
+                                name = 'is_approved'
+                                type = 'radio'
+                               value = 'N'
+                    }; ?>&nbsp;<?lsmb text('Unapproved'); ?></td><td>
+                    <?lsmb PROCESS input element_data = {
+                                name = 'is_approved'
+                                type = 'radio'
+                               value = 'All'
+                    }; ?>&nbsp;<?lsmb text('All'); ?></td>
+                  </tr>
+                  <tr>
+                    <table>
                       <tr>
                         <td nowrap><?lsmb PROCESS input element_data = {
                                           name="col_id"
@@ -217,7 +215,6 @@
                                           value="Y"
                                           checked="checked"
                                           } ?> <?lsmb text('Description') ?></td>
-
                       </tr>
                       <tr>
                         <td nowrap><?lsmb PROCESS input element_data = {
@@ -298,6 +295,7 @@
                     </table>
                   </tr>
                 </table>
+              </td>
             </tr>
 
           </table>
@@ -329,5 +327,3 @@
            } ?>
   </form>
 </body>
-</html>
-

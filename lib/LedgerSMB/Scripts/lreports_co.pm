@@ -12,7 +12,6 @@ This module holds Colombia-specific reports.
 
 package LedgerSMB::Scripts::lreports_co;
 
-use LedgerSMB;
 use LedgerSMB::Template;
 use LedgerSMB::Report::co::Caja_Diaria;
 use LedgerSMB::Report::co::Balance_y_Mayor;
@@ -40,7 +39,7 @@ sub start_caja_diaria {
         template => 'filter_cd',
         format => 'HTML'
     );
-    $template->render($request);
+    return $template->render($request);
 }
 
 =item start_bm
@@ -58,7 +57,7 @@ sub start_bm {
         template => 'filter_bm',
         format => 'HTML'
     );
-    $template->render($request);
+    return $template->render($request);
 }
 
 =item run_caja_diaria
@@ -71,7 +70,7 @@ sub run_caja_diaria {
     my ($request) = @_;
     my $report = LedgerSMB::Report::co::Caja_Diaria->new(%$request);
     $report->run_report;
-    $report->render($request);
+    return $report->render($request);
 }
 
 =item run_bm
@@ -84,7 +83,7 @@ sub run_bm {
     my ($request) = @_;
     my $report = LedgerSMB::Report::co::Balance_y_Mayor->new(%$request);
     $report->run_report;
-    $report->render($request);
+    return $report->render($request);
 }
 
 =back
@@ -98,13 +97,13 @@ files.
 =cut
 
 {
-    local ($!, $@);
+    local ($!, $@) = ( undef, undef);
     my $do_ = 'scripts/custom/lreports_co.pl';
     if ( -e $do_ ) {
         unless ( do $do_ ) {
             if ($! or $@) {
-                print "Status: 500 Internal server error (lreports_co.pm)\n\n";
-                warn "Failed to execute $do_ ($!): $@\n";
+                warn "\nFailed to execute $do_ ($!): $@\n";
+                die (  "Status: 500 Internal server error (lreports_co.pm)\n\n" );
             }
         }
     }

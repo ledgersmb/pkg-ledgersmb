@@ -110,18 +110,18 @@ $$
                                 ec.id IN
                                 (SELECT entity_credit_account
                                    FROM acc_trans
-                                   JOIN chart ON (acc_trans.chart_id = chart.id)
+                                   JOIN account_link l ON (acc_trans.chart_id = l.account_id)
                                    JOIN ap ON (acc_trans.trans_id = ap.id)
-                                   WHERE link = 'AP'
+                                   WHERE l.description = 'AP'
                                    GROUP BY chart_id,
                                          trans_id, entity_credit_account
                                    HAVING SUM(acc_trans.amount) <> 0)
                                WHEN in_account_class = 2 THEN
                                 ec.id IN (SELECT entity_credit_account
                                    FROM acc_trans
-                                   JOIN chart ON (acc_trans.chart_id = chart.id)
+                                   JOIN account_link l ON (acc_trans.chart_id = l.account_id)
                                    JOIN ar ON (acc_trans.trans_id = ar.id)
-                                   WHERE link = 'AR'
+                                   WHERE l.description = 'AR'
                                    GROUP BY chart_id,
                                          trans_id, entity_credit_account
                                    HAVING SUM(acc_trans.amount) <> 0)
@@ -244,12 +244,12 @@ $$
                                              END) as due
                         FROM acc_trans
                         GROUP BY trans_id, chart_id) ac ON (ac.trans_id = a.id)
-                        JOIN chart ON (chart.id = ac.chart_id)
+                        JOIN account_link l ON (l.account_id = ac.chart_id)
                         LEFT JOIN exchangerate ex ON ( ex.transdate = a.transdate AND ex.curr = a.curr )
                         JOIN entity_credit_account c ON (c.id = a.entity_credit_account)
                 --        OR (a.entity_credit_account IS NULL and a.entity_id = c.entity_id))
-                        WHERE ((chart.link = 'AP' AND in_account_class = 1)
-                              OR (chart.link = 'AR' AND in_account_class = 2))
+                        WHERE ((l.description = 'AP' AND in_account_class = 1)
+                              OR (l.description = 'AR' AND in_account_class = 2))
                         AND a.invoice_class = in_account_class
                         AND c.entity_class = in_account_class
                         AND c.id = in_entity_credit_id
@@ -363,7 +363,7 @@ $$
                     JOIN (SELECT ap.id, invnumber, transdate, amount, entity_id,
                                  curr, 1 as invoice_class,
                                  entity_credit_account, on_hold, v.batch_id,
-                                 approved, paid
+                                 approved
                             FROM ap
                        LEFT JOIN (select * from voucher where batch_class = 1) v
                                  ON (ap.id = v.trans_id)
@@ -373,7 +373,7 @@ $$
                           SELECT ar.id, invnumber, transdate, amount, entity_id,
                                  curr, 2 as invoice_class,
                                  entity_credit_account, on_hold, v.batch_id,
-                                 approved, paid
+                                 approved
                             FROM ar
                        LEFT JOIN (select * from voucher where batch_class = 2) v
                                  ON (ar.id = v.trans_id)
@@ -518,8 +518,8 @@ BEGIN
         CREATE TEMPORARY TABLE bulk_payments_in
            (id int, amount numeric, fxrate numeric, gain_loss_accno int);
 
-        select id into t_ar_ap_id from chart where accno = in_ar_ap_accno;
-        select id into t_cash_id from chart where accno = in_cash_accno;
+        select id into t_ar_ap_id from account where accno = in_ar_ap_accno;
+        select id into t_cash_id from account where accno = in_cash_accno;
 
         FOR out_count IN
                         array_lower(in_transactions, 1) ..
@@ -786,10 +786,10 @@ BEGIN
                      array_upper(in_transaction_id, 1)
        LOOP
                SELECT INTO var_account_id chart_id FROM acc_trans as ac
-                JOIN chart as c ON (c.id = ac.chart_id)
+                JOIN account_link as l ON (l.account_id = ac.chart_id)
                 WHERE
                 trans_id = in_transaction_id[out_count] AND
-                ( c.link = 'AP' OR c.link = 'AR' );
+                ( l.description in ('AR', 'AP'));
         -- We need to know the exchangerate of this transaction
         -- ### BUG: we don't have a guarantee that the transaction is
         --          the same currency as in_curr, so, we can't use
@@ -872,10 +872,10 @@ BEGIN
 
   IF (array_upper(in_op_cash_account_id, 1) > 0) THEN
        INSERT INTO gl (reference, description, transdate,
-                       person_id, notes, approved)
+                       person_id, notes, approved, trans_type_code)
               VALUES (setting_increment('glnumber'),
                       in_gl_description, in_datepaid, var_employee,
-                      in_notes, in_approved);
+                      in_notes, in_approved, 'op');
        SELECT currval('id') INTO var_gl_id;
 --
 -- WE NEED TO SET THE GL_ID FIELD ON PAYMENT'S TABLE
@@ -1247,16 +1247,25 @@ BEGIN
                         in_date_reversed, in_source, 'Reversing ' ||
                         COALESCE(in_source, ''),
                         case when in_batch_id is not null then false
-                        else true end, t_voucher_id),
-                 (pay_row.trans_id,
-                  case when pay_row.fxrate > t_rev_fx
-                       THEN t_fxloss_id ELSE t_fxgain_id END,
-                  pay_row.amount / t_paid_fx * (t_rev_fx - pay_row.fxrate),
-                  in_date_reversed, in_source, 'Reversing ' ||
-                                                COALESCE(in_source, ''),
-                   case when in_batch_id is not null then false
                         else true end, t_voucher_id);
 
+
+                IF  ABS(pay_row.amount / t_paid_fx
+                        * (t_rev_fx - pay_row.fxrate)) > 0.005 THEN
+                   INSERT INTO acc_trans (trans_id, chart_id, amount,
+                                          transdate, source, memo, approved,
+                                          voucher_id)
+                      VALUES
+                         (pay_row.trans_id,
+                          case when pay_row.fxrate > t_rev_fx
+                                  THEN t_fxloss_id ELSE t_fxgain_id END,
+                          pay_row.amount / t_paid_fx
+                              * (t_rev_fx - pay_row.fxrate),
+                          in_date_reversed, in_source,
+                          'Reversing ' || COALESCE(in_source, ''),
+                          case when in_batch_id is not null then false
+                               else true end, t_voucher_id);
+                END IF;
 
         END LOOP;
         RETURN 1;
@@ -1358,7 +1367,6 @@ CREATE TYPE payment_line_item AS (
   chart_id int,
   chart_accno text,
   chart_description text,
-  chart_link text,
   amount numeric,
   trans_date date,
   source text,
@@ -1375,12 +1383,12 @@ CREATE OR REPLACE FUNCTION payment_gather_line_info(in_account_class int, in_pay
  RETURNS SETOF payment_line_item AS
  $$
      SELECT pl.payment_id, ac.entry_id, pl.type as link_type, ac.trans_id, a.invnumber as invoice_number,
-     ac.chart_id, ch.accno as chart_accno, ch.description as chart_description, ch.link as chart_link,
+     ac.chart_id, ch.accno as chart_accno, ch.description as chart_description,
      ac.amount,  ac.transdate as trans_date, ac.source, ac.cleared, ac.fx_transaction,
      ac.memo, ac.invoice_id, ac.approved, ac.cleared_on, ac.reconciled_on
      FROM acc_trans ac
      JOIN payment_links pl ON (pl.entry_id = ac.entry_id )
-     JOIN chart         ch ON (ch.id = ac.chart_id)
+     JOIN account ch ON (ch.id = ac.chart_id)
      LEFT JOIN (SELECT id,invnumber
                  FROM ar WHERE in_account_class = 2
                  UNION
@@ -1406,12 +1414,13 @@ SELECT p.id as payment_id, p.reference as payment_reference, p.payment_class, p.
 FROM payment p
 JOIN payment_links pl ON (pl.payment_id=p.id)
 JOIN acc_trans ac ON (ac.entry_id=pl.entry_id)
-JOIN chart c ON (c.id=ac.chart_id)
+JOIN account c ON (c.id=ac.chart_id)
+JOIN account_link l ON l.account_id = c.id
 JOIN entity_credit_account eca ON (eca.id = p.entity_credit_id)
 JOIN company cmp ON (cmp.entity_id=eca.entity_id)
 WHERE p.gl_id IS NOT NULL
       AND (pl.type = 2 OR pl.type = 0)
-      AND c.link LIKE '%overpayment%'
+      AND l.description LIKE '%overpayment'
 GROUP BY p.id, c.accno, p.reference, p.payment_class, p.closed, p.payment_date,
       ac.chart_id, chart_description,legal_name, eca.id,
       eca.entity_id, eca.discount, eca.meta_number, eca.entity_class;
@@ -1537,8 +1546,9 @@ BEGIN
 
 -- reverse overpayment gl
 
-INSERT INTO gl (transdate, reference, description, approved)
-SELECT transdate, reference || '-reversal', 'reversal of ' || description, '0'
+INSERT INTO gl (transdate, reference, description, approved, trans_type_code)
+SELECT transdate, reference || '-reversal',
+       'reversal of ' || description, '0', 'op'
   FROM gl WHERE id = (select gl_id from payment where id = in_id);
 
 IF NOT FOUND THEN

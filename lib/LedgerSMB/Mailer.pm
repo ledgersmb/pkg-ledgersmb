@@ -65,7 +65,7 @@ sub new {
 
     $self->prepare_message(@_) if @_;
 
-    $self;
+    return $self;
 }
 
 =head2 $mail->prepare_message(to => $to, from => $from, ...)
@@ -111,29 +111,7 @@ sub prepare_message {
     }
     die 'No email from address' unless $self->{from};
 
-
-    my $domain = $self->{from};
-    $domain =~ s/(.*?\@|>)//g;
-
-    # Make sure we generate a message id which has sufficient chance
-    # of being unique. Note that the purpose of MD5 here isn't to be
-    # cryptographically secure; it's a hash which provides sufficient
-    # distribution across the number space.
-    my $msg_random = md5_hex(
-        'From' => $self->{from},
-        'To' => $self->{to},
-        'Cc' => $self->{cc},
-        'Bcc' => $self->{bcc},
-        'Subject' => $self->{subject},
-        # To get better distribution, also take non-message related
-        # components into account: time, pid and a random number
-        'Date/Time' => time,
-        'Process-id' => $$,
-        'Random-component' => rand(),
-        );
-    my $msg_id = "<LSMB-$msg_random\@$domain>";
-
-    $self->{contenttype} = "text/plain" unless $self->{contenttype};
+    $self->{contenttype} = 'text/plain' unless $self->{contenttype};
 
     for (qw(from to cc bcc subject)) {
         next unless $self->{$_};
@@ -150,7 +128,7 @@ sub prepare_message {
         'Type' => 'TEXT',
         'Data' => Encode::encode_utf8($self->{message}),
         'Encoding' => '8bit',
-        'Message-ID' => $msg_id,
+        'Message-ID' => $self->generate_message_id,
     );
     $self->{_message}->attr( 'Content-Type' => $self->{contenttype} );
     $self->{_message}->attr( 'Content-Type.charset' => 'UTF-8' ) if
@@ -158,19 +136,16 @@ sub prepare_message {
     # Annoy people with read receipt requests
     $self->{_message}->add( 'Disposition-Notification-To' => $self->{from} )
       if $self->{notify};
-    $self->{_message}->binmode(':utf8');
+    return $self->{_message}->binmode(':utf8');
 }
 
 =head2 $mail->attach(data => $data, file => $file,
-                     filename => $name, strip => $strip)
+                     filename => $name)
 
 Add an attachment to the prepared message.  If $data is specified, use the
 value of that variable as the attachment value, otherwise attach the file
 given by $file.  If both a file and data are given, the data is attached.
 filename must be given and is used to name the attachment.
-
-$strip is an optional string to remove from the filename send with the
-attachment.
 
 =cut
 
@@ -178,25 +153,17 @@ sub attach {
     my $self = shift;
     my %args = @_;
 
-    carp "Message not prepared" unless ref $self->{_message};
+    carp 'Message not prepared' unless ref $self->{_message};
     if (defined $args{file}) {
         if (!$args{file}){
-            carp "Invalid filename provided";
-        } elsif (!defined $args{data}
-             and !(-f $args{file} and -r $args{file})){
+            carp 'Invalid filename provided';
+        } elsif (not defined $args{data}
+             and not (-f $args{file} and -r $args{file})){
             carp "Cannot access file: $args{file}";
         }
     } else {
-        carp "No attachement supplied" unless defined $args{data};
+        carp 'No attachement supplied' unless defined $args{data};
     }
-
-    # strip path from output name
-    my $filename;
-    if ($args{filename}) {
-        my $strip = quotemeta $args{strip};
-        $filename = $args{filename};
-        $filename =~ s/(.*\/|$strip)//g;
-        }
 
     # handle both string and file types of input
     my @data;
@@ -206,9 +173,9 @@ sub attach {
         @data = ('Path', $args{file});
     }
 
-    $self->{_message}->attach(
+    return $self->{_message}->attach(
         'Type' => $args{mimetype},
-        'Filename' => $filename,
+        'Filename' => $args{filename},
         'Disposition' => 'attachment',
         @data,
         );
@@ -222,30 +189,78 @@ Sends a prepared message using the method configured in ledgersmb.conf.
 
 sub send {
     my $self = shift;
-    carp "Message not prepared" unless ref $self->{_message};
+    carp 'Message not prepared' unless ref $self->{_message};
 
     # SC: Set the X-Mailer header here so that it will be the last
     #     header set.  This ensures that MIME::Lite will not rewrite
     #     it during the preparation of the message.
     $self->{_message}->replace( 'X-Mailer' => "LedgerSMB::Mailer $VERSION" );
-    local $@;
+    local $@ = undef;
     eval {
-        if ( $LedgerSMB::Sysconfig::smtphost ) {
-            $self->{_message}->send(
+        my @send_options;
+
+        if (defined $LedgerSMB::Sysconfig::smtphost) {
+            @send_options = (
                 'smtp',
                 $LedgerSMB::Sysconfig::smtphost,
-                Timeout => $LedgerSMB::Sysconfig::smtptimeout
-                 ) || return "$!";
+                Timeout => $LedgerSMB::Sysconfig::smtptimeout,
+                Port => $LedgerSMB::Sysconfig::smtpport,
+            );
+
+            if (defined $LedgerSMB::Sysconfig::smtpuser) {
+                push(@send_options, AuthUser => $LedgerSMB::Sysconfig::smtpuser);
+            }
+
+            if (defined $LedgerSMB::Sysconfig::smtppass) {
+                push(@send_options, AuthPass => $LedgerSMB::Sysconfig::smtppass);
+            }
         } else {
-            $self->{_message}->send(
+            @send_options = (
                 'sendmail',
                 SendMail => $LedgerSMB::Sysconfig::sendmail,
-                     SetSender => 1
-                ) || return "$!";
+                SetSender => 1
+            );
         }
+
+        $self->{_message}->send(@send_options) or return "$!";
     };
     die "Could not send email: $@.  Please check your configuration." if $@;
+    return;
+}
+
+
+=head2 $mail->generate_message_id
+
+Generate and return a statistically unique rfc 2393 MIME Message-ID, based
+on various message fields, time, process_id and a random component.
+
+=cut
+
+sub generate_message_id {
+
+    my $self = shift;
+    my $domain = $self->{from};
+    $domain =~ s/(.*?\@|>)//g;
+
+    # Make sure we generate a message id which has sufficient chance
+    # of being unique. Note that the purpose of MD5 here isn't to be
+    # cryptographically secure; it's a hash which provides sufficient
+    # distribution across the number space.
+    my $msg_random = md5_hex(
+        'From' => $self->{from},
+        'To' => $self->{to} // '',
+        'Cc' => $self->{cc} // '',
+        'Bcc' => $self->{bcc} // '',
+        'Subject' => $self->{subject} // '',
+        # To get better distribution, also take non-message related
+        # components into account: time, pid and a random number
+        'Date/Time' => time,
+        'Process-id' => $$,
+        'Random-component' => rand(),
+        );
+    my $msg_id = "<LSMB-$msg_random\@$domain>";
+
+    return $msg_id;
 }
 
 1;
-

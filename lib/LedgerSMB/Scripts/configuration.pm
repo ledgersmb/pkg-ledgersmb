@@ -10,7 +10,6 @@ LedgerSMB::Scripts::configuration->can('action')->($request);
 package LedgerSMB::Scripts::configuration;
 use LedgerSMB::Setting;
 use LedgerSMB::Setting::Sequence;
-use LedgerSMB::AM; # To be removed, only for template directories right now
 use LedgerSMB::App_State;
 use strict;
 use warnings;
@@ -60,7 +59,8 @@ sub _default_settings {
                 label => $locale->text('Disable Back Button'),
                 type => 'YES_NO', },
               { name => 'password_duration',
-                label => $locale->text('Password Duration') },
+                label => $locale->text('Password Duration (days)')
+              },
               { name => 'session_timeout',
         label => $locale->text('Session Timeout'), },
               { name => 'never_logout',
@@ -132,6 +132,12 @@ sub _default_settings {
                 type => 'YES_NO', },
               { name => 'min_empty',
                 label => $locale->text('Min Empty Lines') },
+              { name => 'default_buyexchange',
+                label => $locale->text('Use web service for current Buy Exchange Rates'),
+                type => 'YES_NO',
+                info => ['Buy rates can be provided automatically to the application by using a web service and providing current date and origin and destination currencies.',
+                         'Please review the terms and conditions for the $1 before use.']
+                },
               ] },
         );
     return @default_settings;
@@ -277,10 +283,9 @@ sub defaults_screen{
     );
 
     my $template = LedgerSMB::Template->new_UI(
-        user => $LedgerSMB::App_State::User,
-        locale => $request->{_locale},
+        $request,
         template => 'Configuration/settings');
-    $template->render({
+    return $template->render({
         form => $request,
         # hiddens => \%hiddens,
         selects => \%selects,
@@ -310,11 +315,10 @@ sub sequence_screen {
         }
     ++$count;
     }
-    LedgerSMB::Template->new_UI(
-        user => $LedgerSMB::App_State::User,
-        locale => $locale,
-        template => 'Configuration/sequence')->render($request);
-
+    return LedgerSMB::Template->new_UI(
+        $request,
+        template => 'Configuration/sequence'
+        )->render($request);
 }
 
 =item save_defaults
@@ -342,7 +346,7 @@ sub save_defaults {
         $request->{$skey} =~ s/--.*$// if $skey =~ /accno_id/;
         $setting_handle->set($skey, $request->{$skey});
     }
-    defaults_screen($request);
+    return defaults_screen($request);
 }
 
 =item save_sequences
@@ -361,7 +365,7 @@ sub save_sequences {
            )->save;
         }
     }
-    sequence_screen($request);
+    return sequence_screen($request);
 }
 
 =back

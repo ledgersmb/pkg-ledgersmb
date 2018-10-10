@@ -339,6 +339,7 @@ SELECT lsmb__grant_perms('contact_delete', obj, 'DELETE')
                     'entity_bank_account', 'person_to_company']) obj;
 
 SELECT lsmb__create_role('contact_all_rights');
+SELECT lsmb__grant_role('contact_all_rights', 'contact_class_vendor');
 SELECT lsmb__grant_role('contact_all_rights', 'contact_class_customer');
 SELECT lsmb__grant_role('contact_all_rights', 'contact_class_employee');
 SELECT lsmb__grant_role('contact_all_rights', 'contact_class_contact');
@@ -752,7 +753,8 @@ SELECT lsmb__grant_perms('part_delete', obj, 'DELETE')
 
 SELECT lsmb__create_role('inventory_reports');
 SELECT lsmb__grant_perms('inventory_reports', obj, 'SELECT')
-  FROM unnest(array['ar'::text, 'ap', 'warehouse_inventory', 'invoice', 'acc_trans']) obj;
+  FROM unnest(array['ar'::text, 'ap', 'warehouse_inventory',
+                    'invoice', 'acc_trans']) obj;
 
 SELECT lsmb__grant_menu('inventory_reports', 114, 'allow');
 SELECT lsmb__grant_menu('inventory_reports', 75, 'allow');
@@ -763,6 +765,9 @@ SELECT lsmb__grant_perms('inventory_adjust', obj, 'SELECT')
 
 SELECT lsmb__grant_perms('inventory_adjust', obj, 'INSERT')
   FROM unnest(array['inventory_report'::text, 'inventory_report_line']) obj;
+
+SELECT lsmb__grant_perms('inventory_adjust', obj, 'ALL')
+  FROM unnest(array['inventory_report_id_seq'::text]) obj;
 
 SELECT lsmb__grant_menu('inventory_adjust', node_id, 'allow')
   FROM unnest(array[6,16]) node_id;
@@ -963,6 +968,12 @@ SELECT lsmb__create_role('recurring');
 SELECT lsmb__grant_menu('recurring', 115, 'allow');
 SELECT lsmb__grant_menu('recurring', 28, 'allow');
 
+\echo TEMPLATE TRANSACTIONS
+SELECT lsmb__create_role('transaction_template_delete');
+SELECT lsmb__grant_perms('transaction_template_delete', 'eca_invoice', 'DELETE');
+SELECT lsmb__grant_perms('transaction_template_delete', 'journal_entry', 'DELETE');
+SELECT lsmb__grant_perms('transaction_template_delete', 'journal_line', 'DELETE');
+
 \echo TAX FORMS
 SELECT lsmb__create_role('tax_form_save');
 SELECT lsmb__grant_perms('tax_form_save', 'country_tax_form', 'ALL');
@@ -985,7 +996,7 @@ SELECT lsmb__grant_menu('taxes_set', 130, 'allow');
 
 SELECT lsmb__create_role('account_create');
 SELECT lsmb__grant_perms('account_create', obj, 'INSERT')
-  FROM unnest(array['chart'::text, 'account', 'cr_coa_to_account',
+  FROM unnest(array['account'::text, 'cr_coa_to_account',
                     'account_heading', 'account_link',
                     'account_translation', 'account_heading_translation']) obj;
 
@@ -1062,7 +1073,7 @@ SELECT lsmb__create_role('template_edit');
 SELECT lsmb__grant_perms('template_edit', 'template', 'ALL');
 SELECT lsmb__grant_perms('template_edit', 'template_id_seq', 'ALL');
 SELECT lsmb__grant_menu('template_edit', id, 'allow')
-  FROM unnest(array[90, 99, 159,160,161,162,163,164,165,
+  FROM unnest(array[29, 30, 31, 32, 33, 90, 99, 159,160,161,162,163,164,165,
                     166,167,168,169,170,171,173,174,175,176,177,178,179,180,
                     181,182,183,184,185,186,187,241,242]) id;
 
@@ -1178,7 +1189,7 @@ SELECT lsmb__grant_perms('base_user', obj, 'ALL')
 SELECT lsmb__grant_perms('base_user', obj, 'SELECT')
   FROM unnest(array['user_listable'::text, 'language',
                     'menu_node', 'menu_attribute', 'menu_acl',
-                    'chart', 'gifi', 'country', 'taxmodule',
+                    'gifi', 'country', 'taxmodule',
                     'parts', 'partsgroup', 'country_tax_form', 'translation',
                     'business', 'exchangerate', 'new_shipto', 'tax',
                     'entity_employee', 'jcitems', 'salutation', 'assembly']) obj;

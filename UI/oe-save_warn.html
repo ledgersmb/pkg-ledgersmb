@@ -1,5 +1,4 @@
-<?lsmb INCLUDE "ui-header.html";
-PROCESS elements.html ?>
+<?lsmb PROCESS elements.html ?>
 <body class="lsmb <?lsmb dojo_theme ?>">
 <form data-dojo-type="lsmb/Form" method=post action="oe.pl">
 <h2 class=confirm> <?lsmb text('Warning!') ?></h2>
@@ -7,18 +6,16 @@ PROCESS elements.html ?>
   PROCESS input element_data = {
     type = "hidden"
     name = h
-    value = hiddens.$h 
+    value = hiddens.$h
   };
 END ?>
 <h4><?lsmb text('Saving over an existing document.  Continue?') ?></h4>
 <?lsmb PROCESS button element_data = {
-      name="action" 
-     class="submit" 
-      type="submit" 
+      name="action"
+     class="submit"
+      type="submit"
      value="save"
       text=text('Continue')
 } ?>
 </form>
 </body>
-</html>
-

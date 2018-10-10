@@ -34,7 +34,8 @@ Lists the templates.
 
 sub list {
     my ($request) = @_;
-    LedgerSMB::Report::Listing::Templates->new(%$request)->render($request);
+    return LedgerSMB::Report::Listings::Templates->new(%$request)
+        ->render($request);
 }
 
 =head2 display($request)
@@ -46,15 +47,14 @@ Displays a template for review
 sub display {
     my ($request) = @_;
     my $dbtemp;
-    { # pre-5.14 compatibility block
-        local ($@); # pre-5.14, do not die() in this block
-        eval {$dbtemp = LedgerSMB::Template::DB->get(%$request)};
-    }
+    local $@ = undef;
+    eval {$dbtemp = LedgerSMB::Template::DB->get(%$request)};
+
     $dbtemp->{content} = $dbtemp->template if defined $dbtemp;
     $dbtemp = $request unless $dbtemp->{format};
     $dbtemp->{languages} =
         [ LedgerSMB->call_procedure(funcname => 'person__list_languages') ];
-    LedgerSMB::Template->new(
+    return LedgerSMB::Template->new(
         user     => $request->{_user},
         locale   => $request->{_locale},
         path     => 'UI/templates',
@@ -74,14 +74,14 @@ Displays a screen for editing the template
 sub edit {
     my ($request) = @_;
     my $dbtemp;
-    { # pre-5.14 compatibility block
-        local ($@); # pre-5.14, do not die() in this block
-        $dbtemp = eval { LedgerSMB::Template::DB->get(%$request) } ;
-        delete $request->{language_code}
-            unless $dbtemp;
-        $dbtemp = eval { LedgerSMB::Template::DB->get(%$request) }
-            unless $dbtemp;
-    }
+
+    local $@ = undef;
+    $dbtemp = eval { LedgerSMB::Template::DB->get(%$request) } ;
+    delete $request->{language_code}
+        unless $dbtemp;
+    $dbtemp = eval { LedgerSMB::Template::DB->get(%$request) }
+        unless $dbtemp;
+
     die $LedgerSMB::App_State::Locale->text('Template Not Found')
        unless $dbtemp;
     $dbtemp->{content} = $dbtemp->template;
@@ -89,14 +89,14 @@ sub edit {
     $dbtemp->{languages} =
         [ LedgerSMB->call_procedure(funcname => 'person__list_languages') ];
 
-    LedgerSMB::Template->new(
+    return LedgerSMB::Template->new(
         user     => $request->{_user},
         locale   => $request->{_locale},
         path     => 'UI/templates',
         template => 'edit',
         format   => 'HTML'
     )->render({ request => $request,
-                to_edit => $dbtemp });
+                        to_edit => $dbtemp });
 }
 
 =head2 save($request)
@@ -109,7 +109,7 @@ sub save {
     my ($request) = @_;
     my $dbtemp = LedgerSMB::Template::DB->new(%$request);
     $dbtemp->save();
-    display($request);
+    return display($request);
 }
 
 =head2 upload($request)
@@ -121,25 +121,33 @@ will be accepted.
 
 sub upload {
     my ($request) = @_;
-    my @fnames =  $request->{_request}->upload_info;
-    my $name = $fnames[0];
-    my $fh = $request->{_request}->upload($name);
-    my $fdata = join ("", <$fh>);
-    die "No content" unless $fdata;
-    my $testname = $request->{template_name} . "." . $request->{format};
+
+    my $upload = $request->{_uploads}->{template_file}
+        or die 'No template file uploaded';
+
+    # Slurp uploaded file
+    open my $fh, '<', $upload->path or die "Error opening uploaded file $!";
+    local $/ = undef;
+    my $fdata = <$fh>;
+
+    # Sanity check that browser-provided local name of uploaded file matches
+    # the template name and extension. Is this appropriate/necessary?
+    die 'No content' unless $fdata;
+    my $testname = $request->{template_name} . '.' . $request->{format};
     die LedgerSMB::App_State::Locale->text(
                 'Unexpected file name, expected [_1], got [_2]',
-                 $testname, $name)
-          unless $name eq $testname;
+                 $testname, $upload->basename)
+          unless $upload->basename eq $testname;
     $request->{template} = $fdata;
     my $dbtemp = LedgerSMB::Template::DB->new(%$request);
     $dbtemp->save();
-    display($request);
+
+    return display($request);
 }
 
 =head1 COPYRIGHT
 
-Copyright (C) 2014 The LedgerSMB Core Team.
+Copyright (C) 2014-2018 The LedgerSMB Core Team.
 
 This file may be re-used under the terms of the GNU General Public License
 version 2 or at your option any later version.  Please see the included

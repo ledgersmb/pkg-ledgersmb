@@ -1,10 +1,5 @@
-<?lsmb INCLUDE 'ui-header.html'
-      stylesheet = stylesheet
-      include_stylesheet = ["asset/asset.css"] 
-      include_script = ["asset/asset.js"] 
-?>
 <?lsmb PROCESS 'elements.html' ?>
-<body onLoad="init()" class="lsmb <?lsmb dojo_theme ?>">
+<body class="lsmb <?lsmb dojo_theme ?>">
 <div class="listtop"><?lsmb title ?></div>
 <div class="info"><?lsmb info ?></div>
 <form data-dojo-type="lsmb/Form" action="<?lsmb request.script ?>" method="post" enctype="multipart/form-data">
@@ -30,7 +25,7 @@
 <?lsmb PROCESS input element_data = {
      type = "text"
      class = "date"
-     label = text("Transaction Date") 
+     label = text("Transaction Date")
      name = "transdate"
      value = transdate
      size = 12
@@ -52,7 +47,7 @@
        label = text("Onhand delta")
 } ?>
 </div>
-<div class="inputrow" id="typerow">
+<div class="inputrow" id="typerow2">
 <?lsmb PROCESS input element_data = {
        name = "type"
        id   = 'type-single'
@@ -72,19 +67,19 @@
 <?lsmb PROCESS input element_data = {
        name = "import_file"
        type = "file"
-       label = text("From File") 
+       label = text("From File")
        class = "file"
+       accept = ".csv"
 } ?>
 </div>
 <div class="inputrow" id="buttonrow">
 <?lsmb PROCESS button element_data = {
-	text = text("Save")
-	type = "submit"
-	class = "submit"
-	name = "action"
-	value = "run_import"
+        text = text("Save")
+        type = "submit"
+        class = "submit"
+        name = "action"
+        value = "run_import"
 } ?>
 </div>
 </form>
 </body>
-</html>

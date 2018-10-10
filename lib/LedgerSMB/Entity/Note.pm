@@ -20,7 +20,9 @@ level.
 =cut
 
 package LedgerSMB::Entity::Note;
+use LedgerSMB::Magic qw( NC_ENTITY_CREDIT_ACCOUNT);
 use Moose;
+use namespace::autoclean;
 with 'LedgerSMB::PGObject';
 
 
@@ -129,7 +131,7 @@ setting things like the id field.
 sub save {
     my ($self) = @_;
     my $ref;
-    if (3 == $self->note_class){
+    if ( NC_ENTITY_CREDIT_ACCOUNT == $self->note_class){
         ($ref) = $self->call_dbmethod(funcname => 'eca__save_notes');
     } else {
         ($ref) = $self->call_dbmethod(funcname => 'entity__save_notes');

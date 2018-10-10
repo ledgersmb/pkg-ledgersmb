@@ -21,6 +21,7 @@ LedgerSMB::Budget_Report.
 =cut
 
 use Moose;
+use namespace::autoclean;
 with 'LedgerSMB::PGObject';
 
 =head1 PROPERTIES
@@ -206,59 +207,7 @@ sub save {
        push @{$self->{details}}, $l_info;
     }
     $self->call_dbmethod(funcname => 'budget__save_details');
-    $self->get($ref->{id});
-}
-
-
-=item from_input
-
-Prepares dates as PGDate formats
-
-=cut
-
-sub from_input {
-    my ($self, $input) = @_;
-    $input->{start_date} = LedgerSMB::PGDate->from_input($input->{start_date});
-    $input->{end_date} = LedgerSMB::PGDate->from_input($input->{end_date});
-    for my $rownum (1 .. $input->{rowcount}){
-         my $line = {};
-         $input->{"debit_$rownum"} = $input->parse_amount(
-                    amount => $input->{"debit_$rownum"}
-         );
-         $input->{"debit_$rownum"} = $input->format_amount(
-                    {amount => $input->{"debit_$rownum"}, format => '1000.00'}
-         );
-         $input->{"credit_$rownum"} = $input->parse_amount(
-                    amount => $input->{"credit_$rownum"}
-         );
-         $input->{"credit_$rownum"} = $input->format_amount(
-                   {amount => $input->{"credit_$rownum"}, format => '1000.00'}
-         );
-         if ($input->{"debit_$rownum"} and $input->{"credit_$rownum"}){
-             $input->error($input->{_locale}->text(
-                 'Cannot specify both debits and credits for budget line [_1]',
-                 $rownum
-             ));
-         } elsif(!$input->{"debit_$rownum"} and !$input->{"credit_$rownum"}){
-             next;
-         } else {
-             $line->{amount} =   $input->{"credit_$rownum"}
-                               - $input->{"debit_$rownum"};
-             $line->{credit} = $line->{amount} if $line->{amount} > 0;
-             $line->{debit}  = $line->{amount} * -1 if $line->{amount} < 0;
-         }
-         my ($accno) = split /--/, $input->{"accno_$rownum"};
-         my ($ref) = $input->call_procedure(
-                       funcname => 'account__get_from_accno',
-                           args => [$accno]
-          );
-         $line->{description} = $input->{"description_$rownum"};
-         $line->{account_id} = $ref->{id};
-         $line->{accno} = $ref->{accno};
-         $line->{acc_desc} = $ref->{description};
-         push @{$input->{lines}}, $line;
-    }
-    return $self->new(%$input);
+    return $self->get($ref->{id});
 }
 
 =item search
@@ -337,7 +286,7 @@ Marks the budget as approved.
 
 sub approve {
    my ($self) = @_;
-   $self->call_dbmethod(funcname => 'budget__approve');
+   return $self->call_dbmethod(funcname => 'budget__approve');
 }
 
 =item reject
@@ -347,7 +296,7 @@ Reject and deletes the budget.
 
 sub reject {
    my ($self) = @_;
-   $self->call_dbmethod(funcname => 'budget__reject');
+   return $self->call_dbmethod(funcname => 'budget__reject');
 }
 
 =item obsolete
@@ -357,7 +306,7 @@ Marks the budget as obsolete/superceded.
 
 sub obsolete {
    my ($self) = @_;
-   $self->call_dbmethod(funcname => 'budget__mark_obsolete');
+   return $self->call_dbmethod(funcname => 'budget__mark_obsolete');
 }
 
 =item save_note(subject string, note string)
@@ -371,6 +320,7 @@ sub save_note {
           funcname => 'budget__save_note',
            args => [$self->{id}, $subject, $note]
    );
+   return;
 }
 
 =back

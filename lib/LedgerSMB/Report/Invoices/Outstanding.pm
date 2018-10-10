@@ -12,6 +12,7 @@ LedgerSMB
 
 package LedgerSMB::Report::Invoices::Outstanding;
 use Moose;
+use namespace::autoclean;
 extends 'LedgerSMB::Report';
 with 'LedgerSMB::Report::Dates';
 
@@ -158,9 +159,9 @@ has on_hold => (is => 'ro', isa => 'Bool', required => 0);
 =cut
 
 sub columns {
-    my $self = shift;
+    my ($self, $request) = @_;
     my $inv_label = LedgerSMB::Report::text('# Invoices');
-    my $details_url = LedgerSMB::App_State::get_relative_url();
+    my $details_url = $request->get_relative_url;
     $details_url =~ s/is_detailed=0/is_detailed=1/;
     $details_url =~ s/meta_number=[^&]*//;
     my $inv_type = 'href';
@@ -314,7 +315,7 @@ sub name {
 
 sub run_report {
     my $self = shift;
-    $ENV{LSMB_ALWAYS_MONEY} = 1;
+    local $ENV{LSMB_ALWAYS_MONEY} = 1;
     my $procname = 'report__aa_outstanding';
     if ($self->is_detailed){
        $procname .= '_details';
@@ -333,11 +334,11 @@ sub run_report {
         } else {
             $r->{invnumber_href_suffix} = $r->{meta_number};
         }
-        $r->{entity_name_href_suffix} = "entity_class=" . $self->entity_class
+        $r->{entity_name_href_suffix} = 'entity_class=' . $self->entity_class
                          . "&entity_id=$r->{entity_id}&".
                          "meta_number=$r->{meta_number}";
     }
-    $self->rows(\@rows);
+    return $self->rows(\@rows);
 }
 
 =head1 COPYRIGHT

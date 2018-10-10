@@ -18,12 +18,11 @@ package LedgerSMB::Scripts::order;
 use strict;
 use warnings;
 
-use LedgerSMB::App_State;
 use LedgerSMB::Scripts::reports;
 use LedgerSMB::Report::Orders;
-use LedgerSMB::Form; # for dispatching to old code
+use LedgerSMB::Magic qw( OEC_PURCHASE_ORDER OEC_SALES_ORDER OEC_QUOTATION OEC_RFQ );
 
-use Try::Tiny;
+use LedgerSMB::old_code qw(dispatch);
 
 =head1 ROUTINES
 
@@ -50,11 +49,11 @@ Search type can be one of
 
 sub get_criteria {
     my ($request) = @_;
-    my $locale = $LedgerSMB::App_State::Locale;
+    my $locale = $request->{_locale};
     $request->{entity_class} = $request->{oe_class_id} % 2 + 1;
     $request->{report_name} = 'orders';
     $request->{open} = 1 if $request->{search_type} ne 'search';
-    if ($request->{oe_class_id} == 1){
+    if ($request->{oe_class_id} == OEC_SALES_ORDER ){
         if ($request->{search_type} eq 'search'){
             $request->{title} = $locale->text('Search Sales Orders');
         } elsif ($request->{search_type} eq 'generate'){
@@ -65,7 +64,7 @@ sub get_criteria {
         } elsif ($request->{search_type} eq 'ship'){
             $request->{title} = $locale->text('Ship');
         }
-    } elsif ($request->{oe_class_id} == 2){
+    } elsif ($request->{oe_class_id} == OEC_PURCHASE_ORDER ){
         if ($request->{search_type} eq 'search'){
             $request->{title} = $locale->text('Search Purchase Orders');
         } elsif ($request->{search_type} eq 'combine'){
@@ -76,16 +75,16 @@ sub get_criteria {
         } elsif ($request->{search_type} eq 'ship'){
             $request->{title} = $locale->text('Receive');
         }
-    } elsif ($request->{oe_class_id} == 3){
+    } elsif ($request->{oe_class_id} == OEC_QUOTATION ){
         if ($request->{search_type} eq 'search'){
             $request->{title} = $locale->text('Search Quotations');
         }
-    } elsif ($request->{oe_class_id} == 4){
+    } elsif ($request->{oe_class_id} == OEC_RFQ ){
         if ($request->{search_type} eq 'search'){
             $request->{title} = $locale->text('Search Requests for Quotation');
         }
     }
-    LedgerSMB::Scripts::reports::start_report($request);
+    return LedgerSMB::Scripts::reports::start_report($request);
 }
 
 =item search
@@ -109,7 +108,7 @@ sub search {
     my $report = LedgerSMB::Report::Orders->new(%$request);
     if ($request->{search_type} eq 'combine'){
         $report->buttons([{
-            text => $LedgerSMB::App_State::Locale->text('Combine'),
+            text => $request->{_locale}->text('Combine'),
             type => 'submit',
            class => 'submit',
             name => 'action',
@@ -117,14 +116,14 @@ sub search {
         }]);
     } elsif ($request->{search_type} eq 'generate'){
         $report->buttons([{
-            text => $LedgerSMB::App_State::Locale->text('Generate'),
+            text => $request->{_locale}->text('Generate'),
             type => 'submit',
            class => 'submit',
             name => 'action',
            value => 'generate',
         }]);
     }
-    $report->render($request);
+    return $report->render($request);
 }
 
 =item combine
@@ -142,12 +141,12 @@ sub combine {
     }
     $request->call_procedure(funcname => 'order__combine', args => [\@ids]);
     $request->{search_type} = 'combine';
-    get_criteria($request);
+    return get_criteria($request);
 }
 
 =item generate
 
-This is just a dispatch handle currently to bin/oe's generate_purchase_orders
+This is just a dispatch handle currently to old/bin/oe's generate_purchase_orders
 callback.
 
 =cut
@@ -155,38 +154,7 @@ callback.
 sub generate {
     my ($request) = @_;
 
-    if (my $cpid = fork()) {
-        waitpid $cpid, 0;
-    }
-    else {
-        # We need a 'try' block here to prevent errors being thrown in
-        # the inner block from escaping out of the block and missing
-        # the 'exit' below.
-        try {
-            my $form = new Form;
-            for my $k (keys %$request){
-                $form->{$k} = $request->{$k};
-            }
-            {
-                local ($!, $@);
-                my $do_ = 'bin/oe.pl';
-                if ( -e $do_ ) {
-                    no strict;
-                    no warnings 'redefine';
-                    unless ( do $do_ ) {
-                        if ($! or $@) {
-                            print "Status: 500 Internal server error (login.pm)\n\n";
-                            warn "Failed to execute $do_ ($!): $@\n";
-                        }
-                    }
-                }
-            }
-
-            my $locale = $LedgerSMB::App_State::Locale;
-            lsmb_legacy::generate_purchase_orders($form, $locale);
-        };
-        exit;
-    }
+    return dispatch('oe.pl', 'generate_purchase_orders', $request);
 }
 
 =back

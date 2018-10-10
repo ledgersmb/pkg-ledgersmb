@@ -23,7 +23,7 @@ Processes an ISO 20022 file for recon.
 =cut
 
 sub process_xml {
-    my ($self, $contents) = @_;
+    my ($self, $recon, $contents) = @_;
     my $camt053 = $self->is_camt053($contents);
     return unless $camt053;
 

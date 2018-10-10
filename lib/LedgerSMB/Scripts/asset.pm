@@ -15,6 +15,7 @@ Asset Management workflow script
 =cut
 
 package LedgerSMB::Scripts::asset;
+use LedgerSMB::Magic qw( MONTHS_PER_YEAR  RC_PARTIAL_DISPOSAL RC_DISPOSAL );
 use LedgerSMB::Template;
 use LedgerSMB::DBObject::Asset_Class;
 use LedgerSMB::DBObject::Asset;
@@ -51,7 +52,7 @@ sub begin_depreciation_all {
         template => 'begin_depreciation_all',
         format => 'HTML'
     );
-    $template->render({ request => $request });
+    return $template->render({ request => $request });
 }
 
 =item depreciate_all
@@ -83,8 +84,7 @@ sub depreciate_all {
         template => 'info',
         format => 'HTML'
     );
-    $template->render({ request => $request });
-
+    return $template->render({ request => $request });
 }
 
 =item asset_category_screen
@@ -114,8 +114,8 @@ sub asset_category_screen {
         template => 'edit_class',
         format => 'HTML'
     );
-    $template->render({ request => $request,
-                        asset_class => $ac });
+    return $template->render({ request => $request,
+                                       asset_class => $ac });
 }
 
 =item asset_category_save
@@ -130,7 +130,7 @@ sub asset_category_save {
     my ($request) = @_;
     my $ac = LedgerSMB::DBObject::Asset_Class->new({base => $request});
     $ac->save;
-    asset_category_screen($request, $ac);
+    return asset_category_screen($request, $ac);
 }
 
 =item asset_category_search
@@ -150,8 +150,8 @@ sub asset_category_search {
     );
     my $ac = LedgerSMB::DBObject::Asset_Class->new();
     $ac->get_metadata;
-    $template->render({ request => $request,
-                        asset_class => $ac });
+    return $template->render({ request => $request,
+                                       asset_class => $ac });
 }
 
 =item asset_category_results
@@ -162,7 +162,8 @@ Displays a list of all asset classes.  No inputs required.
 
 sub asset_category_results {
     my ($request) = @_;
-    LedgerSMB::Report::Listings::Asset_Class->new(%$request)->render($request);
+    return LedgerSMB::Report::Listings::Asset_Class->new(%$request)
+        ->render($request);
 }
 
 =item edit_asset_class
@@ -175,7 +176,7 @@ sub edit_asset_class {
    my ($request) = @_;
    my $ac = LedgerSMB::DBObject::Asset_Class->new({base => $request});
    $ac->get_asset_class;
-   asset_category_screen($request,$ac);
+   return asset_category_screen($request,$ac);
 }
 
 =item asset_edit
@@ -189,7 +190,7 @@ sub asset_edit {
     my $asset = LedgerSMB::DBObject::Asset->new({base => $request});
     $asset->get();
     $asset->get_metadata();
-    asset_screen($asset);
+    return asset_screen($asset);
 }
 
 =item asset_screen
@@ -218,8 +219,8 @@ sub asset_screen {
         template => 'edit_asset',
         format => 'HTML'
     );
-    $template->render({ request => $request,
-                        asset => $asset });
+    return $template->render({ request => $request,
+                                       asset => $asset });
 }
 
 =item asset_search
@@ -246,8 +247,8 @@ sub asset_search {
         template => 'search_asset',
         format => 'HTML'
     );
-    $template->render({ request => $request,
-                        asset => $asset });
+    return $template->render({ request => $request,
+                                       asset => $asset });
 }
 
 =item asset_results
@@ -261,7 +262,8 @@ be set.
 
 sub asset_results {
     my ($request) = @_;
-    LedgerSMB::Report::Listings::Asset->new(%$request)->render($request);
+    return LedgerSMB::Report::Listings::Asset->new(%$request)
+        ->render($request);
 }
 
 =item asset_save
@@ -292,7 +294,7 @@ sub asset_save {
                   copy  => 'list',
                   merge => ['stylesheet'],
     });
-    asset_screen($request,$newasset);
+    return asset_screen($request,$newasset);
 }
 
 =item new_report
@@ -314,8 +316,8 @@ sub new_report {
         template => 'begin_report',
         format => 'HTML'
     );
-    $template->render({ request => $request,
-                        report => $report });
+    return $template->render({ request => $request,
+                                       report => $report });
 }
 
 =item report_init
@@ -332,7 +334,7 @@ sub report_init {
     my ($request) = @_;
     my $report = LedgerSMB::DBObject::Asset_Report->new({base => $request});
     $report->generate;
-    display_report($request, $report);
+    return display_report($request, $report);
 }
 
 =item report_save
@@ -358,7 +360,7 @@ sub report_save{
              base => $request,
              copy => 'base'
     );
-    new_report($request);
+    return new_report($request);
 }
 
 =item report_get
@@ -371,7 +373,7 @@ sub report_get {
     my ($request) = @_;
     my $report = LedgerSMB::DBObject::Asset_Report->new({base => $request});
     $report->get;
-    display_report($request, $report);
+    return display_report($request, $report);
 }
 
 =item display_report
@@ -407,7 +409,7 @@ sub display_report {
        push @$rows,
             { select         => {input => { name    => "asset_$count",
                                             checked => $asset->{checked},
-                                            type    => "checkbox",
+                                            type    => 'checkbox',
                                             value   => '1',
                                           },
                                 },
@@ -462,7 +464,7 @@ sub display_report {
        push @$cols, 'dm', 'amount';
        $hiddens->{report_class} = $request->{report_class};
    }
-   if ($request->{report_class} == 4){
+   if ($request->{report_class} == RC_PARTIAL_DISPOSAL ){
        $request->{title} = $locale->text('Asset Partial Disposal Report');
        push @$cols, 'percent';
    }
@@ -478,7 +480,8 @@ sub display_report {
         template => 'form-dynatable',
         format => 'HTML'
     );
-    $template->render({ form => $request,
+    return $template->render({
+                        form => $request,
                      columns => $cols,
                      heading => $heading,
                         rows => $rows,
@@ -510,8 +513,8 @@ sub search_reports {
         template => 'begin_approval',
         format => 'HTML'
     );
-    $template->render({ request => $request,
-                        asset_report => $ar });
+    return $template->render({ request => $request,
+                                       asset_report => $ar });
 }
 
 =item report_results
@@ -547,7 +550,7 @@ sub report_results {
         loss_acct => $request->{loss_acct},
     };
     my $count = 0;
-    my $base_href = "asset.pl?action=report_details&".
+    my $base_href = 'asset.pl?action=report_details&'.
                      "expense_acct=$ar->{expense_acct}";
     if ($ar->{depreciation}){
              $base_href .= '&depreciation=1';
@@ -557,16 +560,16 @@ sub report_results {
     }
     for my $r (@results){
         next if (($r->{report_class} != 1 and $ar->{depreciation})
-                 or ($r->{report_class} == 1 and !$ar->{depreciation}));
+                 or ($r->{report_class} == 1 and not $ar->{depreciation}));
         $hiddens->{"id_$count"} = $r->{id};
         my $ref = {
               select         => {input => { name    => "report_$count",
                                             checked => $r->{checked},
-                                            type    => "checkbox",
+                                            type    => 'checkbox',
                                             value   => $r->{id},
                                           },
                                 },
-               id             => {href => $base_href . "&id=".$r->{id},
+               id             => {href => $base_href . '&id='.$r->{id},
                                   text => $r->{id},
                                  },
                report_date    => $r->{report_date},
@@ -603,7 +606,7 @@ sub report_results {
         template => 'form-dynatable',
         format => 'HTML'
     );
-    $template->render({
+    return $template->render({
          form    => $ar,
          heading => $header,
          rows    => $rows,
@@ -625,17 +628,15 @@ sub report_details {
     my $locale = $request->{_locale};
     my $report = LedgerSMB::DBObject::Asset_Report->new({base => $request});
     $report->get;
-    if ($report->{report_class} == 2) {
-      disposal_details($report);
-      return;
-    } elsif ($report->{report_class} == 4) {
-      partial_disposal_details($report);
-      return;
+    if ($report->{report_class} == RC_DISPOSAL) {
+      return disposal_details($report);
+    } elsif ($report->{report_class} == RC_PARTIAL_DISPOSAL ) {
+      return partial_disposal_details($report);
     }
     my @cols = qw(tag start_depreciation purchase_value method_short_name
                  usable_life basis prior_through prior_dep dep_this_time
                  dep_ytd dep_total);
-    $report->{title} = $locale->text("Report [_1] on date [_2]",
+    $report->{title} = $locale->text('Report [_1] on date [_2]',
                      $report->{id}, $report->{report_date}->to_output);
     my $header = {
                             tag => $locale->text('Tag'),
@@ -674,7 +675,8 @@ sub report_details {
                    value => 'report_details_approve'
                    },
     ];
-    $template->render({form => $report,
+    return $template->render({
+                       form => $report,
                     columns => \@cols,
                     heading => $header,
                        rows => $rows,
@@ -698,7 +700,7 @@ sub partial_disposal_details {
     my @cols = qw(tag begin_depreciation purchase_value description
                  percent_disposed disposed_acquired_value
                  percent_remaining remaining_aquired_value);
-    $report->{title} = $locale->text("Partial Disposal Report [_1] on date [_2]",
+    $report->{title} = $locale->text('Partial Disposal Report [_1] on date [_2]',
                         $report->{id}, $report->{report_date});
     my $header = {
                    tag                => $locale->text('Tag'),
@@ -742,7 +744,8 @@ sub partial_disposal_details {
                    value => 'disposal_details_approve'
                    },
     ];
-    $template->render({form => $report,
+    return $template->render({
+                       form => $report,
                     columns => \@cols,
                     heading => $header,
                        rows => $rows,
@@ -769,7 +772,7 @@ sub disposal_details {
     $report->get;
     my @cols = qw(tag description start_dep disposed_on dm purchase_value
                  accum_depreciation adj_basis disposal_amt gain_loss);
-    $report->{title} = $locale->text("Disposal Report [_1] on date [_2]",
+    $report->{title} = $locale->text('Disposal Report [_1] on date [_2]',
                      $report->{id}, $report->{report_date});
     my $header = {
                             tag => $locale->text('Tag'),
@@ -794,7 +797,7 @@ sub disposal_details {
         push @$rows, $r;
     }
     my $template = LedgerSMB::Template->new(
-          request => $request,
+        request => $request,
         user => $request->{_user},
         locale => $request->{_locale},
         path => 'UI',
@@ -809,7 +812,8 @@ sub disposal_details {
                    value => 'disposal_details_approve'
                    },
     ];
-    $template->render({form => $report,
+    return $template->render({
+                       form => $report,
                     columns => \@cols,
                     heading => $header,
                        rows => $rows,
@@ -823,13 +827,13 @@ sub disposal_details {
 
 =item disposal_details_approve
 
-Pass through function for form-dynatable's action munging.  An lias for
+Pass through function for form-dynatable's action munging.  An alias for
 report_details_approve.
 
 =cut
 
 sub disposal_details_approve {
-    report_details_approve(@_);
+    return report_details_approve(@_);
 }
 
 =item report_details_approve
@@ -847,7 +851,7 @@ sub report_details_approve {
     my ($request) = @_;
     my $report = LedgerSMB::DBObject::Asset_Report->new({base => $request});
     $report->approve;
-    search_reports($request);
+    return search_reports($request);
 }
 
 =item report_results_approve
@@ -873,7 +877,7 @@ sub report_results_approve {
             $approved->approve;
         }
     }
-   search_reports($request);
+   return search_reports($request);
 
 }
 
@@ -889,7 +893,7 @@ No inputs required or used.
 sub display_nbv {
     my ($request) = @_;
     my $report = LedgerSMB::Report::Assets::Net_Book_Value->new(%$request);
-    $report->render($request);
+    return $report->render($request);
 }
 
 =item begin_import
@@ -909,7 +913,7 @@ sub begin_import {
         template => 'import_asset',
         format => 'HTML'
     );
-    $template->render($request);
+    return $template->render($request);
 }
 
 =item run_import
@@ -923,6 +927,18 @@ See the Customization Notes section below for more info on how to set up
 CSV formats.
 
 =cut
+
+sub _import_file {
+    my $request = shift @_;
+
+    my $handle = $request->upload('import_file');
+    my $csv = Text::CSV->new;
+    $csv->header($handle);
+    my $import_entries = $csv->getline_all($handle);
+
+    return @$import_entries;
+}
+
 
 sub run_import {
 
@@ -956,7 +972,7 @@ sub run_import {
     for my $a (@{$asset->{dep_accounts}}){
        $dep_account->{"$a->{accno}"} = $a;
     }
-    for my $ail ($asset->import_file($request->{import_file})){
+    for my $ail (_import_file($request)){
         my $ai = LedgerSMB::DBObject::Asset->new({copy => 'base', base => $request});
         for (0 .. $#file_columns){
           $ai->{$file_columns[$_]} = $ail->[$_];
@@ -972,7 +988,7 @@ sub run_import {
             $ai->{start_depreciation} = $ai->{purchase_date};
         }
         if ($ai->{asset_class} !~ /Leasehold/i){
-           $ai->{usable_life} = $ai->{usable_life}/12;
+           $ai->{usable_life} = $ai->{usable_life}/MONTHS_PER_YEAR;
         }
         $ai->{dep_report_id} = $report_results->{id};
         $ai->{location_id} = $location->{"$ai->{location}"};
@@ -1005,17 +1021,17 @@ sub run_import {
         $ai->import_asset;
     }
     $request->{info} = $request->{_locale}->text('File Imported');
-    begin_import($request);
+    return begin_import($request);
 }
 
 {
-    local ($!, $@);
-    my $do_ = "scripts/custom/asset.pl";
+    local ($!, $@) = ( undef, undef);
+    my $do_ = 'scripts/custom/asset.pl';
     if ( -e $do_ ) {
         unless ( do $do_ ) {
             if ($! or $@) {
-                print "Status: 500 Internal server error (asset.pm)\n\n";
-                warn "Failed to execute $do_ ($!): $@\n";
+                warn "\nFailed to execute $do_ ($!): $@\n";
+                die ( "Status: 500 Internal server error (asset.pm)\n\n" );
             }
         }
     }

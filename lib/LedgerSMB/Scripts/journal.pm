@@ -15,13 +15,10 @@ list of matching accounts in a ul/li pair
 
 package LedgerSMB::Scripts::journal;
 
-use LedgerSMB;
 use LedgerSMB::Template;
 use LedgerSMB::Business_Unit;
 use LedgerSMB::Report::GL;
 use LedgerSMB::Report::COA;
-use LedgerSMB::REST_Format::json;
-use CGI::Simple;
 use strict;
 use warnings;
 
@@ -49,11 +46,7 @@ sub chart_json {
         grep { (! $label) || $_->{label} =~ m/\Q$label\E/i }
         map { $_->{label} = $_->{accno} . '--' . $_->{description}; $_ }
         @results;
-    my $json = LedgerSMB::REST_Format::json->to_output(\@results);
-    my $cgi = CGI::Simple->new();
-    binmode STDOUT, ':raw';
-    print $cgi->header('application/json;charset=UTF-8', '200 Success');
-    $cgi->put($json);
+    return $request->to_json(\@results);
 }
 
 =item chart_of_accounts
@@ -74,7 +67,7 @@ sub chart_of_accounts {
     }
     my $report = LedgerSMB::Report::COA->new(%$request);
     $report->run_report();
-    $report->render($request);
+    return $report->render($request);
 }
 
 =item delete_account
@@ -91,7 +84,7 @@ sub delete_account {
     use LedgerSMB::DBObject::Account;
     my $account =  LedgerSMB::DBObject::Account->new({base => $request});
     $account->delete;
-    chart_of_accounts($request);
+    return chart_of_accounts($request);
 }
 
 =item search
@@ -109,7 +102,7 @@ sub search {
                if $request->{"business_unit_$count"};
     }
     #tshvr4 trying to mix in period from_month from_year interval
-    LedgerSMB::Report::GL->new(%$request)->render($request);
+    return LedgerSMB::Report::GL->new(%$request)->render($request);
 }
 
 =item search_purchases
@@ -128,7 +121,7 @@ sub search_purchases {
     }
     my $report = LedgerSMB::Report::Contact::Purchase->new(%$request);
     $report->run_report;
-    $report->render($request);
+    return $report->render($request);
 }
 
 =back
@@ -142,13 +135,13 @@ files.
 =cut
 
 {
-    local ($!, $@);
+    local ($!, $@) = (undef, undef);
     my $do_ = 'scripts/custom/journal.pl';
     if ( -e $do_ ) {
         unless ( do $do_ ) {
             if ($! or $@) {
-                print "Status: 500 Internal server error (journal.pm)\n\n";
-                warn "Failed to execute $do_ ($!): $@\n";
+                warn "\nFailed to execute $do_ ($!): $@\n";
+                die (  "Status: 500 Internal server error (journal.pm)\n\n" );
             }
         }
     }

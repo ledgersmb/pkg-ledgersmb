@@ -6,6 +6,7 @@ LedgerSMB::Template::DB - Template administration functions for LedgerSMB
 
 package LedgerSMB::Template::DB;
 use Moose;
+use namespace::autoclean;
 with 'LedgerSMB::PGObject', 'LedgerSMB::I18N';
 
 use LedgerSMB::App_State;
@@ -130,16 +131,23 @@ does not call this without carefully whitelisting values.
 
 sub get_from_file {
     my ($package, $path, $language_code) = @_;
-    my $fname = $path;
+    my $fname;
     if ($path =~ m|/.*:| ){
        die 'Cannot run on NTFS alternate data stream!';
     }
-    $path =~ m|(.*)/([^/]+)$|;
-    $fname = $2;
+    if ( $path =~ m|(.*)/([^/]+)$| ) {
+        $fname = $2;
+    }
+
     my ($template_name, $format) = split /\./, $fname;
     my $content = '';
-    open TEMP, '<', $path;
-    $content .= $_ while <TEMP>;
+    open my $fh, '<', $path
+        or die "Failed to open template file $path : $!";
+    {
+        local $/ = undef;
+        $content =  <$fh>;
+    }
+    close $fh or die "Cannot close file $path";
     my %args = (
            template_name => $template_name,
            format => $format,
@@ -159,7 +167,7 @@ Saves the current object
 
 sub save {
     my ($self) = @_;
-    $self->call_dbmethod(funcname => 'template__save');
+    return $self->call_dbmethod(funcname => 'template__save');
 }
 
 =head1 COPYRIGHT

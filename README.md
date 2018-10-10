@@ -1,7 +1,16 @@
+[![GPLv2 Licence](https://badges.frapsoft.com/os/gpl/gpl.png?v=103)](https://opensource.org/licenses/GPL-2.0/)
+[![Build Status](https://api.travis-ci.org/ledgersmb/LedgerSMB.svg?branch=master)](https://travis-ci.org/ledgersmb/LedgerSMB)
+[![Coverage Status](https://coveralls.io/repos/github/ledgersmb/LedgerSMB/badge.svg?branch=master)](https://coveralls.io/github/ledgersmb/LedgerSMB?branch=master)
+[![Docker](https://img.shields.io/docker/pulls/ledgersmb/ledgersmb.svg)](https://hub.docker.com/r/ledgersmb/ledgersmb/)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/795/badge)](https://bestpractices.coreinfrastructure.org/projects/795)
 
-# NAME
+As coveralls currently has a bug with their badging for master, here is a corrected version
+[![Coverage Status](http://www.sbts.com.au/repos/github/ledgersmb/LedgerSMB/badge.svg?branch=master)](https://coveralls.io/github/ledgersmb/LedgerSMB?branch=master)
 
-LedgerSMB - Small and Medium business accounting and ERP
+
+# LedgerSMB
+
+Small and Medium business accounting and ERP
 
 # SYNOPSIS
 
@@ -10,7 +19,7 @@ double entry accounting, budgetting, invoicing, quotations, projects, timecards,
 inventory management, shipping and more ...
 
 The UI allows world-wide accessibility; with its data stored in the
-enterprise-strength PostgreSQL open source database system, the system is know
+enterprise-strength PostgreSQL open source database system, the system is known
 to operate smoothly for businesses with thousands of transactions per week.
 Screens and customer visible output are defined in templates, allowing easy and
 fast customization. Supported output formats are PDF, CSV, HTML, ODF and more.
@@ -23,7 +32,7 @@ customers or RFQs (request for quotation) to your vendors with PDF attachments.
 
 ## Server
 
- * Perl 5.10+
+ * Perl 5.14+
  * PostgreSQL 9.4+
  * Web server (e.g. nginx, Apache, lighttpd)
 
@@ -33,7 +42,7 @@ below.
 
 ## Client
 
-A [Dojo 1.10 compatible web browser](http://dojotoolkit.org/reference-guide/1.10/releasenotes/1.10.html#user-agent-support)
+A [Dojo 1.13 compatible web browser](http://dojotoolkit.org/reference-guide/1.10/releasenotes/1.10.html#user-agent-support)
 is all that's required on the client (except IE8 and 9); it includes Chrome as
 of version 13, FireFox as of 3.6 and MS Internet Explorer as of version 10 and
 a wide range of mobile browsers.
@@ -55,31 +64,9 @@ See the [documentation on Docker Hub](https://hub.docker.com/r/ledgersmb/ledgers
 
 # Quick start (from source)
 
-The instructions below are for getting started quickly; the [project's
-site](http://ledgersmb.org) provides [in-depth installation instructions](http://ledgersmb.org/topic/installing-ledgersmb-15)
-for production installs.
-
-## Check out the sources from GitHub
-
-Note: **Skip this step for from-tarball installs**
-Installation from release tarballs is preferred over installation from GitHub.
-
-To get the latest development version:
-
-```sh
- $ git clone https://github.com/ledgersmb/LedgerSMB.git
- $ cd LedgerSMB
- $ git submodule update --init --recursive
-```
-
-To get the released version 1.4.22, the commands look like:
-
-```
- $ git clone -b 1.4.22 https://github.com/ledgersmb/LedgerSMB.git
- $ cd LedgerSMB
- $ git submodule update --init --recursive
-```
-
+The instructions below are for getting started quickly; the [project's site](http://ledgersmb.org)
+ provides [in-depth installation instructions](https://ledgersmb.org/content/installing-ledgersmb-16)
+for **production** installs.
 
 ## System (library) dependencies
 
@@ -92,7 +79,7 @@ page on CPAN.
    It may not be necessary to install cpanminus if you are only going to install from debian packages.
  * PostgreSQL client libraries
  * PostgreSQL server
- * DBD::Pg 3.4.2+ (so cpanm recognises that it won't need to compile it)  
+ * DBD::Pg 3.4.2+ (so cpanm recognises that it won't need to compile it)
    This package is called `libdbd-pg-perl` in Debian and `perl-DBD-Pg`
    in RedHat/Fedora
  * make       This is used by cpan dependencies during thier build process
@@ -110,21 +97,13 @@ Then, some of the features listed below have system requirements as well:
 
 ## Perl module dependencies
 
-This section depends on [a working local::lib installation](https://metacpan.org/pod/local::lib#The-bootstrapping-technique)
+This section depends on [a working local::lib installation](https://ledgersmb.org/content/setting-perls-locallib-ledgersmb-why-and-how)
 as well as an installed `cpanm` executable. Both should be available from
 your distribution's package repository (Debian calls them `liblocal-lib-perl`
 and `cpanminus` respectively). `cpanm` depends on the `make` and `gcc` commands being available.
-In case `local::lib` is installed from the the distro repository,
-step (4) in the [installation instructions](https://metacpan.org/pod/local::lib#The-bootstrapping-technique)
-is still to be executed:
 
 NOTE: gcc can be removed after all cpan dependencies are installed.
       However, it may be necessary to reinstall it if additional modules are required during an upgrade
-```bash
- $ echo 'eval "$(perl -I$HOME/foo/lib/perl5 -Mlocal::lib=$HOME/foo)"' >>~/.bashrc
-```
-
-In order for the command above to take effect, please log out and log in again.
 
 To install the Perl module dependencies, run:
 
@@ -152,16 +131,17 @@ specifying ```--with-feature=<feature>```:
 | starman          | Starman Perl/PSGI webserver         |
 | openoffice       | OpenOffice.org document output      |
 | edi              | (EXPERIMENTAL) X12 EDI support      |
-| rest             | (EXPERIMENTAL) RESTful webservices  |
+| xls              | Excel output filters (xls+xlsx)     |
 
 Note: The example command contains ```--with-feature=starman``` for the
 purpose of the quick start.
 
-cpanm will by default use [local::lib](http://search.cpan.org/~haarg/local-lib-2.000019/) so that dependencies are not installed into the global perl installation.
+When not installing as root or through `sudo`, `cpanm` will install unfulfilled
+library dependencies into a location which can be used with `local::lib`.
 
-The [in-depth installation instructions](http://ledgersmb.org/topic/installing-ledgersmb-15)
-contain a list of distribution provided packages to reduce the CPAN
-installation.
+The [in-depth installation instructions](http://ledgersmb.org/topic/installing-ledgersmb-16)
+contain a list of distribution provided packages to reduce the
+number of dependencies installed from CPAN.
 
 **NOTES**
 
@@ -209,16 +189,11 @@ After editing the ```pg_hba.conf``` file, reload the PostgreSQL server
 
 ## Configure LedgerSMB
 
-For most systems, all that's required in this step is:
+(Installation from tarball is highly preferred over installation from GitHub for production installs.)
 
 ```bash
- $ cp conf/ledgersmb.conf.unbuilt-dojo ledgersmb.conf
+ $ cp doc/conf/ledgersmb.conf.default ledgersmb.conf
 ```
-
- > Note: Using 'built dojo' instead of 'unbuilt dojo' will greatly improve
- > page load times of some pages.  However, creating a built dojo
- > adds considerable complexity to these instructions; please consult
- > the extensive setup instructions to build dojo.
 
 ## Running Starman
 
@@ -227,12 +202,12 @@ With the above steps completed, the system is ready to run the web server:
  > NOTE: DO NOT run starman (or any web service) as root, this is considered
  >     a serious security issue, and as such LedgerSMB doesn't support it.
  >     Instead, if you need to start LedgerSMB from a root process, drop
- >     privlidges to a user that doesn't have write access to the LedgerSMB Directories first.
+ >     privileges to a user that doesn't have write access to the LedgerSMB Directories first.
  >     Most daemonising mechanisims (eg: systemd) provide a mechanism to do this.
- >     Do not use the starman --user= mechanism, it currently drops privlidges too late.
+ >     Do not use the starman --user= mechanism, it currently drops privileges too late.
 
 ```bash
- $ starman -I lib --listen localhost:5762 tools/starman.psgi
+ $ starman -I lib -I old/lib --listen localhost:5762 bin/ledgersmb-server.psgi
 2016/05/12-02:14:57 Starman::Server (type Net::Server::PreFork) starting! pid(xxxx)
 Resolved [*]:5762 to [::]:5762, IPv6
 Not including resolved host [0.0.0.0] IPv4 because it will be handled by [::] IPv6
@@ -240,11 +215,13 @@ Binding to TCP port 5762 on host :: with IPv6
 Setting gid to "1000 1000 24 25 27 29 30 44 46 108 111 121 1000"
 ```
 
+
 ## Environment Variables
 
-We support the following
-- PERL5LIB        : Required for most installations (if local::lib has been used)
-     - should be already be configured as part of [Section Perl module dpendencies](#perl-module-dependencies)
+All regular Perl environment variables can be used. In particular, it's important to make sure
+`PERL5LIB` is set correctly when setting up `local::lib` for the first time.
+
+We support the following Environment Variables within our code
 - LSMB_WORKINGDIR : Optional
      - Causes a chdir to the specified directory as the first thing done in starman.psgi
      - If not set the current dir is used.
@@ -252,6 +229,18 @@ We support the following
     ```
     LSMB_WORKINGDIR='/usr/local/ledgersmb/'
     ```
+
+
+We support the following Environment Variables for our dependancies
+- PGHOST : Optional
+     - Specifies the Postgres server Domain Name or IP address
+- PGPORT : Optional
+     - Sepcifies the Postgres server Port
+- PGSSLMODE : Optional
+     - Enables SSL for the Postgres connection
+
+All Environment Variables supported by our dependancies should be passed through to them,
+that includes the standard Postgres Variables and others
 
 
 ## Next steps
@@ -276,9 +265,9 @@ Forums: [http://forums.ledgersmb.org/](http://forums.ledgersmb.org/)
 Mailing list archives: [http://archive.ledgersmb.org](http://archive.ledgersmb.org)
 
 Mailing lists:
- * [https://lists.sourceforge.net/lists/listinfo/ledger-smb-announce](https://lists.sourceforge.net/lists/listinfo/ledger-smb-announce)
- * [https://lists.sourceforge.net/lists/listinfo/ledger-smb-users](https://lists.sourceforge.net/lists/listinfo/ledger-smb-users)
- * [https://lists.sourceforge.net/lists/listinfo/ledger-smb-devel](https://lists.sourceforge.net/lists/listinfo/ledger-smb-devel)
+ * [https://lists.ledgersmb.org/mailman/listinfo/announce](https://lists.ledgersmb.org/mailman/listinfo/announce)
+ * [https://lists.ledgersmb.org/mailman/listinfo/users](https://lists.ledgersmb.org/mailman/listinfo/users)
+ * [https://lists.ledgersmb.org/mailman/listinfo/devel](https://lists.ledgersmb.org/mailman/listinfo/devel)
 
 Repository: https://github.com/ledgersmb/LedgerSMB
 
@@ -294,7 +283,7 @@ as well as in the Transifex project Timeline.
 # Copyright
 
 ```plain
-Copyright (c) 2006 - 2016 The LedgerSMB Project contributors
+Copyright (c) 2006 - 2018 The LedgerSMB Project contributors
 Copyright (c) 1999 - 2006 DWS Systems Inc (under the name SQL Ledger)
 ```
 

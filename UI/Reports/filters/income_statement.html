@@ -1,20 +1,17 @@
-<?lsmb INCLUDE 'ui-header.html'
-       titlebar = text("Income Statement")
-       include_stylesheet = [ "css/system/filters.css" ];
-       PROCESS 'elements.html';
+<?lsmb PROCESS 'elements.html';
        PROCESS 'report_base.html'; ?>
 <body class="lsmb <?lsmb dojo_theme ?>">
 <div id="reports">
-    <form data-dojo-type="lsmb/Form" 
-          action="pnl.pl" method="get">
-        <?lsmb
-        PROCESS input element_data = {
-             name = 'pnl_type',
-             type = 'hidden',
-            value = pnl_type
-        };
+  <form data-dojo-type="lsmb/Form"
+        action="pnl.pl" method="get">
+    <?lsmb
+       PROCESS input element_data = {
+       name = 'pnl_type',
+       type = 'hidden',
+       value = pnl_type
+       };
        ?>
-          
+
       <div class="listtop"><?lsmb text('Income Statement') ?></div>
 
       <fieldset>
@@ -23,24 +20,24 @@
           <div class="label"><?lsmb text('Valuation') ?></div>
           <div class="input_group">
             <div class="input_option">
-        <?lsmb
-        PROCESS input element_data={
-          name = 'basis',
-          type = 'radio',
-          value = 'accrual',
-          label = text('Accrual'),
-          checked = 'checked',
+              <?lsmb
+                 PROCESS input element_data={
+                 name = 'basis',
+                 type = 'radio',
+                 value = 'accrual',
+                 label = text('Accrual'),
+                 checked = 'checked',
                  }
                  label_pos = 1 ;
                  ?>
             </div>
             <div class="input_option">
               <?lsmb
-        PROCESS input element_data={
-          name = 'basis',
-          type = 'radio',
-          value = 'cash',
-          label = text('Cash'),
+                 PROCESS input element_data={
+                 name = 'basis',
+                 type = 'radio',
+                 value = 'cash',
+                 label = text('Cash'),
                  }
                  label_pos = 1 ;
                  ?>
@@ -115,8 +112,8 @@
                  label = text('Periods'),
                  checked = YES,
                  } label_pos = 1 ;
-        ?></div>
-        </div>
+                 ?></div>
+          </div>
         </div>
         <div class="input_row">
           <div style="display:inline-block">
@@ -153,29 +150,29 @@
           </div>
 
           <div class="input_group">
-        <?lsmb
-        PROCESS select element_data = {
-             options = [
-             {
-                 label="All",
-                 id="all",
-             },
-             {
+            <?lsmb
+               PROCESS select element_data = {
+               options = [
+               {
+               label="All",
+               id="all",
+               },
+               {
                label="Last",
-                 id="last"
-             },
-             {
-                 label="None",
-                 id="none",
-             }
-             ],
-             default_values = [report.ignore_yearend],
-             name = 'ignore_yearend',
-             text_attr = 'label',
-             value_attr = 'id',
-             }
+               id="last"
+               },
+               {
+               label="None",
+               id="none",
+               }
+               ],
+               default_values = [report.ignore_yearend],
+               name = 'ignore_yearend',
+               text_attr = 'label',
+               value_attr = 'id',
+               }
                ?>
-        </div>
+          </div>
         </div>
       </fieldset>
 
@@ -183,14 +180,14 @@
       <fieldset data-dojo-type="lsmb/reports/ComparisonSelector"
                 data-dojo-props="channel:'ui/reports/period-selection'">
         <legend><?lsmb
-        PROCESS input element_data = {
-                   label = text("Comparison Periods")
-                   name = "comparison_periods"
-             type = "text"
-         value = 0
-"data-dojo-type" = "dijit/form/NumberSpinner"
-"data-dojo-props" = "smallDelta:1, constraints:{min:0, max:9, places:0}, intermediateChanges:true, style:'width:7ex'"
-        };
+                   PROCESS input element_data = {
+                   label = text('Comparison Periods')
+                   name = 'comparison_periods'
+                   value = 0
+                   size = '3'
+                   "data-dojo-type" = "dijit/form/NumberSpinner"
+                   "data-dojo-props" = "intermediateChanges:true, constraints:{min:0, max:9, places:0}, smallDelta:1, style:'width:7ex'"
+                   };
                    ?></legend>
 
         <div id="comparison_dates" style="display:none">
@@ -221,43 +218,43 @@
       <fieldset>
         <legend>Report options</legend>
         <div class="input_row">
-        <?lsmb
-        PROCESS input element_data = {
+          <?lsmb
+             PROCESS input element_data = {
              label = text('Account numbers')    #'
-            name = 'incl_accnos'
-            type = 'checkbox'
-           value = 1
-         checked = 'checked' # checked by default
-        };
+             name = 'incl_accnos'
+             type = 'checkbox'
+             value = 1
+             checked = 'checked' # checked by default
+             };
              ?>
         </div>
         <div class="input_row">
           <div class="label">
-        <?lsmb text('Hierarchy type') ?>
+            <?lsmb text('Hierarchy type') ?>
           </div>
           <div class="input_group">
-        <?lsmb
-        HIERARCHY_SETUP = earn_id;
-        IF HIERARCHY_SETUP;
-            full_checked = 'CHECKED';
-            full_disabled = undef;
-            legacy_checked = undef;
-        ELSE;
-            full_disabled = 'DISABLED';
-            full_checked = undef;
-            legacy_checked = 'CHECKED';
-        END;
+            <?lsmb
+               HIERARCHY_SETUP = earn_id;
+               IF HIERARCHY_SETUP;
+               full_checked = 'CHECKED';
+               full_disabled = undef;
+               legacy_checked = undef;
+               ELSE;
+               full_disabled = 'DISABLED';
+               full_checked = undef;
+               legacy_checked = 'CHECKED';
+               END;
                ?>
             <div class="input_option">
               <?lsmb
-        PROCESS input element_data = {
-           label = text('Full')
-            type = 'radio'
-            name = 'legacy_hierarchy'
-           value = 0
-              id = 'legacy-hierarchy-0'
-         checked = full_checked
-        disabled = full_disabled
+                 PROCESS input element_data = {
+                 label = text('Full')
+                 type = 'radio'
+                 name = 'legacy_hierarchy'
+                 value = 0
+                 id = 'legacy-hierarchy-0'
+                 checked = full_checked
+                 disabled = full_disabled
                  }
                  label_pos = 1;
                  ?>
@@ -269,30 +266,30 @@
             </div>
             <div class="input_option">
               <?lsmb
-        PROCESS input element_data = {
-           label = text('Account category')
-            type = 'radio'
-            name = 'legacy_hierarchy'
-           value = 1
-              id = 'legacy-hierarchy-1'
-         checked = legacy_checked
+                 PROCESS input element_data = {
+                 label = text('Account category')
+                 type = 'radio'
+                 name = 'legacy_hierarchy'
+                 value = 1
+                 id = 'legacy-hierarchy-1'
+                 checked = legacy_checked
                  }
                  label_pos = 1;
-        ?>
-        </div>
-        </div>
+                 ?>
+            </div>
+          </div>
         </div>
         <div class="input_row">
-        <?lsmb
-        PROCESS select element_data = {
-                 label = text('Language')
-                  name = 'language'
-               options = languages
+          <?lsmb
+             PROCESS select element_data = {
+             label = text('Language')
+             name = 'language'
+             options = languages
              text_attr = 'description'
-            value_attr = 'code'
-        default_values = [USER.language]
+             value_attr = 'code'
+             default_values = [USER.language]
              } ?>
-            </div>
+        </div>
       </fieldset>
 
       <?lsmb IF bu_classes.size > 0; ?>
@@ -300,18 +297,17 @@
         <legend><?lsmb text('Reporting unit filters') ?></legend>
         <?lsmb PROCESS business_classes_div; ?>
       </fieldset>
-                   <?lsmb END ?>
+      <?lsmb END ?>
 
-        <?lsmb
-        PROCESS button element_data = {
+      <?lsmb
+         PROCESS button element_data = {
          text = text('Continue')
-            name = 'action'
-           value = 'generate_income_statement'
-            type = 'submit'
-           class = 'submit'
-        } ?>
+         name = 'action'
+         value = 'generate_income_statement'
+         type = 'submit'
+         class = 'submit'
+         } ?>
 
-    </form>
+  </form>
 </div>
 </body>
-</html>

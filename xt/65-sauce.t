@@ -12,7 +12,7 @@ if (@missing) {
     my $passwd = $ENV{SAUCE_ACCESS_KEY};
     my $host = "$user:$passwd\@localhost";
 
-    my $driver = new Selenium::Remote::Driver(
+    my $driver = Selenium::Remote::Driver->new(
                           'remote_server_addr' => $host,
                           'port' => 4445,
                           'browser_name' => "chrome",
@@ -28,5 +28,5 @@ if (@missing) {
 
     $driver->get('http://localhost:5000/setup.pl');
 
-    ok($driver->find_element_by_name('s_password'), 'got a password');
+    ok($driver->find_element_by_name('s_password'), 'got a user');
 }

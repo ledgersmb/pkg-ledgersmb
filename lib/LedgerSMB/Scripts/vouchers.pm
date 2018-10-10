@@ -14,38 +14,39 @@ LedgerSMB::Scripts::vouchers - web entry points for voucher/batch workflows
 
 package LedgerSMB::Scripts::vouchers;
 
+use strict;
+use warnings;
+
 use LedgerSMB::Batch;
-use LedgerSMB::Template;
+use LedgerSMB::Magic qw(BC_AR BC_SALES_INVOICE BC_VENDOR_INVOICE);
 use LedgerSMB::Report::Unapproved::Batch_Overview;
 use LedgerSMB::Report::Unapproved::Batch_Detail;
 use LedgerSMB::Scripts::payment;
 use LedgerSMB::Scripts::reports;
-use CGI::Simple;
-use Try::Tiny;
+use LedgerSMB::Sysconfig;
+use LedgerSMB::Template;
 
-use strict;
-use warnings;
+use LedgerSMB::old_code qw(dispatch);
+
+use File::Temp;
+use HTTP::Status qw( HTTP_OK);
+
 
 our $VERSION = '0.1';
 our $custom_batch_types = {};
 
-sub _run_script {
-    my ($script, $msg) = @_;
-    local ($!, $@);
-    if ( -e $script ) {
-        unless ( do $script ) {
+{
+    local ($!, $@) = (undef, undef);
+    my $do_ = 'scripts/custom/vouchers.pl';
+    if ( -e $do_ ) {
+        unless ( do $do_ ) {
             if ($! or $@) {
-                print "Status: 500 Internal server error ($msg)\n\n";
-                warn "Failed to execute $script ($!): $@\n";
+                warn "\nFailed to execute $do_ ($!): $@\n";
+                die (  "Status: 500 Internal server error (vouchers.pm - first)\n\n" );
             }
         }
-    } else {
-        warn "$script not found.";
     }
-}
-
-_run_script('scripts/custom/vouchers.pl', 'vouchers.pl - custom start');
-
+};
 
 =item create_batch
 
@@ -66,8 +67,8 @@ sub create_batch {
     my ($request) = @_;
     $request->open_form;
     $request->{hidden} = [
-        {name => "batch_type", value => $request->{batch_type}},
-        {name => "form_id",   value => $request->{form_id}},
+        {name => 'batch_type', value => $request->{batch_type}},
+        {name => 'form_id',   value => $request->{form_id}},
         {name => 'overpayment', value => $request->{overpayment}},
     ];
 
@@ -84,8 +85,8 @@ sub create_batch {
         template => 'create_batch',
         format => 'HTML'
     );
-    $template->render({ request => $request,
-                        batch => $batch });
+    return $template->render({ request => $request,
+                                        batch => $batch });
 }
 
 =item create_vouchers
@@ -103,11 +104,11 @@ sub create_vouchers {
     $batch->{batch_class} = $request->{batch_type};
     if ($request->close_form){
         $batch->create;
-        add_vouchers($batch);
+        return add_vouchers($batch);
     } else {
         $request->{notice} =
-            $request->{_locale}->text("Error creating batch.  Please try again.");
-        create_batch($request);
+            $request->{_locale}->text('Error creating batch.  Please try again.');
+        return create_batch($request);
     }
 }
 
@@ -117,33 +118,36 @@ Redirects to a script to add vouchers for the type.  batch_type must be set.
 
 =cut
 
+sub _add_vouchers_old {
+    my ($request, $entry) = @_;
+
+    return dispatch($entry->{script},
+                    $entry->{function},
+                    $request);
+}
+
 sub add_vouchers {
-    #  This function is not safe for caching as long as the scripts are in bin.
-    #  This is because these scripts import all functions into the *current*
-    #  namespace.  People using fastcgi and modperl should *not* cache this
-    #  module at the moment. -- CT
-    #  Also-- request is in 'our' scope here due to the redirect logic.
-    our ($request) = shift @_;
-    use LedgerSMB::Form;
+    my ($request) = shift @_;
+
     my $batch = LedgerSMB::Batch->new({base => $request});
     our $vouchers_dispatch =
     {
-        ap         => {script => 'bin/ap.pl', function => sub {lsmb_legacy::add()}},
-        ar         => {script => 'bin/ar.pl', function => sub {lsmb_legacy::add()}},
-        gl         => {script => 'bin/gl.pl', function => sub {lsmb_legacy::add()}},
-     sales_invoice => {script => 'bin/is.pl', function => sub {lsmb_legacy::add()}},
-    vendor_invoice => {script => 'bin/ir.pl', function => sub {lsmb_legacy::add()}},
+        ap         => {script => 'ap.pl', function => 'add'},
+        ar         => {script => 'ar.pl', function => 'add'},
+        gl         => {script => 'gl.pl', function => 'add'},
+     sales_invoice => {script => 'is.pl', function => 'add'},
+    vendor_invoice => {script => 'ir.pl', function => 'add'},
         receipt    => {script => undef,
                  function => sub {
                 my ($request) = @_;
                 $request->{account_class} = 2;
-                LedgerSMB::Scripts::payment::payments($request);
+                return LedgerSMB::Scripts::payment::payments($request);
                 }},
         payment   => {script => undef,
                  function => sub {
                 my ($request) = @_;
                 $request->{account_class} = 1;
-                LedgerSMB::Scripts::payment::payments($request);
+                return LedgerSMB::Scripts::payment::payments($request);
                 }},
         payment_reversal => {
                       script => undef,
@@ -152,9 +156,9 @@ sub add_vouchers {
                 $request->{account_class} = 1;
                                 if ($request->{overpayment}){
                                     $request->{report_name} = 'overpayments';
-                                    LedgerSMB::Scripts::reports::start_report($request);
+                                    return LedgerSMB::Scripts::reports::start_report($request);
                                 } else {
-                    LedgerSMB::Scripts::payment::get_search_criteria($request, $custom_batch_types);
+                    return LedgerSMB::Scripts::payment::get_search_criteria($request, $custom_batch_types);
                                 }
                 }},
         receipt_reversal => {
@@ -164,64 +168,24 @@ sub add_vouchers {
                 $request->{account_class} = 2;
                                 if ($request->{overpayment}){
                                     $request->{report_name} = 'overpayments';
-                                    LedgerSMB::Scripts::reports::start_report($request);
+                                    return LedgerSMB::Scripts::reports::start_report($request);
                                 } else {
-                       LedgerSMB::Scripts::payment::get_search_criteria($request, $custom_batch_types);
+                       return LedgerSMB::Scripts::payment::get_search_criteria($request, $custom_batch_types);
                                 }
 
                      }},
     };
 
-    our $form = new Form;
-    our %myconfig = ();
-    %myconfig = %{$request->{_user}};
-    $form->{stylesheet} = $myconfig{stylesheet};
-    our $locale = $request->{_locale};
-
-    for (keys %$request){
-        $form->{$_} = $request->{$_};
-    }
-
-    $form->{batch_id} = $batch->{id};
-    $form->{approved} = 0;
-    $form->{transdate} = $request->{batch_date};
-
     $request->{batch_id} = $batch->{id};
     $request->{approved} = 0;
     $request->{transdate} = $request->{batch_date};
-
-
-    my $script = $vouchers_dispatch->{$request->{batch_type}}{script};
-    $form->{script} = $script;
-    $form->{script} =~ s|.*/||;
-    delete $form->{id};
     delete $request->{id};
-    if ($script =~ /^bin/) {
-        if (my $cpid = fork()) {
-            waitpid $cpid, 0;
-        }
-        else {
-            # We need a 'try' block here to prevent errors being thrown in
-            # the inner block from escaping out of the block and missing
-            # the 'exit' below.
-            try {
-                # Note that the line below is generally considered
-                # incredibly bad form.
-                # However, the code we are including is going to require it for now.
-                # -- CT
-                require 'bin/bridge.pl'; ## no critic
-                $form->{script} = $script;
-                $form->{script} =~ s#^bin/##;
-                lsmb_legacy::locale($locale);
-                lsmb_legacy::form($form);
-                { no strict; no warnings 'redefine'; do $script; }
-                $vouchers_dispatch->{$request->{batch_type}}{function}($request);
-            };
-            exit;
-        }
-    } else {
-        $vouchers_dispatch->{$request->{batch_type}}{function}($request);
-    }
+
+    my $entry = $vouchers_dispatch->{$request->{batch_type}};
+    return _add_vouchers_old($request, $entry)
+        if defined $entry->{script};
+
+    return $vouchers_dispatch->{$request->{batch_type}}{function}($request);
 }
 
 =item list_batches
@@ -242,7 +206,7 @@ class_id and created_by are exact matches
 sub list_batches {
     my ($request) = @_;
     $request->open_form;
-    LedgerSMB::Report::Unapproved::Batch_Overview->new(
+    return LedgerSMB::Report::Unapproved::Batch_Overview->new(
                  %$request)->render($request);
 }
 
@@ -260,7 +224,7 @@ sub get_batch {
 
     $request->{hiddens} = { batch_id => $request->{batch_id} };
 
-    LedgerSMB::Report::Unapproved::Batch_Detail->new(
+    return LedgerSMB::Report::Unapproved::Batch_Detail->new(
                  %$request)->render($request);
 }
 
@@ -272,12 +236,13 @@ Approves the single batch on the details screen.  Batch_id must be set.
 
 sub single_batch_approve {
     my ($request) = @_;
+    delete $request->{language}; # only applicable for printing of batches
     if ($request->close_form){
         my $batch = LedgerSMB::Batch->new(base => $request);
         $batch->post;
-        list_batches($request);
+        return list_batches($request);
     } else {
-        get_batch($request);
+        return get_batch($request);
     }
 }
 
@@ -289,12 +254,13 @@ Deletes the single batch on the details screen.  Batch_id must be set.
 
 sub single_batch_delete {
     my ($request) = @_;
+    delete $request->{language}; # only applicable for printing of batches
     if ($request->close_form){
         my $batch = LedgerSMB::Batch->new(base => $request);
         $batch->delete;
-        list_batches($request);
+        return list_batches($request);
     } else {
-        get_batch($request);
+        return get_batch($request);
     }
 }
 
@@ -306,25 +272,27 @@ Unlocks the single batch on the details screen.  Batch_id must be set.
 
 sub single_batch_unlock {
     my ($request) = @_;
+    delete $request->{language}; # only applicable for printing of batches
     if ($request->close_form){
         my $batch = LedgerSMB::Batch->new(base => $request);
         $batch->unlock;
         $request->{report_name} = 'unapproved';
         $request->{search_type} = 'batches';
-        LedgerSMB::Scripts::reports::start_report($request);
+        return LedgerSMB::Scripts::reports::start_report($request);
     } else {
-        get_batch($request);
+        return get_batch($request);
     }
 }
 
-=item batch_voucher_delete
+=item batch_vouchers_delete
 
 Deletes selected vouchers.
 
 =cut
 
-sub batch_voucher_delete {
+sub batch_vouchers_delete {
     my ($request) = @_;
+    delete $request->{language}; # only applicable for printing of batches
     if ($request->close_form){
         my $batch = LedgerSMB::Batch->new(base => $request);
         for my $count (1 .. $request->{rowcount_}){
@@ -333,7 +301,7 @@ sub batch_voucher_delete {
             $batch->delete_voucher($voucher_id);
         }
     }
-    get_batch($request);
+    return get_batch($request);
 }
 
 =item batch_approve
@@ -344,19 +312,20 @@ Approves all selected batches.
 
 sub batch_approve {
     my ($request) = @_;
+    delete $request->{language}; # only applicable for printing of batches
     if (!$request->close_form){
         list_batches($request);
     }
 
     my $batch = LedgerSMB::Batch->new(base => $request);
     for my $count (1 .. $batch->{rowcount_}){
-        next unless $batch->{"select_" . $count};
+        next unless $batch->{'select_' . $count};
         $batch->{batch_id} = $batch->{"row_$count"};
         $batch->post;
     }
     $request->{report_name} = 'unapproved';
     $request->{search_type} = 'batches';
-    LedgerSMB::Scripts::reports::start_report($request);
+    return LedgerSMB::Scripts::reports::start_report($request);
 }
 
 =item batch_unlock
@@ -367,19 +336,20 @@ Unlocks selected batches
 
 sub batch_unlock {
     my ($request) = @_;
+    delete $request->{language}; # only applicable for printing of batches
     my $batch = LedgerSMB::Batch->new(base => $request);
     if ($request->{batch_id}){
        $batch->unlock($request->{batch_id});
     } else {
         for my $count (1 .. $batch->{rowcount_}){
-            next unless $batch->{"select_" . $count};
+            next unless $batch->{'select_' . $count};
             $batch->{batch_id} = $batch->{"row_$count"};
             $batch->unlock($request->{"row_$count"});
         }
     }
     $request->{report_name} = 'unapproved';
     $request->{search_type} = 'batches';
-    LedgerSMB::Scripts::reports::start_report($request);
+    return LedgerSMB::Scripts::reports::start_report($request);
 }
 
 =item batch_delete
@@ -390,19 +360,20 @@ Deletes selected batches
 
 sub batch_delete {
     my ($request)  = @_;
+    delete $request->{language}; # only applicable for printing of batches
     if (!$request->close_form){
         return list_batches($request);
     }
 
     my $batch = LedgerSMB::Batch->new(base => $request);
     for my $count (1 .. $batch->{rowcount_}){
-        next unless $batch->{"select_" . $count};
+        next unless $batch->{'select_' . $count};
         $batch->{batch_id} = $batch->{"row_$count"};
         $batch->delete;
     }
     $request->{report_name} = 'unapproved';
     $request->{search_type} = 'batches';
-    LedgerSMB::Scripts::reports::start_report($request);
+    return LedgerSMB::Scripts::reports::start_report($request);
 }
 
 =item reverse_overpayment
@@ -417,110 +388,60 @@ sub reverse_overpayment {
     my $batch = LedgerSMB::Batch->new(base => $request);
     $batch->get;
     my $a_class;
-    for (1 .. $request->{rowcount_}){
-        my $id = $request->{"id_$_"};
+    for my $count (1 .. $request->{rowcount_}){
+        my $id = $request->{"id_$count"};
         $batch->call_procedure(funcname => 'overpayment__reverse',
            args => [$id, $batch->{post_date}, $batch->{id}, $a_class,
                  $request->{cash_accno}, $request->{exchangerate},
                  $request->{curr}]
-         ) if $id;
+        ) if $id;
     }
-    LedgerSMB::Scripts::reports::search_overpayments($request);
+    return LedgerSMB::Scripts::reports::search_overpayments($request);
 }
 
 my %print_dispatch = (
-   2 => sub {
-               my ($voucher, $request) = @_;
-               if (my $cpid = fork()){
-                  waitpid $cpid, 0;
-               } else {
-                   # We need a 'try' block here to prevent errors being thrown in
-                   # the inner block from escaping out of the block and missing
-                   # the 'exit' below.
-                   try {
-                       _run_script('bin/ar.pl', 'vouchers.pm disp2');
-                       require LedgerSMB::Form;
-                       %$lsmb_legacy::form = (%$request);
-                       bless $lsmb_legacy::form, 'Form';
-                       local $LedgerSMB::App_State::DBH = 0;
-                       $lsmb_legacy::form->db_init($LedgerSMB::App_State::User);
-                       $lsmb_legacy::form->{ARAP} = 'AR';
-                       $lsmb_legacy::form->{arap} = 'ar';
-                       $lsmb_legacy::form->{vc} = 'customer';
-                       $lsmb_legacy::form->{id} = $voucher->{transaction_id}
-                            if ref $voucher;
-                       $lsmb_legacy::form->{formname} = 'ar_transaction';
-                       $lsmb_legacy::locale = $LedgerSMB::App_State::Locale;
+   BC_AR() => {
+       script => 'ar.pl',
+       entrypoint => sub {
+           my ($voucher, $request) = @_;
+           $lsmb_legacy::form->{ARAP} = 'AR';
+           $lsmb_legacy::form->{arap} = 'ar';
+           $lsmb_legacy::form->{vc} = 'customer';
+           $lsmb_legacy::form->{id} = $voucher->{transaction_id}
+                if ref $voucher;
+           $lsmb_legacy::form->{formname} = 'ar_transaction';
 
-                       lsmb_legacy::create_links();
-                       $lsmb_legacy::form->{media} = $request->{media};
-
-                       lsmb_legacy::print();
-                   };
-                   exit;
-               }
-               1;
-             },
-   1 => sub { 0 },
-   8 => sub {
-               my ($voucher, $request) = @_;
-               if (my $cpid = fork){
-                  waitpid $cpid, 0;
-               } else {
-                   # We need a 'try' block here to prevent errors being thrown in
-                   # the inner block from escaping out of the block and missing
-                   # the 'exit' below.
-                   try {
-                       _run_script('bin/is.pl', 'vouchers.pm disp8');
-                       require LedgerSMB::Form;
-                       %$lsmb_legacy::form = (%$request);
-                       bless $lsmb_legacy::form, 'Form';
-                       local $LedgerSMB::App_State::DBH = 0;
-                       $lsmb_legacy::form->db_init($LedgerSMB::App_State::User);
-                       $lsmb_legacy::form->{formname} = 'invoice';
-                       $lsmb_legacy::form->{id} = $voucher->{transaction_id}
+           lsmb_legacy::create_links();
+           $lsmb_legacy::form->{media} = $request->{media};
+           lsmb_legacy::print();
+       }
+    },
+    BC_SALES_INVOICE() => {
+        script => 'is.pl',
+        entrypoint => sub {
+            my ($voucher, $request) = @_;
+            $lsmb_legacy::form->{formname} = 'invoice';
+            $lsmb_legacy::form->{id} = $voucher->{transaction_id}
                                if ref $voucher;
 
-                       lsmb_legacy::create_links();
+            lsmb_legacy::create_links();
+            $lsmb_legacy::form->{media} = $request->{media};
+            lsmb_legacy::print();
+        }
+    },
+   BC_VENDOR_INVOICE() => {
+       script => 'is.pl',
+       entrypoint => sub {
+           my ($voucher, $request) = @_;
+           $lsmb_legacy::form->{formname} = 'product_receipt';
+           $lsmb_legacy::form->{id} = $voucher->{transaction_id}
+                if ref $voucher;
 
-                       lsmb_legacy::print();
-                   };
-                   exit;
-               }
-               1;
-             },
-   9 => sub {
-               my ($voucher, $request) = @_;
-               if (my $cpid = fork){
-                  waitpid $cpid, 0;
-               } else {
-                   # We need a 'try' block here to prevent errors being thrown in
-                   # the inner block from escaping out of the block and missing
-                   # the 'exit' below.
-                   try {
-                       _run_script('bin/is.pl', 'vouchers.pm disp9');
-                       require LedgerSMB::Form;
-                       %$lsmb_legacy::form = (%$request);
-                       bless $lsmb_legacy::form, 'Form';
-                       local $LedgerSMB::App_State::DBH = 0;
-                       $lsmb_legacy::form->db_init($LedgerSMB::App_State::User);
-                       $lsmb_legacy::form->db_init($LedgerSMB::App_State::User);
-                       $lsmb_legacy::form->{formname} = 'product_receipt';
-                       $lsmb_legacy::form->{id} = $voucher->{transaction_id}
-                               if ref $voucher;
-
-                       lsmb_legacy::create_links();
-
-                       lsmb_legacy::print();
-                   };
-                   exit;
-               }
-               1;
-             },
-   3 => sub { 0 },
-   receipt =>  sub { undef }, # todo, new functionality
-   payment =>  sub { undef }, # todo, new functionality
-);
+           lsmb_legacy::create_links();
+           lsmb_legacy::print();
+       }
+    },
+    );
 
 =item print_batch
 
@@ -531,55 +452,77 @@ and gl transactions are not printed.
 
 sub print_batch {
     my ($request) = @_;
-    my $report = LedgerSMB::Report::Unapproved::Batch_Detail->new(
-                 %$request);
+    my $report = LedgerSMB::Report::Unapproved::Batch_Detail->new(%$request);
     $request->{format} = 'pdf';
     $request->{media} = 'zip';
-    my $dirname = "$LedgerSMB::Sysconfig::tempdir/docs-$request->{batch_id}-" . time;
-    mkdir $dirname;
 
+    # Make sure we have a temporary directory which gets cleaned up
+    # after exiting this routine
+    my $dir = File::Temp->newdir( CLEANUP => 1);
+    my $dirname = $dir->dirname;
+
+    # zipdir gets consumed by io.pl and arapprn.pl
     $request->{zipdir} = $dirname;
 
     $report->run_report;
 
-    my $cgi = CGI::Simple->new;
-
     my @files =
-      map { my $contents;
-
-            $contents = &{$print_dispatch{lc($_->{batch_class_id})}}($_, $request)
-                if $print_dispatch{lc($_->{batch_class_id})};
-            $contents ? $contents : (); }
-      @{$report->rows};
+        map {
+            my $entry = $print_dispatch{lc($_->{batch_class_id})};
+            if ($entry) {
+                dispatch(
+                    $entry->{script},
+                    $entry->{entrypoint},
+                    { %$request },
+                    # entrypoint's arguments:
+                    $_,
+                    $request
+                );
+                return 1;
+            }
+            return ();
+        }
+        @{$report->rows};
 
     if (@files) {
-       my $zipcmd = $LedgerSMB::Sysconfig::zip;
-       $zipcmd =~ s/\%dir/$dirname/g;
+        my $zipcmd = $LedgerSMB::Sysconfig::zip;
+        $zipcmd =~ s/\%dir/$dirname/g;
+        `$zipcmd`;
 
-       `$zipcmd`;
+        my $file_path = "$dirname.zip";
+        open my $zip, '<', $file_path
+            or die "Failed to open temporary zip file $file_path : $!";
+        binmode $zip, ':bytes';
+        unlink $file_path;
 
-       binmode (STDOUT, ':bytes');
-
-       print $cgi->header(
-          -type       => 'application/zip',
-          -status     => '200',
-          -charset    => 'utf-8',
-          -attachment => "batch-$request->{batch_id}.zip",
-       );
-
-       open ZIP, '<', "$request->{zipdir}.zip";
-       binmode (ZIP, ':bytes');
-       print <ZIP>;
-       close ZIP;
-
-
-    } else {
-       $report->render($request);
+        return [
+            HTTP_OK,
+            [
+                'Content-Type' => 'application/zip',
+                'Content-Disposition' =>
+                    'attachment; filename="batch-'
+                    . $request->{batch_id} . '.zip"',
+            ],
+            $zip
+        ];
     }
-
+    else {
+        return $report->render($request);
+    }
 }
 
-_run_script('scripts/custom/vouchers.pl', 'vouchers.pl - custom end');
+{
+    local ($!, $@) = (undef, undef);
+    my $do_ = 'scripts/custom/vouchers.pl';
+    if ( -e $do_ ) {
+        unless ( do $do_ ) {
+            if ($! or $@) {
+                warn "\nFailed to execute $do_ ($!): $@\n";
+                die (  "Status: 500 Internal server error (vouchers.pm - end)\n\n" );
+            }
+        }
+    }
+};
 1;
 
 =back

@@ -1,5 +1,4 @@
-<?lsmb INCLUDE 'ui-header.html';
-       PROCESS 'report_base.html';
+<?lsmb PROCESS 'report_base.html';
        PROCESS 'elements.html';
        IF entity_class == 1;
            CV = text('Vendor');
@@ -197,6 +196,7 @@
             </tr>
           </table>
         </td>
+      </tr>
     </table>
     <hr />
     <?lsmb PROCESS button element_data = {
@@ -218,4 +218,3 @@
            } ?>
   </form>
 </body>
-</html>

@@ -29,11 +29,12 @@ require(["dojo/parser", "dojo/query", "dojo/on", "dijit/registry",
                           event.stop(e);
                           c++;
                           hash(href + c.toString(16));
+                          mainDiv.fade_main_div();
                         }
                     });
                     var l = window.location;
                     dnode.href = l.origin + l.pathname
-                        + l.search + "#" + dnode.href;
+                        + l.search + "#" + dnode.href.substring(l.origin.length);
                 };
                 if (mainDiv != null) {
                     mainDiv.interceptClick = interceptClick;
@@ -56,27 +57,6 @@ require(["dojo/parser", "dojo/query", "dojo/on", "dijit/registry",
                         .forEach(function(node) {
                             domClass.add(node, "done-parsing");
                         });
-                });
-            });
-        });
-
-
-require([
-    "dojo/on", "dojo/query", "dojo/dom-class", "dojo/_base/event",
-    "dojo/domReady!"],
-        function (on, query, domclass, event) {
-            query("a.t-submenu").forEach(function(node){
-                on(node, "click", function(e) {
-                  if ( !e.ctrlKey && !e.shiftKey && !e.button != 0 ) {
-                    event.stop(e);
-                    var parent = node.parentNode;
-                    if (domclass.contains(parent, "menu_closed")) {
-                        domclass.replace(parent, "menu_open", "menu_closed");
-                    }
-                    else {
-                        domclass.replace(parent, "menu_closed", "menu_open");
-                    }
-                  }
                 });
             });
         });

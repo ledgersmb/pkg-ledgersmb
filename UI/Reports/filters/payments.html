@@ -1,13 +1,6 @@
-<?lsmb INCLUDE 'ui-header.html'
-                stylesheet = stylesheet
-                include_stylesheet = [
-                        'css/system/global.css'
-                        'payments/payments.css'
-                ]
-                titlebar = text('Search Payments') # '
-?><?lsmb PROCESS 'elements.html';
-         PROCESS 'report_base.html';
-         IF ! entity_class.defined; entity_class = account_class; END ?>
+<?lsmb PROCESS 'elements.html';
+       PROCESS 'report_base.html';
+       IF ! entity_class.defined; entity_class = account_class; END ?>
 <body class="lsmb <?lsmb dojo_theme ?>">
 <?lsmb IF account_class == 2;
             CONTACT = "Customer Number";
@@ -34,6 +27,11 @@
                 name  = "entity_class"
                 value = entity_class
         } ?>
+        <?lsmb INCLUDE input element_data = {
+                type  = "hidden"
+                name  = "account_class"
+                value = account_class
+        } ?>
 <div class="listtop" id="page_title"><?lsmb TITLE ?></div>
 <div class="inputrow">
 <div class="input" id="vendor_input_div">
@@ -54,7 +52,7 @@
                 label = text('Name')
         } ?> --></div>
 <div class="input" id="account_input_div">
-        <?lsmb 
+        <?lsmb
              IF !batch_id; cash_accounts.unshift({}); END;
              INCLUDE select element_data = {
                 name           = "cash_accno"
@@ -103,7 +101,7 @@
               name = 'currency'
            options = currencies
         value_attr = id
-  default_optiopns = [default_currency]
+    default_values = [default_currency]
              label = text('Currency')
       } ?>
       <?lsmb INCLUDE input element_data = {
@@ -128,4 +126,3 @@
 </div>
 </form>
 </body>
-</html>

@@ -1,3 +1,4 @@
+<?lsmb# HTML Snippet, for import only ?>
 <?lsmb- BLOCK business_classes;
         FOREACH BUC IN bu_classes ?>
         <tr>
@@ -111,10 +112,9 @@ END # BLOCK -?>
 <?lsmb BLOCK date_from_date ?>
     <?lsmb
         IF !label.defined();    label    = text('From');      END;
-        IF !name.defined();     name     = text('from_date'); END;
+        IF !name.defined();     name     = 'from_date'; END;
         IF !required.defined(); required = 'false';           END;
     ?>
-      <th align="right"><?lsmb label ?></th>
       <td>
         <?lsmb INCLUDE _date_block label=label name=name required=required SUFFIX=SUFFIX ?>
       </td>
@@ -123,10 +123,9 @@ END # BLOCK -?>
 <?lsmb BLOCK date_to_date ?>
     <?lsmb
         IF !label.defined();    label    = text('To');      END;
-        IF !name.defined();     name     = text('to_date'); END;
+        IF !name.defined();     name     = 'to_date'; END;
         IF !required.defined(); required = 'false';         END;
     ?>
-      <th align="right"><?lsmb label ?></th>
       <td>
         <?lsmb INCLUDE _date_block label=label name=name required=required SUFFIX=SUFFIX ?>
       </td>
@@ -195,6 +194,7 @@ END # BLOCK -?>
 
 <?lsmb- BLOCK date_row ?>
         <tr>
+          <th align="right"><?lsmb text('Date Range') ?></th>
           <?lsmb INCLUDE date_from_date required=required SUFFIX=SUFFIX ?>
           <?lsmb INCLUDE date_to_date   required=required SUFFIX=SUFFIX ?>
         </tr>
@@ -279,6 +279,9 @@ END # BLOCK -?>
 <?lsmb END #BLOCK -?>
 
 <?lsmb- BLOCK date_period_type_div ?>
+    <?lsmb
+        IF !label.defined();    label    = text('Period type');      END;
+    ?>
         <div class="input_row">
           <div class="input_group">
               <?lsmb
@@ -287,8 +290,8 @@ END # BLOCK -?>
                 INCLUDE select element_data = {
                     name = "interval"
                       id = "interval"
+                   label = label
                  options = all_periods
-                   label = text('Period type')
               };
               ?>
           </div>

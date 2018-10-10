@@ -21,6 +21,7 @@ use LedgerSMB::Form;
 
 
 use Moose;
+use namespace::autoclean;
 use feature 'switch';
 extends 'LedgerSMB::X12';
 
@@ -52,7 +53,7 @@ sub _order {
     my ($self) = @_;
     $self->parse;
     my $sep = $self->parser->get_element_separator;
-    my $form = new Form;
+    my $form = Form->new;
     my $sender_idx;
     my $sender_id;
 
@@ -62,21 +63,21 @@ sub _order {
         if ('ISA' eq $loop){
                 my ($segment) = $self->parser->get_loop_segments;
                 my @elements = split(/\Q$sep\E/, $segment);
-                $sender_idx = $elements[5];
-                $sender_id = $elements[6];
+                $sender_idx = $elements[5];  ## no critic (ProhibitMagicNumbers) sniff
+                $sender_id = $elements[6];  ## no critic (ProhibitMagicNumbers) sniff
                 $form->{edi_isa} = \@elements;
                 my @new_elements = (
                    $elements[0],
                    $elements[1],
                    $elements[2],
-                   $elements[3],
-                   $elements[4],
-                   $elements[7],
-                   $elements[8],
-                   $elements[5],
-                   $elements[6],
-                   $elements[9],
-                   $elements[10],
+                   $elements[3],  ## no critic (ProhibitMagicNumbers) sniff
+                   $elements[4],  ## no critic (ProhibitMagicNumbers) sniff
+                   $elements[7],  ## no critic (ProhibitMagicNumbers) sniff
+                   $elements[8],  ## no critic (ProhibitMagicNumbers) sniff
+                   $elements[5],  ## no critic (ProhibitMagicNumbers) sniff
+                   $elements[6],  ## no critic (ProhibitMagicNumbers) sniff
+                   $elements[9],  ## no critic (ProhibitMagicNumbers) sniff
+                   $elements[10],  ## no critic (ProhibitMagicNumbers) sniff
                    $elements[11],
                    $elements[12],
                    $elements[13],

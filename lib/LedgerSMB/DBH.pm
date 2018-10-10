@@ -6,22 +6,16 @@ LedgerSMB::DBH - Database Connection Routines for LedgerSMB
 
   my $dbh = LedgerSMB::DBH->connect($company, $username, $password);
 
-or
-
-  my $dbh = LedgerSMB::DBH->connect($company)
-
-to use credentials returned by LedgerSMB::Auth::get_credentials
-
 =cut
 
 package LedgerSMB::DBH;
 use strict;
 use warnings;
 
-use LedgerSMB::Auth;
 use LedgerSMB::Sysconfig;
 use LedgerSMB::App_State;
 use LedgerSMB::Setting;
+use Carp;
 use DBI;
 
 =head1 DESCRIPTION
@@ -32,33 +26,28 @@ Sets up and manages the db connection.  This returns a DBI database handle.
 
 =head2 connect ($username, $password)
 
-Returns a connection authenticated with $username and $password.  If $username
-is not sent, then these are taken from LedgerSMB::Auth::get_credentials.
-
-Note:  if get_credentials returns a username of 'logoud', then this will return
-control there to prompt for credentials again.
+Returns a connection authenticated with $username and $password.
+Returns undef on connection failure or lack of credentials.
 
 =cut
 
 sub connect {
     my ($package, $company, $username, $password) = @_;
-    if (!$username){
-        my $creds = LedgerSMB::Auth::get_credentials;
-        LedgerSMB::Auth::credential_prompt()
-            if $creds->{login} && $creds->{login} eq 'logout';
-        $username = $creds->{login};
-        $password = $creds->{password};
-    }
-    return undef unless $username;
-    my $dbh = DBI->connect(qq|dbi:Pg:dbname="$company"|, $username, $password,
+
+    return undef unless $username && $password;
+    return undef if $username eq 'logout';
+
+    my $dbh = DBI->connect("dbi:Pg:dbname=$company", $username, $password,
            { PrintError => 0, AutoCommit => 0,
              pg_enable_utf8 => 1, pg_server_prepare => 0 })
         or return undef;
+
+    $dbh->do(q{set client_min_messages = 'warning'});
+
     my $dbi_trace=$LedgerSMB::Sysconfig::DBI_TRACE;
-    $dbh->do("set client_min_messages = 'warning'");
-    if($dbi_trace)
-    {
-     $dbh->trace(split /=/,$dbi_trace,2);#http://search.cpan.org/~timb/DBI-1.616/DBI.pm#TRACING
+    if ($dbi_trace) {
+        # See http://search.cpan.org/~timb/DBI-1.616/DBI.pm#TRACING
+        $dbh->trace(split /=/,$dbi_trace,2);
     }
 
     return $dbh;
@@ -87,6 +76,7 @@ sub set_datestyle {
         'dd.mm.yyyy' => 'set DateStyle to \'GERMAN\''
     );
     $dbh->do( $date_query{ $datestyle } ) if $date_query{ $datestyle };
+    return;
 }
 
 =head2 require_version($version)
@@ -109,14 +99,18 @@ sub require_version {
     return if $ignore_version;
 
     my $version = LedgerSMB::Setting->get('version');
-    die LedgerSMB::App_State->Locale->text("Database is not the expected version.  Was [_1], expected [_2].  Please re-run setup.pl against this database to correct.<a href='setup.pl'>setup.pl</a>", $version, $expected_version)
-       unless $version eq $expected_version;
-    return 0;
+
+    if ($expected_version eq $version) {
+        return '';
+    }
+    else {
+        return $version;
+    }
 }
 
 =head1 COPYRIGHT
 
-Copyright (C) 2014 The LedgerSMB Core Team.
+Copyright (C) 2014-2017 The LedgerSMB Core Team.
 
 This file may be reused under the terms of the GNU General Public License,
 version 2 or at your option any later version.  Please see the included

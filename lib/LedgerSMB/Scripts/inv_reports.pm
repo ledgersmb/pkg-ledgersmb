@@ -33,7 +33,7 @@ sub search_adj{
     my ($request) = @_;
     my $rpt = LedgerSMB::Report::Inventory::Search_Adj->new(%$request);
     $rpt->run_report;
-    $rpt->render($request);
+    return $rpt->render($request);
 }
 
 =item adj_detail
@@ -47,7 +47,7 @@ sub adj_detail {
     $request->{hiddens} = { id => $request->{id}};
     my $rpt = LedgerSMB::Report::Inventory::Adj_Details->new(%$request);
     $rpt->run_report;
-    $rpt->render($request);
+    return $rpt->render($request);
 }
 
 =item approve
@@ -61,7 +61,7 @@ sub approve {
     my $rpt = LedgerSMB::Report::Inventory::Adj_Details->new(%$request);
     $rpt->approve;
     $request->{report_name} = 'inventory_adj';
-    LedgerSMB::Scripts::reports::start_report($request);
+    return LedgerSMB::Scripts::reports::start_report($request);
 }
 
 =item delete
@@ -75,7 +75,7 @@ sub delete {
     my $rpt = LedgerSMB::Report::Inventory::Adj_Details->new(%$request);
     $rpt->delete;
     $request->{report_name} = 'inventory_adj';
-    LedgerSMB::Scripts::reports::start_report($request);
+    return LedgerSMB::Scripts::reports::start_report($request);
 }
 
 =back

@@ -34,76 +34,6 @@ use Log::Log4perl;
 my $logger = Log::Log4perl->get_logger('LedgerSMB::Scripts::admin');
 
 
-sub __edit_page {
-
-
-    my ($request, $otd) = @_;
-    # otd stands for Other Template Data.
-    my $dcsetting = LedgerSMB::Setting->new( {base=>$request, copy=>'base'} );
-    my $default_country = $dcsetting->get('default_country');
-    my $admin = LedgerSMB::DBObject::Admin->new({base=>$request, copy=>'list', merge =>['user_id']});
-    my @all_roles = $admin->get_roles($request->{company});
-    my $user_obj = LedgerSMB::DBObject::User->new({base=>$request, copy=>'list', merge=>['user_id','company']});
-    $user_obj->{company} = $request->{company};
-    $user_obj->get($request->{user_id});
-    my $user = $request->{_user};
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        template => 'Admin/edit_user',
-        language => $user->{language},
-        format => 'HTML',
-        path=>'UI'
-    );
-    my @countries = $admin->get_countries();
-    my @salutations = $admin->get_salutations();
-    my $template_data =
-            {
-                           user => $user_obj,
-                          roles => @all_roles,
-                      countries => $admin->get_countries(),
-                     user_roles => $user_obj->{roles},
-                default_country => $dcsetting->{value},
-                          admin => $admin,
-                     stylesheet => $request->{stylesheet},
-                    salutations => \@salutations,
-            };
-
-
-    for my $key (keys(%{$otd})) {
-
-        $template_data->{$key} = $otd->{$key};
-    }
-    $template->render($template_data);
-}
-
-=item save_roles
-
-Saves the role assignments for a given user
-
-=cut
-
-sub save_roles {
-    my ($request, $admin) = @_;
-    $admin = LedgerSMB::DBObject::Admin->new({base=>$request, copy=>'all'});
-    $admin->{stylesheet} = $request->{stylesheet};
-    $admin->save_roles();
-    __edit_page($admin);
-}
-
-=item delete_user
-
-Deletes a user and returns to search results.
-
-=cut
-
-sub delete_user {
-    my ($request) = @_;
-    my $admin = LedgerSMB::DBObject::Admin->new({base => $request});
-    $admin->delete_user($request->{delete_user});
-    delete $request->{username};
-    search_users($request);
-}
-
 =item list_sessions
 
 Displays a list of open sessions.  No inputs required or used.
@@ -129,10 +59,10 @@ sub list_sessions {
         last_used => 'Last Used',
         locks_active => 'Transactions Locked'
     };
-    my $column_heading = $template->column_heading($column_names);
+    my $column_heading = _column_heading($request, $column_names);
     my $rows = [];
-    my $rowcount = "0";
-    my $base_url = "admin.pl?action=delete_session";
+    my $rowcount = '0';
+    my $base_url = 'admin.pl?action=delete_session';
     for my $s (@sessions) {
         $s->{i} = $rowcount % 2;
         $s->{drop} = {
@@ -143,15 +73,14 @@ sub list_sessions {
         ++$rowcount;
     }
     $admin->{title} = $request->{_locale}->text('Active Sessions');
-    $template->render({
-    form    => $admin,
-    columns => $columns,
-    heading => $column_heading,
-        rows    => $rows,
-    buttons => [],
-    hiddens => [],
+    return $template->render({
+       form    => $admin,
+       columns => $columns,
+       heading => $column_heading,
+       rows    => $rows,
+       buttons => [],
+       hiddens => [],
     });
-
 }
 
 =item delete_session
@@ -164,22 +93,49 @@ sub delete_session {
     my ($request) = @_;
     my $admin = LedgerSMB::DBObject::Admin->new({base => $request});
     $admin->delete_session();
-    list_sessions($request);
+    return list_sessions($request);
 }
 
-{
-    local ($!, $@);
-    my $do_ = 'scripts/custom/admin.pl';
-    if ( -e $do_ ) {
-        unless ( do $do_ ) {
-            if ($! or $@) {
-                print "Status: 500 Internal server error (login.pm)\n\n";
-                warn "Failed to execute $do_ ($!): $@\n";
+=back
+
+=cut
+
+# apply locale settings to column headings and add sort urls if necessary.
+sub _column_heading {
+    my $self = shift;
+    my ($names, $sortby) = @_;
+    my %sorturls;
+
+    if ($sortby) {
+        %sorturls = map
+        { $_ => $sortby->{href}."=$_"} @{$sortby->{columns}};
+    }
+
+    foreach my $attname (keys %$names) {
+
+        # process 2 cases - simple name => value, and complex name => hash
+        # pairs. The latter is used to include urls in column headers.
+
+        if (ref $names->{$attname} eq 'HASH') {
+            my $t = $self->{_locale}->maketext($names->{$attname}{text});
+            $names->{$attname}{text} = $t;
+        } else {
+            my $t = $self->{_locale}->maketext($names->{$attname});
+            if (defined $sorturls{$attname}) {
+                $names->{$attname} =
+                {
+                    text => $t,
+                     href => $sorturls{$attname}
+                };
+            } else {
+                $names->{$attname} = $t;
             }
         }
     }
+
+    return $names;
 }
-=back
+
 
 =head1 COPYRIGHT
 

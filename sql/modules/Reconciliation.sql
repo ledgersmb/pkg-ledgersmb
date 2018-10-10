@@ -2,6 +2,29 @@
 set client_min_messages = 'warning';
 
 
+-- The reconciliation reports have the following state transition diagram:
+
+
+-- +----------+    +--------+    +------------+    +------------+
+-- | Initial  +--->+ Saved  +--->+ Submitted  +-+->+ Accepted   |
+-- +----------+    +-+------+    +------+-----+ |  +------------+
+--                   | ^                |       |
+--                   | \---Rejecting----/       |  +------------+
+--                   \--------------------------+->+ Deleted    |
+--                                                 -------------+
+
+-- lines from acc_trans are referenced in the report lines. The cr_report_lines
+-- are marked 'cleared' as soon as they are marked reconciled (and saved) in
+-- the reconciliation screen.
+
+-- When a report is Rejected, it's returned to the saved state for correction.
+
+-- Upon *approval*, the 'cleared' status is written to the 'acc_trans' table,
+-- which means that rejected or deleted reports don't have any impact on
+-- the reconciliation state of the actual transactions.
+
+
+
 BEGIN;
 
 CREATE OR REPLACE FUNCTION reconciliation__submit_set(
@@ -14,6 +37,12 @@ BEGIN
         RETURN FOUND;
 END;
 $$ LANGUAGE PLPGSQL;
+
+COMMENT ON FUNCTION reconciliation__submit_set(
+        in_report_id int, in_line_ids int[]) IS
+$$Submits a reconciliation report for approval.
+in_line_ids is used to specify which report lines are cleared, finalizing the
+report.$$;
 
 CREATE OR REPLACE FUNCTION reconciliation__check(in_end_date date, in_chart_id int)
 RETURNS SETOF defaults
@@ -45,12 +74,6 @@ RETURNS bool language sql as $$
 $$ SECURITY DEFINER;
 
 REVOKE EXECUTE ON FUNCTION reconciliation__reject_set(in_report_id int) FROM public;
-
-COMMENT ON FUNCTION reconciliation__submit_set(
-        in_report_id int, in_line_ids int[]) IS
-$$Submits a reconciliation report for approval.
-in_line_ids is used to specify which report lines are cleared, finalizing the
-report.$$;
 
 CREATE OR REPLACE FUNCTION reconciliation__save_set(
         in_report_id int, in_line_ids int[]) RETURNS bool AS

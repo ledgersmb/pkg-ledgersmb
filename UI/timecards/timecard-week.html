@@ -1,12 +1,11 @@
-<?lsmb INCLUDE "ui-header.html" dojo_parse='onload';
-PROCESS "elements.html" ?>
+<?lsmb PROCESS "elements.html" ?>
 <body class="lsmb <?lsmb dojo_theme ?>">
 <form data-dojo-type="lsmb/Form" action="timecard.pl" method="post">
-<?lsmb 
+<?lsmb
 PROCESS input element_data = {
     type = "hidden"
     name = "rowcount"
-   value = 1 
+   value = 1
 };
 PROCESS input element_data = {
     type = "hidden"
@@ -48,7 +47,7 @@ FOREACH bu IN b_units;
 END;
 ?>
 <div class="listtop"><?lsmb text('Weekly Time and Materials Entry') ?></div>
-<table width="100%" cols=7
+<table width="100%"
  id="timecard-weekly">
 <tr class="listtop">
  <th><?lsmb transdates.0 ?></th>
@@ -75,8 +74,8 @@ END;
      } ?>
     </div>
     <div id='curr-lbl'><?lsmb text('Currency') ?></div>
-    <div id='curr-input'><?lsmb 
-        currencies2 = [];  
+    <div id='curr-input'><?lsmb
+        currencies2 = [];
         FOREACH curr IN currencies;
            currencies2.push({text = curr, value = curr });
         END;
@@ -85,7 +84,7 @@ END;
                    name = "curr_$suffix"
                 options = currencies2
          default_values = [${"curr_$suffix"}]
-       }; ?>
+       }; ?></div>
   <div><?lsmb  text('Partnumber') ?></div>
   <div>
     <input data-dojo-type="lsmb/parts/PartSelector"
@@ -133,4 +132,3 @@ END;
 </div>
 </form>
 </body>
-</html>

@@ -12,7 +12,6 @@ This module provides AR/AP aging reports and statements for LedgerSMB.
 
 package LedgerSMB::Scripts::contact_reports;
 
-use LedgerSMB;
 use LedgerSMB::Template;
 use LedgerSMB::Report::Contact::Search;
 use LedgerSMB::Report::Contact::History;
@@ -34,7 +33,7 @@ sub search{
 
     my $report = LedgerSMB::Report::Contact::Search->new(%$request);
     $report->run_report;
-    $report->render($request);
+    return $report->render($request);
 }
 
 =item history
@@ -48,7 +47,7 @@ sub history {
 
     my $report = LedgerSMB::Report::Contact::History->new(%$request);
     $report->run_report;
-    $report->render($request);
+    return $report->render($request);
 }
 
 =back

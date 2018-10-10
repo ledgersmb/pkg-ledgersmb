@@ -1,5 +1,4 @@
-<?lsmb INCLUDE 'ui-header.html';
-       PROCESS 'elements.html';
+<?lsmb PROCESS 'elements.html';
        PROCESS 'utilities.html';
 ?>
 <body class="lsmb <?lsmb dojo_theme ?>">
@@ -10,11 +9,11 @@
           # Setting this to a conditional so that employee list can be
           # populated by add-on workflows.  Our standard ones will be set up
           # only to enter the timecards of the current user. --CT
-          PROCESS employee element_name="person_id" label=text('Employee'); 
+          PROCESS employee element_name="person_id" label=text('Employee');
        END ?>
 </div>
 <div>
-<?lsmb PROCESS business_unit_class label=text('Recording time for') _ ':' #' 
+<?lsmb PROCESS business_unit_class label=text('Recording time for') _ ':' #'
        text_attr="label" value_attr="id" ?>
 </div>
 <div >
@@ -46,4 +45,3 @@
 } ?>
 </form>
 </body>
-</html>

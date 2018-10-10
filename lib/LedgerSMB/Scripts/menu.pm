@@ -30,8 +30,7 @@ our $VERSION = '1.0';
 =item __default
 
 This pseudomethod is used to trap menu clicks that come back through the file
-and route to the appropriate function.  If $request->{menubar} is set, it routes
-to the drilldown_menu.  Otherwise, it routes to expanding_menu.
+and route to the appropriate function.  It routes to expanding_menu.
 
 =back
 
@@ -39,14 +38,8 @@ to the drilldown_menu.  Otherwise, it routes to expanding_menu.
 
 sub __default {
     my ($request) = @_;
-    if ($request->{new}){
-        root_doc($request);
-    }
-    if ($request->{menubar}){
-        drilldown_menu($request);
-    } else {
-        expanding_menu($request);
-    }
+
+    return root_doc($request);
 }
 
 =pod
@@ -55,8 +48,7 @@ sub __default {
 
 =item root_doc
 
-If $request->{menubar} is set, this creates a drilldown menu.  Otherwise, it
-creates the root document.
+Creates the root document.
 
 =back
 
@@ -72,98 +64,44 @@ sub root_doc {
 
     my $menu = LedgerSMB::DBObject::Menu->new({base => $request});
     $menu->generate();
-    for my $item (@{$menu->{menu_items}}){
-        if ($request->{'open'}
-            && $request->{'open'} =~ /:$item->{id}:/ ){
-            $item->{'open'} = 'true';
-        }
-    }
 
-    $template = LedgerSMB::Template->new(
-            user =>$request->{_user},
-            locale => $request->{_locale},
-            path => 'UI',
-            template => 'main',
-         format => 'HTML'
+    $template = LedgerSMB::Template->new_UI(
+        $request,
+        template => 'main',
     );
-    $template->render($menu);
+    return $template->render($menu);
 }
 
 =pod
 
 =over
 
-=item expanding_menu
+=item menuitems_json
 
-This function generates an expanding menu.  By default all nodes are closed, but
-there nodes which are supposed to be open are marked.
-
+Returns the menu items in JSON format
 
 =back
 
+
 =cut
 
-sub expanding_menu {
+sub menuitems_json {
     my ($request) = @_;
-    if ($request->{'open'} !~ s/:$request->{id}:/:/){
-    $request->{'open'} .= ":$request->{id}:";
-    }
-
-    # The above system can lead to extra colons.
-    $request->{'open'} =~ s/:+/:/g;
-
-
+    my $locale = $request->{_locale};
     my $menu = LedgerSMB::DBObject::Menu->new({base => $request});
-    $menu->generate();
-    for my $item (@{$menu->{menu_items}}){
-        if ($request->{'open'} =~ /:$item->{id}:/ ){
-            $item->{'open'} = 'true';
-        }
-    }
 
-    my $template = LedgerSMB::Template->new(
-         user => $request->{_user},
-         locale => $request->{_locale},
-         path => 'UI/menu',
-         template => 'expanding',
-         format => 'HTML',
-    );
-    $template->render($menu);
+    $menu->generate;
+    $_->{label} = $locale->maketext($_->{label})
+        for (@{$menu->{menu_items}});
+
+    return $request->to_json( $menu->{menu_items} );
 }
 
 =pod
 
 =over
 
-=item drilldown_menu
-
-This function creates a single cross section of the menu.  Currently this is
-most useful for generating menus for small screen devices or devices where a
-limited number of options are necessary (screen readers, text-only browsers and
-the like).
-
 =back
-
-=cut
-
-sub drilldown_menu {
-    my ($request) = @_;
-    my $menu = LedgerSMB::DBObject::Menu->new({base => $request});
-
-    $menu->{parent_id} ||= 0;
-
-    $menu->generate_section;
-    my $template = LedgerSMB::Template->new(
-         user => $request->{_user},
-         locale => $request->{_locale},
-         path => 'UI/menu',
-         template => 'drilldown',
-         format => 'HTML',
-    );
-    $template->render($menu);
-}
-
-=pod
 
 =head1 Copyright (C) 2007 The LedgerSMB Core Team
 
@@ -174,13 +112,13 @@ files.
 =cut
 
 {
-    local ($!, $@);
+    local ($!, $@) = ( undef, undef);
     my $do_ = 'scripts/custom/menu.pl';
     if ( -e $do_ ) {
         unless ( do $do_ ) {
             if ($! or $@) {
-                print "Status: 500 Internal server error (menu.pm)\n\n";
-                warn "Failed to execute $do_ ($!): $@\n";
+                warn "\nFailed to execute $do_ ($!): $@\n";
+                die (  "Status: 500 Internal server error (menu.pm)\n\n" );
             }
         }
     }

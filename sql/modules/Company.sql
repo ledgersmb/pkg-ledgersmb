@@ -290,20 +290,20 @@ CREATE OR REPLACE FUNCTION contact__search
 RETURNS SETOF contact_search_result AS $$
 
    WITH entities_matching_name AS (
-              SELECT legal_name, sic_code, entity_id
-                FROM company
-               WHERE in_name_part IS NULL
+      SELECT legal_name, sic_code, entity_id
+        FROM company
+       WHERE in_name_part IS NULL
              OR legal_name @@ plainto_tsquery(in_name_part)
              OR legal_name ilike in_name_part || '%'
-              UNION ALL
-             SELECT coalesce(first_name, '') || ' '
+       UNION ALL
+      SELECT coalesce(first_name, '') || ' '
              || coalesce(middle_name, '')
              || ' ' || coalesce(last_name, ''), null, entity_id
-               FROM person
+        FROM person
        WHERE in_name_part IS NULL
              OR coalesce(first_name, '') || ' ' || coalesce(middle_name, '')
                 || ' ' || coalesce(last_name, '')
-                     @@ plainto_tsquery(in_name_part)
+                @@ plainto_tsquery(in_name_part)
    ),
    matching_eca_contacts AS (
        SELECT credit_id
@@ -338,7 +338,7 @@ RETURNS SETOF contact_search_result AS $$
                    OR EXISTS (select 1 from country
                                where name ilike '%' || in_country || '%'
                                   or short_name ilike '%' || in_country || '%'))
-        )
+   )
    SELECT e.id, e.control_code, ec.id, ec.meta_number,
           ec.description, ec.entity_class,
           c.legal_name, c.sic_code, b.description , ec.curr::text
@@ -386,7 +386,7 @@ LEFT JOIN business b ON (ec.business_id = b.id)
                                   and note @@ plainto_tsquery(in_notes)))
            AND (in_users IS NULL OR NOT in_users
                 OR EXISTS (select 1 from users where entity_id = e.id))
-        ORDER BY legal_name;
+    ORDER BY legal_name;
 $$ language sql;
 
 
