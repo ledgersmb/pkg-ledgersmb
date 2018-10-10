@@ -1,11 +1,32 @@
 Author: Robert James Clay <jame@rocasa.us>
-Description: Set working directory in both the required starman-ledgersmb.service
- file as well as the optional plack-fcgi-ledgersmb.service file.
+Description: Set working directory in the required ledgersmb-starman.service file
+ as well as the optional ledgersmb-plack-fcgi.service, ledgersmb_plackup.service,
+ and ledgersmb-development_plackup.service files.
 Origin: vendor
-Last-Update: 2017-07-18
---- a/conf/systemd/plack-fcgi-ledgersmb.service
-+++ b/conf/systemd/plack-fcgi-ledgersmb.service
-@@ -7,19 +7,20 @@
+Last-Update: 2018-10-09
+
+--- a/conf/systemd/ledgersmb-development_plackup.service
++++ b/conf/systemd/ledgersmb-development_plackup.service
+@@ -7,7 +7,7 @@
+ After=network.target
+ 
+ [Service]
+-WorkingDirectory=WORKING_DIR
++WorkingDirectory=/usr/share/ledgersmb
+ 
+ #If you do not want a log file, comment this and remove the access_log option below
+ Environment=LOG=/var/log/ledgersmb/ledgersmb-development_plackup.log
+@@ -15,6 +15,7 @@
+ # In case you installed dependencies into a 'local::lib'
+ # make sure you set the PERL5LIB environment variable
+ #Environment=PERL5LIB=/path/to/local-lib/lib/perl5
++Environment=LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf
+ 
+ # Be sure to set a user and group below
+ # which don't have write access to the directories
+--- a/conf/systemd/ledgersmb_plack-fcgi.service
++++ b/conf/systemd/ledgersmb_plack-fcgi.service
+@@ -7,12 +7,13 @@
  After=network.target
  
  [Service]
@@ -16,22 +37,27 @@ Last-Update: 2017-07-18
  # make sure you set the PERL5LIB environment variable
  # to the correct location by uncommenting the line below
  #Environment=PERL5LIB=/path/to/local-lib/lib/perl5
++Environment=LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf
  Environment=PLACK_ENV=deployment
-+Environment=LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf
  
  # Be sure to set a user and group below
- # which don't have write access to the directories
- # holding the LedgerSMB sources
--User=ledgersmb
--Group=ledgersmb
-+User=ledgersmb
-+Group=ledgersmb
- ExecStart=/usr/bin/plackup                     \
-     -s FCGI                                    \
-     --listen localhost:3244                    \
---- a/conf/systemd/starman-ledgersmb.service
-+++ b/conf/systemd/starman-ledgersmb.service
-@@ -7,18 +7,19 @@
+--- a/conf/systemd/ledgersmb_plackup.service
++++ b/conf/systemd/ledgersmb_plackup.service
+@@ -7,9 +7,10 @@
+ After=network.target
+ 
+ [Service]
+-WorkingDirectory=WORKING_DIR
++WorkingDirectory=/usr/share/ledgersmb
+ 
+ #If you do not want a log file, comment this and remove the access_log option below
++Environment=LSMB_CONFIG_FILE=/etc/ledgersmb/ledgersmb.conf
+ Environment=LOG=/var/log/ledgersmb/ledgersmb_plackup.log
+ 
+ # In case you installed dependencies into a 'local::lib'
+--- a/conf/systemd/ledgersmb_starman.service
++++ b/conf/systemd/ledgersmb_starman.service
+@@ -7,12 +7,13 @@
  After=network.target
  
  [Service]
@@ -46,18 +72,3 @@ Last-Update: 2017-07-18
  
  # Be sure to set a user and group below
  # which don't have write access to the directories
- # holding the LedgerSMB sources
--User=ledgersmb
--Group=ledgersmb
-+User=ledgersmb
-+Group=ledgersmb
- ExecStart=/usr/bin/starman                     \
-     --listen localhost:5762                    \
-     -I lib                                     \
-@@ -26,4 +27,4 @@
- Restart=always
- 
- [Install]
--WantedBy=multi-user.target
-\ No newline at end of file
-+WantedBy=multi-user.target
