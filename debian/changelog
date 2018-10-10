@@ -1,11 +1,18 @@
-ledgersmb (1.5.21+ds-3) UNRELEASED; urgency=medium
+ledgersmb (1.6.5+ds-1~1) UNRELEASED; urgency=medium
 
   TODO:
     * Still pending 7 updates for debian/po/*po files.
-  * Update debian/watch to use the 'download.ledgersmb.org' release site.
-  * Change debian/rules target from 'get-orig-source' to 'get-original-source'.
+  * New series 1.6.x Upstream Release (Closes: #903744)
+  * Update debian/watch to use the 'download.ledgersmb.org' release site and
+    for the new 1.6.x series upsteam. (Closes: #868724)
+  * Correct wording of Short-Description in debian/ledgersmb.init.
+  * Change debian/rules target from 'get-orig-source' to 'get-original-source'
+    and update the reference to it in debian/README.source.
+  * Redo debian/patches/10_lsmb-config.patch for new upstream version.
+  * Redo debian/patches/15_lsmb-service.patch for new upstream version.
+  * Correct setting of the WORKING_DIRECTORY parameter in debian/ledgersmb.init.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 22 Sep 2018 12:34:02 -0400
+ -- Robert James Clay <jame@rocasa.us>  Tue, 09 Oct 2018 23:37:22 -0400
 
 ledgersmb (1.5.21+ds-2) unstable; urgency=medium
 
