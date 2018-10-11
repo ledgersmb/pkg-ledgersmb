@@ -34,7 +34,7 @@ fi
 
 # app settings
 APP_HOME=$WORKING_DIRECTORY
-APP=$APP_HOME/tools/starman.psgi
+APP=$APP_HOME/bin/ledgersmb-server.psgi
 APP_NAME=$(basename $(readlink -f $0))
 START_SERVER=/usr/bin/start_server
 STARMAN=/usr/bin/starman
