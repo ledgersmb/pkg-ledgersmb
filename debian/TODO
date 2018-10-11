@@ -7,8 +7,8 @@ https://qa.debian.org/debcheck.php?dist=unstable&package=ledgersmb
 https://github.com/ledgersmb/pkg-ledgersmb/issues/1
 =================================================================================
 --------------------------------------------------------------------------------
-  - Review the required modules! there are some still not added even for the
-  1.6.x pkg.
+  - Review the required modules! there may still still be some not added even
+  for the 1.6.x pkg.
 
 --------------------------------------------------------------------------------
     - Status of the debian/po/*po updates:
@@ -34,8 +34,8 @@ $ ll *po
 -rw-r--r-- 1 jame jame 2710 Aug 25 07:34 sk.po
 -rw-r--r-- 1 jame jame 2848 Aug 25 07:34 sv.po
 
-  - Those that still need to have the translations updated: (7)
 
+  - Those that still need to have the translations updated: (7)
 -rw-r--r-- 1 jame jame 2923 Aug 25 07:34 gl.po
 -rw-r--r-- 1 jame jame 2907 Aug 25 07:34 it.po
 -rw-r--r-- 1 jame jame 2848 Aug 25 07:34 ja.po
@@ -63,22 +63,20 @@ $ ll *po
 
 --------------------------------------------------------------------------------
 
-  - The setting of the password for the dbadmin user is now done automatially
-    on a new install and when requested during a 'dpkg-reconfigure' of the pkg.
-    Should it actually be optional during a pkg reconfigure? If so, (re)add a
-    stanza to the template file about it and functionality as necessary to
-    config & postinst scripts. (Re-add by reversing commit 98db30a63?)
+- The setting of the password for the dbadmin user is now done automatially
+  on a new install and when requested during a 'dpkg-reconfigure' of the pkg.
+  Should it actually be optional during a pkg reconfigure? If so, (re)add a
+  stanza to the template file about it and functionality as necessary to
+  config & postinst scripts. (Re-add by reversing commit 98db30a63?)
 
-  - Use the web proxy selection for a case statement for each of the selections
-    in the postinst script?
+- Use the web proxy selection for a case statement for each of the selections
+  in the postinst script?
 
-  - The preinst script checks if the apache old config file is present. Gets rid
-    of it if is. The presence of that file is also a good indication that it's
-    going though an update install, the previous version is pre 1.5.x, and that
-    apache is already installed. A good reason to change the default proxy
-    selection to 'apache' instead of the package 'none'?  
-
--------------------------------------------------------------------------------
+- The preinst script checks if the old apache config file is present. Gets rid
+  of it if is. The presence of that file is also a good indication that it's
+  going though an update install, the previously installed version is pre 1.5.x,
+  and that apache is already installed. A good reason to change the default proxy
+  selection to 'apache' instead of the package 'none'?  
 
 -> Separately;  if upgradeing from anything before 1.5.0, apache will already
  be installed because for those previous versions Apache was required. So in 
@@ -99,25 +97,25 @@ $ ll *po
   - debian/ledgersmb.preinst
   - remove_old_config() function
 
-It may not be needed as often but it should be allow for and taken care of;  these also should be
-removed if present.
+It may not be needed as often but it should still be allowed for and taken care of; these also should
+be removed if present.
 
  config file: /etc/apache2/conf.d/ledgersmb.conf
  symlink:     /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
-
 
 -----------------------------------------------------------------------------------------------------
   - If these turn out to have worked for the ledgersmb-1.5 pkg, adapt from there:
  
 $ git ci -m "Separate out the 'GPL' license stanza in the debian/copyright file."	(if necessary)
 
+  - note that the service file name as been changed for 1.6.x
 $ git ci -m "Change how 'WORKING_DIRECTORY' is set in starman-ledgersmb.service patch."
 
 -----------------------------------------------------------------------------------------------------
  The ledgersmb.org site has v1.5 screen shots at https://ledgersmb.org/content/screenshots-15;
  update debian for them, at least after I get the ledgersmb pkg updated and uploaded
  at http://screenshots.debian.net/package/ledgersmb.  (And get the old 1.3 
- screenshots removed.)
+ screenshots removed.)  If the 1.6 screen shots area available, use those.
 
 ------------------------------------------------------------------------------
 - This needs to be updated for the 1.6.x series
@@ -130,23 +128,15 @@ can be updated for that.
   - Referance also https://github.com/ledgersmb/LedgerSMB/issues/2899 which 
   for the creation of a test in upstream that checks for such permission issues.
 
-- As of the packageing for 1.5.21, this is what is in the override_dh_fixperms
+- As of the packageing for 1.6.5, this is what is in the override_dh_fixperms
   stanza
 <-->dh_fixperms
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/bin/drop-roles.pl
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/sql/modules/reload_modules.sh
-<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/dbsetup.pl
-<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/drop-roles.pl
-<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/starman.psgi
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/config.pl
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/listener.pl
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/config.pl.default
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/process_queue.pl
-<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/replication/configure-replication.sh
-<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/html/splash.html
-<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/TXT.pm
-<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/HTML.pm
-<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/CSV.pm
-<-->chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/LaTeX.pm
 
 -------------------------------------------------------------------------------
 https://github.com/ledgersmb/LedgerSMB/issues/2900
@@ -182,13 +172,13 @@ each time and by default is not to do the reset.
 https://github.com/ledgersmb/LedgerSMB/issues/2717
 
 -----------------------------------------------------------------------------------
-      - Lintian results for 1.5.21-1~4 (UNRELEASED)
+      - Lintian results for 1.6.5-1~1 (UNRELEASED)
 
 I: ledgersmb source: no-complete-debconf-translation
   - https://lintian.debian.org/tags/no-complete-debconf-translation.html
 
-I: ledgersmb source: debian-rules-contains-unnecessary-get-orig-source-target
-  - https://www.google.com/search?q=debian-rules-contains-unnecessary-get-orig-source-target
+I: ledgersmb source: out-of-date-standards-version 4.2.0 (released 2018-08-02) (current is 4.2.1)
+  - https://lintian.debian.org/tags/out-of-date-standards-version.html
 
 I: ledgersmb source: testsuite-autopkgtest-missing
   - https://lintian.debian.org/tags/testsuite-autopkgtest-missing.html
@@ -203,7 +193,6 @@ I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/led
 I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/sql/modules/README
 I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/sql/upgrade/README
 I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/notify_short/README
-I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/replication/README
   - https://lintian.debian.org/tags/package-contains-documentation-outside-usr-share-doc.html
 
 N: 3 tags overridden (3 info)
@@ -270,4 +259,4 @@ postinstall script may be quite useful. Investigate?
 -----------------------------------------------------------------------------------
 
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 22 Sep 2018 12:26 -0400
+ -- Robert James Clay <jame@rocasa.us>  Thu, 11 Oct 2018 16:23 -0400
