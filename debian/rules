@@ -18,20 +18,12 @@ override_dh_install:
 
 override_dh_fixperms:
 	dh_fixperms
+	chmod +x debian/ledgersmb/usr/share/ledgersmb/bin/drop-roles
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/sql/modules/reload_modules.sh
-	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/dbsetup.pl
-	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/drop-roles.pl
-	chmod +x debian/ledgersmb/usr/share/ledgersmb/tools/starman.psgi
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/config.pl
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/listener.pl
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/config.pl.default
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/process_queue.pl
-	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/replication/configure-replication.sh
-	chmod -x debian/ledgersmb/usr/share/ledgersmb/locale/html/splash.html
-	chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/TXT.pm
-	chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/HTML.pm
-	chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/CSV.pm
-	chmod -x debian/ledgersmb/usr/share/ledgersmb/lib/LedgerSMB/Template/LaTeX.pm
 
 get-original-source:
 	uscan --force-download --rename --destdir .
