@@ -4,16 +4,15 @@ debian/TODO for ledgersmb
 https://github.com/ledgersmb/pkg-ledgersmb/issues 
 https://bugs.debian.org/cgi-bin/pkgreport.cgi?src=ledgersmb 
 https://qa.debian.org/debcheck.php?dist=unstable&package=ledgersmb
-https://github.com/ledgersmb/pkg-ledgersmb/issues/1
-=================================================================================
---------------------------------------------------------------------------------
-  - Review the required modules! there may still still be some not added even
-  for the 1.6.x pkg.
 
---------------------------------------------------------------------------------
+=================================================================================
+-----------------------------------------------------------------------------------
+    - updating debconf po reference:
+https://www.debian.org/doc/manuals/developers-reference/ch06.html#s6.5.2.2
+
     - Status of the debian/po/*po updates:
 
-  - total files:
+  - curent total files:
 $ ls *po|wc -l
 15
 
@@ -104,10 +103,8 @@ be removed if present.
  symlink:     /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
 
 -----------------------------------------------------------------------------------------------------
-  - If these turn out to have worked for the ledgersmb-1.5 pkg, adapt from there:
+    - If these turn out to have worked for the ledgersmb-1.5 pkg, adapt from there:
  
-$ git ci -m "Separate out the 'GPL' license stanza in the debian/copyright file."	(if necessary)
-
   - note that the service file name as been changed for 1.6.x
 $ git ci -m "Change how 'WORKING_DIRECTORY' is set in starman-ledgersmb.service patch."
 
@@ -121,7 +118,7 @@ $ git ci -m "Change how 'WORKING_DIRECTORY' is set in starman-ledgersmb.service 
 - This needs to be updated for the 1.6.x series
 - Discussed in IRC some of the permission fix issues.  Erik took care of
 fixing many of them in both master & 1.5 so when the next release comes out
-will need to run a build of both ledgersmb & ledgersmb-1.5 without the 
+will need to run a build of both ledgersmb & ledgersmb-1.6 without the 
 fixes enabled in order to check how the fix permissions stanza in d/rules
 can be updated for that.
 
@@ -172,7 +169,7 @@ each time and by default is not to do the reset.
 https://github.com/ledgersmb/LedgerSMB/issues/2717
 
 -----------------------------------------------------------------------------------
-      - Lintian results for 1.6.5-1~1 (UNRELEASED)
+      - Lintian results for 1.6.5-1~2 (UNRELEASED)
 
 I: ledgersmb source: no-complete-debconf-translation
   - https://lintian.debian.org/tags/no-complete-debconf-translation.html
@@ -197,18 +194,6 @@ I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/led
 
 N: 3 tags overridden (3 info)
 
------------------------------------------------------------------------------------
-https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=868724
-
-  - Project has totally moved from SourceForge.net, so debian/watch needed to be
-updated for the new locations of the distribution archive and its detached gpg file
-for verifiction. An update for getting the new archive itself appears to have been 
-successful but the *.asc associated with it used for the gpg verification does not 
-seem to get refereneced properly and so that step fails.
-
------------------------------------------------------------------------------------
-  - updating debconf po
-https://www.debian.org/doc/manuals/developers-reference/ch06.html#s6.5.2.2
 -----------------------------------------------------------------------------------
 - A debian/po debconf Japanese translation has been provided. Currently,
 there is no LSMB locale/po/ja.po file. Checked System|Lanaguage|List
@@ -259,4 +244,4 @@ postinstall script may be quite useful. Investigate?
 -----------------------------------------------------------------------------------
 
 
- -- Robert James Clay <jame@rocasa.us>  Thu, 11 Oct 2018 16:23 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 12 Oct 2018 19:08 -0400
