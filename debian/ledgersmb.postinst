@@ -37,7 +37,7 @@ case "$1" in
             db_get ledgersmb/admin_password
             LSMBDBPW=$RET
             # Configure database administrative user
-            /usr/share/ledgersmb/tools/config-lsmb-db-user.sh $LSMBDBUSER $LSMBDBPW
+            /usr/share/ledgersmb/utils/config-lsmb-db-user.sh $LSMBDBUSER $LSMBDBPW
         fi
         ;;
     #
