@@ -24,6 +24,7 @@ override_dh_fixperms:
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/listener.pl
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/config.pl.default
 	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/process_queue.pl
+	chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/devel/ledgersmb-server-development.psgi
 
 get-original-source:
 	uscan --force-download --rename --destdir .
