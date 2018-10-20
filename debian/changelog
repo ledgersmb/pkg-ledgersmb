@@ -1,9 +1,19 @@
 ledgersmb (1.6.6+ds-1~1) UNRELEASED; urgency=medium
 
   TODO:
-  * Update packaging as necessary for new upstream.
+    * Still pending 7 updates for debian/po/*po files.
+  * New upstream release.
+  * In the 12 Oct 2018 stanza of the debian/changelog; correct miss-spelling
+    at debian/ledgersmb.init item and add missing items for debian/control
+    and debian/rules.
+  * Changes in debian/control:
+    + Add the 'libversion-compare-perl' package as a Depends.
+    + Add the 'libplack-request-withencoding-perl' package as a Depends.
+  * Add chmod of 'utils/devel/ledgersmb-server-development.psgi' to debian/rules.
+  * Install all of the upstream 'utils/' directory in debian/ledgersmb.install
+    instead of just two subdirectories. (Closes: #911047)
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 14 Oct 2018 22:21:04 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sat, 20 Oct 2018 18:04:23 -0400
 
 ledgersmb (1.6.5+ds-1) unstable; urgency=medium
 
@@ -14,13 +24,17 @@ ledgersmb (1.6.5+ds-1) unstable; urgency=medium
   * Declare compliance with Debian Policy 4.2.1, no changes required.
   * Update debian/watch to use the 'download.ledgersmb.org' release site and
     for the new 1.6.x series upstream. (Closes: #868724)
-  * Changes in debian/ldgersmb.init:
+  * Changes in debian/control:
+    + Add libhtml-escape-perl as a Depends.
+    + Remove unneeded packages ledgersmb-1.5-apache | ledgersmb-1.5-nginx.
+    + Replace 'libfile-mimeinfo-perl' with 'libmime-types-perl' in Depends.
+  * Changes in debian/ledgersmb.init:
     + Correct wording of the Short-Description.
     + Correct setting of the WORKING_DIRECTORY parameter.
     + Update the setting of the 'APP' variable for new upstream.
+  * Update the 'override_dh_fixperms:' target in debian/rules for new upstream.
   * Change debian/rules target from 'get-orig-source' to 'get-original-source'
     and update the reference to it in debian/README.source.
-  * Replace 'libfile-mimeinfo-perl' with 'libmime-types-perl' in debian/control.
   * Update the 'override_dh_fixperms' target in debian/rules for new upstream.
 
  -- Robert James Clay <jame@rocasa.us>  Fri, 12 Oct 2018 19:12:01 -0400
