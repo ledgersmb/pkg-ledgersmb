@@ -1,7 +1,5 @@
-ledgersmb (1.6.6+ds-1~1) UNRELEASED; urgency=medium
+ledgersmb (1.6.6+ds-1) unstable; urgency=medium
 
-  TODO:
-    * Still pending 7 updates for debian/po/*po files.
   * New upstream release.
   * In the 12 Oct 2018 stanza of the debian/changelog; correct miss-spelling
     at debian/ledgersmb.init item and add missing items for debian/control
@@ -9,11 +7,12 @@ ledgersmb (1.6.6+ds-1~1) UNRELEASED; urgency=medium
   * Changes in debian/control:
     + Add the 'libversion-compare-perl' package as a Depends.
     + Add the 'libplack-request-withencoding-perl' package as a Depends.
-  * Add chmod of 'utils/devel/ledgersmb-server-development.psgi' to debian/rules.
+  * Add chmod of the 'utils/devel/ledgersmb-server-development.psgi' file
+    to debian/rules.
   * Install all of the upstream 'utils/' directory in debian/ledgersmb.install
     instead of just two subdirectories. (Closes: #911047)
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 20 Oct 2018 18:04:23 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 21 Oct 2018 20:12:23 -0400
 
 ledgersmb (1.6.5+ds-1) unstable; urgency=medium
 
@@ -32,7 +31,6 @@ ledgersmb (1.6.5+ds-1) unstable; urgency=medium
     + Correct wording of the Short-Description.
     + Correct setting of the WORKING_DIRECTORY parameter.
     + Update the setting of the 'APP' variable for new upstream.
-  * Update the 'override_dh_fixperms:' target in debian/rules for new upstream.
   * Change debian/rules target from 'get-orig-source' to 'get-original-source'
     and update the reference to it in debian/README.source.
   * Update the 'override_dh_fixperms' target in debian/rules for new upstream.
