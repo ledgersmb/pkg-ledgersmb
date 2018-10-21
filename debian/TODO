@@ -12,7 +12,7 @@ https://www.debian.org/doc/manuals/developers-reference/ch06.html#s6.5.2.2
 
     - Status of the debian/po/*po updates:
 
-  - curent total files:
+  - current total files:
 $ ls *po|wc -l
 15
 
@@ -34,25 +34,29 @@ $ ll *po
 -rw-r--r-- 1 jame jame 2848 Aug 25 07:34 sv.po
 
 
-  - Those that still need to have the translations updated: (7)
--rw-r--r-- 1 jame jame 2923 Aug 25 07:34 gl.po
--rw-r--r-- 1 jame jame 2907 Aug 25 07:34 it.po
--rw-r--r-- 1 jame jame 2848 Aug 25 07:34 ja.po
--rw-r--r-- 1 jame jame 2954 Aug 25 07:34 nl.po
--rw-r--r-- 1 jame jame 2813 Aug 25 07:34 pt.po
--rw-r--r-- 1 jame jame 2710 Aug 25 07:34 sk.po
--rw-r--r-- 1 jame jame 2848 Aug 25 07:34 sv.po
-
 
   - These are the deb po updates that are already done, as of 1.5.21+ds-2:
 * Updated the debconf debian/po/es.po file.
-* Updated the debconf debian/po/ru.po file. (Closes: #904708)
 * Updated the debconf debian/po/cs.po file. (Closes: #905098)
 * Updated the debconf debian/po/da.po file. (Closes: #905893)
 * Updated the debconf debian/po/de.po file. (Closes: #906576)
 * Updated the debconf debian/po/fr.po file. (Closes: #905637)
-* Updated the debconf debian/po/pt_BR.po file. (Closes: #905870)
 * Updated the debconf debian/po/nl.po file. (Closes: #906061)
+* Updated the debconf debian/po/pt_BR.po file. (Closes: #905870)
+* Updated the debconf debian/po/ru.po file. (Closes: #904708)
+
+
+
+  - https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911542
+  - These still need to have the translations updated: (7)
+-rw-r--r-- 1 jame jame 2923 Aug 25 07:34 gl.po
+-rw-r--r-- 1 jame jame 2907 Aug 25 07:34 it.po
+-rw-r--r-- 1 jame jame 2848 Aug 25 07:34 ja.po
+-rw-r--r-- 1 jame jame 2942 Aug 25 07:34 pl.po
+-rw-r--r-- 1 jame jame 2813 Aug 25 07:34 pt.po
+-rw-r--r-- 1 jame jame 2710 Aug 25 07:34 sk.po
+-rw-r--r-- 1 jame jame 2848 Aug 25 07:34 sv.po
+
 
 
 --------------------------------------------------------------------------------
@@ -96,8 +100,9 @@ $ ll *po
   - debian/ledgersmb.preinst
   - remove_old_config() function
 
-It may not be needed as often but it should still be allowed for and taken care of; these also should
-be removed if present.
+It may not be needed as often but it should still be allowed for and taken care of.
+
+These also should be removed if present.
 
  config file: /etc/apache2/conf.d/ledgersmb.conf
  symlink:     /etc/ledgersmb/ledgersmb-httpd-2.0-2.2.conf
@@ -115,7 +120,7 @@ $ git ci -m "Change how 'WORKING_DIRECTORY' is set in starman-ledgersmb.service 
  screenshots removed.)  If the 1.6 screen shots area available, use those.
 
 ------------------------------------------------------------------------------
-- This needs to be updated for the 1.6.x series
+
 - Discussed in IRC some of the permission fix issues.  Erik took care of
 fixing many of them in both master & 1.5 so when the next release comes out
 will need to run a build of both ledgersmb & ledgersmb-1.6 without the 
@@ -125,7 +130,7 @@ can be updated for that.
   - Referance also https://github.com/ledgersmb/LedgerSMB/issues/2899 which 
   for the creation of a test in upstream that checks for such permission issues.
 
-- As of the packageing for 1.6.5, this is what is in the override_dh_fixperms
+- As of the packageing for 1.6.6, this is what is in the override_dh_fixperms
   stanza
 <-->dh_fixperms
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/bin/drop-roles.pl
@@ -134,6 +139,7 @@ can be updated for that.
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/notify_short/listener.pl
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/config.pl.default
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/process_queue/process_queue.pl
+<-->chmod +x debian/ledgersmb/usr/share/ledgersmb/utils/devel/ledgersmb-server-development.psgi
 
 -------------------------------------------------------------------------------
 https://github.com/ledgersmb/LedgerSMB/issues/2900
@@ -174,9 +180,6 @@ https://github.com/ledgersmb/LedgerSMB/issues/2717
 I: ledgersmb source: no-complete-debconf-translation
   - https://lintian.debian.org/tags/no-complete-debconf-translation.html
 
-I: ledgersmb source: out-of-date-standards-version 4.2.0 (released 2018-08-02) (current is 4.2.1)
-  - https://lintian.debian.org/tags/out-of-date-standards-version.html
-
 I: ledgersmb source: testsuite-autopkgtest-missing
   - https://lintian.debian.org/tags/testsuite-autopkgtest-missing.html
 
@@ -193,6 +196,25 @@ I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/led
   - https://lintian.debian.org/tags/package-contains-documentation-outside-usr-share-doc.html
 
 N: 3 tags overridden (3 info)
+
+
+  - Using 'lintian -IE --pedantic --show-overrides' on 1:6.5+ds-1 release
+    included the following results:
+P: ledgersmb source: duplicate-in-relation-field in ledgersmb suggests: postgresql, postgresql
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 332)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 431)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 477)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 744)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 748)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 772)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 784)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 965)
+P: ledgersmb source: file-contains-trailing-whitespace debian/rules (line 32)
+P: ledgersmb source: package-uses-old-debhelper-compat-version 9
+P: ledgersmb source: insecure-copyright-format-uri http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+I: ledgersmb source: testsuite-autopkgtest-missing
+X: ledgersmb source: upstream-metadata-file-is-missing
+
 
 -----------------------------------------------------------------------------------
 - A debian/po debconf Japanese translation has been provided. Currently,
@@ -244,4 +266,4 @@ postinstall script may be quite useful. Investigate?
 -----------------------------------------------------------------------------------
 
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 12 Oct 2018 19:08 -0400
+ -- Robert James Clay <jame@rocasa.us>  Sun, 21 Oct 2018 18:43 -0400
