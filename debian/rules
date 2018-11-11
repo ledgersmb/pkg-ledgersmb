@@ -4,6 +4,7 @@
 	dh $@ --with systemd
 
 override_dh_auto_configure:
+	cp t/.proverc ./
 	cp conf/ledgersmb.conf.unbuilt-dojo ledgersmb.conf
 	cp conf/systemd/ledgersmb_starman.service debian/ledgersmb.service
 
