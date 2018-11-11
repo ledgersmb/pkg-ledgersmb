@@ -75,7 +75,6 @@ Suggests: default-mta | mail-transport-agent,
           libimage-size-perl,
           libopenoffice-oodoc-perl,
           libx12-parser-perl,
-          postgresql,
           lpr,
           postgresql,
           texlive-xetex
