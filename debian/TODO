@@ -6,6 +6,17 @@ https://bugs.debian.org/cgi-bin/pkgreport.cgi?src=ledgersmb
 https://qa.debian.org/debcheck.php?dist=unstable&package=ledgersmb
 
 =================================================================================
+--------------------------------------------------------------------------------
+
+- Noticed the perl requirement in debian/control being 5.10.1 but in cpanfile,
+  it's actually 5.14:
+requires 'perl', '5.14.0';
+
+  - Even jessie already has 5.20
+  - And even trusty has 5.18
+- So it should be updated, but there's no urgency
+- but actually, here in ledgersmb pkg it shouldn't be versioned at all
+
 -----------------------------------------------------------------------------------
     - updating debconf po reference:
 https://www.debian.org/doc/manuals/developers-reference/ch06.html#s6.5.2.2
@@ -46,7 +57,7 @@ $ ll *po
 * Updated the debconf debian/po/ru.po file. (Closes: #904708)
 
 
-
+  - 9 Nov: have received a possible update for gl.po.
   - https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911542
   - These still need to have the translations updated: (7)
 -rw-r--r-- 1 jame jame 2923 Aug 25 07:34 gl.po
@@ -60,9 +71,8 @@ $ ll *po
 
 
 --------------------------------------------------------------------------------
-  - Currently, automatic testing is being overridden during the package build. 
-    Add at least basic testing.  And later add configuration etc as necessary
-    in order to use autopkgtest for package as-installed testing.
+- Basic upstream testing has been enabled.  Will need to add configuration etc
+  as necessary in order to use autopkgtest for package as-installed testing.
 
 --------------------------------------------------------------------------------
 
@@ -78,8 +88,9 @@ $ ll *po
 - The preinst script checks if the old apache config file is present. Gets rid
   of it if is. The presence of that file is also a good indication that it's
   going though an update install, the previously installed version is pre 1.5.x,
-  and that apache is already installed. A good reason to change the default proxy
-  selection to 'apache' instead of the package 'none'?  
+  and that apache is already installed because of old version of installed 
+  package. A good reason to change the default proxy selection to 'apache'
+  instead of the package 'none'?  
 
 -> Separately;  if upgradeing from anything before 1.5.0, apache will already
  be installed because for those previous versions Apache was required. So in 
@@ -131,7 +142,7 @@ can be updated for that.
   for the creation of a test in upstream that checks for such permission issues.
 
 - As of the packageing for 1.6.6, this is what is in the override_dh_fixperms
-  stanza
+  stanza has:
 <-->dh_fixperms
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/bin/drop-roles.pl
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/sql/modules/reload_modules.sh
@@ -175,7 +186,7 @@ each time and by default is not to do the reset.
 https://github.com/ledgersmb/LedgerSMB/issues/2717
 
 -----------------------------------------------------------------------------------
-      - Lintian results for 1.6.5-1~2 (UNRELEASED)
+      - Lintian results for 1.6.6-2~2 (UNRELEASED)
 
 I: ledgersmb source: no-complete-debconf-translation
   - https://lintian.debian.org/tags/no-complete-debconf-translation.html
@@ -198,22 +209,40 @@ I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/led
 N: 3 tags overridden (3 info)
 
 
-  - Using 'lintian -IE --pedantic --show-overrides' on 1:6.5+ds-1 release
+  - Using 'lintian -IE --pedantic --show-overrides' on a 1:6.6+ds-2~2 test build
     included the following results:
-P: ledgersmb source: duplicate-in-relation-field in ledgersmb suggests: postgresql, postgresql
-P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 332)
-P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 431)
-P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 477)
-P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 744)
-P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 748)
-P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 772)
-P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 784)
-P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 965)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 371)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 470)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 516)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 783)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 787)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 811)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 823)
+P: ledgersmb source: file-contains-trailing-whitespace debian/changelog (line 1004)
 P: ledgersmb source: file-contains-trailing-whitespace debian/rules (line 32)
 P: ledgersmb source: package-uses-old-debhelper-compat-version 9
 P: ledgersmb source: insecure-copyright-format-uri http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 I: ledgersmb source: testsuite-autopkgtest-missing
 X: ledgersmb source: upstream-metadata-file-is-missing
+I: ledgersmb source: public-upstream-key-not-minimal upstream/signing-key.asc has 1 extra signature(s) for keyid 39A629558DA0AF10
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/UI/js-src/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/conf/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/conf/systemd/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/locale/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/sql/modules/README
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/sql/upgrade/README
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/devel/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/devel/critic_html/README
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/diagnostics/t/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/lib/README.md
+I: ledgersmb: package-contains-documentation-outside-usr-share-doc usr/share/ledgersmb/utils/notify_short/README
+N: Upstream includes empty directory intentionally, as standard locations for custom scripts
+O: ledgersmb: package-contains-empty-directory usr/share/ledgersmb/bin/custom/
+N: Upstream includes empty directory intentionally, as standard locations for custom scripts
+O: ledgersmb: package-contains-empty-directory usr/share/ledgersmb/lib/LedgerSMB/Reconciliation/CSV/Formats/
+N: Upstream includes empty directory intentionally, as standard locations for custom scripts
+O: ledgersmb: package-contains-empty-directory usr/share/ledgersmb/lib/LedgerSMB/Scripts/custom/
+I: ledgersmb: systemd-service-file-missing-documentation-key lib/systemd/system/ledgersmb.service
 
 
 -----------------------------------------------------------------------------------
@@ -235,8 +264,8 @@ README.Debian
 been 'wkhtml2pdf'.
 
 -----------------------------------------------------------------------------------
-  - docomentation related changes that were done for legersmb-1.5 pkg:
-$ git ci -m "Add 'db-changes' to and also sort the debian/ledgersmb-1.5.docs file."
+  - docomentation related changes that were done for ledgersmb-1.5 pkg:
+$ git ci -m "Add 'db-changes' to and also sort the debian/ledgersmb.docs file."
 $ git ci -m "Add a debian/ledgersmb-1.5.doc-base.coding-standard file."
 $ git ci -m "Add a debian/ledgersmb-1.5.doc-base.db-changes file."
 
@@ -266,4 +295,4 @@ postinstall script may be quite useful. Investigate?
 -----------------------------------------------------------------------------------
 
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 21 Oct 2018 18:43 -0400
+ -- Robert James Clay <jame@rocasa.us>  Mon, 12 Nov 2018 04:31 -0500
