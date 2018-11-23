@@ -1,22 +1,22 @@
 # Translation of ledgersmb debconf template to Swedish
-# Copyright (C) 2012 Martin Bagge <brother@bsnet.se>
+# Copyright (C) 2018 Sebastian Rasmussen <sebras@gmail.com>
 # This file is distributed under the same license as the ledgersmb package.
 #
 # Martin Bagge <brother@bsnet.se>, 2012
+# Sebastian Rasmussen <sebras@gmail.com>, 2018
 msgid ""
 msgstr ""
 "Project-Id-Version: ledgersmb\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
 "POT-Creation-Date: 2018-03-23 21:01-0400\n"
-"PO-Revision-Date: 2012-06-07 20:39+0100\n"
-"Last-Translator: Martin Bagge / brother <brother@bsnet.se>\n"
+"PO-Revision-Date: 2018-11-22 13:48+0100\n"
+"Last-Translator: Sebastian Rasmussen <sebras@gmail.com>\n"
 "Language-Team: Swedish <debian-l10n-swedish@lists.debian.org>\n"
-"Language: \n"
+"Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Swedish\n"
-"X-Poedit-Country: Sweden\n"
+"X-Generator: Poedit 2.2\n"
 
 #. Type: string
 #. Description
@@ -27,19 +27,14 @@ msgstr "Administrativ användare för databasen:"
 #. Type: string
 #. Description
 #: ../templates:2001
-#, fuzzy
-#| msgid ""
-#| "Please enter the login of the LedgerSMB database administrative user. "
-#| "This login is needed for the administrative web user interface, typically "
-#| "at http://localhost/ledgersmb/setup.pl."
 msgid ""
 "Please enter the login of the LedgerSMB database administrative user. This "
 "login is needed for the administrative web user interface, typically at "
 "http://localhost:5762/setup.pl."
 msgstr ""
-"Ange användarnamnet för administration av LedgerSMB-databasen. "
-"Användarnamnet behövs för det administrativa webbgränssnittet, vanligen "
-"tillgängligt på http://localhost/ledgersmb/setup.pl."
+"Ange användarnamnet för LedgerSMBs administrativa användare. Användarnamnet "
+"behövs för det administrativa webbgränssnittet, vanligen tillgängligt på "
+"http://localhost:5762/setup.pl."
 
 #. Type: password
 #. Description
@@ -50,11 +45,6 @@ msgstr "Lösenord för databasens administrativa användare:"
 #. Type: password
 #. Description
 #: ../templates:3001
-#, fuzzy
-#| msgid ""
-#| "Please enter the password of the LedgerSMB database administrative user. "
-#| "This password is needed for the administrative web user interface, "
-#| "typically at http://localhost/ledgersmb/setup.pl."
 msgid ""
 "Please enter the password of the LedgerSMB database administrative user. "
 "This password is needed for the administrative web user interface, typically "
@@ -62,13 +52,13 @@ msgid ""
 msgstr ""
 "Ange lösenordet för LedgerSMBs administrativa användare. Lösenordet behövs "
 "för det administrativa webbgränssnittet, vanligen tillgängligt på http://"
-"localhost/ledgersmb/setup.pl."
+"localhost:5762/setup.pl."
 
 #. Type: select
 #. Description
 #: ../templates:4001
 msgid "Web Reverse Proxy to configure?"
-msgstr ""
+msgstr "Webbproxy att konfigurera?"
 
 #. Type: select
 #. Description
@@ -80,20 +70,21 @@ msgid ""
 "can leave the choice as None if it is not needed or if the web proxy will be "
 "set up remotely."
 msgstr ""
+"Programmet LedgerSMB finns nu som standard tillgängligt på port 5762 och "
+"körs direkt av Starman. Om annan åtkomstbehövs kan en omvändproxy "
+"konfigureras med hjälp av Apache eller Nginx eller Lighttpd eller Varnish, "
+"eller så kan du lämna valet som Inget om det inte behövs eller om webbproxy "
+"kommer att fjärrställas."
 
 #. Type: select
 #. Description
 #: ../templates:4001
-#, fuzzy
-#| msgid ""
-#| "More general information about the initial configuration of the "
-#| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
 msgid ""
 "For more details, please see the Web Proxy section that can be found in the /"
 "usr/share/doc/ledgersmb/README.Debian file."
 msgstr ""
-"Mer generell information om de grundläggande inställningarna av "
-"applikationen kan hittas i /usr/share/doc/ledgersmb/README.Debian."
+"För vidare information se stycket Webbproxy som kan hittas i filen /usr/"
+"share/doc/ledgersmb/README.Debian."
 
 #, fuzzy
 #~| msgid "Configure LedgerSMB automatically?"
