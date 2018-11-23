@@ -129,6 +129,7 @@ License: GPL-2+
 
 Files: debian/po/pl.po
 Copyright: 2012, Michał Kułach <michal.kulach@gmail.com>
+           2018, Łukasz Dulny <BartekChom@poczta.onet.pl>
 License: GPL-2+
 
 Files: debian/po/pt_BR.po
