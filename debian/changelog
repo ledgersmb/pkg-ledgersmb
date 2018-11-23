@@ -2,9 +2,10 @@ ledgersmb (1.6.6+ds-3) UNRELEASED; urgency=medium
 
   TODO:
     * Pending remaining updates for the debian/po/*.po files.
+  * Updated the debconf debian/po/pl.po file.
   * Updated the debconf debian/po/sv.po file.
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 23 Nov 2018 11:35:40 -0500
+ -- Robert James Clay <jame@rocasa.us>  Fri, 23 Nov 2018 12:40:11 -0500
 
 ledgersmb (1.6.6+ds-2) unstable; urgency=medium
 
