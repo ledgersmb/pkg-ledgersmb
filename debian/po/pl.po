@@ -1,23 +1,24 @@
 # Translation of ledgersmb debconf templates to Polish.
-# Copyright (C) 2012
+# Copyright (C) 2012, 2018
 # This file is distributed under the same license as the ledgersmb package.
 #
 # Michał Kułach <michal.kulach@gmail.com>, 2012.
+# Łukasz Dulny <BartekChom@poczta.onet.pl>, 2018.
 msgid ""
 msgstr ""
 "Project-Id-Version: ledgersmb\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
 "POT-Creation-Date: 2018-03-23 21:01-0400\n"
-"PO-Revision-Date: 2012-06-07 15:29+0200\n"
-"Last-Translator: Michał Kułach <michal.kulach@gmail.com>\n"
+"PO-Revision-Date: 2018-11-22 18:27+0100\n"
+"Last-Translator: Łukasz Dulny <BartekChom@poczta.onet.pl>\n"
 "Language-Team: Polish <debian-l10n-polish@lists.debian.org>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 1.2\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 2.0\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10"
+" || n%100>=20) ? 1 : 2);\n"
 
 #. Type: string
 #. Description
@@ -28,19 +29,14 @@ msgstr "Login użytkownika administrującego bazą danych:"
 #. Type: string
 #. Description
 #: ../templates:2001
-#, fuzzy
-#| msgid ""
-#| "Please enter the login of the LedgerSMB database administrative user. "
-#| "This login is needed for the administrative web user interface, typically "
-#| "at http://localhost/ledgersmb/setup.pl."
 msgid ""
 "Please enter the login of the LedgerSMB database administrative user. This "
 "login is needed for the administrative web user interface, typically at "
 "http://localhost:5762/setup.pl."
 msgstr ""
-"Proszę podać login użytkownika administrującego bazą danych LedgerSMB. Jest "
-"on potrzebny do interfejsu administracyjnego WWW, który znajduje się "
-"zazwyczaj pod adresem http://localhost/ledgersmb/setup.pl."
+"Proszę podać login użytkownika administrującego bazą danych LedgerSMB. Jest"
+" on potrzebny do interfejsu administracyjnego WWW, który znajduje się"
+" zazwyczaj pod adresem http://localhost:5762/setup.pl."
 
 #. Type: password
 #. Description
@@ -51,25 +47,20 @@ msgstr "Hasło użytkownika administrującego bazą danych:"
 #. Type: password
 #. Description
 #: ../templates:3001
-#, fuzzy
-#| msgid ""
-#| "Please enter the password of the LedgerSMB database administrative user. "
-#| "This password is needed for the administrative web user interface, "
-#| "typically at http://localhost/ledgersmb/setup.pl."
 msgid ""
 "Please enter the password of the LedgerSMB database administrative user. "
 "This password is needed for the administrative web user interface, typically "
 "at http://localhost:5762/setup.pl."
 msgstr ""
-"Proszę podać hasło użytkownika administrującego bazą danych LedgerSMB. Jest "
-"on potrzebny do interfejsu administracyjnego WWW, który znajduje się "
-"zazwyczaj pod adresem http://localhost/ledgersmb/setup.pl."
+"Proszę podać hasło użytkownika administrującego bazą danych LedgerSMB. Jest"
+" on potrzebny do interfejsu administracyjnego WWW, który znajduje się"
+" zazwyczaj pod adresem http://localhost:5762/setup.pl."
 
 #. Type: select
 #. Description
 #: ../templates:4001
 msgid "Web Reverse Proxy to configure?"
-msgstr ""
+msgstr "Jaki odwrotny serwer pośredniczący skonfigurować?"
 
 #. Type: select
 #. Description
@@ -81,44 +72,38 @@ msgid ""
 "can leave the choice as None if it is not needed or if the web proxy will be "
 "set up remotely."
 msgstr ""
+"Aplikacja LedgerSMB jest teraz domyślnie dostępna na porcie 5762  i kierowana"
+" bezpośrednio przez Starmana. Jeśli potrzebny jest inny dostęp, odwrotny"
+" serwer pośredniczący może być skonfigurowany przy pomocy programu Apache,"
+" Nginx, Lighttpd lub Varnish. Możesz też zostawić None, jeśli nie ma takiej"
+" potrzeby bądź serwer pośredniczący będzie ustawiony zdalnie."
 
 #. Type: select
 #. Description
 #: ../templates:4001
-#, fuzzy
-#| msgid ""
-#| "More general information about the initial configuration of the "
-#| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
 msgid ""
 "For more details, please see the Web Proxy section that can be found in the /"
 "usr/share/doc/ledgersmb/README.Debian file."
 msgstr ""
-"Więcej ogólnych informacji na temat początkowej konfiguracji aplikacji "
-"znajduje się w pliku /usr/share/doc/ledgersmb/README.Debian."
+"Więcej ogólnych informacji na temat początkowej konfiguracji aplikacji"
+" znajduje się w pliku /usr/share/doc/ledgersmb/README.Debian."
 
-#, fuzzy
-#~| msgid "Configure LedgerSMB automatically?"
 #~ msgid "Configure LedgerSMB Database administrative user automatically?"
-#~ msgstr "Skonfigurować LedgerSMB w sposób automatyczny?"
+#~ msgstr ""
+#~ "Skonfigurować administrującego bazą danych LedgerSMB w sposób automatyczny?"
 
-#, fuzzy
-#~| msgid ""
-#~| "The configuration program for the package can automatically configure "
-#~| "some aspects of LedgerSMB, such as the LedgerSMB database user."
 #~ msgid ""
 #~ "The configuration program for the package can automatically configure the "
 #~ "LedgerSMB database user. Enable if you want to do that, disable if not."
 #~ msgstr ""
-#~ "Program konfiguracyjny z pakietu może automatycznie skonfigurować "
-#~ "niektóre aspekty LedgerSMB np. użytkownika bazy danych LedgerSMB."
+#~ "Program konfiguracyjny z pakietu może automatycznie skonfigurować użytkownika"
+#~ " bazy danych LedgerSMB. Uaktywnij, jeśli chcesz to zrobić, wyłącz, jeśli nie."
 
-#, fuzzy
-#~| msgid ""
-#~| "More general information about the initial configuration of the "
-#~| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
 #~ msgid ""
 #~ "More information about the configuration of the database administrative "
 #~ "user can be found in /usr/share/doc/ledgersmb/README.Debian."
 #~ msgstr ""
-#~ "Więcej ogólnych informacji na temat początkowej konfiguracji aplikacji "
-#~ "znajduje się w pliku /usr/share/doc/ledgersmb/README.Debian."
+#~ "Więcej informacji na temat początkowej konfiguracji użytkownika"
+#~ " administrującego bazą danych znajduje się w pliku"
+#~ " /usr/share/doc/ledgersmb/README.Debian."
+
