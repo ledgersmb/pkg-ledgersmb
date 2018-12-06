@@ -1,17 +1,17 @@
 # Portuguese translation for ledgersmb's debconf messages
-# Copyright (C) 2012 THE PACKAGE'S COPYRIGHT HOLDER
+# Copyright (C) 2012 THE ledgersmb'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the ledgersmb package.
-# Miguel Figueiredo <elmig@debianpt.org>, 2012.
+# Miguel Figueiredo <elmig@debianpt.org>, 2012, 2018.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: ledgersmb\n"
 "Report-Msgid-Bugs-To: ledgersmb@packages.debian.org\n"
 "POT-Creation-Date: 2018-03-23 21:01-0400\n"
-"PO-Revision-Date: 2012-06-16 17:07+0100\n"
+"PO-Revision-Date: 2018-11-26 21:51+0000\n"
 "Last-Translator: Miguel Figueiredo <elmig@debianpt.org>\n"
 "Language-Team: Portuguese <traduz@debianpt.org>\n"
-"Language: \n"
+"Language: Portuguese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -25,7 +25,6 @@ msgstr "Login do administrador da base de dados:"
 #. Type: string
 #. Description
 #: ../templates:2001
-#, fuzzy
 #| msgid ""
 #| "Please enter the login of the LedgerSMB database administrative user. "
 #| "This login is needed for the administrative web user interface, typically "
@@ -37,7 +36,7 @@ msgid ""
 msgstr ""
 "Por favor introduza o login do administrador da base de dados LedgerSMB. "
 "Este login é necessário para o interface web de administração, tipicamente "
-"encontra-se em http://localhost/ledgersmb/setup.pl."
+"encontra-se em http://localhost:5762/ledgersmb/setup.pl."
 
 #. Type: password
 #. Description
@@ -48,7 +47,6 @@ msgstr "Palavra-passe do administrador da base de dados:"
 #. Type: password
 #. Description
 #: ../templates:3001
-#, fuzzy
 #| msgid ""
 #| "Please enter the password of the LedgerSMB database administrative user. "
 #| "This password is needed for the administrative web user interface, "
@@ -60,13 +58,13 @@ msgid ""
 msgstr ""
 "Por favor introduza a palavra-passe do administrador da base de dados "
 "LedgerSMB. Esta palavra-passe é necessária para o interface web de "
-"administração, tipicamente localizado em http://localhost/ledgersmb/setup.pl."
+"administração, tipicamente em http://localhost:5762/setup.pl."
 
 #. Type: select
 #. Description
 #: ../templates:4001
 msgid "Web Reverse Proxy to configure?"
-msgstr ""
+msgstr "Reverse Proxy Web a configurar?"
 
 #. Type: select
 #. Description
@@ -78,11 +76,15 @@ msgid ""
 "can leave the choice as None if it is not needed or if the web proxy will be "
 "set up remotely."
 msgstr ""
+"A aplicação LedgerSMB agora está predefinida a estar disponível no porto 5762, "
+"e ser executada directamente por Starman. Se for necessário outro acesso, "
+"pode ser configurada uma Reverse Proxy utilizando Apache, ou Nginx, ou Varnish, "
+"ou pode deixar a escolha como Nenhum se a web proxy não for necessária ou se "
+"for definida remotamente."
 
 #. Type: select
 #. Description
 #: ../templates:4001
-#, fuzzy
 #| msgid ""
 #| "More general information about the initial configuration of the "
 #| "application can be found in /usr/share/doc/ledgersmb/README.Debian."
@@ -90,8 +92,8 @@ msgid ""
 "For more details, please see the Web Proxy section that can be found in the /"
 "usr/share/doc/ledgersmb/README.Debian file."
 msgstr ""
-"Mais informação geral sobre a configuração inicial da aplicação pode ser "
-"encontrada em /usr/share/doc/ledgersmb/README.Debian."
+"Para mais detalhes, por favor veja a secção Web Proxy que pode ser encontrada "
+"no ficheiro /usr/share/doc/ledgersmb/README.Debian."
 
 #, fuzzy
 #~| msgid "Configure LedgerSMB automatically?"
