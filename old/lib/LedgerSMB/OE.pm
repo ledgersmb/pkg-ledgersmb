@@ -167,7 +167,7 @@ sub save {
             $sth   = $dbh->prepare($query);
             $sth->execute( $form->{id} ) || $form->dberror($query);
 
-            $query = qq|DELETE FROM new_shipto WHERE trans_id = ?|;
+            $query = qq|DELETE FROM new_shipto WHERE oe_id = ?|;
             $sth   = $dbh->prepare($query);
             $sth->execute( $form->{id} ) || $form->dberror($query);
 
@@ -444,7 +444,7 @@ sub save {
             $form->{shipvia},       $form->{notes},
             $form->{intnotes},      $form->{currency},
             $form->{closed},        $quotation,
-            $form->{person_id},
+            $form->{employee_id},
             $form->{language_code}, $form->{ponumber},
             $form->{terms},         $form->{id}
         );
@@ -549,7 +549,7 @@ sub delete {
     $query = qq|DELETE FROM orderitems WHERE trans_id = ?|;
     $sth->finish;
 
-    $query = qq|DELETE FROM new_shipto WHERE trans_id = ?|;
+    $query = qq|DELETE FROM new_shipto WHERE oe_id = ?|;
     $sth   = $dbh->prepare($query);
     $sth->execute( $form->{id} ) || $form->dberror($query);
     $sth->finish;
@@ -605,9 +605,7 @@ sub retrieve {
             FROM oe o
             JOIN entity_credit_account cr ON (cr.id = o.entity_credit_account)
             JOIN entity vc ON (cr.entity_id = vc.id)
-            LEFT JOIN person pe ON (o.person_id = pe.id)
-            LEFT JOIN entity_employee e
-                                  ON (pe.entity_id = e.entity_id)
+            LEFT JOIN person pe ON (o.person_id = pe.entity_id)
                         LEFT JOIN new_shipto ns ON ns.oe_id = o.id
             WHERE o.id = ?|;
         $sth = $dbh->prepare($query);
@@ -625,7 +623,7 @@ sub retrieve {
         for ( keys %$ref ) { $form->{$_} = $ref->{$_} }
         $sth->finish;
 
-        $query = qq|SELECT * FROM new_shipto WHERE trans_id = ?|;
+        $query = qq|SELECT * FROM new_shipto WHERE oe_id = ?|;
         $sth   = $dbh->prepare($query);
         $sth->execute( $form->{id} ) || $form->dberror($query);
 
@@ -2262,7 +2260,7 @@ sub generate_orders {
                 netamount = ?,
                 taxincluded = ?,
                 curr = ?,
-                person_id = (select id from person where entity_id = ?),
+                person_id = ?,
                 department_id = ?,
                 ponumber = ?
             WHERE id = ?|;
