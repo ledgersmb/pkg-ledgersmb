@@ -6,17 +6,6 @@ https://bugs.debian.org/cgi-bin/pkgreport.cgi?src=ledgersmb
 https://qa.debian.org/debcheck.php?dist=unstable&package=ledgersmb
 
 =================================================================================
---------------------------------------------------------------------------------
-
-- Noticed the perl requirement in debian/control being 5.10.1 but in cpanfile,
-  it's actually 5.14:
-requires 'perl', '5.14.0';
-
-  - Even jessie already has 5.20
-  - And even trusty has 5.18
-- So it should be updated, but there's no urgency
-- but actually, here in ledgersmb pkg it shouldn't be versioned at all
-
 -----------------------------------------------------------------------------------
     - updating debconf po reference:
 https://www.debian.org/doc/manuals/developers-reference/ch06.html#s6.5.2.2
@@ -46,7 +35,7 @@ $ ll *po
 
 
 
-  - These are the deb po updates that are already done, as of 1.5.21+ds-2:
+  - These are the pkg po updates that are already done, as of 1.5.21+ds-2:
 * Updated the debconf debian/po/es.po file.
 * Updated the debconf debian/po/cs.po file. (Closes: #905098)
 * Updated the debconf debian/po/da.po file. (Closes: #905893)
@@ -57,24 +46,41 @@ $ ll *po
 * Updated the debconf debian/po/ru.po file. (Closes: #904708)
 
 
-  - 9 Nov: have received a possible update for gl.po.
-  - https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911542
-  - These still need to have the translations updated: (7)
--rw-r--r-- 1 jame jame 2923 Aug 25 07:34 gl.po
--rw-r--r-- 1 jame jame 2907 Aug 25 07:34 it.po
--rw-r--r-- 1 jame jame 2848 Aug 25 07:34 ja.po
--rw-r--r-- 1 jame jame 2942 Aug 25 07:34 pl.po
--rw-r--r-- 1 jame jame 2813 Aug 25 07:34 pt.po
--rw-r--r-- 1 jame jame 2710 Aug 25 07:34 sk.po
--rw-r--r-- 1 jame jame 2848 Aug 25 07:34 sv.po
+  - These are the pkg po updates that are already done, as of 1.6.8+ds-1:
+* Updated the debconf debian/po/pl.po file.
+* Updated the debconf debian/po/sv.po file.
+* Updated the debconf debian/po/it.po file. (Closes: #914460)
+* Updated the debconf debian/po/pt.po file. (Closes: #915262)
 
+
+  - https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911542
+  - These still need to have the translations updated: (3)
+-rw-r--r-- 1 jame jame 2923 Aug 25 07:34 gl.po
+-rw-r--r-- 1 jame jame 2848 Aug 25 07:34 ja.po
+-rw-r--r-- 1 jame jame 2710 Aug 25 07:34 sk.po
+  - Will send followups to those again, CCing the bug.
 
 
 --------------------------------------------------------------------------------
 - Basic upstream testing has been enabled.  Will need to add configuration etc
   as necessary in order to use autopkgtest for package as-installed testing.
 
---------------------------------------------------------------------------------
+- I'd already successfully done a local make test, but this came up during an
+  attempted pbuilder test build while adding the basic tests:
+dpkg-checkbuilddeps: error: Unmet build dependencies: libcarp-always-perl libmath-bigint-gmp-perl libx12-parser-perl
+- So doesn't that imply that those aren't needed for the basic build tests?
+  Removed them for now.
+
+
+  - These two items are a workaround to the symlink to the t/.proverc file 
+being missing from the release archive, which can be removed once the issue
+is resolved. https://github.com/ledgersmb/LedgerSMB/issues/3900
+- Added "cp t/.proverc ./"  to the 'override_dh_auto_configure' target in
+  debian/rules.
+- Added ".proverc"  to the debian/clean file.
+  
+
+-------------------------------------------------------------------------------
 
 - The setting of the password for the dbadmin user is now done automatially
   on a new install and when requested during a 'dpkg-reconfigure' of the pkg.
@@ -141,7 +147,7 @@ can be updated for that.
   - Referance also https://github.com/ledgersmb/LedgerSMB/issues/2899 which 
   for the creation of a test in upstream that checks for such permission issues.
 
-- As of the packageing for 1.6.6, this is what is in the override_dh_fixperms
+- As of the packageing for 1.6.8, this is what is in the override_dh_fixperms
   stanza has:
 <-->dh_fixperms
 <-->chmod +x debian/ledgersmb/usr/share/ledgersmb/bin/drop-roles.pl
@@ -295,4 +301,4 @@ postinstall script may be quite useful. Investigate?
 -----------------------------------------------------------------------------------
 
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 12 Nov 2018 04:31 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sun, 16 Dec 2018 18:37 -0500
