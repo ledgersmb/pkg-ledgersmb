@@ -1,14 +1,12 @@
-ledgersmb (1.6.8+ds-1~1) UNRELEASED; urgency=medium
+ledgersmb (1.6.8+ds-1) unstable; urgency=medium
 
-  TODO:
-    * Pending remaining updates for the debian/po/*.po files.
   * New upstream release.
   * Updated the debconf debian/po/pl.po file.
   * Updated the debconf debian/po/sv.po file.
   * Updated the debconf debian/po/it.po file. (Closes: #914460)
   * Updated the debconf debian/po/pt.po file. (Closes: #915262)
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 16 Dec 2018 16:59:08 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sun, 16 Dec 2018 19:05:05 -0500
 
 ledgersmb (1.6.6+ds-2) unstable; urgency=medium
 
