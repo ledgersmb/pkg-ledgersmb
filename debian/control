@@ -55,7 +55,7 @@ Build-Depends-Indep: libcgi-emulate-psgi-perl,
                      libversion-compare-perl,
                      libxml-simple-perl,
                      perl
-Standards-Version: 4.2.1
+Standards-Version: 4.3.0
 Homepage: http://www.ledgersmb.org/
 Vcs-Git: https://github.com/ledgersmb/pkg-ledgersmb.git
 Vcs-Browser: https://github.com/ledgersmb/pkg-ledgersmb
