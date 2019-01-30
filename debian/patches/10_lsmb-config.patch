@@ -1,10 +1,31 @@
 Author: Robert James Clay <jame@rocasa.us>
-Description: Make needed updates for ledgesmb.config.default for use by package.
+Description: Make needed updates for ledgersmb.conf.unbuilt-dojo as well as to
+ ledgesmb.config.default for use by package as needed.
 Origin: vendor
-Last-Update: 2018-10-09
+Last-Update: 2019-01-29
 
 --- a/conf/ledgersmb.conf.unbuilt-dojo
 +++ b/conf/ledgersmb.conf.unbuilt-dojo
+@@ -41,7 +41,7 @@
+ # Spelling of cookie name for this instance of LedgerSMB.
+ # Used to keep multiple instances and/or different versions
+ # logged in at the same time
+-cookie_name = LedgerSMB-1.5
++cookie_name = LedgerSMB-1.6-ds
+ 
+ # This is the Dojo theme to be used by default -- e.g. when no other theme
+ # has been selected.
+@@ -96,7 +96,7 @@
+ # Sets database connection parameters.  Note that default_db can be left blank
+ # if you want to force people to enter a company name at login.
+ port = 5432
+-default_db = lsmb13
++default_db = lsmb16
+ host = localhost
+ db_namespace = public
+ # sslmode can be require, allow, prefer, or disable.  Defaults to prefer.
+--- a/conf/ledgersmb.conf.default
++++ b/conf/ledgersmb.conf.default
 @@ -41,7 +41,7 @@
  # Spelling of cookie name for this instance of LedgerSMB.
  # Used to keep multiple instances and/or different versions
