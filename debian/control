@@ -137,6 +137,17 @@ Description: financial accounting and ERP program
  the LedgerSMB project is to bring high quality ERP and accounting capabilities
  to Small and Midsize Businesses.
  .
+  Features:
+  - Sales (Invoices, Orders, Quotations)
+  - Receivables & Payables
+  - General ledger
+  - Inventory management
+  - Fixed asset accounting & depreciation
+  - Profit & cost centers, departments, projects
+  - Output documents in PDF, HTML, CSV, and Office formats
+  - Mail documents (e.g. invoices) from within the application
+  - Translatable to your language (comes with 45 languages)
+ .
  The application now defaults to being made available locally on port 5762 and
  being run directly by Starman instead of by Apache. If other access is needed,
  a Reverse Proxy can be configured locally using Apache, Nginx, Lighttpd, or
