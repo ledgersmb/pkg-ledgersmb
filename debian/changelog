@@ -1,10 +1,11 @@
-ledgersmb (1.6.9+ds-2~1) UNRELEASED; urgency=medium
+ledgersmb (1.6.11+ds-1~1) UNRELEASED; urgency=medium
 
+  * New upstream release.
   * Bump debhelper version from 9.20160709 to 10. 
   * Add initial Features list to Long Description in debian/control.
   * Add patching of conf/ledgersmb.conf.default file to 10_lsmb-config.patch.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 27 Apr 2019 21:30:16 -0400
+ -- Robert James Clay <jame@rocasa.us>  Fri, 20 Sep 2019 13:57:30 -0400
 
 ledgersmb (1.6.9+ds-1) unstable; urgency=medium
 
