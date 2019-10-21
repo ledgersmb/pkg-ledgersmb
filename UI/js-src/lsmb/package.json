@@ -24,7 +24,7 @@
   "dependencies": {
     "dojo": "~1.11",
     "dijit": "~1.11",
-    "dojox": "~1.11"
+    "dojox": "~1.15"
   },
   "main": "src",
   "homepage": "http://ledgersmb.org/",
