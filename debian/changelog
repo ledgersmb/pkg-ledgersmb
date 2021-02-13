@@ -1,3 +1,11 @@
+ledgersmb (1.6.29+ds-1~1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * Update README.Debian (remove 1.5.x references)
+  * Add 'Forwarded' header to patches to silence lintian warnings
+
+ -- Erik Huelsmann  Sat, 13 Feb 2021 19:57:00 +0000
+
 ledgersmb (1.6.11+ds-1~1) UNRELEASED; urgency=medium
 
   * New upstream release.
