@@ -5,8 +5,8 @@ Origin: vendor
 Forwarded: not-needed
 Last-Update: 2017-06-18
 
---- a/conf/apache-vhost.conf
-+++ b/conf/apache-vhost.conf
+--- a/doc/conf/apache-vhost.conf
++++ b/doc/conf/apache-vhost.conf
 @@ -18,9 +18,9 @@
  # NameVirtualHost is ignored by Apache 2.4
  NameVirtualHost *:443
@@ -19,8 +19,8 @@ Last-Update: 2017-06-18
  
    # If you own a publicly exposed server, consider submitting it
    # to the SSL security tests available at
---- a/conf/nginx-vhost.conf
-+++ b/conf/nginx-vhost.conf
+--- a/doc/conf/nginx-vhost.conf
++++ b/doc/conf/nginx-vhost.conf
 @@ -13,7 +13,7 @@
    listen 443 ssl;
    listen [::]:443 ssl ipv6only=on;

@@ -1,5 +1,5 @@
 bin/* usr/share/ledgersmb/bin
-conf/* usr/share/ledgersmb/conf
+doc/conf/* usr/share/ledgersmb/conf
 debian/adm/config-lsmb-db-user.sh usr/share/ledgersmb/utils
 ledgersmb.conf etc/ledgersmb
 lib/* usr/share/ledgersmb/lib

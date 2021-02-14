@@ -1,3 +1,9 @@
+ledgersmb (1.7.26+ds-1~1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Erik Huelsmann <ehuels@gmail.com>  Sat, 14 Feb 2021 21:19:00 +0000
+
 ledgersmb (1.6.29+ds-1~1) UNRELEASED; urgency=medium
 
   * New upstream release.

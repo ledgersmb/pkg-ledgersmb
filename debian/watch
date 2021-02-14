@@ -9,7 +9,7 @@ opts="filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/ledgersmb-$1\.tar\.gz/, \
 pgpsigurlmangle=s/$/.asc/, \
 dversionmangle=s/\+ds//, \
 repacksuffix=+ds, \
-uversionmangle=s/^1\.6\.99\d*/0/" \
-https://download.ledgersmb.org/f/Releases/(1.6.+)/ledgersmb-([\d\.]*).tar.gz
+uversionmangle=s/^1\.7\.99\d*/0/" \
+https://download.ledgersmb.org/f/Releases/(1.7.+)/ledgersmb-([\d\.]*).tar.gz
 
 

@@ -5,8 +5,8 @@ Origin: vendor
 Forwarded: not-needed
 Last-Update: 2019-01-29
 
---- a/conf/ledgersmb.conf.unbuilt-dojo
-+++ b/conf/ledgersmb.conf.unbuilt-dojo
+--- a/doc/conf/ledgersmb.conf.unbuilt-dojo
++++ b/doc/conf/ledgersmb.conf.unbuilt-dojo
 @@ -41,7 +41,7 @@
  # Spelling of cookie name for this instance of LedgerSMB.
  # Used to keep multiple instances and/or different versions

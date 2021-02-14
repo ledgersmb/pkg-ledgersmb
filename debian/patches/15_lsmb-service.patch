@@ -6,8 +6,8 @@ Origin: vendor
 Forwarded: not-needed
 Last-Update: 2018-10-09
 
---- a/conf/systemd/ledgersmb-development_plackup.service
-+++ b/conf/systemd/ledgersmb-development_plackup.service
+--- a/doc/conf/systemd/ledgersmb-development_plackup.service
++++ b/doc/conf/systemd/ledgersmb-development_plackup.service
 @@ -7,7 +7,7 @@
  After=network.target
  
@@ -25,8 +25,8 @@ Last-Update: 2018-10-09
  
  # Be sure to set a user and group below
  # which don't have write access to the directories
---- a/conf/systemd/ledgersmb_plack-fcgi.service
-+++ b/conf/systemd/ledgersmb_plack-fcgi.service
+--- a/doc/conf/systemd/ledgersmb_plack-fcgi.service
++++ b/doc/conf/systemd/ledgersmb_plack-fcgi.service
 @@ -7,12 +7,13 @@
  After=network.target
  
@@ -42,8 +42,8 @@ Last-Update: 2018-10-09
  Environment=PLACK_ENV=deployment
  
  # Be sure to set a user and group below
---- a/conf/systemd/ledgersmb_plackup.service
-+++ b/conf/systemd/ledgersmb_plackup.service
+--- a/doc/conf/systemd/ledgersmb_plackup.service
++++ b/doc/conf/systemd/ledgersmb_plackup.service
 @@ -7,9 +7,10 @@
  After=network.target
  
@@ -56,8 +56,8 @@ Last-Update: 2018-10-09
  Environment=LOG=/var/log/ledgersmb/ledgersmb_plackup.log
  
  # In case you installed dependencies into a 'local::lib'
---- a/conf/systemd/ledgersmb_starman.service
-+++ b/conf/systemd/ledgersmb_starman.service
+--- a/doc/conf/systemd/ledgersmb_starman.service
++++ b/doc/conf/systemd/ledgersmb_starman.service
 @@ -7,12 +7,13 @@
  After=network.target
  
