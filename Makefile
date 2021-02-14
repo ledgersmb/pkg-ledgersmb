@@ -17,7 +17,7 @@ endif
 .DEFAULT_GOAL := help
 
 DEB_essential := cpanminus postgresql make gcc libdbd-pg-perl
-DEB_essential += starman
+DEB_essential += starman uglifyjs
 DEB_perlmodules := libcgi-emulate-psgi-perl libcgi-simple-perl libconfig-inifiles-perl
 DEB_perlmodules += libdbd-pg-perl libdbi-perl libdatetime-perl
 DEB_perlmodules += libdatetime-format-strptime-perl libdigest-md5-perl
@@ -40,6 +40,7 @@ DEB_feature_XLS :=
 RHEL_essential := perl-devel perl-CPAN perl-App-cpanminus
 RHEL_essential += postgresql make gcc perl-DBD-Pg
 RHEL_essential += perl-Starman
+RHEL_essential += uglify-js
 RHEL_perlmodules := perl-CGI-Emulate-PSGI perl-CGI-Simple perl-Config-IniFiles
 RHEL_perlmodules += perl-DBD-Pg perl-DBI perl-DateTime perl-DateTime-Format-Strptime
 RHEL_perlmodules += perl-Digest-MD5 perl-File-MimeInfo perl-JSON-XS
@@ -50,15 +51,15 @@ RHEL_perlmodules += perl-namespace-autoclean perl-MooseX-NonMoose
 RHEL_perlmodules += perl-XML-Simple
 RHEL_perlmodules += perl-YAML perl-FCGI-ProcManager
 RHEL_feature_PDF := perl-TeX-Encode texlive
-RHEL_feature_PDF_utf8 := 
-RHEL_feature_OpenOffice := 
-RHEL_feature_XLS := 
+RHEL_feature_PDF_utf8 :=
+RHEL_feature_OpenOffice :=
+RHEL_feature_XLS :=
 
-FBSD_essential := 
-FBSD_perlmodules := 
-FBSD_feature_PDF := 
-FBSD_feature_OpenOffice := 
-FBSD_feature_XLS := 
+FBSD_essential :=
+FBSD_perlmodules :=
+FBSD_feature_PDF :=
+FBSD_feature_OpenOffice :=
+FBSD_feature_XLS :=
 
 APT_GET = sudo apt-get install
 YUM = sudo yum install
@@ -449,7 +450,7 @@ endif
 #   make feature_PDF
 #       Install system and cpan packages for generating PDF/Postscript output
 feature_PDF: $(OS_feature_PDF)
-	cpanm --quiet --notest --with-feature=latex-pdf-ps --with-feature=latex-pdf-images --installdeps .
+	cpanm --quiet --notest --with-feature=latex-pdf-ps --installdeps .
 
 #   make feature_PDF_utf8
 #       Install system and cpan packages for UTF8 ouput in PDF/Postscript output
@@ -490,13 +491,13 @@ devtest:
 # - postgres_access
 # - postgres_verify
 # - postgres (depends on postgres_*)
-# 
+#
 # - starman (adds system user and systemd script)
-# 
+#
 # - letsencrypt
-# 
+#
 # - nginx
-# 
+#
 # - apache
 # - httpd (defaults to nginx)
 # Oh, and the first to add would be

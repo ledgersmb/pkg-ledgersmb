@@ -1,10 +1,11 @@
-=pod
+
+package LedgerSMB::File;
 
 =head1 NAME
 
 LedgerSMB::File - Provides routines for managing file attachments.
 
-=head1 SYNPSIS
+=head1 DESCRIPTION
 
 This provides routines for managing file attachments.  Subclasses may be used
 to provide functionality for specific types of file attachments.
@@ -15,8 +16,6 @@ to provide functionality for specific types of file attachments.
 
 =cut
 
-
-package LedgerSMB::File;
 
 use strict;
 use warnings;
@@ -184,24 +183,6 @@ has _tempdir => (
     },
 );
 
-=item sizex
-
-X axis dimensions, if Image::Size is installed and file is image (only on files
-retrieved for invoices).
-
-=cut
-
-has sizex => (is => 'rw', isa => 'Maybe[Int]');
-
-=item sizey
-
-Y axis dimensions, if Image::Size is installed and file is image (only on files
-retrieved for invoices).
-
-=cut
-
-has sizey => (is => 'rw', isa => 'Maybe[Int]');
-
 =back
 
 =cut
@@ -318,15 +299,6 @@ sub get_for_template{
         print $fh ${$result->{content}} or die "Cannot print to file $full_path";
         close $fh or die "Cannot close file $full_path";
 
-        local $@ = undef;
-        eval { # Block used so that Image::Size is optional
-            require Image::Size;
-            my ($x, $y);
-            ($x, $y) = imgsize(\{$result->{content}});
-            $result->{sizex} = $x;
-            $result->{sizey} = $y;
-        };
-
         if ($result->{file_class} == FC_PART){
            $result->{ref_key} = $result->{file_name};
            $result->{ref_key} =~ s/-.*//;
@@ -384,11 +356,11 @@ sub list_links{
 
 =back
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (C) 2011-2018 The LedgerSMB Core Team
 
-This file is licensed under the Gnu General Public License version 2, or at your
+This file is licensed under the GNU General Public License version 2, or at your
 option any later version.  A copy of the license should have been included with
 your software.
 

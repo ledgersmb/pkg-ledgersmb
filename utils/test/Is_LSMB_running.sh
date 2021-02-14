@@ -75,7 +75,7 @@ HELP() {
 	         MaxDiff : Maximum number of lines the Current setup.pl
 	                     and 't/data/Is_LSMB_running.html' may differ by
 	                   Current thinking is this should always be 0
-	                   Which holds true while the list of available 
+	                   Which holds true while the list of available
 	                     db admin users is statically assigned.
 	                   If the list of db admin users becomes dynamic a different
 	                     arrangement will be needed.

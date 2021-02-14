@@ -109,9 +109,12 @@ sub add_gifi {
     &gifi_header(\%hiddens);
     &gifi_footer(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-gifi-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-gifi-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         buttons => \@buttons,
@@ -134,9 +137,12 @@ sub edit_gifi {
     &gifi_header(\%hiddens);
     &gifi_footer(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-gifi-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-gifi-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         buttons => \@buttons,
@@ -181,11 +187,6 @@ sub gifi_footer {
         }
     }
 
-    if ( $form->{coa} ) {
-        $button{'copy_to_coa'} =
-          { ndx => 7, key => 'C', value => $locale->text('Copy to COA') };
-    }
-
     for ( sort { $button{$a}->{ndx} <=> $button{$b}->{ndx} } keys %button ) {
         push @{$buttons}, {
             name => 'action',
@@ -226,9 +227,12 @@ sub add_business {
     my $checked = &business_header(\%hiddens);
     &form_footer_buttons(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-business-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-business-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         buttons => \@buttons,
@@ -250,9 +254,12 @@ sub edit_business {
     my $checked = &business_header(\%hiddens);
     &form_footer_buttons(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-business-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-business-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         buttons => \@buttons,
@@ -305,9 +312,12 @@ sub add_sic {
     my $checked = &sic_header(\%hiddens);
     &form_footer_buttons(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-sic-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-sic-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         heading => $checked,
@@ -332,9 +342,12 @@ sub edit_sic {
     my $checked = &sic_header(\%hiddens);
     &form_footer_buttons(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-sic-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-sic-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         heading => $checked,
@@ -391,9 +404,12 @@ sub add_language {
     &language_header(\%hiddens);
     &form_footer_buttons(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-language-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-language-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         buttons => \@buttons,
@@ -419,9 +435,12 @@ sub edit_language {
     &language_header(\%hiddens);
     &form_footer_buttons(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-language-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-language-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         buttons => \@buttons,
@@ -469,9 +488,12 @@ sub delete_language {
         value => 'yes_delete_language',
         text => $locale->text('Delete Language'),
         });
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'form-confirmation');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'form-confirmation',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         buttons => \@buttons,
@@ -566,14 +588,17 @@ sub display_taxes {
         $hiddens{$taxmodule};
     }
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-taxes');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-taxes',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
-    hiddens => \%hiddens,
-    selects => \%selects,
-    rows => \@rows,
+        hiddens => \%hiddens,
+        selects => \%selects,
+        rows => \@rows,
     });
 }
 
@@ -671,9 +696,12 @@ sub add_warehouse {
     my $rows = &warehouse_header(\%hiddens);
     &form_footer_buttons(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-warehouse-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-warehouse-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         row_count => $rows,
@@ -694,9 +722,12 @@ sub edit_warehouse {
     my $rows = &warehouse_header(\%hiddens);
     &form_footer_buttons(\%hiddens, \@buttons);
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-warehouse-form');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-warehouse-form',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template($template, {
         form => $form,
         row_count => $rows,
@@ -765,10 +796,8 @@ sub recurring_transactions {
 
     $form->sort_order();
 
-    my @column_index = qw(ndx reference description);
-
-    push @column_index,
-      qw(nextdate enddate id amount curr repeat howmany recurringemail recurringprint);
+    my @column_index = qw(ndx reference description nextdate enddate id amount
+                          curr repeat howmany recurringemail recurringprint);
 
     $column_header{reference} = {
         text => $locale->text('Reference'),
@@ -852,19 +881,11 @@ sub recurring_transactions {
               : $locale->text('Next Number');
             $column_data{reference} = {
                 text => $reference,
-                href => qq|am.pl?action=edit_recurring&id=$ref->{id}&vc=$ref->{vc}&login=$form->{login}&sessionid=$form->{sessionid}&module=$ref->{module}&invoice=$ref->{invoice}&transaction=$ref->{transaction}&recurringnextdate=$ref->{nextdate}|,
+                href => qq|am.pl?action=edit_recurring&id=$ref->{id}&vc=$ref->{vc}&login=$form->{login}&sessionid=$form->{sessionid}&module=$ref->{module}&transaction=$ref->{transaction}&recurringnextdate=$ref->{nextdate}|,
                 };
 
             my $module = "$ref->{module}.pl";
             my $type   = "";
-            if ( $ref->{module} eq 'ar' ) {
-                $module = "is.pl" if $ref->{invoice};
-                $ref->{amount} /= $ref->{exchangerate};
-            }
-            if ( $ref->{module} eq 'ap' ) {
-                $module = "ir.pl" if $ref->{invoice};
-                $ref->{amount} /= $ref->{exchangerate};
-            }
             if ( $ref->{module} eq 'oe' ) {
                 $type =
                   ( $ref->{vc} eq 'customer' )
@@ -924,9 +945,12 @@ sub recurring_transactions {
         class => 'submit',
     };
 
-    my $template = LedgerSMB::Template->new_UI(
-        $form,
-        template => 'am-list-recurring');
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'am-list-recurring',
+        user => $form->{_user},
+        locale => $form->{_locale});
     LedgerSMB::Legacy_Util::render_template( $template, {
         form => $form,
         buttons => \@buttons,
@@ -957,19 +981,6 @@ sub edit_recurring {
 "$form->{script}?action=recurring_transactions&login=$form->{login}&sessionid=$form->{sessionid}";
 
     $form->{type} = "transaction";
-
-    if ( $form->{module} eq 'ar' ) {
-        if ( $form->{invoice} ) {
-            $form->{type}   = "invoice";
-            $form->{module} = "is";
-        }
-    }
-    if ( $form->{module} eq 'ap' ) {
-        if ( $form->{invoice} ) {
-            $form->{type}   = "invoice";
-            $form->{module} = "ir";
-        }
-    }
 
     if ( $form->{module} eq 'oe' ) {
         %tr = (
@@ -1046,12 +1057,10 @@ sub process_transactions {
             # forward to removing this code. --CT
             for ( keys %$form ) { delete $form->{$_}; }
             for (qw(header dbversion company dbh login path sessionid _auth
-                    stylesheet timeout id)
+                    stylesheet timeout id _locale)
             ) {
                 $form->{$_} = $pt->{$_};
             }
-            $form->db_init(\%myconfig);
-
             # post, print, email
             if ( $pt->{arid} || $pt->{apid} || $pt->{oeid} ) {
                 if ( $pt->{arid} || $pt->{apid} ) {
@@ -1298,27 +1307,30 @@ sub process_transactions {
 
             }
             else {
-
                 # GL transaction
                 GL->transaction( \%myconfig, \%$form );
 
                 $form->{reference} = $pt->{reference};
                 $form->{transdate} = $pt->{nextdate};
+                $form->{fx_transaction} = $ref->{fx_transaction};
 
                 $j = 0;
                 foreach my $ref ( @{ $form->{GL} } ) {
                     $form->{"accno_$j"} = "$ref->{accno}--$ref->{description}";
 
+                    $form->{"${_}_$j"} =
+                        $ref->{$_} for (qw/curr source memo/);
                     $form->{"projectnumber_$j"} =
                       "$ref->{projectnumber}--$ref->{project_id}"
                       if $ref->{project_id};
-                    $form->{"fx_transaction_$j"} = $ref->{fx_transaction};
 
-                    if ( $ref->{amount} < 0 ) {
-                        $form->{"debit_$j"} = $ref->{amount} * -1;
+                    if ( $ref->{amount_bc} < 0 ) {
+                        $form->{"debit_$j"} = $ref->{amount_bc} * -1;
+                        $form->{"debit_fx_$j"} = $ref->{amount_tc} * -1;
                     }
                     else {
-                        $form->{"credit_$j"} = $ref->{amount};
+                        $form->{"credit_$j"} = $ref->{amount_bc};
+                        $form->{"credit_fx_$j"} = $ref->{amount_tc};
                     }
 
                     $j++;

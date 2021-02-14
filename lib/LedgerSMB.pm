@@ -1,9 +1,11 @@
 
+package LedgerSMB;
+
 =head1 NAME
 
 LedgerSMB - The Base class for many LedgerSMB objects, including DBObject.
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 This module creates a basic request handler with utility functions available
 in database objects (LedgerSMB::DBObject)
@@ -99,8 +101,14 @@ PSGI response triplet (status, headers, body).
 Returns a hashref with the keys being system information sections,
 each being a hashref detailing configuration items with their values.
 
-=back
+=item setting()
 
+Accessor method and lazy initialisation for a shared LedgerSMB::Setting
+instance.
+
+Returns a reference to an initialised LedgerSMB::Setting instance.
+
+=back
 
 
 =head1 Copyright (C) 2006-2017, The LedgerSMB core team.
@@ -128,8 +136,6 @@ each being a hashref detailing configuration items with their values.
  #====================================================================
 =cut
 
-package LedgerSMB;
-
 use strict;
 use warnings;
 
@@ -140,68 +146,66 @@ use HTTP::Status qw( HTTP_OK ) ;
 use JSON::MaybeXS;
 use Log::Log4perl;
 use PGObject;
+use Plack;
 
 use LedgerSMB::Sysconfig;
 use LedgerSMB::App_State;
 use LedgerSMB::Locale;
 use LedgerSMB::User;
 use LedgerSMB::Company_Config;
+use LedgerSMB::Setting;
 use LedgerSMB::Template;
 
-our $VERSION = '1.6.29';
+our $VERSION = '1.7.26';
 
 my $logger = Log::Log4perl->get_logger('LedgerSMB');
 my $json = JSON::MaybeXS->new( pretty => 1,
                                utf8 => 1,
                                indent => 1,
-                               convert_blessed => 1);
+                               convert_blessed => 1,
+                               allow_bignum => 1);
 
 
 sub new {
-    my ($class, $cgi_args, $script_name, $query_string,
-        $uploads, $cookies, $auth, $db, $company, $session_id,
-        $create_session_cb, $invalidate_session_cb) = @_;
+
+    my ($class, $request, $auth) = @_;
     my $self = {};
     bless $self, $class;
 
     (my $package,my $filename,my $line)=caller;
 
-
+    # Properties prefixed with underscore are hidden from UI templates.
+    #
     # Some tests construct LedgerSMB objects without $auth argument
     # (in fact, without any arguments), so check for having an $auth
     # arg before trying to call methods on it.
     $self->{login} = $auth->get_credentials->{login} if defined $auth;
     $self->{version} = $VERSION;
     $self->{dbversion} = $VERSION;
-    $self->{VERSION} = $VERSION;
-    $self->{have_latex} = $LedgerSMB::Sysconfig::latex;
-    $self->{_uploads} = $uploads  if defined $uploads;
-    $self->{_cookies} = $cookies  if defined $cookies;
-    $self->{query_string} = $query_string if defined $query_string;
+    $self->{_uploads} = $request->uploads if defined $request->uploads;
+    $self->{_cookies} = $request->cookies if defined $request->cookies;
+    $self->{query_string} = $request->query_string if defined $request->query_string;
     $self->{_auth} = $auth;
-    $self->{script} = $script_name;
-    $self->{dbh} = $db;
-    $self->{company} = $company;
-    $self->{_session_id} = $session_id;
-    $self->{_create_session} = $create_session_cb;
-    $self->{_logout} = $invalidate_session_cb;
+    $self->{script} = $request->env->{'lsmb.script'};
+    $self->{dbh} = $request->env->{'lsmb.db'};
+    $self->{company} = $request->env->{'lsmb.company'};
+    $self->{_session_id} = $request->env->{'lsmb.session_id'};
+    $self->{_create_session} = $request->env->{'lsmb.create_session_cb'};
+    $self->{_logout} = $request->env->{'lsmb.invalidate_session_cb'};
+    $self->{_setting} = $request->env->{'lsmb.setting'};
 
-    $self->_process_args($cgi_args);
+    $self->_process_args($request->parameters);
     $self->_set_default_locale();
 
     return $self;
 }
 
 sub open_form {
-    my ($self, $args) = @_;
-    my $i = 1;
+    my ($self) = @_;
     my @vars = $self->call_procedure(procname => 'form_open',
                               args => [$self->{_session_id}],
                               continue_on_error => 1
     );
-    if ($args->{commit}){
-       $self->{dbh}->commit;
-    }
     return $self->{form_id} = $vars[0]->{form_open};
 }
 
@@ -242,21 +246,6 @@ sub initialize_with_db {
         $sth = $self->{dbh}->prepare('SELECT user__check_my_expiration()');
         $sth->execute;
         ($self->{pw_expires})  = $sth->fetchrow_array;
-    }
-
-
-    my $query = q{SELECT t.extends,
-            coalesce (t.table_name, 'custom_' || extends)
-            || ':' || f.field_name as field_def
-        FROM custom_table_catalog t
-        JOIN custom_field_catalog f USING (table_id)};
-    $sth = $self->{dbh}->prepare($query);
-    $sth->execute;
-    my $ref;
-    $self->{custom_db_fields} = {};
-    while ( $ref = $sth->fetchrow_hashref('NAME_lc') ) {
-        push @{ $self->{custom_db_fields}->{ $ref->{extends} } },
-          $ref->{field_def};
     }
 
     LedgerSMB::Company_Config::initialize($self);
@@ -320,14 +309,12 @@ sub upload {
         return map { $_->basename } $self->{_uploads}->values;
     }
 
-    # Hash::MultiValue croaks when the key doesn't exist;
-    # we want it to return C<undef> instead.
-    my $tmpfname = eval { $self->{_uploads}->get_one($name)->path };
-    return undef unless defined $tmpfname;
+    my $upload = $self->{_uploads}->get($name) or return undef;
+    my $tmpfname = $upload->path;
 
     my $headers = HTTP::Headers::Fast->new(
-        Content_Type => $self->{_uploads}->get_one($name)->content_type
-        );
+        Content_Type => $upload->content_type
+    );
     my $encoding = ':bytes';
     my $charset = $headers->content_type_charset;
     if ($charset) {
@@ -485,15 +472,10 @@ sub merge {
 sub to_json {
     my ($self, $output) = @_;
 
-    my $response_data = LedgerSMB::Template::preprocess(
-        $output,
-        sub {return shift} # no escaping
-    );
-
     return [
         HTTP_OK,
         [ 'Content-Type' => 'application/json; charset=UTF-8' ],
-        [ $json->encode($response_data) ],
+        [ $json->encode($output) ],
     ];
 }
 
@@ -510,6 +492,30 @@ sub system_info {
     };
 }
 
+sub setting {
+    my ($self) = @_;
+
+    unless($self->{_setting}) {
+        $self->{dbh} or croak(
+            'cannot initialise LedgerSMB::Setting object -'.
+            'database handler is undefined'
+        );
+        $self->{_setting} = LedgerSMB::Setting->new();
+        $self->{_setting}->set_dbh($self->{dbh});
+    }
+
+    return $self->{_setting};
+}
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (C) 2006-2018 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
+
+=cut
+
+
 1;
-
-

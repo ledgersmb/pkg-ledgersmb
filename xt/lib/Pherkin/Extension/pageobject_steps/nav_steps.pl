@@ -18,7 +18,7 @@ my %pages = (
     "setup admin"         => "PageObject::Setup::Admin",
     "setup user list"     => "PageObject::Setup::UsersList",
     "edit user"           => "PageObject::Setup::EditUser",
-    );
+);
 
 When qr/I navigate to the application root/, sub {
     my $module = "PageObject::App::Login";
@@ -34,6 +34,21 @@ When qr/I navigate to the (.*) page/, sub {
 
     use_module($pages{$page});
     S->{page} = $pages{$page}->open(S->{ext_wsl})->verify;
+};
+
+When qr/^I update the page$/, sub {
+    my $maindiv = S->{ext_wsl}->page->body->maindiv->find('./*');
+    S->{ext_wsl}->page->body->maindiv
+        ->find('*button', text => 'Update')->click;
+    S->{ext_wsl}->page->body->maindiv->wait_for_content(replaces => $maindiv);
+};
+
+When qr/^I save the page( as new)?$/, sub {
+    my $maindiv = S->{ext_wsl}->page->body->maindiv->find('./*');
+    my $text = ($1) ? 'Save as new' : 'Save';
+    S->{ext_wsl}->page->body->maindiv
+        ->find('*button', text => $text)->click;
+    S->{ext_wsl}->page->body->maindiv->wait_for_content(replaces => $maindiv);
 };
 
 Then qr/I should see the (.*) page/, sub {
@@ -57,13 +72,17 @@ When qr/I navigate the menu and select the item at "(.*)"/, sub {
 };
 
 my %screens = (
-    'Contact search' => 'PageObject::App::Search::Contact',
+    'Contact Search' => 'PageObject::App::Search::Contact',
+    'Contact Search Report' => 'PageObject::App::Search::ReportDynatable',
+    'Edit Contact' => 'PageObject::App::Contacts::EditContact',
     'AR transaction entry' => 'PageObject::App::AR::Transaction',
     'AR invoice entry' => 'PageObject::App::AR::Invoice',
     'AR note entry' => 'PageObject::App::AR::Note',
     'AR credit invoice entry' => 'PageObject::App::AR::CreditInvoice',
     'AR returns' => 'PageObject::App::AR::Return',
     'AR search' => 'PageObject::App::Search::AR',
+    'Purchase History Search' => 'PageObject::App::AR::PurchaseHistorySearch',
+    'Purchase History Report' => 'PageObject::App::Search::ReportDynatable',
     'AP transaction entry' => 'PageObject::App::AP::Transaction',
     'AP invoice entry' => 'PageObject::App::AP::Invoice',
     'AP note entry' => 'PageObject::App::AP::Note',
@@ -97,12 +116,26 @@ my %screens = (
     'search for goods & services' => ' PageObject::App::Search::GoodsServices',
     'balance sheet filter' => ' PageObject::App::Report::Filters::BalanceSheet',
     'unapproved inventory adjustments search screen' => ' PageObject::App::Parts::AdjustSearchUnapproved',
-    );
+    'Create New Batch' => 'PageObject::App::Cash::Vouchers::Payments',
+    'Filtering Payments' => 'PageObject::App::Cash::Vouchers::Payments::Filter',
+    'Payments Detail' => 'PageObject::App::Cash::Vouchers::Payments::Detail',
+    'Search Batches' => 'PageObject::App::TransactionApproval::Batches',
+    'Batch Search Report' => 'PageObject::App::Search::ReportDynatable',
+    'Payment Batch Summary' => 'PageObject::App::Search::ReportDynatable',
+    'New Reconciliation Report' => 'PageObject::App::Cash::Reconciliation::NewReport',
+    'Reconciliation Report' => 'PageObject::App::Cash::Reconciliation::Report',
+    'Search Reconciliation Reports' => 'PageObject::App::Search::Reconciliation',
+    'Reconciliation Search Report' => 'PageObject::App::Search::ReportDynatable',
+    'Chart of Accounts' => 'PageObject::App::Search::ReportDynatable',
+    'Account' => 'PageObject::App::GL::Account',
+);
 
 Then qr/I should see the (.*) screen/, sub {
     my $page_name = $1;
     die "Unknown screen '$page_name'"
         unless exists $screens{$page_name};
+
+    use_module($screens{$page_name});
 
     my $page;
     S->{ext_wsl}->wait_for(
@@ -118,6 +151,11 @@ Then qr/I should see the (.*) screen/, sub {
 
 When qr/I select the "(.*)" tab/, sub {
     S->{ext_wsl}->page->find(".//*[\@role='tab' and text()='$1']")->click;
+};
+
+When qr/^I click the "(.*)" link$/, sub {
+    my $link_text = $1;
+    S->{ext_wsl}->page->find(qq{.//a[normalize-space(.)="$link_text"]})->click;
 };
 
 When qr/I open the parts screen for '(.*)'/, sub {
@@ -137,6 +175,12 @@ When qr/I open the parts screen for '(.*)'/, sub {
     S->{ext_wsl}->page->body->maindiv->wait_for_content;
 };
 
+When qr/^I save the translations$/, sub {
+    my $btn = S->{ext_wsl}->page->body->maindiv->find('*button', text => 'Save Translations');
+    $btn->click;
+    S->{ext_wsl}->page->body->maindiv->wait_for_content(replaces => $btn);
+};
+
 Then qr/I expect to see the '(.*)' value of '(.*)'/, sub {
     my $id = $1;
     my $value = $2;
@@ -146,11 +190,23 @@ Then qr/I expect to see the '(.*)' value of '(.*)'/, sub {
                                 or \@alt="$id"]
         |);
     ok(defined $elm, "value-defining element ($id) found");
-    my $actual = $elm->get_text;
+    my $actual = $elm->get_text || $elm->get_attribute('value');
     $actual =~ s/^\s+|\s+$//g;
     is($actual, $value,
        "value for element ($id) equals expected value ($value):" .
-        $actual);
+        $actual
+    );
+};
+
+Then qr/^I expect the "(.*)" field to contain "(.*)"$/, sub {
+    my $label = $1;
+    my $value = $2;
+    my $element = S->{ext_wsl}->page->body->maindiv->find(
+        "*labeled",
+        text => $label
+    );
+    ok($element, "found element with label '$label'");
+    is($element->value, $value, "element with label '$label' contains '$value'");
 };
 
 1;

@@ -1,25 +1,34 @@
+
+package LedgerSMB::Scripts::business_unit;
+
 =head1 NAME
 
 LedgerSMB::Scripts::business_unit - web entry points for reporting class admin
 
+=head1 DESCRIPTION
+
+Workflow routines for LedgerSMB business reporting units
+
+=head1 METHODS
+
+This module doesn't specify any methods.
+
 =cut
 
-package LedgerSMB::Scripts::business_unit;
-use LedgerSMB::Business_Unit_Class;
-use LedgerSMB::App_Module;
-use LedgerSMB::Business_Unit;
-use LedgerSMB::Template;
-use LedgerSMB::Setting::Sequence;
-use LedgerSMB::Report::Listings::Business_Unit;
-use Carp;
 use strict;
 use warnings;
 
+use Carp;
+
+use LedgerSMB::App_Module;
+use LedgerSMB::Business_Unit;
+use LedgerSMB::Business_Unit_Class;
+use LedgerSMB::PGDate;
+use LedgerSMB::Report::Listings::Business_Unit;
+use LedgerSMB::Setting::Sequence;
+use LedgerSMB::Template::UI;
+
 $Carp::Verbose = 1;
-
-=head1 SYNOPSIS
-
-Workflow routines for LedgerSMB business reporting units
 
 =head1 FUNCTIONS
 
@@ -37,14 +46,9 @@ sub list_classes {
     my $lsmb_modules = LedgerSMB::App_Module->new(%$request);
     @{$request->{classes}} = $bu_class->list;
     @{$request->{modules}} = $lsmb_modules->list;
-    my $template = LedgerSMB::Template->new(
-        user =>$request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/business_units',
-        template => 'list_classes',
-        format => 'HTML'
-    );
-    return $template->render({request => $request});
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'business_units/list_classes',
+                             {request => $request});
 }
 
 =item add
@@ -64,11 +68,12 @@ sub add {
           unless $request->{id};
     $request->{control_code} = '';
     $request->{description} = '';
-    my $b_unit = LedgerSMB::Business_Unit->new(%$request);
-    @{$request->{parent_options}} = $b_unit->list($request->{class_id});
     $request->{id} = undef;
     $request->{mode} = 'add';
-    return _display($request);
+    my $b_unit = LedgerSMB::Business_Unit->new(%$request);
+    return _display($request, {
+        parent_options => [ $b_unit->list($request->{class_id} ) ],
+        %$b_unit });
 }
 
 =item edit
@@ -80,25 +85,19 @@ Edits an existing business unit.  $request->{id} must be set.
 sub edit {
     my ($request) = @_;
     $request->{control_code} = '';
-    $request->{class_id} = 0 unless $request->{class_id} != 0;
+    $request->{class_id} = 0 unless $request->{class_id};
     my $b_unit = LedgerSMB::Business_Unit->new(%$request);
     my $bu = $b_unit->get($request->{id});
     @{$bu->{parent_options}} = $b_unit->list($bu->{class_id});
     $bu->{mode} = 'edit';
 
-    return _display($bu);
+    return _display($request, $bu);
 }
 
 sub _display {
-    my ($request) = @_;
-    my $template = LedgerSMB::Template->new(
-        user =>$request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/business_units',
-        template => 'edit',
-        format => 'HTML'
-    );
-    return $template->render($request);
+    my ($request, $bu) = @_;
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'business_units/edit', $bu);
 
 }
 
@@ -247,11 +246,13 @@ sub save_class {
 
 =back
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2012 LedgerSMB core team.  Redistribution and use of work is
-governed under the GNU General Public License, version 2 or at your option any
-later version.
+Copyright (C) 2012 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

@@ -1,3 +1,6 @@
+
+package LedgerSMB::DBH;
+
 =head1 NAME
 
 LedgerSMB::DBH - Database Connection Routines for LedgerSMB
@@ -8,7 +11,6 @@ LedgerSMB::DBH - Database Connection Routines for LedgerSMB
 
 =cut
 
-package LedgerSMB::DBH;
 use strict;
 use warnings;
 
@@ -21,6 +23,10 @@ use DBI;
 =head1 DESCRIPTION
 
 Sets up and manages the db connection.  This returns a DBI database handle.
+
+=head1 METHODS
+
+This module doesn't specify any (public) methods.
 
 =head1 FUNCTIONS
 
@@ -108,13 +114,13 @@ sub require_version {
     }
 }
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2014-2017 The LedgerSMB Core Team.
+Copyright (C) 2014-2017 The LedgerSMB Core Team
 
-This file may be reused under the terms of the GNU General Public License,
-version 2 or at your option any later version.  Please see the included
-LICENSE.txt for more information.
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

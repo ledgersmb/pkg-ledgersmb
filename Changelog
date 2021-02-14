@@ -1,4 +1,270 @@
                                                         -*- fundamental -*-
+Changelog for 1.7 Series
+2019-10-04
+
+Changelog for 1.7.26
+* Disable the broken-on-orders Schedule button on orders (#5295)
+* Fix several LedgerSMB 1.3 migration issues
+* Fix dates on weekly-entry timecards (#5336)
+* Fix descending sort order on reports can't be reversed (#5298)
+* Fix individual batch approval lists all batches, not unapproved ones (#4971)
+* Fix for #4854 (HTML misalignment, v1.7.19) adds more misalignment (#5298)
+
+
+Changelog for 1.7.25
+* Faster GL account tree consistency check
+* Maintain consistency between ar/ap/gl and transactions tables on delete
+* Fix CSV import of inventory adjustment
+
+
+Changelog for 1.7.24
+* Fix 'Approved'/'Unapproved' filter in GL Search not working (#5181)
+
+
+Changelog for 1.7.23
+* Fix subtotals not showing on AR/AP outstanding report (#4732)
+* Apply default sorting to AR/AP outstanding and transactions reports (#5080)
+* Fix failure saving new reporting unit classes with modules checked (#4614)
+* Fix subtotals not working in GL report (#5098)
+* Fix AR/AP transaction applying exchangerate without locale conversion (#4879)
+* Various sales person related fixes (#5115)
+  * Fix sales person failing to save on AR/AP Transactions
+  * Fix sales person selection retained on Update in sales invoice
+  * Fix loading sales person from database on document retrieval
+* Fix 'Manager' drop down not populated in employee page (#5125)
+* Fix Account contact screen buttons populating customer on invoice/... (#932)
+
+
+Changelog for 1.7.22
+* Fix duplicated sales persons list on order entry (#5035)
+* Fix inability to open employee screen under specific circumstances (#5043)
+* Fix creation of assets class without required accounts (#4624)
+* Fix saving part's customer rate without 'Min QTY' (#4849)
+* Fix 'Parent' dropdown empty in Report Unit entry screen (#4625)
+* Explain password reset when importing user on company creation (#3249)
+* Fix inability to delete business unit class (#4597)
+
+
+Changelog for 1.7.21
+* Fix AR/AP account dropdown not retained on 'Update' (#4927)
+* Fix AR/AP search Employee filter not limiting the result (#4606)
+* Fix Departments dropdown not populated on Receipts/Payments (#4636)
+* Fix missing sales employee on existing AR/AP transactions (#1015)
+* Fix error when posting recurring GL transactions (#4946)
+* Fix incorrectly populated dropdowns on Asset screen (#5017)
+* Fix conflict between HTML5 and our 'date' INPUT widgets (#5017)
+* Fix asset classes with missing accounts not being in search result (#5021)
+
+
+Changelog for 1.7.20
+* Fix Arabic being default language on Account creation (#4439)
+* Add Locale::Codes as explicit dependencies after removal from CORE
+* Fix invoices opened from payments screen missing CSS (#4890)
+* Add date-filter to Draft search filter screen
+* Fix amounts filter in Draft search not working (#4929)
+* Fix missing accounts in AR/AP transactions using 'Min Empty Lines (#4930)
+* Add 'select all' column toggle button to Draft search
+* Fix sequences returning 'invnumber' instead of sequence number (#4949)
+* Make AR/AP transaction sequence drop-down follow application style
+
+
+Changelog for 1.7.19
+* Fix purchase order HTML template mis-alignment (#4854)
+* Fix tax form reports throwing an error when opened (#4881)
+* Fix 'missing method "error"' on bulk payments 'Print and Post' (#4780)
+* Fix bulk payments cheque/source numbering (#4780)
+* Fix error when deleting a template transaction (#4848)
+
+
+Changelog for 1.7.18
+* Fix payment posting due to number formatting errors (#4781)
+* Fix payment posting due to date formatting errors (#4794)
+* Fix posting reversal of sales invoice after assembly reversal (#4791)
+* Fix overpayment reversal failing to post (#4803, #4816)
+
+
+Changelog for 1.7.17
+* Fix reversals of purchases failing to post due to COGS error (#4771)
+* Fix assemblies failing to save after 'Update' (#4755)
+
+
+Changelog for 1.7.16
+* Fix migration including NULL and zero exchange rate defaults (#4673)
+* Fix AR Outstanding report showing negative taxes (#4688)
+* Remove dev-mode server-killing /stop URL (#4705)
+* Fix GL journal creation silently inserting 2 'gl' records (#4719)
+* Fix sorting hierarchical balance sheet and income statement sections (#4740)
+* Update Dojo dependency to 1.15.4
+* Add SameSite policy on session cookie to prevent being ignored (#4748)
+
+
+Changelog for 1.7.15
+* Fix tax on invoice differs from search results (#4651)
+* Fix COGS for purchased-in-arrears parts (#4658)
+* Update Dojo to 1.15.3
+
+
+Changelog for 1.7.14
+* Fix AR/AP account being reset to default on transaction Update-s (#4599)
+* Fix CSV, ODS or TXT reports being downloaded without extensions (#4613)
+* Fix 'To pay' amount resetting on second updates in single payments (#4633)
+* Fix 'Paid' amount incorrect when 'Apply discount' unchecked (#4514)
+* Fix income statement failing to filter on invoice reporting units (#4615)
+* Fix payment discount not being posted (#4616)
+* Fix tax base and amount doubled on printed invoice (#4645)
+
+
+Changelog for 1.7.13
+* Fix listing asset classes throwing an error (#4569)
+* Solve failure to create initial user by requiring input (#4525)
+* Fix links at the bottom of the CoA screen (#4568)
+* Fix CoA export (ODS, XLS or XLSX) throwing malformed XML error (#4580)
+* Fix downloaded reports missing extension (e.g. '.pdf') (#4584)
+* Improve performance of deleting batches (#4449)
+* Fix error thrown when opening reporting unit 'edit' screen (#4592)
+* Fix transdate being NULL in journal lines from bulk payments (#4587)
+
+
+Changelog for 1.7.12
+* Reconciliation reports list now shows usernames rather than user ids (#4388)
+* Single payment interface throws error without open invoices (#4529)
+* Fix CSV data imports discading the first row (#4567)
+* Improve Chart of Accounts import no longer discards heading (#4567)
+
+
+Changelog for 1.7.11
+* Fix inventory adjustments failing to update balances (#4467)
+* Fix inability to delete individual vouchers from a batch (#4448)
+
+
+Changelog for 1.7.10
+* Fix error displaying NULL exchange rates (#4438)
+* Fix incorrect receipt totals due to number formatting (#4441)
+* Prevent re-approval of approved inventory adjustment (#4458)
+* Fix NULL transaction dates in inventory adjustment (#4463)
+* Fix alignment of numbers in Inventory Activity report (#4454)
+* Fix variance calculation on reconciliation report (#4486)
+* Fix CSV import through explicit version on HTTP::Headers::Fast dependecy
+
+
+Changelog for 1.7.9
+* Fix authentication issue due to inconsistent cookie handling (#4380)
+* Fix delete access for SIC codes (standard industry code) (#4391)
+* Fix SL 3.0 migration of assemblies (#4386)
+
+
+Changelog for 1.7.8
+* Upgrade Dojo dependency to 1.15.1
+* Load the template from the database when printing receipts
+* Prevent dead-locks in response to request from timed out session
+* Add monetary formatting to payments/receipts screen and report
+
+
+Changelog for 1.7.7
+* Fix currency column not being available in the parts screen
+
+
+Changelog for 1.7.6
+* Disallow rate entry for the default currency (#4236)
+* Fix formatting on-hand (OH) column on orders to follow user settings (#3334)
+* Fix UI translation other than the menu, regressed from 1.6 (#4293)
+* Fix missing 'Entered At' date in contact notes (#2822)
+* Fix removal of lines from orders and vendor invoices on entry (#3703)
+
+
+Changelog for 1.7.5
+* Fix failure to save tax forms (#4252)
+* Fix failure to undo database edits when surrounding code fails (#4253)
+* Allow uploads of files with MIME types unavailable in the database (#1949)
+* Fix failure to render (AR/AP) aging report (#4259, #4260)
+* Separate authentication domains for setup.pl and login.pl (#4247)
+
+
+Changelog for 1.7.4
+* Fix COGS failure when posting AP invoice reversal (#4218)
+* Include first transaction on account in reconciliation (#4221)
+* Fix error on reconciliation when no prior balance available (#4224)
+* Fix SQL write access error when posting fixed assets disposal (#4230)
+* Correctly calculate the tax basis amount even for 0% taxes ($4240)
+
+
+Changelog for 1.7.3
+* Fix regression in fixed assets module due to Multi Currency support (#4195)
+* Fix 'constraint not deferrable' error in fixed assets disposal (#4195)
+* Stop posting manual tax lines with zero amount and zero base amount (#4196)
+* Fix incorrect currency setup error on 'Update' in part screen (#4198)
+* Fix occasional COGS error on invoice posting (#4200)
+* Fix occasional COGS error on invoice reversal posting (#4213)
+* Fix regression with missing download links on reports (#4206)
+
+
+Changelog for 1.7.2
+* Fix invoice screens crashing on manual tax with 0% tax rate (#4176)
+* Fix manual tax lines posted on current instead of transaction date (#4180)
+* Fix default currency invoice sometimes failing to save (#4184)
+* Fix SQL error in reversal of services in AP invoice (#4190)
+
+
+Changelog for 1.7.1
+* Generate unique names for backups
+* Fix tax checkmarks in contact screen sometimes being selected after save
+* Fix tax accounts inclusion in posted AR/AP transactions
+* Fix SQL error when running trial balance report
+* Fix assets and expenses with incorrect signs in GIFI balance and PnL
+
+
+Changelog for 1.7.0
+
+New functionalities
+* Deletion of template transactions (Nick P)
+* Transaction date now part of purchase history report (Chris T)
+* UI allows addition and removal of custom `account_link` flags (Nick P)
+
+Improved foreign currency support
+* Multiple rates per day per currency (Erik H)
+  - Reversing a transaction from a closed-period on a day with different rate
+  - Bank transfers with different banks on the same day with bank's fx rate
+  - Migration from systems which support per-transaction or per-line fx rates
+* Multiple currencies in a single general ledger transaction (Erik H)
+  - Posting an opening balance with all currencies in 1 transaction
+  - Transferring between foreign currencies on e.g. Paypal in 1 transaction
+* Fixed copying of invoice copies fx rate without option to change (Erik H)
+* UI showing foreign and default currency amounts in transactions (Erik H)
+
+Quality Assurance
+* Expanded checks and resolutions for schema changes (Erik H)
+* Testing infrastructure and tests for schema change checks (Erik H)
+* Ensure correct dependency declaration (RequireExplicitInclusion critic policy)
+* POD documentation structure improvements, with automated checks (Erik H)
+* Expanded BDD tests, including payments, batches and approval (Nick P, Erik H)
+
+Code cleanup
+* Removed deprecated 'custom table' and 'custom field' tables (Erik H)
+* Reduce dependencies on deprecated LedgerSMB::App_State (Nick P)
+* Simplified deprecated LedgerSMB::PGOld (Nick P)
+* Remove unused LedgerSMB::DBObject and LedgerSMB::PGOld methods (Nick P)
+* Remove unused configuration settings in ledgersmb.conf (Erik H)
+* Further (compared to 1.6) reduction of warnings
+* Implemented tests for LedgerSMB::File(::*) modules (Nick P)
+* Template engine simplification by separation of UI and printed docs (Erik H)
+* Consistent copyright notices - with tests - on all Perl files in lib/ (Nick P)
+* Request handling cleanup by mapping 'flat' POST data into hierarchy (Erik H)
+
+Dependency updates
+* Dojo Toolkit (JavaScript UI tools) updated to 1.15.0 (Erik H)
+* Minimum Perl (tested) version increased to 5.18 (from 5.14)
+* Plack web glue library minimum >= 1.0031
+* PGObject::Simple::Role minimum updated to 2.0.2 (from 1.13.2)
+* Cpanel::JSON::XS minimum >= 3.0206
+* JSON::PP >= 2.00
+* [New] File::Find::Rule
+* [New] Text::CSV
+
+Nick P is Nick Prater
+Erik H is Erik Huelsmann
+Chris T is Chris Travers
+
+
 Changelog for 1.6 Series
 Released 2018-06-10
 
@@ -96,6 +362,7 @@ Erik H is Erik Huelsmann
 
 
 Changelog for 1.6.18
+* Upgrade Dojo dependency to 1.13.3 (Erik H)
 * Upgrade Dojo dependency to 1.13.5 (Erik H)
 * Prevent dead-locks in response to request from timed out session (Erik H)
 

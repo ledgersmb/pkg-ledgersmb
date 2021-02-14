@@ -1,3 +1,6 @@
+
+package LedgerSMB::Report::PNL;
+
 =head1 NAME
 
 LedgerSMB::Report::PNL - Profit and Loss Reporting Base Class for LedgerSMB
@@ -14,7 +17,6 @@ and later.
 
 =cut
 
-package LedgerSMB::Report::PNL;
 use Moose;
 use namespace::autoclean;
 extends 'LedgerSMB::Report::Hierarchical';
@@ -271,11 +273,13 @@ sub run_report {
 
 =back
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-COPYRIGHT (C) 2012 The LedgerSMB Core Team.  This file may be re-used under the
-terms of the LedgerSMB General Public License version 2 or at your option any
-later version.  Please see enclosed LICENSE file for details.
+Copyright (C) 2012 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

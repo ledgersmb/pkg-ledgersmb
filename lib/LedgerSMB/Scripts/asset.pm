@@ -1,10 +1,11 @@
-=pod
+
+package LedgerSMB::Scripts::asset;
 
 =head1 NAME
 
 LedgerSMB::Scripts::asset - web entry points for fixed assets accounting
 
-=head1 SYNPOSIS
+=head1 DESCRIPTION
 
 Asset Management workflow script
 
@@ -14,17 +15,20 @@ Asset Management workflow script
 
 =cut
 
-package LedgerSMB::Scripts::asset;
-use LedgerSMB::Magic qw( MONTHS_PER_YEAR  RC_PARTIAL_DISPOSAL RC_DISPOSAL );
-use LedgerSMB::Template;
+use strict;
+use warnings;
+
+use Text::CSV;
+
 use LedgerSMB::DBObject::Asset_Class;
 use LedgerSMB::DBObject::Asset;
 use LedgerSMB::DBObject::Asset_Report;
+use LedgerSMB::Magic qw( MONTHS_PER_YEAR  RC_PARTIAL_DISPOSAL RC_DISPOSAL );
+use LedgerSMB::PGNumber;
 use LedgerSMB::Report::Assets::Net_Book_Value;
 use LedgerSMB::Report::Listings::Asset_Class;
 use LedgerSMB::Report::Listings::Asset;
-use strict;
-use warnings;
+use LedgerSMB::Template::UI;
 
 our @file_columns = qw(tag purchase_date description asset_class location vendor
                       invoice department asset_account purchase_value
@@ -45,14 +49,9 @@ set defaults here.
 
 sub begin_depreciation_all {
     my ($request) = @_;
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/asset',
-        template => 'begin_depreciation_all',
-        format => 'HTML'
-    );
-    return $template->render({ request => $request });
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'asset/begin_depreciation_all',
+                             { request => $request });
 }
 
 =item depreciate_all
@@ -77,14 +76,8 @@ sub depreciate_all {
         $dep->save;
     }
     $request->{message} = $request->{_locale}->text('Depreciation Successful');
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI',
-        template => 'info',
-        format => 'HTML'
-    );
-    return $template->render({ request => $request });
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'info', { request => $request });
 }
 
 =item asset_category_screen
@@ -107,15 +100,10 @@ sub asset_category_screen {
           $ac = LedgerSMB::DBObject::Asset_Class->new({base => $request});
      }
      $ac->get_metadata;
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/asset',
-        template => 'edit_class',
-        format => 'HTML'
-    );
-    return $template->render({ request => $request,
-                                       asset_class => $ac });
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'asset/edit_class',
+                             { request => $request,
+                               asset_class => $ac });
 }
 
 =item asset_category_save
@@ -141,17 +129,13 @@ Displays the asset category search screen
 
 sub asset_category_search {
     my ($request) = @_;
-    my $template = LedgerSMB::Template->new(
-        user =>$request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/asset',
-        template => 'search_class',
-        format => 'HTML'
-    );
-    my $ac = LedgerSMB::DBObject::Asset_Class->new();
+    my $ac = LedgerSMB::DBObject::Asset_Class->new({ base => $request });
     $ac->get_metadata;
-    return $template->render({ request => $request,
-                                       asset_class => $ac });
+
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'asset/search_class',
+                             { request => $request,
+                               asset_class => $ac });
 }
 
 =item asset_category_results
@@ -212,15 +196,10 @@ sub asset_screen {
     }
     $asset->{title} = $request->{_locale}->text('Add Asset')
                  unless $asset->{title};
-    my $template = LedgerSMB::Template->new(
-        user =>$request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/asset',
-        template => 'edit_asset',
-        format => 'HTML'
-    );
-    return $template->render({ request => $request,
-                                       asset => $asset });
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'asset/edit_asset',
+                             { request => $request,
+                               asset => $asset });
 }
 
 =item asset_search
@@ -240,15 +219,10 @@ sub asset_search {
     unshift @{$asset->{departments}}, {};
     unshift @{$asset->{asset_accounts}}, {};
     unshift @{$asset->{dep_accounts}}, {};
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/asset',
-        template => 'search_asset',
-        format => 'HTML'
-    );
-    return $template->render({ request => $request,
-                                       asset => $asset });
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'asset/search_asset',
+                             { request => $request,
+                               asset => $asset });
 }
 
 =item asset_results
@@ -309,15 +283,10 @@ sub new_report {
     my ($request) = @_;
     my $report = LedgerSMB::DBObject::Asset_Report->new({base => $request});
     $report->get_metadata;
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/asset',
-        template => 'begin_report',
-        format => 'HTML'
-    );
-    return $template->render({ request => $request,
-                                       report => $report });
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'asset/begin_report',
+                             { request => $request,
+                               report => $report });
 }
 
 =item report_init
@@ -473,14 +442,8 @@ sub display_report {
    {
        $hiddens->{$hide} = $request->{$hide};
    }
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI',
-        template => 'form-dynatable',
-        format => 'HTML'
-    );
-    return $template->render({
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'form-dynatable', {
                         form => $request,
                      columns => $cols,
                      heading => $heading,
@@ -506,15 +469,10 @@ sub search_reports {
     $request->{title} = $request->{_locale}->text('Search reports');
     my $ar = LedgerSMB::DBObject::Asset_Report->new({base => $request});
     $ar->get_metadata;
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/asset',
-        template => 'begin_approval',
-        format => 'HTML'
-    );
-    return $template->render({ request => $request,
-                                       asset_report => $ar });
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'asset/begin_approval',
+                             { request => $request,
+                               asset_report => $ar });
 }
 
 =item report_results
@@ -599,14 +557,8 @@ sub report_results {
                    value => 'report_results_approve'
                    },
     ];
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI',
-        template => 'form-dynatable',
-        format => 'HTML'
-    );
-    return $template->render({
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'form-dynatable', {
          form    => $ar,
          heading => $header,
          rows    => $rows,
@@ -659,14 +611,6 @@ sub report_details {
         }
         push @$rows, $r;
     }
-    my $template = LedgerSMB::Template->new(
-          request => $request,
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI',
-        template => 'form-dynatable',
-        format => 'HTML'
-    );
     my $buttons = [{
                    text  => $locale->text('Approve'),
                    type  => 'submit',
@@ -675,7 +619,8 @@ sub report_details {
                    value => 'report_details_approve'
                    },
     ];
-    return $template->render({
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'form-dynatable', {
                        form => $report,
                     columns => \@cols,
                     heading => $header,
@@ -728,14 +673,6 @@ sub partial_disposal_details {
         );
         push @$rows, $r;
     }
-    my $template = LedgerSMB::Template->new(
-          request => $request,
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI',
-        template => 'form-dynatable',
-        format => 'HTML'
-    );
     my $buttons = [{
                    text  => $locale->text('Approve'),
                    type  => 'submit',
@@ -744,7 +681,8 @@ sub partial_disposal_details {
                    value => 'disposal_details_approve'
                    },
     ];
-    return $template->render({
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'form-dynatable', {
                        form => $report,
                     columns => \@cols,
                     heading => $header,
@@ -796,14 +734,6 @@ sub disposal_details {
         $r->{gain_loss} = $r->{gain_loss}->to_output(money => 1, neg_format => '-');
         push @$rows, $r;
     }
-    my $template = LedgerSMB::Template->new(
-        request => $request,
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI',
-        template => 'form-dynatable',
-        format => 'HTML'
-    );
     my $buttons = [{
                    text  => $locale->text('Approve'),
                    type  => 'submit',
@@ -812,7 +742,8 @@ sub disposal_details {
                    value => 'disposal_details_approve'
                    },
     ];
-    return $template->render({
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'form-dynatable', {
                        form => $report,
                     columns => \@cols,
                     heading => $header,
@@ -906,14 +837,8 @@ No inputs required.
 
 sub begin_import {
     my ($request) = @_;
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/asset',
-        template => 'import_asset',
-        format => 'HTML'
-    );
-    return $template->render($request);
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'asset/import_asset', $request);
 }
 
 =item run_import
@@ -1037,8 +962,6 @@ sub run_import {
     }
 };
 
-1;
-
 =back
 
 =head1 CUSTOMIZATION NOTES
@@ -1046,10 +969,15 @@ sub run_import {
 The handling of CSV imports of fixed assets is handled by @file_columns.  This
 can be set in a custom/ file.
 
-=head1 Copyright (C) 2010, The LedgerSMB core team.
+=head1 LICENSE AND COPYRIGHT
 
-This file is licensed under the Gnu General Public License version 2, or at your
+Copyright (C) 2011-2018 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
 option any later version.  A copy of the license should have been included with
 your software.
 
 =cut
+
+
+1;

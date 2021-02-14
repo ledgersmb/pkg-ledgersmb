@@ -17,7 +17,7 @@ BEGIN;
     -- Validate required functions
 
     SELECT has_function('journal__add',ARRAY['text','text','integer','date','boolean','boolean','text']);
-    SELECT has_function('journal__add_line',ARRAY['integer','integer','numeric','boolean','text','integer[]']);
+    SELECT has_function('journal__add_line',ARRAY['integer','integer','numeric', 'numeric', 'text', 'boolean','text','integer[]']);
     SELECT has_function('journal__delete',ARRAY['integer']);
     SELECT has_function('journal__get_entry',ARRAY['integer']);
     SELECT has_function('journal__get_invoice',ARRAY['integer']);
@@ -26,7 +26,7 @@ BEGIN;
 --  SELECT has_function('journal__save_recurring',ARRAY['text','date','interval','integer','integer']);
     SELECT has_function('journal__save_recurring_print',ARRAY['integer','text','text']);
 --  SELECT has_function('journal__increment_recurring',ARRAY['integer','date']);
-    SELECT has_function('journal__search',ARRAY['text','text','integer','date','boolean','integer','boolean','text','integer','boolean']);
+    SELECT has_function('journal__search',ARRAY['text','text','integer','date','boolean','boolean','text','integer','boolean']);
     SELECT has_function('journal__validate_entry',ARRAY['integer']);
 
     -- Run tests

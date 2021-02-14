@@ -1,10 +1,20 @@
+
+package LedgerSMB::Report::Listings::TemplateTrans;
+
 =head1 NAME
 
 LedgerSMB::Report::Listings::TemplateTrans - Listing of Template Transactions
 
+=head1 DESCRIPTION
+
+Implements a listing of template transactions: transactions which have
+been (mostly) pre-filled. These transactions have themselves not been
+posted, however, copies of these transactions can be (quickly) posted
+due to the fact that only minimal additional data needs te be specified
+in order to complete the financial transaction.
+
 =cut
 
-package LedgerSMB::Report::Listings::TemplateTrans;
 use Moose;
 use namespace::autoclean;
 use LedgerSMB::Magic qw( JRNL_GJ JRNL_AR JRNL_AP );
@@ -75,7 +85,7 @@ sub columns {
     push @columns, {
       col_id => 'id',
         type => 'href',
-        name => LedgerSMB::Report::text('ID'),
+        name => $self->Text('ID'),
    href_base => $href_base,
     }, {
       col_id => 'journal_type',
@@ -84,24 +94,16 @@ sub columns {
     }, {
       col_id => 'description',
         type => 'href',
-        name => LedgerSMB::Report::text('Description'),
+        name => $self->Text('Description'),
    href_base => $href_base,
     }, {
       col_id => 'entity_name',
         type => 'text',
-        name => LedgerSMB::Report::text('Counterparty'),
+        name => $self->Text('Counterparty'),
     };
 
     return \@columns;
 }
-
-=head2 header_lines
-
-none
-
-=cut
-
-sub header_lines { return [] }
 
 =head2 set_buttons
 
@@ -116,7 +118,7 @@ sub set_buttons {
     if ($self->can_delete) {
         push @buttons, {
             name => 'action',
-            text => LedgerSMB::Report::text('Delete'),
+            text => $self->Text('Delete'),
            value => 'delete',
             type => 'submit',
            class => 'submit'
@@ -134,7 +136,7 @@ Template Transactions
 
 sub name {
     my $self = shift;
-    return LedgerSMB::Report::text('Template Transactions');
+    return $self->Text('Template Transactions');
 }
 
 =head2 run_report
@@ -158,6 +160,7 @@ sub run_report {
     return $self->rows(\@rows);
 }
 
+
 # PRIVATE METHODS
 
 # has_delete_permission()
@@ -180,9 +183,9 @@ sub _has_delete_permission {
 
 Copyright (C) 2016-2018 The LedgerSMB Core Team
 
-This module may be used under the terms of the GNU General Public License
-version 2 or at your option any later version.  Please see the enclosed
-LICENSE.txt for details
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

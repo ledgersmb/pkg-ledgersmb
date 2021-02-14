@@ -1,16 +1,16 @@
-[![GPLv2 Licence](https://badges.frapsoft.com/os/gpl/gpl.png?v=103)](https://opensource.org/licenses/GPL-2.0/)
-[![Build Status](https://api.travis-ci.org/ledgersmb/LedgerSMB.svg?branch=master)](https://travis-ci.org/ledgersmb/LedgerSMB)
-[![Coverage Status](https://coveralls.io/repos/github/ledgersmb/LedgerSMB/badge.svg?branch=master)](https://coveralls.io/github/ledgersmb/LedgerSMB?branch=master)
-[![Docker](https://img.shields.io/docker/pulls/ledgersmb/ledgersmb.svg)](https://hub.docker.com/r/ledgersmb/ledgersmb/)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/795/badge)](https://bestpractices.coreinfrastructure.org/projects/795)
-
-As coveralls currently has a bug with their badging for master, here is a corrected version
-[![Coverage Status](http://www.sbts.com.au/repos/github/ledgersmb/LedgerSMB/badge.svg?branch=master)](https://coveralls.io/github/ledgersmb/LedgerSMB?branch=master)
-
-
 # LedgerSMB
 
 Small and Medium business accounting and ERP
+
+
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/795/badge)](https://bestpractices.coreinfrastructure.org/projects/795)
+[![Build Status](https://api.travis-ci.org/ledgersmb/LedgerSMB.svg?branch=master)](https://travis-ci.org/ledgersmb/LedgerSMB)
+[![GPLv2 Licence](https://badges.frapsoft.com/os/gpl/gpl.png?v=103)](https://opensource.org/licenses/GPL-2.0/)
+[![Coverage Status](https://coveralls.io/repos/github/ledgersmb/LedgerSMB/badge.svg?branch=master)](https://coveralls.io/github/ledgersmb/LedgerSMB?branch=master)
+[![Docker](https://img.shields.io/docker/pulls/ledgersmb/ledgersmb.svg)](https://hub.docker.com/r/ledgersmb/ledgersmb/)
+[![Mentioned in Awesome <awesome-selfhosted>](https://awesome.re/mentioned-badge.svg)](https://github.com/Kickball/awesome-selfhosted#enterprise-resource-planning)
+
+
 
 # SYNOPSIS
 
@@ -30,9 +30,14 @@ customers or RFQs (request for quotation) to your vendors with PDF attachments.
 
 # System requirements
 
+Note that these are the system requirements for LedgerSMB 1.7; the planned next
+minor release. Please check the system requirements for [the 1.5 old stable
+version](https://github.com/ledgersmb/LedgerSMB/tree/1.5#system-requirements)
+and [current 1.6 version](https://github.com/ledgersmb/LedgerSMB/tree/1.6#system-requirements).
+
 ## Server
 
- * Perl 5.14+
+ * Perl 5.18+
  * PostgreSQL 9.4+
  * Web server (e.g. nginx, Apache, lighttpd)
 
@@ -42,17 +47,17 @@ below.
 
 ## Client
 
-A [Dojo 1.13 compatible web browser](http://dojotoolkit.org/reference-guide/1.10/releasenotes/1.10.html#user-agent-support)
-is all that's required on the client (except IE8 and 9); it includes Chrome as
-of version 13, FireFox as of 3.6 and MS Internet Explorer as of version 10 and
-a wide range of mobile browsers.
+A [Dojo 1.15 compatible web browser](http://dojotoolkit.org/reference-guide/1.10/releasenotes/1.10.html#user-agent-support)
+is all that's required on the client (except IE8 and 9); it includes all
+current versions of Chrome and FireFox as of 3.6, as well as MS Internet
+Explorer as of version 10 and a wide range of mobile browsers.
 
 # Quick start (Docker compose)
 
 The quickest way to get the Docker image up and running is by using the
 docker-compose file available through the GitHub repository at:
 
-https://github.com/ledgersmb/ledgersmb-docker/blob/1.5/docker-compose.yml
+https://github.com/ledgersmb/ledgersmb-docker/blob/1.6/docker-compose.yml
 
 which sets up both the LedgerSMB image and a supporting database image for
 production purposes (i.e. with persistent (database) data, with the
@@ -92,8 +97,6 @@ Then, some of the features listed below have system requirements as well:
    * dvitopdf
    * dvitops
    * pdftops
- * latex-pdf-images
-   * ImageMagick
 
 ## Perl module dependencies
 
@@ -127,7 +130,6 @@ specifying ```--with-feature=<feature>```:
 | Feature          | Description                         |
 |------------------|-------------------------------------|
 | latex-pdf-ps     | Enable PDF and PostScript output    |
-| latex-pdf-images | Image size detection for PDF output |
 | starman          | Starman Perl/PSGI webserver         |
 | openoffice       | OpenOffice.org document output      |
 | edi              | (EXPERIMENTAL) X12 EDI support      |
@@ -146,7 +148,6 @@ number of dependencies installed from CPAN.
 **NOTES**
 
  1. For the pdf-ps target, LaTeX is required.
- 1. For the pdf-images target, ImageMagick is  required.
 
 ## PostgreSQL configuration
 
@@ -203,7 +204,7 @@ With the above steps completed, the system is ready to run the web server:
  >     a serious security issue, and as such LedgerSMB doesn't support it.
  >     Instead, if you need to start LedgerSMB from a root process, drop
  >     privileges to a user that doesn't have write access to the LedgerSMB Directories first.
- >     Most daemonising mechanisims (eg: systemd) provide a mechanism to do this.
+ >     Most daemonising mechanisms (eg: systemd) provide a mechanism to do this.
  >     Do not use the starman --user= mechanism, it currently drops privileges too late.
 
 ```bash
@@ -231,7 +232,7 @@ We support the following Environment Variables within our code
     ```
 
 
-We support the following Environment Variables for our dependancies
+We support the following Environment Variables for our dependencies
 - PGHOST : Optional
      - Specifies the Postgres server Domain Name or IP address
 - PGPORT : Optional
@@ -239,7 +240,7 @@ We support the following Environment Variables for our dependancies
 - PGSSLMODE : Optional
      - Enables SSL for the Postgres connection
 
-All Environment Variables supported by our dependancies should be passed through to them,
+All Environment Variables supported by our dependencies should be passed through to them,
 that includes the standard Postgres Variables and others
 
 
@@ -283,7 +284,7 @@ as well as in the Transifex project Timeline.
 # Copyright
 
 ```plain
-Copyright (c) 2006 - 2018 The LedgerSMB Project contributors
+Copyright (c) 2006 - 2019 The LedgerSMB Project contributors
 Copyright (c) 1999 - 2006 DWS Systems Inc (under the name SQL Ledger)
 ```
 

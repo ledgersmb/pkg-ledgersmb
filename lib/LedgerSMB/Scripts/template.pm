@@ -1,18 +1,13 @@
+
+package LedgerSMB::Scripts::template;
+
 =head1 NAME
 
 LedgerSMB::Scripts::template - Template editing workflows for LedgerSMB
 
-=cut
+=head1 DESCRIPTION
 
-package LedgerSMB::Scripts::template;
-
-use strict;
-use warnings;
-
-use LedgerSMB::Template::DB;
-use LedgerSMB::Report::Listings::Templates;
-use LedgerSMB::Template;
-use LedgerSMB::App_State;
+Entry points for uploading, listing, saving and editing document templates.
 
 =head1 SYNPOSIS
 
@@ -23,6 +18,22 @@ To display the edit screen1
 To edit:
 
    LedgerSMB::Scripts::template::edit($request)
+
+=cut
+
+use strict;
+use warnings;
+
+use LedgerSMB;
+use LedgerSMB::App_State;
+use LedgerSMB::Report::Listings::Templates;
+use LedgerSMB::Template;
+use LedgerSMB::Template::DB;
+use LedgerSMB::Template::UI;
+
+=head1 METHODS
+
+This module doesn't specify any methods.
 
 =head1 FUNCTIONS
 
@@ -54,15 +65,10 @@ sub display {
     $dbtemp = $request unless $dbtemp->{format};
     $dbtemp->{languages} =
         [ LedgerSMB->call_procedure(funcname => 'person__list_languages') ];
-    return LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/templates',
-        template => 'preview',
-        format   => 'HTML'
-    )->render({ request => $request,
-                template => $dbtemp,
-                %$dbtemp });
+    return LedgerSMB::Template::UI->new_UI
+        ->render($request, 'templates/preview', { request => $request,
+                                                  template => $dbtemp,
+                                                  %$dbtemp });
 }
 
 =head2 edit($request)
@@ -89,14 +95,9 @@ sub edit {
     $dbtemp->{languages} =
         [ LedgerSMB->call_procedure(funcname => 'person__list_languages') ];
 
-    return LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/templates',
-        template => 'edit',
-        format   => 'HTML'
-    )->render({ request => $request,
-                        to_edit => $dbtemp });
+    return LedgerSMB::Template::UI->new_UI
+        ->render($request, 'templates/edit', { request => $request,
+                                               to_edit => $dbtemp });
 }
 
 =head2 save($request)
@@ -134,7 +135,7 @@ sub upload {
     # the template name and extension. Is this appropriate/necessary?
     die 'No content' unless $fdata;
     my $testname = $request->{template_name} . '.' . $request->{format};
-    die LedgerSMB::App_State::Locale->text(
+    die LedgerSMB::App_State::Locale()->text(
                 'Unexpected file name, expected [_1], got [_2]',
                  $testname, $upload->basename)
           unless $upload->basename eq $testname;
@@ -145,13 +146,13 @@ sub upload {
     return display($request);
 }
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2014-2018 The LedgerSMB Core Team.
+Copyright (C) 2014-2018 The LedgerSMB Core Team
 
-This file may be re-used under the terms of the GNU General Public License
-version 2 or at your option any later version.  Please see the included
-LICENSE.txt for details.
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

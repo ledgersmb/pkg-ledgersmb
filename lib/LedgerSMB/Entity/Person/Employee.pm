@@ -1,6 +1,15 @@
+
+package LedgerSMB::Entity::Person::Employee;
+
 =head1 NAME
 
 LedgerSMB::Entity::Person::Employee -- Employee handling for LedgerSMB
+
+=head1 DESCRIPTION
+
+Derived from C<LedgerSMB::Entity::Person>, this class adds
+"employee attributes" such as start and end dates, HR hierarchy (manager)
+and organisational funcion/role name.
 
 =head1 SYNOPSIS
 
@@ -28,7 +37,6 @@ To get by control code:
 
 =cut
 
-package LedgerSMB::Entity::Person::Employee;
 use Moose;
 use namespace::autoclean;
 use LedgerSMB::Entity::Person;
@@ -178,11 +186,13 @@ sub save {
 
 =back
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2012, the LedgerSMB Core Team.  This file may be re-used under
-the GNU GPL version 2 or at your option any future version.  Please see the
-accompanying LICENSE file for details.
+Copyright (C) 2012 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

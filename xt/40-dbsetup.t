@@ -1,12 +1,13 @@
 # Database setup tests.
 
-use Test::More;
+use Test2::V0;
+
 use LedgerSMB::Database;
 use LedgerSMB;
 use LedgerSMB::Sysconfig;
 use LedgerSMB::DBObject::Admin;
-use strict;
 use DBI;
+use Plack::Request;
 
 # This entire test suite will be skipped unless environment
 # variable LSMB_TEST_DB is true
@@ -20,7 +21,6 @@ $ENV{LSMB_NEW_DB} or BAIL_OUT('LSMB_NEW_DB is not set');
 
 my $temp = $ENV{TEMP} || '/tmp/';
 
-plan tests => 19;
 $ENV{PGDATABASE} = $ENV{LSMB_NEW_DB};
 $LedgerSMB::Sysconfig::db_namespace = 'altschema';
 
@@ -35,7 +35,24 @@ ok($db->create, 'Database Created')
   || BAIL_OUT('Database could not be created! ');
 ok($db->load_base_schema, 'Basic schema loaded');
 ok($db->apply_changes, 'applied changes');
+my $patch_log_dbh = $db->connect;
+my $patch_log_sth =
+    $patch_log_dbh->prepare('select count(*) from db_patch_log')
+    or BAIL_OUT $patch_log_dbh->errstr;
+$patch_log_sth->execute or BAIL_OUT $patch_log_sth->errstr;
+my ($log_count) = $patch_log_sth->fetchrow_array;
+ok(($log_count > 1), 'Applied patches are logged');
+
+$patch_log_sth =
+    $patch_log_dbh->prepare('select count(*) from db_patches')
+    or BAIL_OUT $patch_log_dbh->errstr;
+$patch_log_sth->execute or BAIL_OUT $patch_log_sth->errstr;
+my ($patch_count) = $patch_log_sth->fetchrow_array;
+ok(($patch_count > 1), 'Applied patches are recorded in db_patches table');
+is($patch_count, $log_count, 'Patch and log counts are equal; all patches apply first time around');
 ok($db->load_modules('LOADORDER'), 'Modules loaded');
+$patch_log_sth->finish;
+$patch_log_dbh->disconnect; # Without disconnecting, the copy below fails...
 
 if (!$ENV{LSMB_INSTALL_DB}){
 
@@ -114,7 +131,8 @@ SKIP: {
                 or !defined $ENV{LSMB_ADMIN_FNAME}
                 or !defined $ENV{LSMB_ADMIN_LNAME});
      # Move to LedgerSMB::DBObject::Admin calls.
-     my $lsmb = LedgerSMB->new;
+     my $request = Plack::Request->new({});
+     my $lsmb = LedgerSMB->new($request);
      ok(defined $lsmb, '$lsmb defined');
      isa_ok($lsmb, 'LedgerSMB');
      $lsmb->{dbh} = DBI->connect("dbi:Pg:dbname=$ENV{PGDATABASE}",
@@ -161,3 +179,4 @@ SKIP: {
         'Ran GIFI Script');
 }
 
+done_testing;

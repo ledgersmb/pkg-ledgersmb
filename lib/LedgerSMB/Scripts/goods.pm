@@ -1,10 +1,21 @@
+
+package LedgerSMB::Scripts::goods;
+
 =head1 NAME
 
 LedgerSMB::Scripts::goods - Goods and Services workflows for LedgerSMB
 
-=cut
+=head1 DESCRIPTION
 
-package LedgerSMB::Scripts::goods;
+Implements the goods search, parts groups, price groups and
+inventory activity screens.
+
+=head1 SYNOPSIS
+
+ LedgerSMB::Scripts::goods::search_screen($request);
+ LedgerSMB::Scripts::goods::search($request);
+
+=cut
 
 use strict;
 use warnings;
@@ -17,12 +28,7 @@ use LedgerSMB::Report::Inventory::Partsgroups;
 use LedgerSMB::Report::Inventory::Pricegroups;
 use LedgerSMB::Report::Inventory::Activity;
 
-=head1 SYNOPSIS
-
- LedgerSMB::Scripts::goods::search_screen($request);
- LedgerSMB::Scripts::goods::search($request);
-
-=head1 Routines
+=head1 METHODS
 
 =over
 
@@ -107,11 +113,13 @@ sub cogs_lines {
 
 =back
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-COPYRIGHT (C) 2012 The LedgerSMB Core Team.  This file may be re-used under the
-terms of the LedgerSMB General Public License version 2 or at your option any
-later version.  Please see enclosed LICENSE file for details.
+Copyright (C) 2012 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

@@ -1,12 +1,15 @@
+
+package LedgerSMB::Scripts::payment;
+
 =head1 NAME
 
-LedgerSMB::Scripts::payment - LedgerSMB class defining the Controller functions for payment handling.
+LedgerSMB::Scripts::payment - Web entrypoints for payment handling.
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 Defines the controller functions and workflow logic for payment processing.
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Portions Copyright (c) 2007, David Mora R and Christian Ceballos B.
 
@@ -43,28 +46,32 @@ Original copyright notice below.
 
 =cut
 
+use strict;
+use warnings;
 
-package LedgerSMB::Scripts::payment;
-use LedgerSMB::Template;
-use LedgerSMB::Setting;
-use LedgerSMB::Sysconfig;
+use List::Util qw/any sum/;
+
+use LedgerSMB::App_State;
 use LedgerSMB::Business_Unit;
+use LedgerSMB::Company_Config;
 use LedgerSMB::DBObject::Payment;
 use LedgerSMB::DBObject::Date;
 use LedgerSMB::Magic qw( MAX_DAYS_IN_MONTH BRU_DEPARTMENT EC_VENDOR );
 use LedgerSMB::PGDate;
 use LedgerSMB::PGNumber;
-use LedgerSMB::Scripts::reports;
 use LedgerSMB::Report::Invoices::Payments;
-use strict;
-use warnings;
-use List::Util qw/sum/;
+use LedgerSMB::Request::Helper::ParameterMap;
+use LedgerSMB::Sysconfig;
+use LedgerSMB::Template;
+use LedgerSMB::Template::UI;
+
 
 # CT:  A few notes for future refactoring of this code:
 # 1:  I don't think it is a good idea to make the UI too dependant on internal
 #     code structures but I don't see a good alternative at the moment.
 # 2:  CamelCasing: -1
-# 3:  Not good to have this much duplication of code all the way down the stack.#     At the moment this is helpful because it gives us an opportunity to look
+# 3:  Not good to have this much duplication of code all the way down the stack.
+#     At the moment this is helpful because it gives us an opportunity to look
 #     at various sets of requirements and workflows, but for future versions
 #     if we don't refactor, this will turn into a bug factory.
 # 4:  Both current interfaces have issues regarding separating layers of logic
@@ -74,71 +81,97 @@ use List::Util qw/sum/;
 
 =over
 
-=item payments
+=item payments($request)
 
-This method is used to set the filter screen and prints it, using the
-TT2 system.
+Prepare and display the Payments Filter screen.
+
+C<payments> is a L<LedgerSMB> object reference. The following request keys
+must be defined:
+
+  * dbh
+  * account_class
+  * batch_id
 
 =cut
 
 sub payments {
     my ($request) = @_;
-    my $payment =  LedgerSMB::DBObject::Payment->new({'base' => $request});
+    my $payment_data = {
+        dbh => $request->{dbh},
+        account_class => $request->{account_class},
+        batch_id => $request->{batch_id},
+    };
+    my $payment = LedgerSMB::DBObject::Payment->new({'base' => $payment_data});
     $payment->get_metadata();
-    if (!defined $payment->{batch_date}){
-        $payment->error('No Batch Date!');
-    }
-    my @curr = LedgerSMB::Setting->new()->get_currencies;
-    $payment->{default_currency} = $curr[0];
-    @{$payment->{curr}} = map { { value => $_, text => $_ } } @curr;
-    my $template = LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/payments',
-        template => 'payments_filter',
-        format   => 'HTML',
-    );
 
-    return $template->render({ request => $request,
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'payments/payments_filter',
+                             { request => $request,
                                        payment => $payment });
 }
 
-=item get_search_criteria
+=item get_search_criteria($request)
 
-Displays the payment criteria screen.  Optional inputs are
+Displays the 'Search Payments' screen.
 
-=over
+C<$request> is a L<LedgerSMB> object reference. The following keys must be
+set:
 
-=item batch_id
+  * dbh
+  * account_class
 
-=item batch_date
+Optionally the following key may be defined, if the search is to be used to
+find payments to add as vouchers to a reversing batch:
 
-=back
+  * batch_id
 
 =cut
 
 sub get_search_criteria {
     my ($request) = @_;
-    my $payment =  LedgerSMB::DBObject::Payment->new({'base' => $request});
+
+    my $payment_data = {
+        dbh => $request->{dbh},
+        account_class => $request->{account_class},
+        all_months => LedgerSMB::App_State->all_months->{dropdown},
+    };
+
+    # Additional data needed if this search is to create reversing vouchers
+    $payment_data->{batch_id} = $request->{batch_id} if $request->{batch_id};
+
+    my $payment = LedgerSMB::DBObject::Payment->new({'base' => $payment_data});
     $payment->get_metadata();
-    if ($payment->{batch_id} && $payment->{batch_date}){
-        $payment->{date_reversed} = $payment->{batch_date};
-    }
-    @{$payment->{currencies}} = $payment->get_open_currencies();
-    $payment->{report_name} = 'payments';
-    return LedgerSMB::Scripts::reports::start_report($payment);
+
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render(
+        $request,
+        'Reports/filters/payments',
+        $payment
+    );
 }
 
 =item pre_bulk_post_report
 
-    This displays a report of the expected GL activity of a payment batch before it
-    is saved.  For receipts, this just redirects to bulk_post currently.
+This displays a report of the expected GL activity of a payment batch before it
+is saved.  For receipts, this just redirects to bulk_post currently.
 
 =cut
 
+
+my $bulk_post_map = input_map(
+    [ qr/^(?<fld>id|source|memo|paid)_(?<cid>\d+)$/ => '@contacts<cid>:%<fld>' ],
+    [ qr/^contact_label_(?<cid>\d+)$/ => '@contacts<cid>:%pay_to>' ],
+    [ qr/^(?<fld>invoice_date|invnumber|due|payment|invoice|net)_(?<cid>\d+)_(?<invrow>\d+)$/
+      => '@contacts<cid>:@invoices<invrow>:%<fld>' ],
+    [ qr/(?<fld>cash_accno|ar_ap_accno)$/ => '%<fld>' ],
+    [ qr/^transdate$/ => '%date_paid' ],
+    [ qr/^datepaid$/ => '%payment_date' ],
+    [ qr/^(?<fld>multiple)$/ => '%<fld>' ],
+    );
+
 sub pre_bulk_post_report {
     my ($request) = @_;
-    my $template = LedgerSMB::Template->new(
+    my $template = LedgerSMB::Template->new( # printed document
         user     => $request->{_user},
         locale   => $request->{_locale},
         path     => 'UI',
@@ -147,9 +180,6 @@ sub pre_bulk_post_report {
     );
     my $cols;
     @$cols =  qw(pay_to accno source memo debits credits);
-    my $rows = [];
-    my $total_debits = 0;
-    my $total_credits = 0;
     my $heading = {
         pay_to          => $request->{_locale}->text('Pay To'),
         accno           => $request->{_locale}->text('Account Number'),
@@ -159,42 +189,37 @@ sub pre_bulk_post_report {
         memo            => $request->{_locale}->text('Memo'),
         debits           => $request->{_locale}->text('Debits'),
         credits          => $request->{_locale}->text('Credits')
-                  };
-    my $total = 0;
-    for my $crow (1 .. $request->{contact_count}){
-        my $ref;
-        my $cid = $request->{"contact_$crow"};
-        if ($request->{"id_$cid"}){
-            $ref = {pay_to    => $request->{"contact_label_$cid"},
-                    accno     => $request->{ar_ap_accno},
-                    transdate => $request->{date_paid},
-                    source    => $request->{"source_$cid"},
-                    memo      => $request->{"memo_$cid"},
-                    amount    => 0
-                   };
-            for my $invrow (1 .. $request->{"invoice_count_$cid"}){
-                 my $inv_id = $request->{"invoice_${cid}_$invrow"};
-                 $ref->{amount} +=
-                    LedgerSMB::PGNumber->from_input($request->{"payment_$inv_id"});
-             }
-             # If vendor, this is debit-normal so multiply by -1
-             if ($request->{account_class} == EC_VENDOR ){ # vendor
-                 $ref->{amount} *= -1;
-              }
-              if ($ref->{amount} < 0) {
-                  $ref->{debits} = $ref->{amount} * -1;
-                  $ref->{credits} = 0;
-              } else {
-                  $ref->{debits} = 0;
-                  $ref->{credits} = $ref->{amount};
-              }
-              $total_debits += $ref->{debits};
-              $total_credits += $ref->{credits};
-              push @$rows, $ref;
-              $total += $ref->{amount};
-        }
-    }
+    };
 
+    # parse the flat "request" namespace into a hierarchical structure
+    # as defined by the $bulk_post_map transform
+
+    # copy the request record, because the mapper modifies the hash
+    # but we need the original request below...
+    my $data = $bulk_post_map->({ %$request });
+
+    # The user interface sets the 'id' field true-ish when the customer
+    # is selected for inclusion in the bulk payment
+    @{$data->{contacts}} = grep { $_->{id} } @{$data->{contacts}};
+    for my $crow (@{$data->{contacts}}) {
+        $crow->{accno} = $data->{ar_ap_accno};
+        $crow->{transdate} = $request->{payment_date};
+        $crow->{amount} =
+            sum map {
+                ($crow->{paid} eq 'some')
+                    ? LedgerSMB::PGNumber->from_input($_->{payment})
+                    : LedgerSMB::PGNumber->from_input($_->{net}) }
+            @{$crow->{invoices}};
+        $crow->{amount} *= -1
+                    if ($request->{account_class} == EC_VENDOR);
+        $crow->{debits} = ($crow->{amount} < 0) ? ($crow->{amount} * -1) : 0;
+        $crow->{credits} = ($crow->{amount} > 0) ? $crow->{amount} : 0;;
+    }
+    my $rows = $data->{contacts};
+
+    my $total = sum map { $_->{amount} } @{$data->{contacts}};
+    my $total_debits = sum map { $_->{debits} } @{$data->{contacts}};
+    my $total_credits = sum map { $_->{credits} } @{$data->{contacts}};
 
     # Cash summary
     my $ref = {
@@ -336,7 +361,8 @@ sub post_payments_bulk {
     my ($request) = @_;
     my $payment =  LedgerSMB::DBObject::Payment->new({'base' => $request});
     if ($request->close_form){
-        $payment->post_bulk();
+        my $data = $bulk_post_map->($request);
+        $payment->post_bulk($data);
     } else {
         $payment->{notice} =
            $payment->{_locale}->text('Data not saved.  Please try again.');
@@ -374,53 +400,53 @@ sub print {
     }
 
     $payment->{format_amount} =
-        sub {return LedgerSMB::PGNumber->from_input(@_)->to_output(); };
+        sub {return LedgerSMB::PGNumber->from_input(@_)->to_output(money => 1); };
 
-    if ($payment->{multiple}){
+    my $data = $bulk_post_map->($request);
+    if ($data->{multiple}){
         $payment->{checks} = [];
-        for my $line (1 .. $payment->{contact_count}){
-            my $id = $payment->{"contact_$line"};
-            next if !defined $payment->{"id_$id"};
+
+        # consider only contacts which have been explicitly selected
+        # for inclusion in the bulk payment ($contact->{id} == true-ish)
+        for my $contact (sort { $a->{source} <=> $b->{source}  }
+                         grep { $_->{id} } @{$data->{contacts}}){
             my ($check) = $payment->call_procedure(
-                     funcname => 'company_get_billing_info', args => [$id]
+                funcname => 'company_get_billing_info',
+                args => [ $contact->{id} ]
             );
             $check->{entity_class} = $payment->{account_class};
-            $check->{id} = $id;
+            $check->{id} = $contact->{id};
             $check->{amount} = LedgerSMB::PGNumber->from_db('0');
             $check->{invoices} = [];
-            $check->{source} = $payment->{"source_$id"};
+            $check->{source} = $contact->{source};
 
             my $inv_count;
-            my $check_max_invoices = LedgerSMB::Setting->get(
+            my $check_max_invoices = $request->setting->get(
                          'check_max_invoices'
             );
-            if ($check_max_invoices > $payment->{"invoice_count_$id"}) {
-                $inv_count = $payment->{"invoice_count_$id"};
+            if ($check_max_invoices > scalar(@{$contact->{invoices}})) {
+                $inv_count = scalar(@{$contact->{invoices}});
             } else {
                 $inv_count = $check_max_invoices;
             }
 
-            for my $inv (1 .. $payment->{"invoice_count_$id"}){
-                my $invhash = {};
-                my $inv_id = $payment->{"invoice_${id}_$inv"};
-                for (qw(invnumber due invoice_date)){
-                    $invhash->{$_} = $payment->{"${_}_${inv_id}"};
-                }
-                if ($payment->{"paid_$id"} eq 'some'){
-                    $invhash->{paid} = LedgerSMB::PGNumber
-                        ->from_input($payment->{"payment_${inv_id}"});
-                } elsif ($payment->{"paid_$id"} eq 'all'){
-                    $invhash->{paid} = LedgerSMB::PGNumber
-                        ->from_input($payment->{"net_${inv_id}"});
+            for my $invoice (@{$contact->{invoices}}) {
+                if ($contact->{paid} eq 'some'){
+                    $invoice->{paid} = LedgerSMB::PGNumber
+                        ->from_input($invoice->{payment});
+                } elsif ($contact->{paid} eq 'all'){
+                    $invoice->{paid} = LedgerSMB::PGNumber
+                        ->from_input($invoice->{net});
                 } else {
-                    $payment->error('Invalid Payment Amount Option');
+                    $request->error('Invalid Payment Amount Option');
                 }
-                $check->{amount} += $invhash->{paid};
-                $invhash->{paid} = $invhash->{paid}->to_output(
+                $check->{amount} += $invoice->{paid};
+                $invoice->{paid} = $invoice->{paid}->to_output(
                     format => '1000.00',
                     money => 1
                 );
-                push @{$check->{invoices}}, $invhash if $inv <= $inv_count;
+                push @{$check->{invoices}}, $invoice
+                    if scalar(@{$check->{invoices}}) <= $inv_count;
             }
             my $amt = $check->{amount}->copy;
             $amt->bfloor();
@@ -432,7 +458,7 @@ sub print {
             );
             push @{$payment->{checks}}, $check;
         }
-        $template = LedgerSMB::Template->new(
+        $template = LedgerSMB::Template->new( # printed document
             user => $payment->{_user},
             template => 'check_multiple',
             format => uc $payment->{'format'},
@@ -458,80 +484,132 @@ sub update_payments {
     return display_payments(@_);
 }
 
-=item display_payments
+=item display_payments($request)
 
 This displays the bulk payment screen with current data.
+
+C<$request> is a L<LedgerSMB> object reference.
+
+Required request parameters:
+
+  * dbh
+  * action
+  * account_class [1|2]
+  * batch_id
+  * batch_date
+  * currency
+  * source_start
+
+Optionally accepts the following filtering parameters:
+
+  * ar_ap_accno
+  * meta_number
+
+Though the following filtering parameters appear to be available,
+they are not supported by the underlying C<payment_get_all_contact_invoices>
+database query:
+
+  * business_id
+  * date_from
+  * date_to
 
 =cut
 
 sub display_payments {
     my ($request) = @_;
-    my $payment =  LedgerSMB::DBObject::Payment->new({'base' => $request});
-    $payment->{default_currency} =  $payment->get_default_currency();;
-    $payment->get_payment_detail_data();
     $request->open_form();
-    my $db_fx = $payment->get_exchange_rate($payment->{currency},
-                                            $payment->{batch_date});
-    if ($db_fx){
-        $payment->{exchangerate} = $db_fx->bstr;
-        $payment->{fx_from_db} = 1;
-    } else {
-        $payment->{exchangerate} = undef;
-    }
-    $payment->{grand_total} = LedgerSMB::PGNumber->from_input(0);
+
+    my $data = $bulk_post_map->({ %$request });
+    my %req_contact_invoices =
+        map {
+            $_->{id} => {
+                map { $_->{invoice} => $_ } @{$_->{invoices}}
+            }
+    } @{$data->{contacts}};
+
+    my $payment =  LedgerSMB::DBObject::Payment->new({'base' => $request});
+    $payment->get_payment_detail_data();
+    $payment->{exchangerate} = undef;
+    $payment->{grand_total} = LedgerSMB::PGNumber->from_db('0');
+    my $have_selected =
+        any {
+            $request->{"id_$_->{contact_id}"}
+    } @{$payment->{contact_invoices}};
     my $source = $request->{source_start};
+    my $source_inc;
+    my $source_src;
+    $request->{source_start} =~ /(\d*)\D*$/;
+    $source_src = $1;
+    if ($source_src) {
+        $source_inc = $source_src;
+    } else {
+        $source_inc = 0;
+    }
+    my $source_length = length($source_inc);
     for (@{$payment->{contact_invoices}}){
-        my $contact_total = 0;
-        my $contact_to_pay = 0;
+        my $contact_total = LedgerSMB::PGNumber->from_db(0);
+        my $contact_to_pay = LedgerSMB::PGNumber->from_db(0);
+        my $req_contact_data = $req_contact_invoices{$_->{contact_id}};
 
         for my $invoice (@{$_->{invoices}}){
+            my $req_payment_data = $req_contact_data->{$invoice->{id}};
             if (($payment->{action} ne 'update_payments')
-                  or (defined $payment->{"id_$_->{contact_id}"})){
-                $payment->{"paid_$_->{contact_id}"} = ''
-                    unless defined $payment->{"paid_$_->{contact_id}"};
+                  or (defined $request->{"id_$_->{contact_id}"})){
+                $request->{"paid_$_->{contact_id}"} = ''
+                    unless defined $request->{"paid_$_->{contact_id}"};
             }
-            $invoice->[6] = $invoice->[3] - $invoice->[4] - $invoice->[5];  ## no critic (ProhibitMagicNumbers) sniff
-            $contact_to_pay += $invoice->[6];  ## no critic (ProhibitMagicNumbers) sniff
-            $invoice->[7] = $invoice->[6]->to_db;  ## no critic (ProhibitMagicNumbers) sniff
+            $invoice->{due} =
+                $invoice->{amount} - $invoice->{paid} - $invoice->{net};
+            $contact_to_pay += $invoice->{due};
+            $invoice->{to_pay} = $invoice->{due}->to_db;
 
-            my $fld = 'payment_' . $invoice->[0];
-            $contact_total += LedgerSMB::PGNumber->from_input($payment->{$fld});
+            $contact_total +=
+                LedgerSMB::PGNumber->from_input($req_payment_data->{payment});
 
-            $invoice->[3] = $invoice->[3]->to_output(money  => 1);  ## no critic (ProhibitMagicNumbers) sniff
-            $invoice->[4] = $invoice->[4]->to_output(money  => 1);
-            $invoice->[5] = $invoice->[5]->to_output(money  => 1);
-            $invoice->[6] = $invoice->[6]->to_output(money  => 1);
+            for my $fld (qw/ amount paid net due /) {
+                $invoice->{$fld} = $invoice->{$fld}->to_output(money  => 1);
+            }
 
+            my $fld = "payment_$_->{id}_$invoice->{id}";
             if ('display_payments' eq $request->{action}) {
-                $payment->{$fld} = $invoice->[6];
+                $payment->{$fld} = $invoice->{due};
             }
             else {
-                $payment->{$fld} //= 0;
                 $payment->{$fld} =
-                    LedgerSMB::PGNumber->from_input($payment->{$fld})
+                    LedgerSMB::PGNumber->from_input(
+                        $req_payment_data->{payment} // 0
+                    )
                     ->to_output(money => 1);
             }
         }
-        if ($payment->{"paid_$_->{contact_id}"} ne 'some') {
+
+        if ($request->{"paid_$_->{contact_id}"} ne 'some') {
                   $contact_total = $contact_to_pay;
         }
-        $_->{contact_total} = $contact_total;
-        $_->{to_pay} = $contact_to_pay;
+            $_->{contact_total} = $contact_total;
+            $_->{to_pay} = $contact_to_pay;
         $payment->{grand_total} += $contact_total
-            if ($payment->{"id_$_->{contact_id}"}
-                or (defined $payment->{"paid_$_->{contact_id}"}
-                    and $payment->{"paid_$_->{contact_id}"} eq 'some'));
+            if ($request->{"id_$_->{contact_id}"}
+                or (defined $request->{"paid_$_->{contact_id}"}
+                    and $request->{"paid_$_->{contact_id}"} eq 'some'));
 
-        my ($check_all) = LedgerSMB::Setting->get('check_payments');
-        if ($payment->{account_class} == 1 and $check_all){
-            $payment->{"id_$_->{contact_id}"} = $_->{contact_id};
-        }
+        my ($check_all) = $request->setting->get('check_payments');
+            if ($payment->{account_class} == 1 and $check_all){
+                 $payment->{"id_$_->{contact_id}"} = $_->{contact_id};
+            }
 
         if ($payment->{account_class} == 1
-            && $request->{"id_$_->{contact_id}"}) {
-            # AP && selected
+            && (not $have_selected or $request->{"id_$_->{contact_id}"})) {
+            # AP && selected item or AP and no selected items
+            my $source = $request->{source_start};
+            $source = '' unless defined $source;
+            if (length($source_inc) < $source_length) {
+                $source_inc = sprintf('%0*s', $source_length, $source_inc);
+            }
+            $source =~ s/$source_src(\D*)$/$source_inc$1/;
+            ++ $source_inc;
             $_->{source} = $source;
-            $source++;
+            $request->{"source_$_->{contact_id}"} = $source;
         }
         if ($payment->{account_class} == 2) {
             $_->{source} = $request->{"source_$_->{contact_id}"};
@@ -557,14 +635,9 @@ sub display_payments {
         $payment->{can_print} = 1;
     }
 
-    my $template = LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/payments',
-        template => 'payments_detail',
-        format   => 'HTML',
-    );
-    return $template->render({ request => $request,
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'payments/payments_detail',
+                             { request => $request,
                                        payment => $payment });
 }
 
@@ -579,12 +652,10 @@ sub payment {
     my ($request)    = @_;
     #my $locale       = $request->{_locale};
     my $dbPayment = LedgerSMB::DBObject::Payment->new({'base' => $request});
-    my $Settings = LedgerSMB::Setting->new({'base' => $request});
 
     # Lets get the currencies (this uses the $dbPayment->{account_class} property)
     my @currOptions;
-    my @arrayOptions;
-    @arrayOptions = $Settings->get_currencies();
+    my @arrayOptions = $request->setting->get_currencies();
 
     for my $ref (0 .. $#arrayOptions) {
         push @currOptions, { value => $arrayOptions[$ref],
@@ -637,14 +708,8 @@ sub payment {
         }
     };
 
-    my $template;
-    $template = LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/payments',
-        template => 'payment1',
-        format   => 'HTML' );
-     return $template->render($select);
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'payments/payment1', $select);
 }
 
 
@@ -703,17 +768,10 @@ sub payment1_5 {
                                value => 'payment2',
                                text =>  $request->{_locale}->text('Continue')}
         };
-        my $template;
-        $template = LedgerSMB::Template->new(
-            user     => $request->{_user},
-            locale   => $request->{_locale},
-            path     => 'UI/payments',
-            template => 'payment1_5',
-            format   => 'HTML');
 
-        return $template->render($select);
+        my $template = LedgerSMB::Template::UI->new_UI;
+        return $template->render($request, 'payments/payment1_5', $select);
     }
-
 }
 
 
@@ -833,10 +891,10 @@ sub payment2 {
         # date and the user selects a different date after opening
         # the screen: today's rate would be used with no way for the user
         # to override, if we would simply take the exrate from the request.
-        $exchangerate = $Payment->get_exchange_rate(
-            $request->{curr},
-            $request->{datepaid}
-            ? $request->{datepaid} : $Payment->{current_date});
+        #$exchangerate = $Payment->get_exchange_rate(
+        #        $request->{curr},
+        #        $request->{datepaid}
+        #        ? $request->{datepaid} : $Payment->{current_date});
 
         if ((! $exchangerate)
             && $request->{datepaid} eq $request->{olddatepaid}) {
@@ -869,17 +927,17 @@ sub payment2 {
     # FINALLY WE ADD TO THE COLUMN HEADERS A LAST FIELD TO PRINT THE CLOSE INVOICE CHECKBOX TRICK :)
     if ($request->{account_class} == 1) {
         push @column_headers,
-            {
-                text => $locale->text('To pay').$currency_text
-            },
+        {
+            text => $locale->text('To pay').$currency_text
+        },
             {
                 text => 'X'
             };
     } else {
         push @column_headers,
-            {
-                text => $locale->text('Received').$currency_text
-            },
+        {
+            text => $locale->text('Received').$currency_text
+        },
             {
                 text => 'X'
             };
@@ -887,66 +945,42 @@ sub payment2 {
     my @invoice_data;
     my @topay_state;
     my @open_invoices  = $Payment->get_open_invoices();
-    my $unhandled_overpayment;
     for my $invoice (@open_invoices) {
-        $invoice->{invoice_date} = $invoice->{invoice_date}->to_output;
+        $invoice->{invoice_date} = $invoice->{invoice_date}->to_output();
 
         if ($args{update}
             && ! $request->{"checkbox_$invoice->{invoice_id}"}) {
             next;
         }
 
-        my $request_topay_fx_bigfloat
-            = LedgerSMB::PGNumber->from_input($request->{"topay_fx_$invoice->{invoice_id}"});
+        if (($request->{"topay_fx_$invoice->{invoice_id}"} // '')
+            eq ($request->{"orig_topay_fx_$invoice->{invoice_id}"} // '')) {
+            # When the 'topay' amount hasn't been changed, delete it
+            # so it will be recalculated somewhere below
+            delete $request->{"topay_fx_$invoice->{invoice_id}"}
+        }
+
         # SHOULD I APPLY DISCCOUNTS?
         $request->{"optional_discount_$invoice->{invoice_id}"} =
             $request->{first_load}
         ? 'on'
             :  $request->{"optional_discount_$invoice->{invoice_id}"};
 
-        # LETS SET THE EXCHANGERATE VALUES
-        #tshvr4 meaning of next statement? does the same in either case!
-        my $due_fx = $invoice->{due_fx};
+        my $due_fx = $invoice->{due_fx} +
+            ($request->{"optional_discount_$invoice->{invoice_id}"}
+             ? 0 : $invoice->{discount_tc});
+        my $due = $invoice->{due} +
+            ($request->{"optional_discount_$invoice->{invoice_id}"}
+             ? 0 : $invoice->{discount});
 
-        my $topay_fx_value;
-        if ("$exchangerate") {
-            $topay_fx_value =   $due_fx;
-            if (!$request->{"optional_discount_$invoice->{invoice_id}"}) {
-                $topay_fx_value = $due_fx =
-                    $due_fx +
-                    ($invoice->{discount}/$invoice->{exchangerate});
-            }
-        } else {
-            #    $topay_fx_value = "N/A";
-        }
+        $invoice->{discount} = 0
+            if ! $request->{"optional_discount_$invoice->{invoice_id}"};
+        $invoice->{discount_tc} = 0
+            if ! $request->{"optional_discount_$invoice->{invoice_id}"};
 
 
-        # We need to check for unhandled overpayment, see the post
-        # function for details
-        # First we will see if the discount should apply?
-
-
-        # We need to compute the unhandled_overpayment, notice that
-        # all the values inside the if already have
-        # the exchangerate applied
-
-        # XXX:  This causes issues currently, so display of unhandled
-        # overpayment has disabled.  Was getting numbers that didn't make
-        # a lot of sense to me. --CT
-        $due_fx ||= 0;
-        $request_topay_fx_bigfloat ||= 0;
-        if ( $due_fx <  $request_topay_fx_bigfloat) {
-            # We need to store all the overpayments
-            # so we can use it on the screen
-            $unhandled_overpayment =
-                $unhandled_overpayment + $request_topay_fx_bigfloat
-                - $due_fx;
-            #$request->{"topay_fx_$invoice->{invoice_id}"} = "$due_fx";
-            $request_topay_fx_bigfloat=$due_fx;
-        }
-        my $paid = $invoice->{amount} -
-            $invoice->{due} - $invoice->{discount};
-        my $paid_formatted = $paid->to_output;
+        my $paid = $invoice->{amount_tc} - $due_fx - $invoice->{discount_tc};
+        my $paid_formatted = $paid->to_output(money => 1);
         # Now its time to build the link to the invoice :)
         my $uri_module;
         #TODO move following code to sub getModuleForUri() ?
@@ -981,14 +1015,14 @@ sub payment2 {
                 id     =>  $invoice_id,
                 href   => $uri },
             invoice_date      => "$invoice->{invoice_date}",
-            amount            => $invoice_amt ? $invoice_amt->to_output() : '',
-            due               => $request->{"optional_discount_$invoice_id"}?  $invoice->{due} : $invoice->{due} + $invoice->{discount},
+            amount            => $invoice_amt ? $invoice_amt->to_output(money => 1) : '',
+            due               => $due->to_output(money => 1),
             paid              => $paid_formatted,
             discount          => $request->{"optional_discount_$invoice_id"} ? "$invoice->{discount}" : 0 ,
             optional_discount =>  $request->{"optional_discount_$invoice_id"},
             exchange_rate     =>  "$invoice->{exchangerate}",
             due_fx            =>  "$due_fx", # This was set at the begining of the for statement
-            topay             => $invoice->{due} - $invoice->{discount},
+            topay             => LedgerSMB::PGNumber->from_input($due),
             source_text       =>  $request->{"source_text_$invoice_id"},
             optional          =>  $request->{"optional_pay_$invoice_id"},
             selected_account  =>  $request->{"account_$invoice_id"},
@@ -997,12 +1031,12 @@ sub payment2 {
                 name  => "memo_invoice_$invoice_id",
                 value => $request->{"memo_invoice_$invoice_id"}
             },#END HASH
+            orig_topay_fx     => ($request->{"topay_fx_$invoice->{invoice_id}"} // LedgerSMB::PGNumber->new($due_fx)->to_output(money => 1)),
             topay_fx          =>  {
                 name  => "topay_fx_$invoice_id",
-                value => $request->{"topay_fx_$invoice_id"} //
-                    ( $topay_fx_value ?
-                      LedgerSMB::PGNumber->from_input($topay_fx_value)->to_output()
-                      : ''),
+                value => ($request->{"topay_fx_$invoice_id"}
+                          ? LedgerSMB::PGNumber->from_input($request->{"topay_fx_$invoice_id"})->to_output(money => 1) :
+                          LedgerSMB::PGNumber->new($due_fx)->to_output(money => 1) ),
             }#END HASH
         };# END PUSH
 
@@ -1029,7 +1063,7 @@ sub payment2 {
                     split(/--/, $request->{"overpayment_cash_account_$i"});
 
                 push @overpayment, {
-                    amount  => LedgerSMB::PGNumber->from_input($request->{"overpayment_topay_$i"}),
+                    amount  => LedgerSMB::PGNumber->from_input($request->{"overpayment_topay_$i"})->to_output(money => 1),
                     source1 => $request->{"overpayment_source1_$i"},
                     source2 => $request->{"overpayment_source2_$i"},
                     memo    => $request->{"overpayment_memo_$i"},
@@ -1097,23 +1131,20 @@ sub payment2 {
         selected_source => $request->{source},
         source_value => $request->{source_value},
         defaultcurrency => {
-            text => $default_currency
-        },
-                curr => {
-                    name  => 'curr',
-                    value => $request->{curr},
-            },
+            text => $default_currency },
+        curr => {
+            name  => 'curr',
+            value => $request->{curr}, },
         column_headers => \@column_headers,
         rows        =>  \@invoice_data,
-        topay_subtotal => (sum map { $_->{topay} } @invoice_data) // 0,
+        topay_subtotal => (
+            LedgerSMB::PGNumber->from_input(0) # never end up with undef
+            + (sum map {LedgerSMB::PGNumber->from_input($_->{topay} || 0)} @invoice_data) // 0
+        )->to_output(money => 1),
         topay_state   => \@topay_state,
         vendorcustomer => {
             name => 'vendor-customer',
-            value => $request->{'vendor-customer'}
-        },
-        unhandled_overpayment => {
-            name => 'unhandledoverpayment',
-            value => $unhandled_overpayment   }  ,
+            value => $request->{'vendor-customer'} },
         vc => {
             name => $Payment->{company_name}, # We will assume that the first Billing Information as default
             address => [
@@ -1126,31 +1157,30 @@ sub payment2 {
                 ]
         },
         format => {
-           name => 'FORMAT',
-           options => \@format_options
-        },
+            name => 'FORMAT',
+            options => \@format_options },
         media => {
-           name => 'MEDIA',
-           options => \@media_options
-        },
+            name => 'MEDIA',
+            options => \@media_options  },
         exrate => $currency_options,
         notes => $request->{notes},
         overpayment         => \@overpayment,
         overpayment_account => \@overpayment_account,
-        overpayment_subtotal => (sum map { $_->{amount} } @overpayment) // 0,
-        payment_total => (sum map { $_->{amount} } @overpayment)
-            + (sum map { $_->{topay} } @invoice_data),
+        overpayment_subtotal => (
+              (sum map {LedgerSMB::PGNumber->from_input($_->{amount} || 0)} @overpayment)
+             + LedgerSMB::PGNumber->from_input(0) # never end up with undef
+        )->to_output(money => 1),
+        payment_total => (
+              (sum map {LedgerSMB::PGNumber->from_input($_->{amount} || 0)} @overpayment)
+            + (sum map {LedgerSMB::PGNumber->from_input($_->{topay}  || 0)} @invoice_data)
+            + LedgerSMB::PGNumber->from_input(0) # never end up with undef
+        )->to_output(money => 1),
     };
 
     $select->{selected_account} = $vc_options[0]->{cash_account_id}
-        unless defined $select->{selected_account};
-    my $template = LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/payments',
-        template => 'payment2',
-        format => 'HTML' );
-    return $template->render($select);
+      unless defined $select->{selected_account};
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'payments/payment2', $select);
 }
 
 =item post_payment
@@ -1166,7 +1196,8 @@ sub post_payment {
     my $Payment = LedgerSMB::DBObject::Payment->new({'base' => $request});
 
     if (!$request->{exrate}) {
-        $Payment->error($locale->text('Exchange rate hasn\'t been defined!'));}
+        $request->error($locale->text('Exchange rate hasn\'t been defined!'));
+    }
     # LETS GET THE CUSTOMER/VENDOR INFORMATION
     ($Payment->{entity_credit_id}, $Payment->{company_name}) = split /--/ , $request->{'vendor-customer'};
     # LETS GET THE DEPARTMENT INFO
@@ -1199,7 +1230,7 @@ sub post_payment {
 
     # This variable might be fuzzy, we are using it to handle invalid data
     my $unhandled_overpayment = 0;
-    # i.e. a user set an overpayment qty inside an invoice.
+                           # i.e. a user set an overpayment qty inside an invoice.
     my @array_options;
     my @amount;
     my @discount;
@@ -1221,45 +1252,48 @@ sub post_payment {
     # a regular payment, and see where does this leave us.
     #
     $Payment->{vc_name} = $Payment->{company_name};
+    # get_entity_credit_account() expects 'credit_id' to be defined...
+    $Payment->{credit_id} = $Payment->{entity_credit_id};
     @array_options = $Payment->get_entity_credit_account();
     my $discount_account_id = $array_options[0]->{discount};
     @array_options = $Payment->get_open_invoices();
     for my $ref (0 .. $#array_options) {
         if ($request->{"checkbox_$array_options[$ref]->{invoice_id}"}
             && ($request->{"topay_fx_$array_options[$ref]->{invoice_id}"})) {
-            # First i have to determine if discounts will apply
-            # we will assume that a discount should apply only
-            # if this is the last payment of an invoice
-            my  $temporary_discount = 0;
+         # First i have to determine if discounts will apply
+         # we will assume that a discount should apply only
+         # if this is the last payment of an invoice
+     my  $temporary_discount = 0;
             my  $request_topay_fx_bigfloat =
                 LedgerSMB::PGNumber->from_input($request->{"topay_fx_$array_options[$ref]->{invoice_id}"});
             if (($request->{"optional_discount_$array_options[$ref]->{invoice_id}"})
                 && ($array_options[$ref]->{due_fx}
                     <=  $request_topay_fx_bigfloat
-                        +  $array_options[$ref]->{discount_fx})) {
-                $temporary_discount = $array_options[$ref]->{discount_fx};
+                    +  $array_options[$ref]->{discount_tc})) {
+                $temporary_discount = $array_options[$ref]->{discount_tc};
             }
             #
             # The prefix cash is to set the movements of the cash accounts,
             # same names are used for ap/ar accounts w/o the cash prefix.
             #
             my $sign = "$array_options[$ref]->{due_fx}" <=> 0;
-            if ( $sign * LedgerSMB::PGNumber->from_input($array_options[$ref]->{due_fx})->bround($LedgerSMB::Company_Config::decimal_places)
+            my $decimals = $request->{_company_config}->{decimal_places};
+            if ( $sign * LedgerSMB::PGNumber->from_input($array_options[$ref]->{due_fx})->bround($decimals)
                  <
-                 $sign * LedgerSMB::PGNumber->from_input($request_topay_fx_bigfloat)->bround($LedgerSMB::Company_Config::decimal_places)
+                 $sign * LedgerSMB::PGNumber->from_input($request_topay_fx_bigfloat)->bround($decimals)
                 ){
                 # We need to store all the overpayments
                 # so we can use it on a new payment2 screen
                 $unhandled_overpayment += $request_topay_fx_bigfloat
                     + $temporary_discount - $array_options[$ref]->{amount} ;
 
-            }
-            if ($temporary_discount != 0) {
-                push @amount, $temporary_discount;
-                push @cash_account_id, $discount_account_id;
-                push @source, $locale->text('Applied discount');
-                push @transaction_id, $array_options[$ref]->{invoice_id};
-            }
+     }
+         if ($temporary_discount != 0) {
+             push @amount, $temporary_discount;
+             push @cash_account_id, $discount_account_id;
+             push @source, $locale->text('Applied discount');
+             push @transaction_id, $array_options[$ref]->{invoice_id};
+         }
 
              # We'll use this for both cash and ap/ar accounts
             push @amount,   $request_topay_fx_bigfloat;
@@ -1274,13 +1308,13 @@ sub post_payment {
               : $request->{source}.' '.$request->{source_value};
             push @memo,
                 $request->{"memo_invoice_$array_options[$ref]->{invoice_id}"};
-            push @transaction_id, $array_options[$ref]->{invoice_id};
-        }
+         push @transaction_id, $array_options[$ref]->{invoice_id};
+ }
     }
     # Check if there is an unhandled overpayment and run payment2 as needed
     if ($unhandled_overpayment) {
-        $request->{payment_id} = 0;
-        return payment2($request);
+    $request->{payment_id} = 0;
+    return payment2($request);
     }
     #
     # Now we need the overpayment information.
@@ -1298,41 +1332,38 @@ sub post_payment {
                 $request->{"overpayment_topay_$i"} =
                     LedgerSMB::PGNumber->from_input($request->{"overpayment_topay_$i"});
 
-                my $id;
-                if ( $request->{"overpayment_account_$i"} =~ /^(\d+)--*/) {
-                    $id = $1;
-                }
-                my $cashid;
-                if ( $request->{"overpayment_cash_account_$i"} =~ /^(\d+)--*/) {
-                    $cashid = $1;
-                }
-                push @op_amount, $request->{"overpayment_topay_$i"};
-                push @op_cash_account_id, $cashid;
+     my $id;
+     if ( $request->{"overpayment_account_$i"} =~ /^(\d+)--*/) {
+          $id = $1;
+     }
+     my $cashid;
+     if ( $request->{"overpayment_cash_account_$i"} =~ /^(\d+)--*/) {
+         $cashid = $1;
+     }
+     push @op_amount, $request->{"overpayment_topay_$i"};
+     push @op_cash_account_id, $cashid;
                 push @op_source, $request->{"overpayment_source1_$i"}
                    . ' ' .$request->{"overpayment_source2_$i"};
-                push @op_memo, $request->{"overpayment_memo_$i"};
-                if (not $id and $id ne '0'){
-                    $request->error($request->{_locale}->text('No overpayment account selected.  Was one set up?'));
-                }
-                push @op_account_id, $id;
-            }
-        }
+     push @op_memo, $request->{"overpayment_memo_$i"};
+     if (not $id and $id ne '0'){
+         $request->error($request->{_locale}->text('No overpayment account selected.  Was one set up?'));
+     }
+     push @op_account_id, $id;
+     }
+   }
     }
     # Finally we store all the data inside the LedgerSMB::DBObject::Payment object.
-    $Payment->{cash_account_id}    =
-        $Payment->_db_array_scalars(@cash_account_id);
-    $Payment->{amount}             =  $Payment->_db_array_scalars(@amount);
-    $Payment->{source}             =  $Payment->_db_array_scalars(@source);
-    $Payment->{memo}               =  $Payment->_db_array_scalars(@memo);
-    $Payment->{transaction_id}     =
-        $Payment->_db_array_scalars(@transaction_id);
-    $Payment->{op_amount}          =  $Payment->_db_array_scalars(@op_amount);
-    $Payment->{op_cash_account_id} =
-        $Payment->_db_array_scalars(@op_cash_account_id);
-    $Payment->{op_source}          =  $Payment->_db_array_scalars(@op_source);
-    $Payment->{op_memo}            =  $Payment->_db_array_scalars(@op_memo);
-    $Payment->{op_account_id}      =
-        $Payment->_db_array_scalars(@op_account_id);
+    $Payment->{cash_account_id}    = \@cash_account_id;
+    $Payment->{amount}             = \@amount;
+    $Payment->{source}             = \@source;
+    $Payment->{memo}               = \@memo;
+    $Payment->{transaction_id}     = \@transaction_id;
+    $Payment->{op_amount}          = \@op_amount;
+    $Payment->{op_cash_account_id} = \@op_cash_account_id;
+    $Payment->{op_source}          = \@op_source;
+    $Payment->{op_memo}            = \@op_memo;
+    $Payment->{op_account_id}      = \@op_account_id;
+    $Payment->{exchangerate}       =  $Payment->{exrate};
     # Ok, passing the control to postgresql and hoping for the best...
 
     $Payment->post_payment();
@@ -1354,39 +1385,38 @@ receive the $Payment object with all this information.
 =cut
 
 sub print_payment {
-    my ($Payment) = @_;
-    my $locale    = $Payment->{_locale};
-    $Payment->gather_printable_info();
-    my $header = @{$Payment->{header_info}}[0];
-    my @rows   = @{$Payment->{line_info}};
-    ###############################################################################
-    #                 FIRST CODE SECTION
-    #
-    # THE FOLLOWING LINES OF CODE ADD SOME EXTRA PROCESSING TO THE DATA THAT
-    # WILL BE  AVAILIBLE ON THE UI,
-    # PLEASE FEEL FREE TO ADD EXTRA LINES IF YOU NEED IT (AND KNOW WHAT YOU ARE DOING).
-    ###############################################################################
-    # First we need to solve some ugly behaviour in the template system
-    $header->{amount} = abs("$header->{amount}");
-    # The next code will enable number to text conversion
-    $Payment->init();
-    $header->{amount2text} = $Payment->num2text($header->{amount});
-    ############################################################################
-    # IF YOU NEED MORE INFORMATION ON THE HEADER AND ROWS ITEMS CHECK SQL FUNCTIONS
-    # payment_gather_header_info AND payment_gather_line_info
-    for my $row (@rows) {
-        $row->{amount} = $row->{amount}->to_output(money => 1);
-    }
-    my $select = {
-        header        => $header,
-        rows          => \@rows,
-        format_amount => sub {LedgerSMB::PGNumber->from_input(@_)->to_output()}
+    my ($request, $Payment) = @_;
+  my $locale    = $Payment->{_locale};
+  $Payment->gather_printable_info();
+  my $header = @{$Payment->{header_info}}[0];
+  my @rows   = @{$Payment->{line_info}};
+  ###############################################################################
+  #                 FIRST CODE SECTION
+  #
+  # THE FOLLOWING LINES OF CODE ADD SOME EXTRA PROCESSING TO THE DATA THAT
+  # WILL BE  AVAILIBLE ON THE UI,
+  # PLEASE FEEL FREE TO ADD EXTRA LINES IF YOU NEED IT (AND KNOW WHAT YOU ARE DOING).
+  ###############################################################################
+  # First we need to solve some ugly behaviour in the template system
+     $header->{amount} = abs("$header->{amount}");
+  # The next code will enable number to text conversion
+     $Payment->init();
+     $header->{amount2text} = $Payment->num2text($header->{amount});
+  ############################################################################
+  # IF YOU NEED MORE INFORMATION ON THE HEADER AND ROWS ITEMS CHECK SQL FUNCTIONS
+  # payment_gather_header_info AND payment_gather_line_info
+  for my $row (@rows) {
+      $row->{amount} = $row->{amount}->to_output(money => 1);
+  }
+  my $select = {
+      header        => $header,
+      rows          => \@rows,
+      format_amount => sub {LedgerSMB::PGNumber->from_input(@_)->to_output(money => 1)}
   };
-  $Payment->{templates_path} = 'templates/'.LedgerSMB::Setting::get('templates').'/';
-  my $template = LedgerSMB::Template->new(
+  my $template = LedgerSMB::Template->new( # printed document
       user     => $Payment->{_user},
       locale   => $Payment->{_locale},
-      path     => $Payment->{templates_path},
+      path     => 'DB',
       template => 'printPayment',
       format => 'HTML' );
   return $template->render($select); ###TODO: psgi-render-to-attachment
@@ -1405,7 +1435,7 @@ sub post_and_print_payment {
     $request->{payment_id} = &post_payment($request);
     my $locale       = $request->{_locale};
     my $Payment = LedgerSMB::DBObject::Payment->new({'base' => $request});
-    return print_payment($Payment);
+    return print_payment($request, $Payment);
 }
 
 =item use_overpayment
@@ -1420,13 +1450,12 @@ sub use_overpayment {
     my ($request) = @_;
     my $locale    = $request->{_locale};
     my $Payment   = LedgerSMB::DBObject::Payment->new({'base' => $request});
-    my $Settings = LedgerSMB::Setting->new({'base' => $request});
     my @arrayOptions;
     my @entities;
 
     #We will use $ui to handle all the data needed by the User Interface
     my $ui = {
-        script => 'payment.pl',
+    script => 'payment.pl',
         stylesheet => $request->{_user}->{stylesheet}
     };
     $ui->{account_class} = {
@@ -1437,16 +1466,16 @@ sub use_overpayment {
     #We want to get all the customer/vendor with unused overpayment
     my @data = $Payment->get_open_overpayment_entities();
     for my $ref (0 .. $#data) {
-        push @entities, { value => $data[$ref]->{id},
-                          name =>  $data[$ref]->{name}};
-    }
+       push @entities, { value => $data[$ref]->{id},
+                         name =>  $data[$ref]->{name}};
+   }
 
     my @currOptions;
-    @arrayOptions = $Settings->get_currencies();
+    @arrayOptions = $request->setting->get_currencies();
 
     for my $ref (0 .. $#arrayOptions) {
-        push @currOptions, { value => $arrayOptions[$ref],
-                             text => $arrayOptions[$ref]};
+    push @currOptions, { value => $arrayOptions[$ref],
+                          text => $arrayOptions[$ref]};
     }
 
 
@@ -1457,13 +1486,8 @@ sub use_overpayment {
         value => 'use_overpayment2',
         text => $locale->text('Continue')
     };
-    my $template = LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/payments',
-        template => 'use_overpayment1',
-        format => 'HTML' );
-    return $template->render($ui);
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'payments/use_overpayment1', $ui);
 }
 
 
@@ -1529,10 +1553,8 @@ sub use_overpayment2 {
     if ($default_currency ne $request->{curr} ) {
         # DOES THE CURRENCY IN USE HAS AN EXCHANGE RATE?, IF SO
         # WE MUST SET THE VALUE, OTHERWISE THE UI WILL HANDLE IT
-        $exchangerate = $Payment->{exrate} ?
-            $Payment->{exrate} :
-            $Payment->get_exchange_rate($request->{curr},
-                                        $Payment->{datepaid} ? $Payment->{datepaid} : $Payment->{current_date});
+        $exchangerate = $Payment->{exrate};
+
         if ($exchangerate) {
             $ui_exchangerate = {
                 id => 'exrate',
@@ -1546,8 +1568,8 @@ sub use_overpayment2 {
                 id => 'exrate',
                 name => 'exrate'};
         }
-
-    } else {
+    }
+    else {
         # WE MUST SET EXCHANGERATE TO 1 FOR THE MATHS SINCE WE
         # ARE USING THE DEFAULT CURRENCY
         $exchangerate = 1;
@@ -1615,7 +1637,7 @@ sub use_overpayment2 {
             my $applied_due =
                 ($ovp_inv_payment->{optional_discount})
                 ? $Payment->{"due_$count"}
-                : $Payment->{"due_$count"} + $Payment->{"discount_$count"};
+            : $Payment->{"due_$count"} + $Payment->{"discount_$count"};
 
             $amount_to_be_used{"$ovp_selected_accno"} +=
                 $Payment->{"amount_$count"};
@@ -1646,19 +1668,19 @@ sub use_overpayment2 {
                     number => $Payment->{"invnumber_$count"},
                     id     => $Payment->{"invoice_id_$count"},
                     href   => $uri },
-                entity_name       => $name,
-                entity_id         => $Payment->{"entity_id_$count"},
-                vc_discount_accno => $Payment->{"vc_discount_accno_$count"},
-                invoice_date      => $Payment->{"invoice_date_$count"},
-                applied_due       => $applied_due,
+                entity_name        => $name,
+                entity_id          => $Payment->{"entity_id_$count"},
+                vc_discount_accno     => $Payment->{"vc_discount_accno_$count"},
+                invoice_date       => $Payment->{"invoice_date_$count"},
+                applied_due        => $applied_due,
                 optional_discount => $ovp_inv_payment->{optional_discount},
                 repeated_invoice  => $ovp_inv_payment->{repeated_invoice},
-                due               => $Payment->{"due_$count"},
-                discount          => $Payment->{"discount_$count"},
+                due                => $Payment->{"due_$count"},
+                discount        => $Payment->{"discount_$count"},
                 selected_accno    => {
                     id        => $ovp_chart_id,
                     ovp_accno => $ovp_selected_accno },
-                amount            => $Payment->{"amount_$count"}} unless ($seen_invoices{$Payment->{"invoice_id_$count"}}++);
+                amount             => $Payment->{"amount_$count"}} unless ($seen_invoices{$Payment->{"invoice_id_$count"}}++);
         }
         $count++;
     }
@@ -1717,7 +1739,7 @@ sub use_overpayment2 {
                 my $uri = $Payment->{account_class} == 1 ? 'ap' : 'ar';
                 $uri .= '.pl?action=edit&id='
                     . $avble_invoices[$ref]->{invoice_id}
-                    . '&login=' . $request->{login};
+                . '&login=' . $request->{login};
 
                 push @ui_avble_invoices, {
                     invoice       => {
@@ -1788,15 +1810,8 @@ sub use_overpayment2 {
 
     $ui->{hiddens} = \@hiddens;
 
-    my $template =    LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/payments',
-        template => 'use_overpayment2',
-        format => 'HTML' );
-
-
-return $template->render($ui);
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'payments/use_overpayment2', $ui);
 }
 
 =item post_overpayment
@@ -1848,7 +1863,7 @@ sub post_overpayment {
             ($request->{"optional_discount_$count"}
              && $request->{"amount_$count"} == $request->{"due_$count"})
             ? $request->{"due_$count"}
-            : $request->{"due_$count"} + $request->{"discount_$count"};
+        : $request->{"due_$count"} + $request->{"discount_$count"};
 
         # let's check if the overpayment movements of the $ovp_chart_id accno
         # has already been searched, if not, search and store it to later use
@@ -1947,12 +1962,12 @@ sub post_overpayment {
                 push @{$list_key->{array_amount}}, $tmp_ovp_amount;
                 push @{$list_key->{array_cash_account_id}}, $ovp_chart_id;
                 push @{$list_key->{array_source}},
-                       $locale->text('use of an overpayment');
+                $locale->text('use of an overpayment');
                 push @{$list_key->{array_transaction_id}},
-                       $list_key->{"invoice_id_$count"};
+                $list_key->{"invoice_id_$count"};
                 push @{$list_key->{array_memo}}, undef;
                 push @{$list_key->{ovp_payment_id}},
-                       @{$entity_unused_ovp{$ovp_chart_id}->{unused_overpayment}}[$unused_ovp_index]->{payment_id};
+                @{$entity_unused_ovp{$ovp_chart_id}->{unused_overpayment}}[$unused_ovp_index]->{payment_id};
 
                 $tmp_ovp_amount = 0;
                 #lets see if there is more amount on the present overpayment movement
@@ -1987,7 +2002,7 @@ sub post_overpayment {
         for my $field (qw(amount cash_account_id source memo transaction_id
                           ovp_payment_id)) {
             $list_key->{$key} =
-                $list_key->_db_array_scalars(@{$list_key->{"array_$field"}});
+                $list_key->{"array_$field"};
         }
 
         $entity_list{$key}->post_payment();

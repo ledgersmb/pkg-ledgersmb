@@ -23,8 +23,13 @@ This module implements the C<Plack::Middleware> protocol.
 use strict;
 use warnings;
 
+use Carp;
 use HTTP::Status qw( HTTP_OK HTTP_INTERNAL_SERVER_ERROR HTTP_SEE_OTHER
- HTTP_UNAUTHORIZED );
+    HTTP_UNAUTHORIZED );
+
+=head1 METHODS
+
+This module declares no methods.
 
 =head1 FUNCTIONS
 
@@ -43,7 +48,8 @@ sub internal_server_error {
     my @body_lines = ( '<html><body>',
                        q{<h2 class="error">Error!</h2>},
                        "<p><b>$msg</b></p>" );
-    push @body_lines, "<p>dbversion: $dbversion, company: $company</p>"
+    push @body_lines, '<p>dbversion: ' . ($dbversion // '') .
+         ', company: ' . ($company // '') . '</p>'
         if $company || $dbversion;
 
     push @body_lines, '</body></html>';
@@ -129,7 +135,8 @@ sub template_to_psgi {
         ];
 
     # Use the same Content-Disposition criteria as _http_output()
-    my $name = $self->{output_options}{filename};
+    my $name = $self->{output_options}{filename} . '.'
+        . lc($self->{format_options}->{filetype});
     if ($name) {
         $name =~ s#^.*/##;
         push @$headers,
@@ -138,18 +145,31 @@ sub template_to_psgi {
     }
 
     my $body = $self->{output};
-    utf8::encode($body)
-        if utf8::is_utf8($body);
+    utf8::encode($body) if utf8::is_utf8($body); ## no critic
 
     return [ HTTP_OK, $headers, [ $body ] ];
 }
 
 
-=head1 COPYRIGHT
+=head2 cookie_path($script)
+
+Returns the C<path=> parameter to be used with the C<Set-Cookie>
+(authorization) header.
+
+=cut
+
+sub cookie_path {
+    my $script = shift;
+
+    return ($script =~ s|[^/]*$||r);
+}
+
+
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (C) 2017 The LedgerSMB Core Team
 
-This file is licensed under the Gnu General Public License version 2, or at your
+This file is licensed under the GNU General Public License version 2, or at your
 option any later version.  A copy of the license should have been included with
 your software.
 

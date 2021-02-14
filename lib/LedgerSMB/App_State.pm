@@ -1,20 +1,23 @@
+
+package LedgerSMB::App_State;
+
 =head1 NAME
 
 LedgerSMB::App_State - Non-web application global state
 
+=head1 DESCRIPTION
+
+This is a generic container class for non-web-application related state
+information.  It provides a central place to track such things as localization,
+user, and other application state objects.
+
 =cut
-package LedgerSMB::App_State;
+
 use strict;
 use warnings;
 use LedgerSMB::Sysconfig;
 use LedgerSMB::User;
 use LedgerSMB::Locale;
-
-=head1 SYNPOSIS
-
-This is a generic container class for non-web-application related state
-information.  It provides a central place to track such things as localization,
-user, and other application state objects.
 
 =head1 OBJECTS FOR STORAGE
 
@@ -202,60 +205,6 @@ sub run_with_state {
     return $block->();
 }
 
-=head2 all_periods(is_short $bool)
-
-Returns hashref of localized date data with following members:
-
-If $is_short is set and true, returns short names (D, W, M, Q, Y) instead of
-long names (Days, Weeks, Months, Quarters, Years).
-
-=over
-
-=item dropdown
-
-Period information in drop down format.
-
-=item hashref
-
-Period info in hashref format in D => Days format
-
-=back
-
-=cut
-
-sub all_periods {
-    my ($self, $is_short) = @_;
-    my $i18n = $Locale;
-    my $periods = {
-           # XXX That's asking for trouble below.  Need to update .po files
-           # before changing however. --CT
-     'day'     => { long => $i18n->text('Days'),
-                    short => $i18n->text('D'), order => 1 },
-     'week'    => { long => $i18n->text('Weeks'),
-                    short => $i18n->text('W'), order => 2 },
-     'month'   => { long => $i18n->text('Months'),
-                    short => $i18n->text('M'), order => 3 },
-     'quarter' => { long => $i18n->text('Quarters'),
-                    short => $i18n->text('Q'), order => 4 },
-     'year'    => { long => $i18n->text('Years'),
-                    short => $i18n->text('Y'), order => 5 },
-    };
-
-    my $for_dropdown = [];
-    my $as_hashref = {};
-    for my $key (sort { $periods->{$a}->{order} <=> $periods->{$b}->{order}} keys %$periods){
-        my $mname;
-        if ($is_short){
-           $mname = $periods->{$key}->{short};
-        } else {
-           $mname = $periods->{$key}->{long};
-        }
-        $as_hashref->{$key} = $mname;
-        push @$for_dropdown, {text => $mname, value => $key};
-    }
-    return { as_hashref => $as_hashref, dropdown=> $for_dropdown };
-}
-
 =head2 all_months(is_short $bool)
 
 Returns hashref of localized date data with following members:
@@ -314,9 +263,11 @@ sub all_months {
 
 1;
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2009 LedgerSMB Core Team.  This file is licensed under the GNU
-General Public License version 2, or at your option any later version.  Please
-see the included License.txt for details.
+Copyright (C) 2009 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 

@@ -53,25 +53,27 @@ BEGIN
 
     INSERT INTO invoice (trans_id, parts_id, qty, allocated, sellprice)
     SELECT currval('id')::int, t_mfg_lot.parts_id, t_mfg_lot.qty * -1, 0,
-           sum(amount) / t_mfg_lot.qty
+           sum(amount_bc) / t_mfg_lot.qty
       FROM acc_trans
-     WHERE amount < 0 and trans_id = currval('id')::int;
+     WHERE amount_bc < 0 and trans_id = currval('id')::int;
 
     PERFORM cogs__add_for_ap_line(currval('invoice_id_seq')::int);
 
     -- move from reverse COGS.
-    INSERT INTO acc_trans(trans_id, chart_id, transdate, amount)
-    SELECT trans_id, chart_id, transdate, amount * -1
+    INSERT INTO acc_trans(trans_id, chart_id, transdate,
+                          amount_bc, curr, amount_tc)
+    SELECT trans_id, chart_id, transdate, amount_bc * -1, curr, amount_tc * -1
       FROM acc_trans
-     WHERE amount < 0 and trans_id = currval('id')::int;
+     WHERE amount_bc < 0 and trans_id = currval('id')::int;
 
     -- difference goes into inventory
-    INSERT INTO acc_trans(trans_id, transdate, amount, chart_id)
-    SELECT trans_id, now(), sum(amount) * -1,
+    INSERT INTO acc_trans(trans_id, transdate, amount_bc, curr, amount_tc,
+                          chart_id)
+    SELECT trans_id, now(), sum(amount_bc) * -1, curr, sum(amount_tc) * -1,
            (select inventory_accno_id from parts where id = t_mfg_lot.parts_id)
       FROM acc_trans
      WHERE trans_id = currval('id')::int
-  GROUP BY trans_id;
+  GROUP BY trans_id, curr;
 
 
     RETURN t_mfg_lot.qty;
@@ -370,22 +372,21 @@ UPDATE inventory_report
 -- When the count is higher than expected, we need to increase
 -- some of our inventory. To do so, we stock at reverse COGS, taking
 -- the cost of the inventory increase out of COGS (to re-add on sale)
-INSERT INTO invoice (trans_id, parts_id, description, qty,
+INSERT INTO invoice (trans_id, parts_id, description, qty, allocated,
                      sellprice, precision, discount)
-SELECT t_trans_id, p.id, p.description, l.variance * -1,
-       CASE WHEN l.variance > 0 THEN p.lastcost ELSE 0 END,
-       3, CASE WHEN l.variance > 0 THEN 1 ELSE 0 END
+SELECT t_trans_id, p.id, p.description, l.variance * -1, 0,
+       0, 3, 1
   FROM parts p
   JOIN inventory_report_line l ON p.id = l.parts_id
  WHERE l.adjust_id = in_id;
 
+-- cogs for AR manipulates the tip of the FIFO buffer
+--  record shortage as a regular FIFO allocation, without income aspects
+--  record overage as a regular FIFO reversal, similarly without income aspects
 PERFORM cogs__add_for_ar_line(id)
    FROM invoice
-  WHERE qty > 0 AND trans_id = t_trans_id;
+  WHERE trans_id = t_trans_id;
 
-PERFORM cogs__add_for_ap_line(id)
-   FROM invoice
-  WHERE qty < 0 AND trans_id = t_trans_id;
 
 UPDATE parts p
    SET onhand = onhand + (select variance

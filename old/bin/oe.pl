@@ -116,16 +116,16 @@ sub edit {
 
 sub order_links {
 
+
+    # create links
+    $form->create_links( module => "OE", # effectively 'none'
+             myconfig => \%myconfig,
+             vc => $form->{vc},
+             billing => 0,
+             job => 1 );
+
     # retrieve order/quotation
     OE->retrieve( \%myconfig, \%$form );
-
-    # get projects, departments, languages
-    $form->get_regular_metadata(
-        \%myconfig,
-        $form->{vc},
-        $form->{transdate},
-        1,
-    );
 
     $form->{oldlanguage_code} = $form->{language_code};
 
@@ -194,6 +194,7 @@ sub prepare_order {
             ($dec) = ( $form->{"sellprice_$i"} =~ /\.(\d+)/ );
             $dec = length $dec;
             $decimalplaces = ( $dec > 2 ) ? $dec : 2;
+            $form->{"precision_$i"} = $decimalplaces;
 
             for ( map { "${_}_$i" } qw(sellprice listprice) ) {
                 $form->{$_} =
@@ -553,8 +554,10 @@ sub form_header {
     print qq|
 <body class="lsmb $form->{dojo_theme}" onLoad="document.forms[0].${focus}.focus()" />
 | . $form->open_status_div($status_div_id) . qq|
-<form method="post" data-dojo-type="lsmb/Form" action="$form->{script}">
-
+<form method="post"
+      id="invoice"
+      data-dojo-type="lsmb/Invoice"
+      action="$form->{script}" >
 |;
 
     if ($form->{notice}){
@@ -772,7 +775,7 @@ qq|<textarea data-dojo-type="dijit/form/Textarea" id=intnotes name=intnotes rows
     if ( !$form->{taxincluded} ) {
         foreach my $item (keys %{$form->{taxes}}) {
             my $taccno = $item;
-            $form->{invtotal} += $form->round_amount($form->{taxes}{$item}, 2);
+        $form->{invtotal} += $form->round_amount($form->{taxes}{$item}, 2);
             $form->{"${taccno}_total"} = $form->format_amount(
                 \%myconfig,
                 $form->round_amount( $form->{taxes}{$item}, 2 ),
@@ -947,13 +950,18 @@ qq|<textarea data-dojo-type="dijit/form/Textarea" id=intnotes name=intnotes rows
 sub update {
     $form->{nextsub} = 'update';
 
+    $form->create_links( module => "OE", # effectively 'none'
+             myconfig => \%myconfig,
+             vc => $form->{vc},
+             billing => 0,
+             job => 1 );
+
     $form->get_regular_metadata(
         \%myconfig,
         $form->{vc},
         $form->{transdate},
         1,
     );
-    $form->generate_selects;
     $form->{$_} = LedgerSMB::PGDate->from_input($form->{$_})->to_output()
        for qw(transdate reqdate);
 
@@ -988,7 +996,7 @@ sub update {
     ( $form->{employee}, $form->{employee_id} ) = split /--/, $form->{employee}
         if $form->{employee} && ! $form->{employee_id};
     if ( $newname = &check_name( $form->{vc} ) ) {
-        if($newname>1){return;}#tshvr4 may be dropped if finalize_request() does not return here
+        $form->rebuild_vc($form->{vc}, $form->{transdate}, 1);
     }
 
     # I think this is safe because the shipping or receiving is tied to the
@@ -1002,32 +1010,15 @@ sub update {
             $form->{terms} * 1 )
           : $form->{reqdate};
         $form->{oldtransdate} = $form->{transdate};
+        $form->rebuild_vc($form->{vc}, $form->{transdate}, 1) if !$newname;
 
         if ( $form->{currency} ne $form->{defaultcurrency} ) {
             delete $form->{exchangerate};
-            $form->{exchangerate} = $exchangerate
-              if (
-                $form->{forex} = (
-                    $exchangerate = $form->check_exchangerate(
-                        \%myconfig,         $form->{currency},
-                        $form->{transdate}, $buysell
-                    )
-                )
-              );
         }
     }
 
     if ( $form->{currency} ne $form->{oldcurrency} ) {
         delete $form->{exchangerate};
-        $form->{exchangerate} = $exchangerate
-          if (
-            $form->{forex} = (
-                $exchangerate = $form->check_exchangerate(
-                    \%myconfig,         $form->{currency},
-                    $form->{transdate}, $buysell
-                )
-            )
-          );
     }
 
     $exchangerate = ( $form->{exchangerate} ) ? $form->{exchangerate} : 1;
@@ -1193,6 +1184,10 @@ sub update {
             }
         }
     }
+    $form->all_vc(\%myconfig, $form->{vc}, $form->{transdate}, 1) if ! @{$form->{"all_$form->{vc}"}};
+    $form->generate_selects;
+    check_form();
+
     $form->{rowcount}--;
     display_form();
 }
@@ -1267,10 +1262,12 @@ sub save {
 
     if ( !$form->{repost}  && $form->{id}) {
        $form->{repost} = 1;
-       my $template = LedgerSMB::Template->new_UI(
-           $form,
-           template => 'oe-save_warn',
-       );
+    my $template = LedgerSMB::Template->new(
+        format => 'HTML',
+        path => 'UI',
+        template => 'oe-save_warn',
+        user => $form->{_user},
+        locale => $form->{_locale});
 
        return LedgerSMB::Legacy_Util::render_template($template, {
           hiddens => $form
@@ -1398,9 +1395,7 @@ sub invoice {
         $buysell = ( $form->{type} eq 'sales_order' ) ? "buy" : "sell";
 
         $orddate = $form->current_date( \%myconfig );
-        $exchangerate =
-          $form->check_exchangerate( \%myconfig, $form->{currency}, $orddate,
-            $buysell );
+        $exchangerate = "";
 
         if ( !$exchangerate ) {
             &backorder_exchangerate( $orddate, $buysell );
@@ -1481,14 +1476,6 @@ sub invoice {
 
     $form->{exchangerate} = "";
     $form->{forex}        = "";
-    $form->{exchangerate} = $exchangerate
-      if (
-        $form->{forex} = (
-            $exchangerate = $form->check_exchangerate(
-                \%myconfig, $form->{currency}, $form->{transdate}, $buysell
-            )
-        )
-      );
 
     for my $i ( 1 .. $form->{rowcount} ) {
         $form->{"deliverydate_$i"} = $form->{"reqdate_$i"};
@@ -1555,7 +1542,6 @@ sub backorder_exchangerate {
 <hr size=3 noshade>
 
 <br>
-<input type=hidden name=nextsub value=save_exchangerate>
 
 <button data-dojo-type="dijit/form/Button" id="action-continue" name="action" class="submit" type="submit" value="continue">|
       . $locale->text('Continue')
@@ -1569,18 +1555,6 @@ sub backorder_exchangerate {
 
 }
 
-sub save_exchangerate {
-
-    $form->isblank( "exchangerate", $locale->text('Exchange rate missing!') );
-    $form->{exchangerate} =
-      $form->parse_amount( \%myconfig, $form->{exchangerate} );
-    $form->save_exchangerate( \%myconfig, $form->{currency},
-        $form->{exchangeratedate},
-        $form->{exchangerate}, $form->{buysell} );
-
-    &invoice;
-
-}
 
 sub create_backorder {
 
@@ -1733,6 +1707,7 @@ sub ship_receive {
 }
 
 sub display_ship_receive {
+    &order_links;
      $form->generate_selects(\%myconfig);
 
     $vclabel = ucfirst $form->{vc};

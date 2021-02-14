@@ -177,8 +177,32 @@ GRANT SELECT ON business_unit_class, business_unit, bu_class_to_module
 
 \echo Exchange rate creation (requires insert/update on exchangerate table)
 SELECT lsmb__create_role('exchangerate_edit');
-SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate', 'INSERT');
-SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate', 'UPDATE');
+--### TODO: advisory rates still need to work!
+--SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate', 'INSERT');
+--SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate', 'UPDATE');
+SELECT lsmb__grant_perms('exchangerate_edit', 'currency', 'INSERT');
+SELECT lsmb__grant_perms('exchangerate_edit', 'currency', 'UPDATE');
+SELECT lsmb__grant_perms('exchangerate_edit', 'currency', 'DELETE');
+SELECT lsmb__grant_menu('exchangerate_edit',
+       (SELECT id FROM menu_node WHERE label = 'Edit currencies'), 'allow');
+GRANT SELECT ON currency TO PUBLIC;
+
+SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate_type', 'INSERT');
+SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate_type', 'UPDATE');
+SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate_type', 'DELETE');
+SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate_type_id_seq', 'ALL');
+SELECT lsmb__grant_menu('exchangerate_edit',
+       (SELECT id FROM menu_node WHERE label = 'Edit rate types'), 'allow');
+GRANT SELECT ON exchangerate_type TO PUBLIC;
+
+SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate_default', 'INSERT');
+SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate_default', 'UPDATE');
+SELECT lsmb__grant_perms('exchangerate_edit', 'exchangerate_default', 'DELETE');
+SELECT lsmb__grant_menu('exchangerate_edit',
+       (SELECT id FROM menu_node WHERE label = 'Edit rates'), 'allow');
+GRANT SELECT ON exchangerate_default TO PUBLIC;
+
+
 
 \echo Basic file attachments
 SELECT lsmb__create_role('file_read');
@@ -1012,7 +1036,7 @@ SELECT lsmb__grant_perms('account_create', obj, 'INSERT')
 SELECT lsmb__grant_perms('account_create', obj, 'ALL')
   FROM unnest(array['account_id_seq'::text, 'account_heading_id_seq']) obj;
 SELECT lsmb__grant_menu('account_create', id, 'allow')
-  FROM unnest(array[137,246]) id;
+  FROM unnest(array[246]) id;
 
 SELECT lsmb__create_role('account_edit');
 SELECT lsmb__grant_perms('account_edit', obj, perm)
@@ -1029,6 +1053,9 @@ SELECT lsmb__grant_perms('account_delete', obj, 'DELETE')
   FROM unnest(array['account'::text, 'account_heading', 'account_link',
                     'account_translation', 'account_heading_translation',
                     'cr_coa_to_account', 'tax']) obj;
+
+SELECT lsmb__create_role('account_link_description_create');
+SELECT lsmb__grant_perms('account_link_description_create', 'account_link_description', 'INSERT');
 
 SELECT lsmb__create_role('auditor');
 SELECT lsmb__grant_perms('auditor', 'audittrail', 'SELECT');
@@ -1174,8 +1201,7 @@ SELECT lsmb__grant_perms('base_user', obj, 'SELECT')
   FROM unnest(array['asset_unit_class'::text, 'asset_dep_method',
                     'lsmb_module', 'business_unit', 'business_unit_class']) obj;
 SELECT lsmb__grant_perms('base_user', obj, 'SELECT')
-  FROM unnest(array['makemodel'::text, 'custom_field_catalog',
-                    'custom_table_catalog', 'oe_class', 'note_class']) obj;
+  FROM unnest(array['makemodel'::text, 'oe_class', 'note_class']) obj;
 SELECT lsmb__grant_perms('base_user', obj, 'SELECT')
   FROM unnest(array['account_heading'::text, 'account',
                     'acc_trans', 'account_link',
@@ -1202,7 +1228,10 @@ SELECT lsmb__grant_perms('base_user', obj, 'SELECT')
                     'menu_node', 'menu_attribute', 'menu_acl',
                     'gifi', 'country', 'taxmodule',
                     'parts', 'partsgroup', 'country_tax_form', 'translation',
-                    'business', 'exchangerate', 'new_shipto', 'tax',
+                    'business',
+                    --###TODO: Add table for advisory rates
+                    --'exchangerate',
+                    'new_shipto', 'tax',
                     'entity_employee', 'jcitems', 'salutation', 'assembly']) obj;
 
 SELECT lsmb__grant_perms('base_user', 'new_shipto', 'UPDATE');

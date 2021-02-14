@@ -1,14 +1,30 @@
-#  This is the new configuration file for LedgerSMB.  Eventually all system
-# configuration directives will go here,  This will probably not fully replace
-# the ledgersmb.conf until 1.3, however.
 
 package LedgerSMB::Sysconfig;
+
+=head1 NAME
+
+LedgerSMB::Sysconfig - LedgerSMB configuration management
+
+=head1 DESCRIPTION
+
+LedgerSMB configuration management
+
+=head1 METHODS
+
+This module doesn't specify any methods.
+
+=cut
+
 use strict;
 use warnings;
 
 use Config;
 use Config::IniFiles;
 use DBI qw(:sql_types);
+# After Perl 5.20 is the minimum required version,
+# we can drop the restriction on the match vars
+# because 5.20 doesn't copy the data (but uses
+# string slices)
 use English qw(-no_match_vars);
 
 
@@ -281,11 +297,6 @@ def 'dojo_theme',
     default => 'claro',
     doc => q{};
 
-def 'dojo_location',
-    section => 'main',
-    default => ($LedgerSMB::Sysconfig::dojo_built == 0) ? 'js-src' : 'js',
-    doc => q{};
-
 def 'force_username_case',
     section => 'main',
     default => undef,  # don't force case
@@ -338,11 +349,6 @@ def 'cache_templates',
     doc => q{};
 
 ### SECTION  ---   paths
-
-def 'cssdir',
-    section => 'main', # SHOULD BE 'paths' ????
-    default => 'css/',
-    doc => q{};
 
 # Path to the translation files
 def 'localepath',
@@ -477,7 +483,7 @@ our $zip = $cfg->val('programs', 'zip', 'zip -r %dir %dir');
 #
 our @newscripts = qw(
    account.pl admin.pl asset.pl budget_reports.pl budgets.pl business_unit.pl
-   configuration.pl contact.pl contact_reports.pl drafts.pl
+   configuration.pl contact.pl contact_reports.pl currency.pl drafts.pl
    file.pl goods.pl import_csv.pl inventory.pl invoice.pl inv_reports.pl
    journal.pl login.pl lreports_co.pl menu.pl order.pl parts.pl payment.pl
    payroll.pl pnl.pl recon.pl report_aging.pl reports.pl setup.pl taxform.pl
@@ -588,5 +594,16 @@ sub override_defaults {
 }
 
 override_defaults;
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (C) 2006-2018 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
+
+=cut
+
 
 1;

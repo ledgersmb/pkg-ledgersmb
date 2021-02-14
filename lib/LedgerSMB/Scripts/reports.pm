@@ -1,8 +1,11 @@
+
+package LedgerSMB::Scripts::reports;
+
 =head1 NAME
 
 LedgerSMB::Scripts::reports - Common Report workflows
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 This module holds common workflow routines for reports.
 
@@ -10,22 +13,21 @@ This module holds common workflow routines for reports.
 
 =cut
 
-package LedgerSMB::Scripts::reports;
+use strict;
+use warnings;
 
-use LedgerSMB::Template;
+use LedgerSMB::App_State;
+use LedgerSMB::DBObject::Payment; # To move this off after rewriting payments
 use LedgerSMB::Business_Unit;
 use LedgerSMB::Business_Unit_Class;
 use LedgerSMB::Report::Balance_Sheet;
 use LedgerSMB::Report::Listings::Business_Type;
 use LedgerSMB::Report::Listings::GIFI;
-use LedgerSMB::Report::Listings::Warehouse;
 use LedgerSMB::Report::Listings::Language;
 use LedgerSMB::Report::Listings::SIC;
 use LedgerSMB::Report::Listings::Overpayments;
-use LedgerSMB::Setting;
-use LedgerSMB::DBObject::Payment; # To move this off after rewriting payments
-use strict;
-use warnings;
+use LedgerSMB::Report::Listings::Warehouse;
+use LedgerSMB::Template::UI;
 
 our $VERSION = '1.0';
 
@@ -85,13 +87,11 @@ sub start_report {
     @{$request->{all_years}} = $request->call_procedure(
               funcname => 'date_get_all_years'
     );
-    my $curr = LedgerSMB::Setting->get('curr');
-    @{$request->{currencies}} = split /:/, $curr;
+    @{$request->{currencies}} = $request->setting->get_currencies();
     $_ = {id => $_, text => $_} for @{$request->{currencies}};
     my $months = LedgerSMB::App_State::all_months();
     $request->{all_months} = $months->{dropdown};
-    my $periods = LedgerSMB::App_State::all_periods();
-    $request->{all_periods} = $periods->{dropdown};
+
     if (!$request->{report_name}){
         die $request->{_locale}->text('No report specified');
     }
@@ -105,16 +105,11 @@ sub start_report {
         funcname => 'person__list_languages'
         );
 
-    $request->{earn_id} = LedgerSMB::Setting->get('earn_id');
-    my $template = LedgerSMB::Template->new(
-        request => $request,
-        user => $request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/Reports/filters',
-        template => $request->{report_name},
-        format => 'HTML'
-    );
-    return $template->render($request);
+    $request->{earn_id} = $request->setting->get('earn_id');
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request,
+                             'Reports/filters/' . $request->{report_name},
+                             $request);
                                  # request not used for script;
                                  # forms submit to other URLs than back to here
 }
@@ -233,29 +228,37 @@ Reverses overpayments selected from the search overpayments screen.
 
 sub reverse_overpayment {
     my ($request) = @_;
+    my $payment = LedgerSMB::DBObject::Payment->new({ base => $request });
     for my $rc (1 .. $request->{rowcount_}){
         next unless $request->{"select_$rc"};
         my $args = {id => $request->{"select_$rc"}};
         $args->{$_} = $request->{$_} for qw(post_date batch_id account_class
                                             exchangerate currency);
         $args->{curr} = $args->{currency};
-        LedgerSMB::DBObject::Payment->overpayment_reverse($args);
+        $payment->overpayment_reverse($args);
     }
     $request->{report_name} = 'overpayments';
     return start_report($request);
 }
 
 
+
+{
+    local $@ = undef;
+    eval { require LedgerSMB::Scripts::custom::reports };
+}
+
 =back
 
-=head1 Copyright (C) 2007 The LedgerSMB Core Team
+=head1 LICENSE AND COPYRIGHT
 
-Licensed under the GNU General Public License version 2 or later (at your
-option).  For more information please see the included LICENSE and COPYRIGHT
-files.
+Copyright (C) 2007-2018 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 
-###TODO-LOCALIZE-DOLLAR-AT
-eval { require LedgerSMB::Scripts::custom::reports };
+
 1;

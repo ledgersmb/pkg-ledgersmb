@@ -1,12 +1,13 @@
 
-=pod
+
+package LedgerSMB::Scripts::contact;
 
 =head1 NAME
 
 LedgerSMB::Scripts::contact - LedgerSMB class defining the Controller
 functions, template instantiation and rendering for customer editing and display.
 
-=head1 SYOPSIS
+=head1 DESCRIPTION
 
 This module is the UI controller for the customer, vendor, etc functions; it
 
@@ -14,12 +15,13 @@ This module is the UI controller for the customer, vendor, etc functions; it
 
 =cut
 
-package LedgerSMB::Scripts::contact;
-
 use strict;
 use warnings;
 
-use LedgerSMB::Part;
+use Try::Tiny;
+
+use LedgerSMB;
+use LedgerSMB::App_State;
 use LedgerSMB::Entity::Company;
 use LedgerSMB::Entity::Person;
 use LedgerSMB::Entity::Credit_Account;
@@ -33,10 +35,9 @@ use LedgerSMB::Entity::Note;
 use LedgerSMB::Entity::User;
 use LedgerSMB::File;
 use LedgerSMB::Magic qw( EC_EMPLOYEE );
-use LedgerSMB::App_State;
+use LedgerSMB::Part;
 use LedgerSMB::Setting;
-use LedgerSMB::Template;
-use Try::Tiny;
+use LedgerSMB::Template::UI;
 
 use LedgerSMB::old_code qw(dispatch);
 
@@ -59,15 +60,6 @@ for (@pluginmods){
         }
     }
 }
-
-
-=head1 COPYRIGHT
-
-Copyright (c) 2012, the LedgerSMB Core Team.  This is licensed under the GNU
-General Public License, version 2, or at your option any later version.  Please
-see the accompanying License.txt for more information.
-
-=cut
 
 =head1 METHODS
 
@@ -200,18 +192,6 @@ sub _main_screen {
                files => $locale->text('Files'),
     );
 
-    if (defined $person->{country_id}
-    && $LedgerSMB::Scripts::employee::country::country_divs{
-            $person->{country_id}
-    }){
-        for my $cform (@{$LedgerSMB::Scripts::employee::country::country_divs{
-            $person->{country_id}
-         }}){
-             push @DIVS, $cform->{file};
-             $DIV_LABEL{$cform->{file}} = $cform->{div_title};
-         }
-    }
-
     # DIVS contents
     my $entity_id = $company->{entity_id};
     $entity_id ||= $person->{entity_id};
@@ -299,24 +279,18 @@ sub _main_screen {
     my @business_types =
                LedgerSMB->call_procedure(funcname => 'business_type__list');
 
-    my ($curr_list) =
-          LedgerSMB->call_procedure(funcname => 'setting__get_currencies');
+    my @all_currencies =
+        map { { curr => $_ } }
+        (LedgerSMB::Setting->new({base => $request}))->get_currencies;
 
-    my @all_currencies;
-    for my $curr (@{$curr_list->{'setting__get_currencies'}}){
-        push @all_currencies, { text => $curr};
-    }
-
-    my $default_country = LedgerSMB::Setting->get('default_country');
-
-    my ($default_language) = LedgerSMB::Setting->get('default_language');
+    my $default_country = $request->setting->get('default_country');
+    my ($default_language) = $request->setting->get('default_language');
 
     my $attach_level_options = [
         {text => $locale->text('Entity'), value => 1} ];
     push@{$attach_level_options},
         {text => $locale->text('Credit Account'),
          value => 3} if $credit_act->{id};
-    ;
 
 
     local $@ = undef;
@@ -326,15 +300,6 @@ sub _main_screen {
     opendir(my $dh2, 'UI/Contact/plugins') || die "can't opendir plugins directory: $!";
     my @plugins = grep { /^[^.]/ && -f "UI/Contact/plugins/$_" } readdir($dh2);
     closedir $dh2;
-
-    # Template info and rendering
-    my $template = LedgerSMB::Template->new(
-        user => $request->{_user},
-        template => 'contact',
-        locale => $request->{_locale},
-        path => 'UI/Contact',
-        format => 'HTML'
-    );
 
     my @country_list = LedgerSMB->call_procedure(
                      funcname => 'location_list_country'
@@ -346,7 +311,9 @@ sub _main_screen {
     my $roles;
     $roles = $user->list_roles if $user;
 
-    return $template->render({
+    # Template info and rendering
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'Contact/contact', {
                      DIVS => \@DIVS,
                 DIV_LABEL => \%DIV_LABEL,
              entity_class => $entity_class,
@@ -836,14 +803,8 @@ sub get_pricelist {
     my $pricelist = $credit->get_pricematrix;
     $request->merge($credit) if $credit;
     $request->merge($pricelist) if $pricelist;
-    my $template = LedgerSMB::Template->new(
-                user => $request->{_user},
-                path => 'UI/Contact' ,
-                template => 'pricelist',
-                format => uc($request->{format} || 'HTML'),
-                locale => $request->{_locale},
-    );
-    return $template->render($request);
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'Contact/pricelist', $request);
 }
 
 
@@ -997,11 +958,13 @@ sub save_roles {
 
 =back
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2012, the LedgerSMB Core Team.  This is licensed under the GNU
-General Public License, version 2, or at your option any later version.  Please
-see the accompanying License.txt for more information.
+Copyright (C) 2012 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

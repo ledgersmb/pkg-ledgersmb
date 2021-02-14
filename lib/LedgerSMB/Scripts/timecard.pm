@@ -1,3 +1,6 @@
+
+package LedgerSMB::Scripts::timecard;
+
 =head1 NAME
 
 LedgerSMB::Scripts::timecard - LedgerSMB workflow routines for timecards.
@@ -12,22 +15,28 @@ This module contains the basic workflow scripts for managing timecards for
 LedgerSMB.  Timecards are used to track time and materials consumed in the
 process of work, from professional services to payroll and manufacturing.
 
+=head1 METHODS
+
+This module does not specify any methods.
+
 =cut
 
-package LedgerSMB::Scripts::timecard;
-use LedgerSMB::Template;
-use LedgerSMB::Timecard;
-use LedgerSMB::Timecard::Type;
-use LedgerSMB::Report::Timecards;
-use LedgerSMB::Company_Config;
-use LedgerSMB::Business_Unit_Class;
-use LedgerSMB::Business_Unit;
-use LedgerSMB::Magic qw( MIN_PER_HOUR SEC_PER_HOUR SUNDAY SATURDAY );
-use LedgerSMB::Setting;
-use DateTime;
 use strict;
 use warnings;
 
+use DateTime;
+
+use LedgerSMB::Business_Unit_Class;
+use LedgerSMB::Business_Unit;
+use LedgerSMB::Company_Config;
+use LedgerSMB::Magic qw( MIN_PER_HOUR SEC_PER_HOUR SUNDAY SATURDAY );
+use LedgerSMB::PGDate;
+use LedgerSMB::Report::Timecards;
+use LedgerSMB::Sysconfig;
+use LedgerSMB::Template;
+use LedgerSMB::Template::UI;
+use LedgerSMB::Timecard;
+use LedgerSMB::Timecard::Type;
 
 =head1 ROUTINES
 
@@ -52,13 +61,8 @@ This begins the timecard workflow.  The following may be set as a default:
 sub new {
     my ($request) = @_;
     @{$request->{bu_class_list}} = LedgerSMB::Business_Unit_Class->list();
-    return LedgerSMB::Template->new(
-        user     => $request->{_user},
-        locale   => $request->{_locale},
-        path     => 'UI/timecards',
-        template => 'entry_filter',
-        format   => 'HTML'
-    )->render($request);
+    return LedgerSMB::Template::UI->new_UI
+        ->render($request, 'timecards/entry_filter', $request);
 }
 
 =item display
@@ -84,17 +88,12 @@ sub display {
     @{$request->{b_units}} = LedgerSMB::Business_Unit->list(
           $request->{bu_class_id}, undef, 0, $request->{transdate}
     );
-    my $curr = LedgerSMB::Setting->get('curr');
-    @{$request->{currencies}} = split /:/, $curr;
-    $request->{total} = ($request->{qty}//0) + ($request->{non_billable}//0);
-     my $template = LedgerSMB::Template->new(
-         user     => $request->{_user},
-         locale   => $request->{_locale},
-         path     => 'UI/timecards',
-         template => 'timecard',
-         format   => 'HTML'
-     );
-     return $template->render($request);
+    @{$request->{currencies}} =
+        $request->setting->get_currencies;
+    $request->{total} =
+        ($request->{qty} // 0) + ($request->{non_billable} // 0);
+     my $template = LedgerSMB::Template::UI->new_UI;
+     return $template->render($request, 'timecards/timecard', $request);
 }
 
 =item timecard_screen
@@ -112,8 +111,8 @@ sub timecard_screen {
          @{$request->{b_units}} = LedgerSMB::Business_Unit->list(
               $request->{bu_class_id}, undef, 0, $request->{transdate}
          );
-         my $curr = LedgerSMB::Setting->get('curr');
-         @{$request->{currencies}} = split /:/, $curr;
+         @{$request->{currencies}} =
+             $request->setting->get_currencies;
          my $startdate = LedgerSMB::PGDate->from_input($request->{date_from});
 
          my @dates = ();
@@ -123,14 +122,9 @@ sub timecard_screen {
          }
          $request->{num_lines} = 1 unless $request->{num_lines};
          $request->{transdates} = \@dates;
-         my $template = LedgerSMB::Template->new(
-             user     => $request->{_user},
-             locale   => $request->{_locale},
-             path     => 'UI/timecards',
-             template => 'timecard-week',
-             format   => 'HTML'
-         );
-         return $template->render($request);
+         my $template = LedgerSMB::Template::UI->new_UI;
+         return
+             $template->render($request, 'timecards/timecard-week', $request);
     }
 }
 
@@ -207,7 +201,7 @@ sub print {
            $request->{partnumber}
     );
     my $timecard = LedgerSMB::Timecard->new(%$request);
-    my $template = LedgerSMB::Template->new(
+    my $template = LedgerSMB::Template->new( # printed document
         user     => $request->{_user},
         locale   => $request->{_locale},
         path     => $LedgerSMB::Company_Config::settings->{templates},
@@ -291,11 +285,13 @@ sub get {
 
 =back
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-COPYRIGHT (C) 2012 The LedgerSMB Core Team.  This file may be re-used under the
-terms of the LedgerSMB General Public License version 2 or at your option any
-later version.  Please see enclosed LICENSE file for details.
+Copyright (C) 2012 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

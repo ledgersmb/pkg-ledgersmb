@@ -1,3 +1,6 @@
+
+package LedgerSMB::Report::Aging;
+
 =head1 NAME
 
 LedgerSMB::Report::Aging - AR/AP Aging reports for LedgerSMB
@@ -18,7 +21,6 @@ reportins aimed at the customer in question.
 
 =cut
 
-package LedgerSMB::Report::Aging;
 use Moose;
 use namespace::autoclean;
 extends 'LedgerSMB::Report';
@@ -195,16 +197,6 @@ sub template {
     }
 }
 
-=item header_lines
-
-Returns the inputs to display on header.
-
-=cut
-
-sub header_lines {
-    return [];
-}
-
 =back
 
 =head2 Criteria Properties
@@ -295,11 +287,13 @@ sub run_report{
 
 =back
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-COPYRIGHT (C) 2012 The LedgerSMB Core Team.  This file may be re-used following
-the terms of the GNU General Public License version 2 or at your option any
-later version.  Please see included LICENSE.TXT for details.
+Copyright (C) 2012 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 

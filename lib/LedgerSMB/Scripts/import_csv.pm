@@ -1,32 +1,35 @@
-=pod
+
+package LedgerSMB::Scripts::import_csv;
 
 =head1 NAME
 
 LedgerSMB::Scripts::import_csv - web entry points for various csv uploads
 
-=head1 SYNPOSIS
+=head1 DESCRIPTION
 
 This is a module that demonstrates how to set up scripts for importing bulk
 data.
 
+=head1 METHODS
+
+This module doesn't specify any methods.
+
 =cut
 
-package LedgerSMB::Scripts::import_csv;
 use strict;
 use warnings;
-
-use List::MoreUtils qw{ any };
-use Text::CSV;
 
 use LedgerSMB::Form;
 use LedgerSMB::Inventory::Adjust;
 use LedgerSMB::Inventory::Adjust_Line;
 use LedgerSMB::Magic qw( EC_VENDOR EC_CUSTOMER );
-use LedgerSMB::Template;
-use LedgerSMB::Setting;
+use LedgerSMB::Template::UI;
+
+use List::MoreUtils qw{ any };
+use Text::CSV;
 
 our $cols = {
-   gl       =>  ['accno', 'debit', 'credit', 'source', 'memo'],
+   gl       =>  ['accno', 'debit', 'credit', 'curr', 'debit_fx', 'credit_fx', 'source', 'memo'],
    ap_multi =>  ['vendor', 'amount', 'account', 'ap', 'description',
                  'invnumber', 'transdate'],
    ar_multi =>  ['customer', 'amount', 'account', 'ar', 'description',
@@ -129,9 +132,9 @@ sub _aa_multi {
         }
     }
     for my $ref (@$entries){
-        my $form = Form->new();
+        my $form = Form->new(); ## no critic
         $form->{dbh} = $request->{dbh};
-        my $default_currency = LedgerSMB::Setting->get('curr');
+        my $default_currency = $request->setting->get('curr');
         $form->{rowcount} = 1;
         $form->{ARAP} = uc($arap);
         $form->{batch_id} = $batch->{id};
@@ -159,7 +162,9 @@ sub _aa_multi {
         ($form->{vendor_id}) = $sth->fetchrow_array;
         $form->{customer_id} = $form->{vendor_id};
 
-        AA->post_transaction($request->{_user}, $form);
+        # The 'AA' package is used as 'LedgerSMB::AA'
+        # which is a problem for Perl::Critic
+        AA->post_transaction($request->{_user}, $form); ## no critic
     }
     return 1;
 }
@@ -206,7 +211,7 @@ sub _process_ap_multi {
 sub _process_gl {
     use LedgerSMB::GL;
     my ($request, $entries) = @_;
-    my $form = Form->new();
+    my $form = Form->new(); ## no critic
     $form->{reference} = $request->{reference};
     $form->{description} = $request->{description};
     $form->{transdate} = $request->{transdate};
@@ -234,8 +239,8 @@ sub _process_gl {
         }
         ++$form->{rowcount};
     }
-    return GL->post_transaction($request->{_user}, $form,
-                         $request->{_locale});
+    return GL->post_transaction( ## no critic
+        $request->{_user}, $form, $request->{_locale});
 }
 
 sub _process_chart {
@@ -243,33 +248,29 @@ sub _process_chart {
 
     my ($request, $entries) = @_;
 
-    use constant ACCNO          => 0;
-    use constant DESCRIPTION    => 1;
-    use constant CHARTTYPE      => 2;
-    use constant CATEGORY       => 3;
-    use constant CONTRA         => 4;
-    use constant TAX            => 5;
-    use constant LINK           => 6;
-    use constant HEADING        => 7;
-    use constant GIFI_ACCNO     => 8;
-
+    my %imported;
     foreach my $entry (@$entries){
-        my $account = LedgerSMB::DBObject::Account->new({base=>$request});
-        my $settings = {
-            accno => $entry->[ACCNO],
-            description => $entry->[DESCRIPTION],
-            charttype => $entry->[CHARTTYPE],
-            category => $entry->[CATEGORY],
-            contra => $entry->[CONTRA],
-            tax => $entry->[TAX],
-#            heading => $entry->[7],
-            gifi_accno => $entry->[GIFI_ACCNO],
-        };
-        my @link = split /:/, $entry->[LINK];
-        @$settings{ @link } = ( (1) x @link);
+        my %settings;
 
-        $account->merge($settings);
+        @settings{qw( accno description charttype
+                      category contra tax link heading gifi_accno )} = @$entry;
+
+        my @link = split /:/, $settings{link};
+        @settings{ @link } = ( (1) x @link);
+
+        die "Unable to resolve heading $settings{heading} to its id; available: " . join(' ', sort keys %imported)
+            if ($settings{heading}
+                and not exists $imported{$settings{heading}});
+        $settings{heading} = $imported{$settings{heading}}->{id};
+
+        my $account =
+            LedgerSMB::DBObject::Account->new(
+                {
+                    base => { %settings, dbh => $request->{dbh} }
+                });
+
         $account->save();
+        $imported{$settings{accno}} = $account;
     }
     return;
 }
@@ -377,7 +378,7 @@ sub _parse_file {
     $csv->header($handle);
     $self->{import_entries} = $csv->getline_all($handle);
 
-    return @{$self->{import_entries}};
+    return ([$csv->fields], @{$self->{import_entries}});
 }
 
 =head2 begin_import
@@ -396,18 +397,13 @@ sub begin_import {
         $template_setup->{$request->{type}}($request);
     }
 
-    my $template = LedgerSMB::Template->new(
-        user =>$request->{_user},
-        locale => $request->{_locale},
-        path => 'UI/import_csv',
-        template => $template_file,
-        format => 'HTML'
-    );
     # $request->{page_id} = $request->{type};
     # $request->{page_id} =~ s/_/-/;
     # $request->{page_id} .= '-import';
     $request->{page_id} = 'batch-import';
-    return $template->render({ request => $request });
+    my $template = LedgerSMB::Template::UI->new_UI;
+    return $template->render($request, 'import_csv/' . $template_file,
+                             { request => $request });
 }
 
 =head2 run_import
@@ -433,11 +429,13 @@ sub run_import {
     return begin_import($request);
 }
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
-Copyright(C) 2008-2013 The LedgerSMB Core Team.  This file may be re-used in
-accordance with the GNU General Public License (GNU GPL) v2 or at your option
-any later version.  Please see the included LICENSE.txt for more details.
+Copyright (C) 2008-2013 The LedgerSMB Core Team
+
+This file is licensed under the GNU General Public License version 2, or at your
+option any later version.  A copy of the license should have been included with
+your software.
 
 =cut
 
