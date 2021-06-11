@@ -147,7 +147,7 @@ SELECT e.id, pc.contact_class_id, pc.contact, pc.description
 INSERT INTO entity_bank_account (id, entity_id, bic, iban, remark)
 SELECT id, entity_id, coalesce(bic,''), iban, remark FROM lsmb13.entity_bank_account;
 INSERT INTO entity_credit_account SELECT * FROM lsmb13.entity_credit_account;
-UPDATE entity_credit_account SET curr = lsmb13.defaults_get_defaultcurrency()
+UPDATE entity_credit_account SET curr = (select curr from lsmb13.defaults_get_defaultcurrency() as c(curr) limit 1)
  WHERE curr IS NULL;
 INSERT INTO eca_to_contact SELECT * FROM lsmb13.eca_to_contact;
 INSERT INTO eca_to_location SELECT * FROM lsmb13.eca_to_location;
@@ -231,7 +231,8 @@ INSERT INTO ar (
  approved,
  entity_credit_account,
  force_closed,
- description
+ description,
+ crdate
 )
 SELECT
  id,
@@ -262,7 +263,8 @@ SELECT
  approved,
  entity_credit_account,
  force_closed,
- description
+ description,
+ crdate
   FROM lsmb13.ar;
 ALTER TABLE ar ENABLE TRIGGER ar_track_global_sequence;
 ALTER TABLE ar ENABLE TRIGGER ar_prevent_closed;
@@ -300,7 +302,8 @@ INSERT INTO ap (
  terms,
  description,
  force_closed,
- entity_credit_account
+ entity_credit_account,
+ crdate
 )
 SELECT
  id,
@@ -331,7 +334,8 @@ SELECT
  terms,
  description,
  force_closed,
- entity_credit_account
+ entity_credit_account,
+ crdate
   FROM lsmb13.ap;
 ALTER TABLE ap ENABLE TRIGGER ap_track_global_sequence;
 ALTER TABLE ap ENABLE TRIGGER ap_prevent_closed;
