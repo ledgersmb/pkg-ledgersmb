@@ -1,16 +1,12 @@
 #
-# Translators:
-# saeed soltani <saeedhakh2007@gmail.com>, 2018
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: LedgerSMB 1.6.33\n"
 "Report-Msgid-Bugs-To: devel@lists.ledgersmb.org\n"
 "POT-Creation-Date: 2021-06-03 18:26+0000\n"
-"Last-Translator: saeed soltani <saeedhakh2007@gmail.com>, 2018\n"
-"Language-Team: Persian (Iran) (https://www.transifex.com/ledgersmb/"
-"teams/58325/fa_IR/)\n"
-"Language: fa_IR\n"
+"Language-Team: French (France) (https://www.transifex.com/ledgersmb/"
+"teams/58325/fr_FR/)\n"
+"Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,7 +14,7 @@ msgstr ""
 
 #: lib/LedgerSMB/Report/Invoices/Outstanding.pm:163
 msgid "# Invoices"
-msgstr "فاکتور"
+msgstr ""
 
 #: lib/LedgerSMB/Report/Assets/Net_Book_Value.pm:112
 msgid "% Dep."
