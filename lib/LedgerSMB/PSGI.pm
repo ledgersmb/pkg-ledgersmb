@@ -114,6 +114,7 @@ sub psgi_app {
 
     $request->{action} = $env->{'lsmb.action_name'};
     my ($status, $headers, $body);
+    my $format = $request->{format};
     try {
         LedgerSMB::App_State::run_with_state sub {
             if ($env->{'lsmb.want_db'} && !$env->{'lsmb.dbonly'}) {
@@ -132,6 +133,10 @@ sub psgi_app {
                 # We got an evaluated template instead of a PSGI triplet...
                 ($status, $headers, $body) =
                     @{LedgerSMB::PSGI::Util::template_to_psgi($res)};
+
+                if (not defined $format) {
+                    Plack::Util::header_remove($headers, 'Content-Disposition');
+                }
             }
             else {
                 ($status, $headers, $body) = @$res;
