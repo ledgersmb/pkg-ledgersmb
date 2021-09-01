@@ -38,10 +38,10 @@ FOR t_inv IN
       JOIN (SELECT id, approved, transdate FROM ar
             UNION
             SELECT id, approved, transdate FROM gl) a ON a.id = i.trans_id
-     WHERE allocated + qty > 0 and a.approved and parts_id = in_parts_id
+     WHERE qty + allocated > 0 and a.approved and parts_id = in_parts_id
    ORDER BY a.transdate ASC, a.id ASC, i.id ASC
 LOOP
-   t_reallocated := greatest(in_qty - t_alloc, t_inv.qty + t_inv.allocated);
+   t_reallocated := least(t_alloc - in_qty, t_inv.qty + t_inv.allocated);
    UPDATE invoice
       SET allocated = allocated - t_reallocated
     WHERE id = t_inv.id;
@@ -111,7 +111,7 @@ LOOP
        RAISE EXCEPTION 'TOO MANY ALLOCATED';
    ELSIF t_alloc = in_qty THEN
        return ARRAY[t_alloc, t_cogs];
-   ELSIF (in_qty + t_alloc) <= t_avail THEN
+   ELSIF (in_qty - t_alloc) <= t_avail THEN
        UPDATE invoice SET allocated = allocated + (in_qty - t_alloc)
         WHERE id = t_inv.id;
        t_cogs := t_cogs + (in_qty - t_alloc) * t_inv.sellprice;
@@ -142,6 +142,7 @@ CREATE OR REPLACE FUNCTION cogs__reverse_ap
 (in_parts_id int, in_qty numeric) RETURNS numeric[] AS
 $$
 DECLARE t_alloc numeric :=0;
+        t_realloc numeric;
         t_inv invoice;
         t_cogs numeric :=0;
         retval numeric[];
@@ -157,29 +158,23 @@ FOR t_inv IN
      WHERE qty + allocated < 0 AND parts_id = in_parts_id
   ORDER BY a.transdate, a.id, i.id
 LOOP
+   t_realloc := least(in_qty - t_alloc, -1 * (t_inv.allocated + t_inv.qty));
+   UPDATE invoice SET allocated = allocated + t_realloc
+    WHERE id = t_inv.id;
+   t_alloc := t_alloc + t_realloc;
+   t_cogs := t_cogs + t_realloc * t_inv.sellprice;
+
    IF t_alloc > in_qty THEN
        RAISE EXCEPTION 'TOO MANY ALLOCATED';
    ELSIF t_alloc = in_qty THEN
-       return ARRAY[t_alloc, t_cogs];
-   ELSIF (in_qty - t_alloc) <= -1 * (t_inv.qty + t_inv.allocated) THEN
-       raise notice 'partial reversal';
-       UPDATE invoice SET allocated = allocated + (in_qty - t_alloc)
-        WHERE id = t_inv.id;
-       return ARRAY[in_qty * -1, t_cogs + (in_qty - t_alloc) * t_inv.sellprice];
-   ELSE
-       raise notice 'total reversal';
-       UPDATE invoice SET allocated = qty * -1
-        WHERE id = t_inv.id;
-       t_alloc := t_alloc - (t_inv.qty + t_inv.allocated);
-       t_cogs := t_cogs - (t_inv.qty + t_inv.allocated) * t_inv.sellprice;
+       return ARRAY[-1 * t_alloc, t_cogs];
    END IF;
 END LOOP;
-
-RETURN ARRAY[t_alloc, t_cogs];
 
 RAISE EXCEPTION 'TOO FEW TO ALLOCATE';
 END;
 $$ LANGUAGE PLPGSQL;
+
 
 COMMENT ON FUNCTION cogs__reverse_ap (in_parts_id int, in_qty numeric) IS
 $$ This function iterates through invoice rows attached to ap transactions and
@@ -199,10 +194,9 @@ DECLARE t_alloc numeric := 0;
         t_cogs numeric := 0;
         t_inv invoice;
         t_cp account_checkpoint;
-        t_ar ar;
+        t_transdate date;
         t_avail numeric;
 BEGIN
-
 
 IF in_qty > 0 THEN
    return (cogs__reverse_ap(in_parts_id, in_qty * -1))[1] * in_lastcost;
@@ -221,7 +215,10 @@ FOR t_inv IN
   ORDER BY a.transdate, a.id, i.id
 LOOP
    t_avail := t_inv.qty + t_inv.allocated;
-   SELECT * INTO t_ar FROM ar WHERE id = t_inv.trans_id;
+   SELECT transdate INTO t_transdate
+     FROM (select transdate, id from ar
+           union select transdate, id from gl) a
+    WHERE id = t_inv.trans_id;
    IF t_alloc < in_qty THEN
        RAISE EXCEPTION 'TOO MANY ALLOCATED';
    ELSIF t_alloc = in_qty THEN
@@ -233,7 +230,8 @@ LOOP
        INSERT INTO acc_trans
               (chart_id, transdate, amount, invoice_id, approved, trans_id)
        SELECT expense_accno_id,
-              CASE WHEN t_ar.transdate > coalesce(t_cp.end_date, t_ar.transdate - 1) THEN t_ar.transdate
+              CASE WHEN t_transdate > coalesce(t_cp.end_date, t_transdate - 1)
+                   THEN t_transdate
                    ELSE t_cp.end_date + '1 day'::interval
                END, (in_qty + t_alloc) * in_lastcost, t_inv.id, true,
               t_inv.trans_id
@@ -241,8 +239,9 @@ LOOP
        WHERE  id = t_inv.parts_id AND inventory_accno_id IS NOT NULL
               AND expense_accno_id IS NOT NULL
        UNION
-       SELECT income_accno_id,
-              CASE WHEN t_ar.transdate > coalesce(t_cp.end_date, t_ar.transdate - 1) THEN t_ar.transdate
+       SELECT inventory_accno_id,
+              CASE WHEN t_transdate > coalesce(t_cp.end_date, t_transdate - 1)
+                   THEN t_transdate
                    ELSE t_cp.end_date + '1 day'::interval
                END, -1 * (in_qty + t_alloc) * in_lastcost, t_inv.id, true,
               t_inv.trans_id
@@ -260,7 +259,8 @@ LOOP
        INSERT INTO acc_trans
               (chart_id, transdate, amount, invoice_id, approved, trans_id)
        SELECT expense_accno_id,
-              CASE WHEN t_ar.transdate > coalesce(t_cp.end_date, t_ar.transdate - 1) THEN t_ar.transdate
+              CASE WHEN t_transdate > coalesce(t_cp.end_date, t_transdate - 1)
+                   THEN t_transdate
                    ELSE t_cp.end_date + '1 day'::interval
                END,  -1 * t_avail * in_lastcost,
               t_inv.id, true, t_inv.trans_id
@@ -268,17 +268,17 @@ LOOP
        WHERE  id = t_inv.parts_id AND inventory_accno_id IS NOT NULL
               AND expense_accno_id IS NOT NULL
        UNION
-       SELECT income_accno_id,
-              CASE WHEN t_ar.transdate > coalesce(t_cp.end_date, t_ar.transdate - 1) THEN t_ar.transdate
+       SELECT inventory_accno_id,
+              CASE WHEN t_transdate > coalesce(t_cp.end_date, t_transdate - 1)
+                   THEN t_transdate
                    ELSE t_cp.end_date + '1 day'::interval
-               END, -t_avail * in_lastcost, t_inv.id, true, t_inv.trans_id
+               END, t_avail * in_lastcost, t_inv.id, true, t_inv.trans_id
          FROM parts
        WHERE  id = t_inv.parts_id AND inventory_accno_id IS NOT NULL
               AND expense_accno_id IS NOT NULL;
        t_alloc := t_alloc + t_avail;
        t_cogs := t_cogs + t_avail * in_lastcost;
    END IF;
-
 
 END LOOP;
 
@@ -301,6 +301,9 @@ BEGIN
 SELECT * INTO t_inv FROM invoice WHERE id = in_invoice_id;
 SELECT * INTO t_part FROM parts WHERE id = t_inv.parts_id;
 SELECT * INTO t_ar FROM ar WHERE id = t_inv.trans_id;
+SELECT transdate INTO t_transdate FROM (select transdate, id from ar
+                                        union select transdate, id from gl) a
+ WHERE id = t_inv.trans_id;
 
 IF t_ar.is_return THEN
    t_override_cogs = (setting_get('ar_return_account_id')).value::int;
@@ -324,10 +327,14 @@ END IF;
 UPDATE invoice set allocated = allocated - t_cogs[1]
  WHERE id = in_invoice_id;
 
-SELECT CASE WHEN t_ar.transdate > coalesce(max(end_date), t_ar.transdate - 1) THEN t_ar.transdate
+SELECT CASE WHEN t_transdate > coalesce(max(end_date), t_transdate - 1)
+            THEN t_transdate
             ELSE max(end_date) + '1 day'::interval
-        END INTO t_transdate
+        END
+  INTO t_transdate
   from account_checkpoint td;
+
+
 INSERT INTO acc_trans
        (trans_id, chart_id, approved, amount, transdate,  invoice_id)
 VALUES (t_inv.trans_id, COALESCE(t_override_cogs,
@@ -335,7 +342,7 @@ VALUES (t_inv.trans_id, COALESCE(t_override_cogs,
                            THEN t_part.returns_accno_id
                            ELSE t_part.expense_accno_id
                       END), TRUE, t_cogs[2] * -1,
-       coalesce(t_transdate, t_ar.transdate), t_inv.id),
+       t_transdate, t_inv.id),
        (t_inv.trans_id, t_part.inventory_accno_id, TRUE, t_cogs[2],
        t_transdate, t_inv.id);
 
@@ -352,7 +359,7 @@ DECLARE retval numeric;
         r_cogs numeric[];
         t_inv invoice;
         t_adj numeric;
-        t_ap  ap;
+        t_transdate date;
 BEGIN
 
 SELECT * INTO t_inv FROM invoice
@@ -362,7 +369,14 @@ IF t_inv.qty + t_inv.allocated = 0 THEN
    return 0;
 END IF;
 
-SELECT * INTO t_ap FROM ap WHERE id = t_inv.trans_id;
+PERFORM 1 FROM parts
+         WHERE t_inv.parts_id = parts.id
+               AND parts.inventory_accno_id IS NOT NULL;
+
+IF NOT FOUND THEN
+   -- the part doesn't have an associated inventory account: it's a service.
+   return 0;
+END IF;
 
 IF t_inv.qty < 0 THEN -- normal COGS
 
@@ -385,19 +399,23 @@ ELSE -- reversal
 
    t_adj := t_inv.sellprice * r_cogs[1] + r_cogs[2];
 
+   SELECT transdate INTO t_transdate
+     FROM (select transdate, id from ap
+           union select transdate, id from gl) a
+    WHERE id = t_inv.trans_id;
+
    INSERT INTO acc_trans
           (chart_id, trans_id, approved,  amount, transdate, invoice_id)
-   SELECT p.inventory_accno_id, t_inv.trans_id, true, t_adj, t_ap.transdate,
+   SELECT p.inventory_accno_id, t_inv.trans_id, true, t_adj, t_transdate,
           in_invoice_id
      FROM parts p
     WHERE id = t_inv.parts_id
     UNION
-   SELECT p.expense_accno_id, t_inv.trans_id, true, t_adj * -1, t_ap.transdate,
+   SELECT p.expense_accno_id, t_inv.trans_id, true, t_adj * -1, t_transdate,
           in_invoice_id
      FROM parts p
     WHERE id = t_inv.parts_id;
    retval := r_cogs[1];
-   raise notice 'cogs reversal returned %', r_cogs;
 
 END IF;
 

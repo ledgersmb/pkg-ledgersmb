@@ -1,0 +1,2 @@
+//>>built
+define("dojo/dnd/common",["../sniff","../_base/kernel","../_base/lang","../dom"],function(e,r,a,t){var i=a.getObject("dojo.dnd",!0);return i.getCopyKeyState=function(r){return r[e("mac")?"metaKey":"ctrlKey"]},i._uniqueId=0,i.getUniqueId=function(){var e;do{e=r._scopeName+"Unique"+ ++i._uniqueId}while(t.byId(e));return e},i._empty={},i.isFormElement=function(e){var r=e.target;return 3==r.nodeType&&(r=r.parentNode)," a button textarea input select option ".indexOf(" "+r.tagName.toLowerCase()+" ")>=0},i});//# sourceMappingURL=common.js.map

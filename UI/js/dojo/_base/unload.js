@@ -1,0 +1,2 @@
+//>>built
+define("dojo/_base/unload",["./kernel","./lang","../on"],function(e,t,n){var r=window,o={addOnWindowUnload:function(o,i){e.windowUnloaded||n(r,"unload",e.windowUnloaded=function(){}),n(r,"unload",t.hitch(o,i))},addOnUnload:function(e,o){n(r,"beforeunload",t.hitch(e,o))}};return e.addOnWindowUnload=o.addOnWindowUnload,e.addOnUnload=o.addOnUnload,o});//# sourceMappingURL=unload.js.map

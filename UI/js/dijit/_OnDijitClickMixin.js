@@ -1,0 +1,2 @@
+//>>built
+define("dijit/_OnDijitClickMixin",["dojo/on","dojo/_base/array","dojo/keys","dojo/_base/declare","dojo/has","./a11yclick"],function(e,r,t,a,i,d){var l=a("dijit._OnDijitClickMixin",null,{connect:function(e,r,t){return this.inherited(arguments,[e,"ondijitclick"==r?d:r,t])}});return l.a11yclick=d,l});//# sourceMappingURL=_OnDijitClickMixin.js.map

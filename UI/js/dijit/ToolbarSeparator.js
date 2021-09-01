@@ -1,0 +1,2 @@
+//>>built
+define("dijit/ToolbarSeparator",["dojo/_base/declare","dojo/dom","./_Widget","./_TemplatedMixin"],function(e,r,a,t){return e("dijit.ToolbarSeparator",[a,t],{templateString:'<div class="dijitToolbarSeparator dijitInline" role="presentation"></div>',buildRendering:function(){this.inherited(arguments),r.setSelectable(this.domNode,!1)},isFocusable:function(){return!1}})});//# sourceMappingURL=ToolbarSeparator.js.map

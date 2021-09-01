@@ -1,0 +1,2 @@
+//>>built
+define("dojo/_base/sniff",["./kernel","./lang","../sniff"],function(e,t,n){return e._name="browser",t.mixin(e,{isBrowser:!0,isFF:n("ff"),isIE:n("ie"),isKhtml:n("khtml"),isWebKit:n("webkit"),isMozilla:n("mozilla"),isMoz:n("mozilla"),isOpera:n("opera"),isSafari:n("safari"),isChrome:n("chrome"),isMac:n("mac"),isIos:n("ios"),isAndroid:n("android"),isWii:n("wii"),isQuirks:n("quirks"),isAir:n("air")}),n});//# sourceMappingURL=sniff.js.map

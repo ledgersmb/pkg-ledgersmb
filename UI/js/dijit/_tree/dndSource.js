@@ -1,0 +1,2 @@
+//>>built
+define("dijit/_tree/dndSource",["dojo/_base/kernel","dojo/_base/lang","../tree/dndSource"],function(e,t,r){e.deprecated("dijit._tree.dndSource has been moved to dijit.tree.dndSource, use that instead","","2.0"),t.setObject("dijit._tree.dndSource",r)});//# sourceMappingURL=dndSource.js.map

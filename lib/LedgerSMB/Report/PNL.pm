@@ -140,11 +140,14 @@ sub run_report {
         };
     my $row_props = ($self->gifi) ?
         sub { my ($line) = @_;
-              return { account_number => $line->{gifi},
-                       account_description => $line->{gifi_description},
-              };
+              $line->{account_number} = $line->{gifi};
+              $line->{account_description} = $line->{gifi_description};
+              $line->{order} = $line->{account_number};
+              return $line;
        } :
-       sub { my ($line) = @_; return $line; };
+       sub { my ($line) = @_;
+             $line->{order} = $line->{account_number};
+             return $line; };
 
 
     my $col_id = $self->cheads->map_path($self->column_path_prefix);
