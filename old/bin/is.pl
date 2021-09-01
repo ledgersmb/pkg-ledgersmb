@@ -310,6 +310,8 @@ sub form_header {
     $form->{exchangerate} =
       $form->format_amount( \%myconfig, $form->{exchangerate} );
 
+    $form->{selectAR} =~ s/(\Qoption value="$form->{AR}"\E)/$1 selected="selected"/;
+
     $exchangerate = qq|<tr>|;
     $exchangerate .= qq|
         <th align=right nowrap>| . $locale->text('Currency') . qq|</th>
@@ -771,7 +773,7 @@ qq|<textarea data-dojo-type="dijit/form/Textarea" name="intnotes" rows="$rows" c
                    !defined $form->{"mt_amount_$item"}){
                    $form->{"mt_amount_$item"} =
                            $form->{"mt_rate_$item"}
-                           * $form->{"mt_basis_$item"};
+                           * ($form->{"mt_basis_$item"} // 0);
                }
                $form->{invtotal} += $form->round_amount(
                                          $form->parse_amount( \%myconfig,  $form->{"mt_amount_$item"}), 2);

@@ -172,7 +172,8 @@ sub new {
         my @cookies = split /;/, $ENV{HTTP_COOKIE};
         foreach (@cookies) {
             my ( $name, $value ) = split /=/, $_, 2;
-            $cookie{$name} = $value;
+            # 'new code' picks the first cookie (with the same name)
+            $cookie{$name} //= $value;
         }
         $self->{cookie} = $cookie{$LedgerSMB::Sysconfig::cookie_name};
         my $unused;
@@ -180,8 +181,8 @@ sub new {
             split(/:/, $self->{cookie});
     }
 
-    $self->{version}   = "1.6.11";
-    $self->{dbversion} = "1.6.11";
+    $self->{version}   = "1.6.33";
+    $self->{dbversion} = "1.6.33";
 
     bless $self, $type;
 
@@ -1943,7 +1944,6 @@ sub get_regular_metadata {
     my $dbh = $self->{dbh};
     local $@;
     $transdate = $transdate->to_db if eval { $transdate->can('to_db') };
-
     $self->all_employees( $myconfig, $dbh, $transdate, 1 );
     $self->all_business_units( $myconfig, $dbh, $transdate, $job );
     $self->all_taxaccounts( $myconfig, $dbh, $transdate );
@@ -2055,7 +2055,7 @@ sub all_employees {
     }
 
     if ($sales) {
-        $query .= qq| sales = '1' AND|;
+        $query .= qq| sales AND|;
     }
 
     $query =~ s/(WHERE|AND)$//;
@@ -2254,7 +2254,7 @@ sub create_links {
     $query = qq|SELECT a.accno, a.description, as_array(l.description) as link
                   FROM account a
                   JOIN account_link l ON a.id = l.account_id AND NOT a.obsolete
-                 WHERE (l.description LIKE ?) OR a.tax
+                 WHERE (l.description LIKE ? OR a.tax)
                        AND (a.id in (select acc_trans.chart_id
                                        FROM acc_trans
                                       WHERE trans_id = coalesce(?, -1))
@@ -3822,7 +3822,7 @@ sub sequence_dropdown{
     my ($self, $setting_key) = @_;
     return undef if $self->{id} and ($setting_key ne 'sinumber');
     my @sequences = LedgerSMB::Setting::Sequence->list($setting_key);
-    my $retval = qq|<select name='setting_sequence' class='sequence'>\n|;
+    my $retval = qq|<select data-dojo-type="dijit/form/Select" name='setting_sequence' class='sequence'>\n|;
     $retval .= qq|<option></option>|;
 
     for my $seq (@sequences) {

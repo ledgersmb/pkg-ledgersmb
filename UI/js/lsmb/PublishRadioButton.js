@@ -1,0 +1,2 @@
+//>>built
+define("lsmb/PublishRadioButton",["dojo/_base/declare","dojo/on","dojo/topic","dijit/form/RadioButton"],function(e,t,r,a){return e("lsmb/PublishRadioButton",[a],{topic:"",publish:function(){r.publish(this.topic,this.value)},postCreate:function(){var e=this;this.inherited(arguments),this.own(t(this.domNode,"change",function(){e.publish()}))}})});//# sourceMappingURL=PublishRadioButton.js.map

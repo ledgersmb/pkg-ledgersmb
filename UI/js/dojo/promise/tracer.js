@@ -1,0 +1,2 @@
+//>>built
+define("dojo/promise/tracer",["../_base/lang","./Promise","../Evented"],function(e,r,a){"use strict";function t(e){setTimeout(function(){d.apply(i,e)},0)}var i=new a,d=i.emit;return i.emit=null,r.prototype.trace=function(){var r=e._toArray(arguments);return this.then(function(e){t(["resolved",e].concat(r))},function(e){t(["rejected",e].concat(r))},function(e){t(["progress",e].concat(r))}),this},r.prototype.traceRejected=function(){var r=e._toArray(arguments);return this.otherwise(function(e){t(["rejected",e].concat(r))}),this},i});//# sourceMappingURL=tracer.js.map

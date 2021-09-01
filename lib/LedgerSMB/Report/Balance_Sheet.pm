@@ -138,9 +138,10 @@ sub run_report {
         };
     my $row_props = ($self->gifi) ?
         sub { my ($line) = @_;
-              return { account_number => $line->{gifi_accno},
-                       account_desc => $line->{gifi_description},
-              };
+              $line->{account_number} = $line->{gifi_accno};
+              $line->{account_desc} = $line->{gifi_description};
+              $line->{order} = $line->{account_number};
+              return $line;
         } : ($self->legacy_hierarchy) ?
         sub { my ($line) = @_;
               if ($line->{account_type} eq 'A'
@@ -150,7 +151,9 @@ sub run_report {
               }
               return $line;
          } :
-         sub { my ($line) = @_; return $line; };
+         sub { my ($line) = @_;
+               $line->{order} = $line->{account_number};
+               return $line; };
 
     my $col_id = $self->cheads->map_path($self->column_path_prefix);
     $self->cheads->id_props($col_id,

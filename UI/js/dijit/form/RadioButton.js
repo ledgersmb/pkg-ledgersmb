@@ -1,0 +1,2 @@
+//>>built
+define("dijit/form/RadioButton",["dojo/_base/declare","./CheckBox","./_RadioButtonMixin"],function(e,t,r){return e("dijit.form.RadioButton",[t,r],{baseClass:"dijitRadio"})});//# sourceMappingURL=RadioButton.js.map

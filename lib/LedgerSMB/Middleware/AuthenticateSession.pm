@@ -156,8 +156,12 @@ sub call {
             $extended_cookie = _verify_session($env->{'lsmb.db'},
                                                $env->{'lsmb.company'},
                                                $session_cookie);
-            return LedgerSMB::PSGI::Util::session_timed_out()
-                if ! $extended_cookie;
+            if (! $extended_cookie) {
+                $dbh->commit;
+                $dbh->disconnect;
+
+                return LedgerSMB::PSGI::Util::session_timed_out();
+            }
 
             # create a session invalidation callback here.
             $env->{'lsmb.invalidate_session_cb'} = sub {
@@ -199,7 +203,7 @@ sub call {
                     # Set the new cookie (with the extended life-time on response
                     Plack::Util::header_push(
                         $res->[1], 'Set-Cookie',
-                        qq|$cookie_name=$extended_cookie; path=$path$secure|);
+                        qq|$cookie_name=$extended_cookie; Path=$path$secure; SameSite=Strict|);
                 });
         }
         else {

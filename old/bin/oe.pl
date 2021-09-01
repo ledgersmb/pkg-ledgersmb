@@ -668,8 +668,9 @@ sub form_header {
                 value => $locale->text('Purchase Order')
             },
             'rfq' => { ndx => 14, key => 'Q', value => $locale->text('RFQ') },
-            'schedule' =>
-              { ndx => 15, key => 'H', value => $locale->text('Schedule') },
+            # Commented out; see github isue #5295
+#            'schedule' =>
+#              { ndx => 15, key => 'H', value => $locale->text('Schedule') },
             'delete' =>
               { ndx => 16, key => 'D', value => $locale->text('Delete') },
         );
@@ -722,9 +723,10 @@ sub form_header {
             }
         }
 
-        if ( $form->{type} =~ /_order/ ) {
-            $a{'schedule'} = 1;
-        }
+        # Commented out; see github isue #5295
+#        if ( $form->{type} =~ /_order/ ) {
+#            $a{'schedule'} = 1;
+#        }
 
     }
     for ( keys %button ) { delete $button{$_} if !$a{$_} }
@@ -1668,14 +1670,22 @@ sub create_backorder {
 
 sub save_as_new {
 
-    for (qw(closed id printed emailed queued)) { delete $form->{$_} }
+    # orders don't have a quonumber
+    # quotes don't have an ordnumber
+    for (qw(closed id printed emailed queued ordnumber quonumber)) {
+        delete $form->{$_}
+    }
     &save;
 
 }
 
 sub print_and_save_as_new {
 
-    for (qw(closed id printed emailed queued)) { delete $form->{$_} }
+    # orders don't have a quonumber
+    # quotes don't have an ordnumber
+    for (qw(closed id printed emailed queued ordnumber quonumber)) {
+        delete $form->{$_}
+    }
     &print_and_save;
 
 }

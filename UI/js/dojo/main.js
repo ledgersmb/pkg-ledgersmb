@@ -1,0 +1,2 @@
+//>>built
+define("dojo/main",["./_base/kernel","./has","require","./sniff","./_base/lang","./_base/array","./_base/config","./ready","./_base/declare","./_base/connect","./_base/Deferred","./_base/json","./_base/Color","require","./_base/browser","require"],function(e,t,n,r,o,i,a,s){a.isDebug&&n(["./_firebug/firebug"]);return e});//# sourceMappingURL=main.js.map

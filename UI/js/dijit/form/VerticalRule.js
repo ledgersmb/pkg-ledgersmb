@@ -1,0 +1,2 @@
+//>>built
+define("dijit/form/VerticalRule",["dojo/_base/declare","./HorizontalRule"],function(e,t){return e("dijit.form.VerticalRule",t,{templateString:'<div class="dijitRuleContainer dijitRuleContainerV"></div>',_positionPrefix:'<div class="dijitRuleMark dijitRuleMarkV" style="top:',_isHorizontal:!1})});//# sourceMappingURL=VerticalRule.js.map

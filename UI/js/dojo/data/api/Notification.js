@@ -1,0 +1,2 @@
+//>>built
+define("dojo/data/api/Notification",["../../_base/declare","./Read"],function(e,r){return e("dojo.data.api.Notification",r,{getFeatures:function(){return{"dojo.data.api.Read":!0,"dojo.data.api.Notification":!0}},onSet:function(e,r,a,t){throw new Error("Unimplemented API: dojo.data.api.Notification.onSet")},onNew:function(e,r){throw new Error("Unimplemented API: dojo.data.api.Notification.onNew")},onDelete:function(e){throw new Error("Unimplemented API: dojo.data.api.Notification.onDelete")}})});//# sourceMappingURL=Notification.js.map

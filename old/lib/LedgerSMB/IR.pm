@@ -104,7 +104,6 @@ sub post_invoice {
     my $null;
     my $project_id;
     my $exchangerate = 0;
-    my $allocated;
     my $taxrate;
     my $taxamount;
     my $diff = 0;
@@ -316,7 +315,6 @@ sub post_invoice {
             }
 
             $amount = $form->round_amount( $linetotal, $moneyplaces );
-            $allocated = 0;
 
             # adjust and round sellprice
             $form->{"sellprice_$i"} =
@@ -357,7 +355,7 @@ sub post_invoice {
                 $form->{id},               $form->{"id_$i"},
                 $form->{"description_$i"}, $form->{"qty_$i"} * -1,
                 $form->{"sellprice_$i"},   $fxsellprice,
-                $form->{"discount_$i"},    $allocated,
+                $form->{"discount_$i"},    0,
                 $form->{"unit_$i"},        $form->{"deliverydate_$i"},
                 $form->{"serialnumber_$i"},
                 $form->{"precision_$i"},   $form->{"notes_$i"},
@@ -396,29 +394,6 @@ sub post_invoice {
 
             if ( $form->{"inventory_accno_id_$i"} ) {
                 my $totalqty = $form->{"qty_$i"};
-        if($form->{"qty_$i"}<0) {
-                    # check for unallocated entries at the same price to match our entry
-                    $query = qq|
-                  SELECT i.id, i.qty, i.allocated, a.transdate
-                        FROM invoice i
-                        JOIN parts p ON (p.id = i.parts_id)
-                    JOIN ap a ON (a.id = i.trans_id)
-                   WHERE i.parts_id = ? AND (i.qty + i.allocated) < 0 AND i.sellprice = ?
-                    ORDER BY transdate
-                    |;
-                    $sth = $dbh->prepare($query);
-                    $sth->execute( $form->{"id_$i"}, $form->{"sellprice_$i"}) || $form->dberror($query);
-                    my $totalqty = $form->{"qty_$i"};
-                    while ( my $ref = $sth->fetchrow_hashref(NAME_lc) ) {
-                        $form->db_parse_numeric(sth=>$sth, hashref => $ref);
-                        my $qty = $ref->{qty} + $ref->{allocated};
-                        if ( ( $qty - $totalqty ) < 0 ) { $qty = $totalqty; }
-                        # update allocated for sold item
-                        $form->update_balance( $dbh, "invoice", "allocated", qq|id = $ref->{id}|, $qty * -1 );
-                        $allocated += $qty;
-                        last if ( ( $totalqty -= $qty ) >= 0 );
-                    }
-        }
 
                 # add purchase to inventory
                 push @{ $form->{acc_trans}{lineitems} },
@@ -549,9 +524,10 @@ sub post_invoice {
     }
     if ($form->{manual_tax}){
         my $ac_sth = $dbh->prepare(
-              "INSERT INTO acc_trans (chart_id, trans_id, amount, source, memo)
+              "INSERT INTO acc_trans
+                    (chart_id, trans_id, transdate, amount, source, memo)
                     VALUES ((select id from account where accno = ?),
-                            ?, ?, ?, ?)"
+                            ?, ?, ?, ?, ?)"
         );
         my $tax_sth = $dbh->prepare(
               "INSERT INTO tax_extended (entry_id, tax_basis, rate)
@@ -571,7 +547,8 @@ sub post_invoice {
             my $fx_taxbasis = $taxbasis * $fx;
             $form->{payables} += $fx_taxamount;
             $invamount += $fx_taxamount;
-            $ac_sth->execute($taccno, $form->{id}, $fx_taxamount * -1,
+            $ac_sth->execute($taccno, $form->{id}, $form->{transdate},
+                             $fx_taxamount * -1,
                              $form->{"mt_ref_$taccno"},
                              $form->{"mt_desc_$taccno"});
             $tax_sth->execute($fx_taxbasis * -1, $taxrate);

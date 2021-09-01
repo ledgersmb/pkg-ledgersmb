@@ -2,6 +2,184 @@
 Changelog for 1.6 Series
 Released 2018-06-10
 
+Changelog for 1.6.33
+* Follow-up (fix) to upgrades blocked by files attached to transactions (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.32
+* Update welcome.html and README, removing FreeNode and updating Element (Erik H)
+* Fix double-quoting values in GL transaction 'notes' and 'description' (Erik H)
+* Fix GL transaction after file attachment showing up empty (Erik H)
+* Retain AR/AP account across 'Update' on invoices and transactions (Erik H)
+* Don't drop creation date on AR/AP transactions and invoices from 1.3 (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.31
+* Improve upgrades in light of files attached to transactions (Erik H, #5405)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.30
+* Fix Number not updated by 'Save as New' on order and quote (Erik H, #5356)
+* Performance improvements through added database indexes (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.29
+* Disable the broken-on-orders Schedule button on orders (Erik H, #5295)
+* Fix several LedgerSMB 1.3 migration issues (Erik H)
+* Fix dates on weekly-entry timecards (Richard W, #5336)
+
+Erik H is Erik Huelsmann
+Richard W is Richard T. Weeks
+
+
+Changelog for 1.6.28
+* Faster GL account tree consistency check
+* Maintain consistency between ar/ap/gl and transactions tables on delete
+* Fix CSV import of inventory adjustment to use same logic as manual input
+
+
+Changelog for 1.6.27
+* Fix sales person failing to save on AR/AP Transactions (Aung ZW, 5115)
+* Fix 'Manager' drop down not populated in employee page (Erik H, #5125)
+* Fix contact screen buttons populating customer on invoice/... (Erik H, #932)
+
+Aung ZW is Aung Zaw Win
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.26
+* Fix inability to open employee screen (Erik H, #5043)
+* Fix creation of assets class without required accounts (Erik H, #4624)
+* Fix saving part's customer rate without 'Min QTY' (Erik H, #4849)
+* Explain password reset when importing user on company creation (Erik H, #3249)
+* Fix inability to delete business unit class (Erik H, #4597)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.25
+* Fix AR/AP account on transactions retained on 'Update' (Erik H, #4927)
+* Fix AR/AP search not limited by Employee selection (Erik H, #4604)
+* Fix Departments dropdown not populated on Receipts/Payments (Erik H, #4636)
+* Fix showing sales employees on existing AR/AP transactions (Erik H, #1015)
+* Fix populating values in Asset screen dropdowns (Erik H, #5018)
+* Fix conflict between HTML5 and 'date' INPUT widgets (Erik H, #5018)
+* Fix asset class report to include classes missing accounts (Erik H, #5022)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.24
+* Fix Arabic as standard language selection on Account creation (Erik H, #4439)
+* Add Locale::Codes explicit dependencies, due to removal from CORE (Erik H)
+* Fix invoice opened from payment screen missing CSS (Erik H, #4890)
+* Fix amount filters on Draft search not working (Erik H, #4929)
+* Fix sequences returning 'invnumber' instead of sequence number (Erik H, #4949)
+* Make AR/AP transaction sequence drop-down follow application style (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.23
+* Fix reversals of purchases failing to post due to COGS error (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.22
+* Update Dojo toolkit dependency to 1.13.8 (Erik H)
+* Fix sorting of hierarchical income statement and balance sheet (Erik H)
+* Fix columns not being populated in AR/AP Outstanding report (Erik H)
+* Add SameSite policy on session cookie to prevent being ignored (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.21
+* Fix COGS for purchased-in-arrears parts (Erik H)
+* Update Dojo toolkit dependency to 1.13.7 (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.20
+* Prevent re-approval of approved inventory adjustment (Erik H)
+* Fix NULL transaction dates in inventory adjustment (Erik H)
+* Fix alignment of numbers in Inventory Activity report (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.19
+* Fix authentication issue due to inconsistent cookie handling (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.18
+* Upgrade Dojo dependency to 1.13.5 (Erik H)
+* Prevent dead-locks in response to request from timed out session (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.17
+* Allow uploading of attachments with unknown mime-types (Erik H)
+* Fix formatting on-hand (OH) column on orders to follow user settings (Erik H)
+* Fix migration of assembly data from SQL Ledger 3.2 (Yves L)
+
+Erik H is Erik Huelsmann
+Yves L is Yves Lavoie
+
+
+Changelog for 1.6.16
+* Include first transsaction on account in reconciliation report (Erik H)
+* Fix COGS error when posting AP invoice reversal (Erik H)
+* Fix error in reconciliation in case no prior balance exists (Erik H)
+* Fix write access error thrown on fixed assets disposal (Erik H)
+* Correctly calculate tax basis amount even for 0% taxes (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.15
+* Fix occasional COGS error on invoice posting (Erik H)
+* Fix occasional COGS error on invoice reversal posting (Erik H)
+* Fix failure on first reconciliation report for an account (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.14
+* Fix invoice screens crashing on manual tax with 0% tax rate (Erik H)
+* Fix manual tax lines posted on current instead of transaction date (Erik H)
+* Fix SQL error in reversal of services in AP invoice (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.13
+* Generate unique names for backups (Erik H)
+* Fix incorrect tax checkmarks in contact screen after save (Erik H)
+* Fix tax accounts inclusion in posted AR/AP transactions (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.6.12
+* Work around unloadable backups being dumped on some PostgreSQL versions (Erik H)
+
+Erik H is Erik Huelsmann
+
+
 Changelog for 1.6.11
 * Add CSS indentation to hierarchical financial statements (Erik H)
 * Fix random setup.pl errors due to assumed-available credentials (Erik H)
@@ -175,6 +353,44 @@ David G is David Godfrey
 
 Changelog for 1.5 Series
 Released 2016-12-24
+
+Changelog for 1.5.30
+* Include first transsaction on account in reconciliation report (Erik H)
+* Fix COGS error when posting AP invoice reversal (Erik H)
+* Fix error in reconciliation in case no prior balance exists (Erik H)
+* Fix write access error thrown on fixed assets disposal (Erik H)
+* Correctly calculate tax basis amount even for 0% taxes (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.5.29
+* Fix occasional COGS error on invoice posting (Erik H)
+* Fix occasional COGS error on invoice reversal posting (Erik H)
+* Fix failure on first reconciliation report for an account (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.5.28
+* Fix invoice screens crashing on manual tax with 0% tax rate (Erik H)
+* Fix manual tax lines posted on current instead of transaction date (Erik H)
+* Fix SQL error in reversal of services in AP invoice (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.5.27
+* Fix incorrect tax checkmarks in contact screen after save (Erik H)
+
+Erik H is Erik Huelsmann
+
+
+Changelog for 1.5.26
+* Work around unloadable backups being dumped on some PostgreSQL versions (Erik H)
+
+Erik H is Erik Huelsmann
+
 
 Changelog for 1.5.25
 * Fix regression when running in a schema other than 'public' (Erik H)

@@ -1,0 +1,2 @@
+//>>built
+define("lsmb/accounts/AccountStore",["dojo/store/Memory","dojo/store/Observable","dojo/request","dojo/_base/array","dojo/Evented"],function(e,t,r,a,i){var d=new t(new e({idProperty:"text",emitter:new i}));return r.get("journal.pl?action=chart_json",{handleAs:"json"}).then(function(e){a.forEach(e,function(e){e.text=e.accno+"--"+e.description,d.put(e)}),d.emitter.emit("accountstore_loadcomplete",{bubbles:!0,cancelable:!1})},function(e){}),d});//# sourceMappingURL=AccountStore.js.map

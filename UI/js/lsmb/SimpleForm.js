@@ -1,0 +1,2 @@
+//>>built
+define("lsmb/SimpleForm",["dijit/form/Form","dojo/_base/declare"],function(e,t){return t("lsmb/SimpleForm",[e],{onSubmit:function(e){return this.validate()}})});//# sourceMappingURL=SimpleForm.js.map
