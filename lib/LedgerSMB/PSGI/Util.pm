@@ -23,6 +23,7 @@ This module implements the C<Plack::Middleware> protocol.
 use strict;
 use warnings;
 
+use HTML::Escape;
 use HTTP::Status qw( HTTP_OK HTTP_INTERNAL_SERVER_ERROR HTTP_SEE_OTHER
  HTTP_UNAUTHORIZED );
 
@@ -36,7 +37,7 @@ Returns a standard error representation for HTTP status 500
 
 
 sub internal_server_error {
-    my ($msg, $title, $company, $dbversion) = @_;
+    my ($msg, $title, $company, $dbversion) = map { escape_html($_ // '') } @_;
 
     $title //= 'Error!';
     $msg =~ s/\n/<br>/g;
