@@ -2,6 +2,7 @@ ledgersmb (1.6.33+ds-1) unstable; urgency=medium
 
   [Erik Huelsmann]
   * New upstream release.
+  * Add myself to Uploaders.
 
   [ Robert James Clay ]
   * Bump debhelper version from 9.20160709 to 10.

@@ -3,6 +3,7 @@ Section: web
 Priority: optional
 Maintainer: LedgerSMB Core Team <devel@lists.ledgersmb.org>
 Uploaders: Robert James Clay <jame@rocasa.us>
+           Erik Huelsmann <ehuels@gmail.com>
 Build-Depends: debhelper (>= 10),
                texlive-latex-recommended,
                texlive-xetex,
