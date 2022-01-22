@@ -1,22 +1,36 @@
-ledgersmb (1.6.33+ds-1~1) UNRELEASED; urgency=medium
+ledgersmb (1.6.9+ds-2.1) unstable; urgency=medium
 
-  * New upstream release.
-  * Fix CVE-2021-3693
-  * Fix CVE-2021-3694
-  * Fix CVE-2021-3731
-  * Fix regression from CVE-2021-3693
+  * Non-maintainer upload.
+  * Upload the last security fixes also to unstable.  Closes: #992817
 
+ -- Mattia Rizzolo <mattia@debian.org>  Wed, 01 Sep 2021 20:19:24 +0200
 
- -- Erik Huelsmann <ehuels@gmail.com>  Wed, 01 Sep 2021 20:44:00 +0200
+ledgersmb (1.6.9+ds-2+deb11u3) bullseye-security; urgency=medium
 
-ledgersmb (1.6.11+ds-1~1) UNRELEASED; urgency=medium
+  * Fix a regression in the display of some search results
 
-  * New upstream release.
-  * Bump debhelper version from 9.20160709 to 10. 
-  * Add initial Features list to Long Description in debian/control.
-  * Add patching of conf/ledgersmb.conf.default file to 10_lsmb-config.patch.
+ -- Moritz Muehlenhoff <jmm@debian.org>  Mon, 30 Aug 2021 15:19:14 +0200
 
- -- Robert James Clay <jame@rocasa.us>  Fri, 20 Sep 2019 13:57:30 -0400
+ledgersmb (1.6.9+ds-2+deb11u2) bullseye-security; urgency=medium
+
+  * Fix CVE-2021-3731, thanks to Erik Huelsmann
+
+ -- Moritz Muehlenhoff <jmm@debian.org>  Sun, 22 Aug 2021 20:58:22 +0200
+
+ledgersmb (1.6.9+ds-2+deb11u1) bullseye-security; urgency=medium
+
+  * Fix CVE-2021-3693 and CVE-2021-3694, thanks to Erik Huelsmann
+
+ -- Moritz Muehlenhoff <jmm@debian.org>  Thu, 19 Aug 2021 21:02:41 +0200
+
+ledgersmb (1.6.9+ds-2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+
+  [ Erik Huelsmann ]
+  * Fix Missing old/bin/ directory on 1.6 package (Closes: #981608)
+
+ -- Chris Hofstaedtler <zeha@debian.org>  Wed, 10 Feb 2021 23:10:53 +0000
 
 ledgersmb (1.6.9+ds-1) unstable; urgency=medium
 
