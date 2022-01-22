@@ -1,2 +1,0 @@
-//>>built
-require(["dojo/_base/declare","dijit/registry","dijit/_WidgetBase","dijit/_Container"],function(e,t,r,a){return e("lsmb/InvoiceLines",[r,a],{removeLine:function(e){this.removeChild(t.byId(e)),this.emit("changed",{action:"removed"})}})});//# sourceMappingURL=InvoiceLines.js.map

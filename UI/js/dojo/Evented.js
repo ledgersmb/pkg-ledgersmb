@@ -1,2 +1,0 @@
-//>>built
-define("dojo/Evented",["./aspect","./on"],function(e,r){"use strict";function n(){}var t=e.after;return n.prototype={on:function(e,n){return r.parse(this,e,n,function(e,r){return t(e,"on"+r,n,!0)})},emit:function(e,n){var t=[this];return t.push.apply(t,arguments),r.emit.apply(r,t)}},n});//# sourceMappingURL=Evented.js.map

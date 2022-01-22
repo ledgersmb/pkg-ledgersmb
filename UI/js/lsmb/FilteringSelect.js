@@ -1,2 +1,0 @@
-//>>built
-define("lsmb/FilteringSelect",["dijit/form/FilteringSelect","dojo/_base/declare","dojo/keys","dojo/on","dojo/hash","dojo/dom-attr","dojo/dom-form","dojo/query","dijit/registry"],function(e,t,r,a,i,d,l,o,n){return t("lsmb/FilteringSelect",[e],{onKey:function(e){var t=this.dropDown;return t&&e.keyCode===r.TAB&&this.onChange(t.getHighlightedOption()),this.inherited(arguments)}})});//# sourceMappingURL=FilteringSelect.js.map

@@ -1,2 +1,0 @@
-//>>built
-define("dijit/layout/LinkPane",["./ContentPane","../_TemplatedMixin","dojo/_base/declare"],function(e,t,r){return r("dijit.layout.LinkPane",[e,t],{templateString:'<div class="dijitLinkPane" data-dojo-attach-point="containerNode"></div>',postMixInProperties:function(){this.srcNodeRef&&(this.title+=this.srcNodeRef.innerHTML),this.inherited(arguments)},_fillContent:function(){}})});//# sourceMappingURL=LinkPane.js.map

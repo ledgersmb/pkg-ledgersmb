@@ -1,2 +1,0 @@
-//>>built
-define("dojo/dnd/Target",["../_base/declare","../dom-class","./Source"],function(e,r,a){return e("dojo.dnd.Target",a,{constructor:function(){this.isSource=!1,r.remove(this.node,"dojoDndSource")}})});//# sourceMappingURL=Target.js.map

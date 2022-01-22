@@ -1,2 +1,0 @@
-//>>built
-define("dijit/form/DateTextBox",["dojo/_base/declare","../Calendar","./_DateTimeTextBox"],function(e,t,r){return e("dijit.form.DateTextBox",r,{baseClass:"dijitTextBox dijitComboBox dijitDateTextBox",popupClass:t,_selector:"date",maxHeight:1/0,value:new Date("")})});//# sourceMappingURL=DateTextBox.js.map

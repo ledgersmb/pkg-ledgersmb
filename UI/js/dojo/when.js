@@ -1,2 +1,0 @@
-//>>built
-define("dojo/when",["./Deferred","./promise/Promise"],function(e,t){"use strict";return function(n,r,o,i){var a=n&&"function"==typeof n.then,s=a&&n instanceof t;if(!a)return arguments.length>1?r?r(n):n:(new e).resolve(n);if(!s){var c=new e(n.cancel);n.then(c.resolve,c.reject,c.progress),n=c.promise}return r||o||i?n.then(r,o,i):n}});//# sourceMappingURL=when.js.map

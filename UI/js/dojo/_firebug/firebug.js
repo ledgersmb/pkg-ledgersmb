@@ -1,2 +1,0 @@
-//>>built
-define("dojo/_firebug/firebug",[],function(){if(/Trident/.test(window.navigator.userAgent)){for(var e=["log","info","debug","warn","error"],t=0;t<e.length;t++){var n=e[t];if(console[n]&&!console[n]._fake){var r="_"+e[t];console[r]=console[n],console[n]=function(){var e=r;return function(){console[e](Array.prototype.join.call(arguments," "))}}()}}try{console.clear()}catch(e){}}});//# sourceMappingURL=firebug.js.map
