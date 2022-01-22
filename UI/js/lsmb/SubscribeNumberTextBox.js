@@ -1,2 +1,0 @@
-//>>built
-define("lsmb/SubscribeNumberTextBox",["dojo/_base/declare","dojo/on","dojo/topic","dijit/form/NumberTextBox"],function(e,t,r,a){return e("lsmb/SubscribeNumberTextBox",a,{topic:"",update:function(e){this.set("value",e)},postCreate:function(){var e=this;this.inherited(arguments),this.own(r.subscribe(e.topic,function(t){e.update(t)}))}})});//# sourceMappingURL=SubscribeNumberTextBox.js.map

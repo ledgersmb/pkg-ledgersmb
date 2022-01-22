@@ -1,2 +1,0 @@
-//>>built
-define("dojo/errors/create",["../_base/lang"],function(e){return function(r,a,t,i){t=t||Error;var d=function(e){if(t===Error){Error.captureStackTrace&&Error.captureStackTrace(this,d);var r,i=Error.call(this,e);for(r in i)i.hasOwnProperty(r)&&(this[r]=i[r]);this.message=e,this.stack=i.stack}else t.apply(this,arguments);a&&a.apply(this,arguments)};return d.prototype=e.delegate(t.prototype,i),d.prototype.name=r,d.prototype.constructor=d,d}});//# sourceMappingURL=create.js.map

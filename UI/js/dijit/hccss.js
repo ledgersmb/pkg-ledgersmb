@@ -1,2 +1,0 @@
-//>>built
-define("dijit/hccss",["dojo/dom-class","dojo/hccss","dojo/domReady","dojo/_base/window"],function(e,r,t,a){return t(function(){r("highcontrast")&&e.add(a.body(),"dijit_a11y")}),r});//# sourceMappingURL=hccss.js.map

@@ -1,2 +1,0 @@
-//>>built
-define("lsmb/PublishToggleButton",["dojo/_base/declare","dojo/on","dojo/topic","dijit/form/ToggleButton"],function(e,t,r,a){return e("lsmb/PublishToggleButton",[a],{publish:function(e){r.publish(this.topic,e),this.set("iconClass",e?"dijitTreeIcon dijitFolderOpened":"dijitTreeIcon dijitFolderClosed")},postCreate:function(){var e=this;this.inherited(arguments),this.own(t(this,"change",function(t){e.publish(t)})),e.publish(e.checked)}})});//# sourceMappingURL=PublishToggleButton.js.map

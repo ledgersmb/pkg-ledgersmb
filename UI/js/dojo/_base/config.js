@@ -1,2 +1,0 @@
-//>>built
-define("dojo/_base/config",["../global","../has","require"],function(e,t,n){var r,o={},i=n.rawConfig;for(r in i)o[r]=i[r];if(!o.locale&&"undefined"!=typeof navigator){var a=navigator.languages&&navigator.languages.length?navigator.languages[0]:navigator.language||navigator.userLanguage;a&&(o.locale=a.toLowerCase())}return o});//# sourceMappingURL=config.js.map

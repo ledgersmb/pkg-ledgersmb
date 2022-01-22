@@ -1,2 +1,0 @@
-//>>built
-define("lsmb/JumpScreenButton",["dojo/_base/declare","dijit/registry","dijit/form/Button"],function(e,t,r){return e("lsmb/payments/JumpScreenButton",[r],{url:null,onClick:function(){t.byId("maindiv").load_link(this.url)}})});//# sourceMappingURL=JumpScreenButton.js.map
