@@ -1,3 +1,15 @@
+ledgersmb (1.6.33+ds-1) unstable; urgency=medium
+
+  [Erik Huelsmann]
+  * New upstream release.
+
+  [ Robert James Clay ]
+  * Bump debhelper version from 9.20160709 to 10.
+  * Add initial Features list to Long Description in debian/control.
+  * Add patching of conf/ledgersmb.conf.default file to 10_lsmb-config.patch.
+
+ -- Erik Hulsmann <erik@gmail.com>  Sat, 22 Jan 2022 19:23:59 +0100
+
 ledgersmb (1.6.9+ds-2.1) unstable; urgency=medium
 
   * Non-maintainer upload.
