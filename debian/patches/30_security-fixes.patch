@@ -1,0 +1,257 @@
+diff --git a/UI/js-src/lsmb/MainContentPane.js b/UI/js-src/lsmb/MainContentPane.js
+index 17ac8d3..7d291bf 100644
+--- a/UI/js-src/lsmb/MainContentPane.js
++++ b/UI/js-src/lsmb/MainContentPane.js
+@@ -6,17 +6,23 @@ define([
+     "dojo/dom-style",
+     "dojo/_base/lang",
+     "dojo/promise/Promise",
++    "dojo/Deferred",
+     "dojo/on",
+     "dojo/hash",
+     "dojo/promise/all",
+-    "dojo/request/xhr",
+     "dojo/query",
+     "dojo/request/iframe",
+     "dojo/dom-class"
+     ],
+        function(ContentPane, declare, event, registry, style,
+-                lang, Promise, on, hash, all, xhr, query, iframe,
++                lang, Promise, Deferred, on, hash, all, query, iframe,
+                 domClass) {
++           var docURL = new URL(document.location);
++           var domReject = function (request) {
++               return (
++                   request.getResponseHeader("X-LedgerSMB-App-Content") !== "yes" ||
++                   (request.getResponseHeader("Content-Disposition") || "").startsWith("attachment"));
++           };
+            return declare("lsmb/MainContentPane",
+                           [ContentPane],
+               {
+@@ -56,17 +62,61 @@ define([
+                               });
+                   },
+                   load_form: function(url, options) {
++                      var tgt = new URL(url, docURL);
++                      if (tgt.origin !== docURL.origin) {
++                          return (new Deferred()).resolve();
++                      }
++
+                       var self = this;
+                       self.fade_main_div();
+-                      return xhr(url, options).then(
+-                          function(doc){
++                      var req = new XMLHttpRequest();
++                      var dfd = new Deferred(function () {
++                          req.abort();
++                      });
++                      try {
++                          req.open(options.method || "GET", tgt);
++                          var headers = options.headers || {};
++                          for (var hdr in headers) {
++                              req.setRequestHeader(hdr, headers[hdr]);
++                          }
++                          if (options.data &&
++                              !(options.data instanceof FormData) &&
++                              !headers["Content-Type"]) {
++                              req.setRequestHeader(
++                                  "Content-Type",
++                                  "application/x-www-form-urlencoded"
++                              );
++                          }
++                          req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
++                          req.addEventListener("load", function () {
++                              dfd.resolve(req);
++                          });
++                          req.addEventListener("error", function () {
++                              dfd.reject(req);
++                          });
++                          req.send(options.data || "");
++                      } catch (e) {
++                          dfd.reject(e);
++                      }
++
++                      return dfd.then(
++                          function (request) {
++                              if (domReject(request)) {
++                                  return self.show_main_div();
++                              }
++
+                               self.hide_main_div();
+-                              self.set_main_div(doc);
++                              return self.set_main_div(request.response);
+                           },
+-                          function(err){
++                          function (request) {
++                              if (domReject(request)) {
++                                  return self.show_main_div();
++                              }
++
+                               self.show_main_div();
+-                              self.report_request_error(err);
+-                          });
++                              return self.report_request_error({ err: request });
++                          }
++                      );
+                   },
+                   download_link: function(href) {
+                       // while it would have been nice for the code below
+diff --git a/UI/payments/payments_detail.html b/UI/payments/payments_detail.html
+index 8a93849..5895af9 100644
+--- a/UI/payments/payments_detail.html
++++ b/UI/payments/payments_detail.html
+@@ -484,6 +484,7 @@
+                 <?lsmb INCLUDE select element_data = {
+                         name    = "format"
+                         class   = "select"
++                        default_blank = 1
+                         options = payment.format_options
+                         value   = payment.format
+                 } ?>
+diff --git a/lib/LedgerSMB/Middleware/DynamicLoadWorkflow.pm b/lib/LedgerSMB/Middleware/DynamicLoadWorkflow.pm
+index ce6a991..bc51862 100644
+--- a/lib/LedgerSMB/Middleware/DynamicLoadWorkflow.pm
++++ b/lib/LedgerSMB/Middleware/DynamicLoadWorkflow.pm
+@@ -27,6 +27,8 @@ use parent qw ( Plack::Middleware );
+ 
+ use Module::Runtime qw/ use_module /;
+ use List::Util qw{ none any };
++use Plack::Request;
++use Plack::Util;
+ 
+ use LedgerSMB::PSGI::Util;
+ 
+@@ -95,7 +97,15 @@ sub call {
+     $env->{'lsmb.script_name'} = $script_name;
+     $env->{'lsmb.action'} = $action;
+     $env->{'lsmb.action_name'} = $action_name;
+-    return $self->app->($env);
++    return Plack::Util::response_cb(
++        $self->app->($env),
++        sub {
++            if (not Plack::Util::header_exists($_[0]->[1],
++                                               'X-LedgerSMB-App-Content')) {
++                Plack::Util::header_push($_[0]->[1],
++                                         'X-LedgerSMB-App-Content', 'yes');
++            }
++        });
+ }
+ 
+ 
+diff --git a/lib/LedgerSMB/PSGI.pm b/lib/LedgerSMB/PSGI.pm
+index 7714d9c..f3ee149 100644
+--- a/lib/LedgerSMB/PSGI.pm
++++ b/lib/LedgerSMB/PSGI.pm
+@@ -65,7 +65,7 @@ Returns a 'PSGI app' which handles requests for the 'old-code' scripts in old/bi
+ =cut
+ 
+ sub old_app {
+-    return CGI::Emulate::PSGI->handler(
++    my $handler = CGI::Emulate::PSGI->handler(
+         sub {
+             my $uri = $ENV{REQUEST_URI};
+             $uri =~ s/\?.*//;
+@@ -73,6 +73,21 @@ sub old_app {
+ 
+             _run_old();
+         });
++
++    return sub {
++        return Plack::Util::response_cb(
++            $handler->(@_),
++            sub {
++                Plack::Util::header_set($_[0]->[1],
++                                        'Content-Security-Policy',
++                                        q{frame-ancestors 'self'});
++                if (not Plack::Util::header_exists($_[0]->[1],
++                                                   'X-LedgerSMB-App-Content')) {
++                    Plack::Util::header_push($_[0]->[1],
++                                             'X-LedgerSMB-App-Content', 'yes');
++                }
++            });
++    }
+ }
+ 
+ 
+@@ -99,6 +114,7 @@ sub psgi_app {
+ 
+     $request->{action} = $env->{'lsmb.action_name'};
+     my ($status, $headers, $body);
++    my $format = $request->{format};
+     try {
+         LedgerSMB::App_State::run_with_state sub {
+             if ($env->{'lsmb.want_db'} && !$env->{'lsmb.dbonly'}) {
+@@ -117,6 +133,10 @@ sub psgi_app {
+                 # We got an evaluated template instead of a PSGI triplet...
+                 ($status, $headers, $body) =
+                     @{LedgerSMB::PSGI::Util::template_to_psgi($res)};
++
++                if (not defined $format) {
++                    Plack::Util::header_remove($headers, 'Content-Disposition');
++                }
+             }
+             else {
+                 ($status, $headers, $body) = @$res;
+@@ -141,6 +161,9 @@ sub psgi_app {
+         }
+     };
+ 
++    Plack::Util::header_set($headers,
++                            'Content-Security-Policy',
++                            q{frame-ancestors 'self'});
+     return [ $status, $headers, $body ];
+ }
+ 
+diff --git a/lib/LedgerSMB/PSGI/Util.pm b/lib/LedgerSMB/PSGI/Util.pm
+index 34ca1e0..6ea669d 100644
+--- a/lib/LedgerSMB/PSGI/Util.pm
++++ b/lib/LedgerSMB/PSGI/Util.pm
+@@ -23,6 +23,7 @@ This module implements the C<Plack::Middleware> protocol.
+ use strict;
+ use warnings;
+ 
++use HTML::Escape;
+ use HTTP::Status qw( HTTP_OK HTTP_INTERNAL_SERVER_ERROR HTTP_SEE_OTHER
+  HTTP_UNAUTHORIZED );
+ 
+@@ -36,7 +37,7 @@ Returns a standard error representation for HTTP status 500
+ 
+ 
+ sub internal_server_error {
+-    my ($msg, $title, $company, $dbversion) = @_;
++    my ($msg, $title, $company, $dbversion) = map { escape_html($_ // '') } @_;
+ 
+     $title //= 'Error!';
+     $msg =~ s/\n/<br>/g;
+diff --git a/old/bin/old-handler.pl b/old/bin/old-handler.pl
+index cd6ac06..5e86e7c 100644
+--- a/old/bin/old-handler.pl
++++ b/old/bin/old-handler.pl
+@@ -61,6 +61,7 @@ use LedgerSMB::Middleware::RequestID;
+ use LedgerSMB::Sysconfig;
+ 
+ use Data::UUID;
++use HTML::Escape;
+ use Log::Log4perl;
+ 
+ $form = Form->new;
+@@ -188,14 +189,17 @@ $form->{dbh}->disconnect()
+ sub _error {
+     my ($form, $msg, $status) = @_;
+     $msg = "? _error" if !defined $msg;
++    my $html_msg = escape_html($msg);
++    my $html_dbversion = escape_html($form->{dbversion});
++    my $html_company   = escape_html($form->{company});
+     $status = 500 if ! defined $status;
+ 
+     print qq|Status: $status ISE
+ Content-Type: text/html; charset=utf-8
+ 
+ <html>
+-<body><h2 class="error">Error!</h2> <p><b>$msg</b></p>
+-<p>dbversion: $form->{dbversion}, company: $form->{company}</p>
++<body><h2 class="error">Error!</h2> <p><b>$html_msg</b></p>
++<p>dbversion: $html_dbversion, company: $html_company</p>
+ </body>
+ </html>
+ |;
