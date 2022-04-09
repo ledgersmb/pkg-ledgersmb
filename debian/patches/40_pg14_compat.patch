@@ -1,0 +1,55 @@
+Author: Erik Huelsmann <ehuels@gmail.com>
+Description: Compensate for a change in function signatures for the
+ "array_cat" and "array_append" functions in PostgreSQL 14 which
+ causes our schema to fail to load
+Origin: backport, https://github.com/ledgersmb/LedgerSMB/commit/e2110d5ca9bfdd47c8040ee1f2dd13879bced26b
+Last-Update: 2022-04-09
+
+diff --git a/sql/Pg-database.sql b/sql/Pg-database.sql
+index 4b9a210c..46f83334 100644
+--- a/sql/Pg-database.sql
++++ b/sql/Pg-database.sql
+@@ -3664,10 +3664,19 @@ $$;
+ -- PostgreSQL database dump complete
+ --
+ 
++CREATE OR REPLACE FUNCTION lsmb_array_append(ary anyarray, elm anyelement)
++RETURNS anyarray
++AS $$
++   SELECT array_append(ary, elm);
++$$ LANGUAGE sql;
++
++COMMENT ON FUNCTION lsmb_array_append(anyarray, anyelement)
++IS $$PostgreSQL 14 vs pre-14 compatibility measure.$$;
++
+ CREATE AGGREGATE as_array (
+         BASETYPE = ANYELEMENT,
+         STYPE = ANYARRAY,
+-        SFUNC = ARRAY_APPEND,
++        SFUNC = LSMB_ARRAY_APPEND,
+         INITCOND = '{}'
+ );
+ 
+@@ -3677,10 +3686,21 @@ $$ A basic array aggregate to take elements and return a one-dimensional array.
+ Example:  SELECT as_array(id) from entity_class;
+ $$;
+ 
++
++CREATE OR REPLACE FUNCTION compound_array(ary anyarray, elm anyarray)
++RETURNS anyarray
++AS $$
++   SELECT array_cat(ary, elm);
++$$ LANGUAGE sql;
++
++COMMENT ON FUNCTION compound_array(anyarray, anyarray)
++IS $$PostgreSQL 14 vs pre-14 compatibility measure.$$;
++
++
+ CREATE AGGREGATE compound_array (
+         BASETYPE = ANYARRAY,
+         STYPE = ANYARRAY,
+-        SFUNC = ARRAY_CAT,
++        SFUNC = COMPOUND_ARRAY,
+         INITCOND = '{}'
+ );
+ 
