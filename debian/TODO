@@ -7,6 +7,13 @@ https://qa.debian.org/debcheck.php?dist=unstable&package=ledgersmb
 
 =================================================================================
 -----------------------------------------------------------------------------------
+
+Regenerate docs/database/ledgersmb.html (pg_autodoc html output) using the
+postgresql-autodoc package at build time, using pg_virtualenv.
+
+
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
     - updating debconf po reference:
 https://www.debian.org/doc/manuals/developers-reference/ch06.html#s6.5.2.2
 
