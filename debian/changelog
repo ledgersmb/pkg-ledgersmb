@@ -1,3 +1,9 @@
+ledgersmb (1.6.33+ds-3) UNRELEASED; urgency=medium
+
+  * Fix lintian errors and warnings
+
+ -- Erik Huelsmann <ehuels@gmail.com>  Wed, 16 Nov 2022 20:57:37 +0100
+
 ledgersmb (1.6.33+ds-2.1) unstable; urgency=medium
 
   * Non-maintainer upload.

@@ -1,0 +1,6 @@
+
+# The database HTML documentation contains nothing more than the
+# schema documentation generated from the SQL schema files after
+# the schema has been loaded in a PostgreSQL database and running
+# pg_autodoc on it.
+ledgersmb source: source-is-missing doc/database/ledgersmb.html

@@ -1,3 +1,13 @@
+ledgersmb (1.6.33+ds-3) UNRELEASED; urgency=medium
+
+  This represents the last upload to Debian of the LedgerSMB 1.6.x
+  series package.
+
+  It has multiple issues solved which pave the way for releases of
+  newer release series.
+
+ -- Erik Huelsmann <ehuels@gmail.com>  Wed, 16 Nov 2022 21:11:24 +0100
+
 ledgersmb (1.5.21+ds-1) unstable; urgency=medium
 
   This represents the first upload to Debian of a LedgerSMB v1.5.x series

@@ -58,7 +58,7 @@ case "$1" in
             fi
         fi
         # Configure the 'ledgersmb' system user.
-        getent passwd ledgersmb >/dev/null 2>&1 || adduser --system --group --quiet --disabled-password --home /var/run/ledgersmb --gecos "LedgerSMB" ledgersmb
+        getent passwd ledgersmb >/dev/null 2>&1 || adduser --system --group --quiet --disabled-password --home /run/ledgersmb --gecos "LedgerSMB" ledgersmb
      ;;
 
     abort-upgrade|upgrade)
