@@ -4,10 +4,10 @@ Upstream-Contact: Development discussion for LedgerSMB <devel@lists.ledgersmb.or
 Source: https://github.com/ledgersmb/LedgerSMB
  Repackaged, excluding embedded version of dojo Javascript library files.
 Files-Excluded:
- ledgersmb/UI/js
- ledgersmb/UI/js-src/dijit
- ledgersmb/UI/js-src/dojo
- ledgersmb/UI/js-src/util
+ ledgersmb/UI/js/*
+ ledgersmb/UI/js-src/dijit/*
+ ledgersmb/UI/js-src/dojo/*
+ ledgersmb/UI/js-src/util/*
 Comment: LedgerSMB is a drop-in replacement for SQL-Ledger, from which it was
  derived in 2006. The fork was from SQL-Ledger 2.6.17. Note also that the
  'The LedgerSMB Core Team' consists of the following people: Chris Travers,
